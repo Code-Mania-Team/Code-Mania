@@ -1,0 +1,65 @@
+
+
+/* Basic styles for homepage header */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #241C1C;
+    color: white;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.logo {
+    font-size: 40px;
+    color: white;
+    font-family: "Jersey 10", sans-serif
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 20px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    font-size: 30px;
+    font-family: 'Jersey 10', sans-serif;
+    text-transform: uppercase;
+    transition: background 0.3s ease;
+    background: linear-gradient(90deg, #CCE5AC, #3AFFEF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+nav ul li a:hover {
+    background: linear-gradient(90deg, #3AFFEF, #CCE5AC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sign-in-btn {
+    background: linear-gradient(90deg, #00D9FF, #520099);
+    border: none;
+    border-radius: 20px;
+    font-size: 30px;
+    padding: 8px 20px;
+    color: #241C1C;
+    font-family: 'Jersey 10', sans-serif;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.sign-in-btn:hover {
+    background: linear-gradient(90deg, #520099, #00D9FF);
+}
