@@ -1,23 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Homepage</title>
-    <link rel="stylesheet" href="./style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homepage</title>
+
+  <!-- Tailwind CDN (for testing, swap with build later) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom font -->
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
+  <style>
+    .font-jersey { font-family: "Jersey 10", sans-serif; }
+  </style>
 </head>
-<body>
-    <header>
-        <div class="logo">Code Mania</div>
-        <nav>
-            <ul>
-                <li><a href="#">LEARN</a></li>
-                <li><a href="#">COMMUNITY</a></li>
-                <li><a href="#">LEADERBOARD</a></li>
-            </ul>
-        </nav>
-        <button class="sign-in-btn">Sign in</button>
-    </header>
+<body class="m-0 p-0 bg-[#241C1C] text-white font-sans">
+  <header class="sticky top-0 z-50 flex items-center justify-between px-6 py-2 shadow-md bg-[#241C1C]">
+    <!-- Logo -->
+    <div class="text-[40px] text-white font-jersey ml-6">
+      Code Mania
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+      <ul class="flex gap-5 list-none p-0 m-0">
+        <li>
+          <a href="#"
+             class="text-[30px] font-jersey uppercase 
+                    bg-gradient-to-r from-[#CCE5AC] to-[#3AFFEF] 
+                    bg-clip-text text-transparent 
+                    transition duration-300 hover:from-[#3AFFEF] hover:to-[#CCE5AC]">
+            Learn
+          </a>
+        </li>
+        <li>
+          <a href="#"
+             class="text-[30px] font-jersey uppercase 
+                    bg-gradient-to-r from-[#CCE5AC] to-[#3AFFEF] 
+                    bg-clip-text text-transparent 
+                    transition duration-300 hover:from-[#3AFFEF] hover:to-[#CCE5AC]">
+            Community
+          </a>
+        </li>
+        <li>
+          <a href="#"
+             class="text-[30px] font-jersey uppercase 
+                    bg-gradient-to-r from-[#CCE5AC] to-[#3AFFEF] 
+                    bg-clip-text text-transparent 
+                    transition duration-300 hover:from-[#3AFFEF] hover:to-[#CCE5AC]">
+            Leaderboard
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Sign In Button -->
+    <button class="relative bg-gradient-to-r from-[#00D9FF] to-[#520099] rounded-[20px] text-[30px] px-5 py-0 text-[#241C1C] font-jersey cursor-pointer transition duration-300 hover:from-[#520099] hover:to-[#00D9FF]">
+      <span class="absolute top-0 left-0 w-full h-full rounded-[20px] pointer-events-none"></span>
+      Sign in
+    </button>
+  </header>
+
+  <main class="px-10 flex flex-col items-center justify-center min-h-[calc(100vh-56px)]">
+  <h1 class="text-6xl text-white leading-tight text-left max-w-4xl mb-6 font-jersey">
+      Level Up <br />
+      Your Coding Skills, Play,<br />
+      Learn, and Master Programming!
+    </h1>
+    <button class="bg-yellow-400 text-black font-bold rounded px-6 py-3 hover:bg-yellow-500 transition shadow-[4px_4px_0_0_#000000]">
+      Get Started
+    </button>
+  </main>
+
+  <!-- Second page section: Featured Languages Tabs -->
+  <section class="bg-[#0a2540] py-10 px-6">
+    <h2 class="text-white text-3xl font-jersey mb-6 text-left ml-6">Featured Languages</h2>
+    <div class="flex gap-8 justify-center">
+      <div class="flex flex-col items-center bg-black rounded-lg p-8 w-80 cursor-pointer">
+        <!-- Image placeholder -->
+        <div class="w-28 h-28 bg-gray-700 rounded mb-6"></div>
+        <span class="text-white text-2xl font-jersey">PYTHON</span>
+      </div>
+      <div class="flex flex-col items-center bg-black rounded-lg p-8 w-80 cursor-pointer">
+        <!-- Image placeholder -->
+        <div class="w-28 h-28 bg-gray-700 rounded mb-6"></div>
+        <span class="text-white text-2xl font-jersey">C++</span>
+      </div>
+      <div class="flex flex-col items-center bg-black rounded-lg p-8 w-80 cursor-pointer">
+        <!-- Image placeholder -->
+        <div class="w-28 h-28 bg-gray-700 rounded mb-6"></div>
+        <span class="text-white text-2xl font-jersey">JAVASCRIPT</span>
+      </div>
+    </div>
+  </section>
+
+  <script>
+  </script>
 </body>
 </html>
