@@ -1,11 +1,13 @@
 // src/components/Header.jsx
 import React from "react";
 import "../App.css"; // keep styles the same
+import crown from "../assets/crown.png";
 
 const Header = () => {
   return (
     <header className="header">
       <div className="logo">
+        <img src={crown} alt="Code Mania Logo" />
         <h1 className="logo-text">Code Mania</h1>
       </div>
       <nav className="nav">
