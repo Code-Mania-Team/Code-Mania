@@ -1,0 +1,182 @@
+import React, { useState } from "react";
+import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
+import "./CppCourse.css";
+
+const CppCourse = () => {
+  const [expandedModule, setExpandedModule] = useState(1);
+
+  const userProgress = {
+    name: "Your Name",
+    level: 1,
+    exercisesCompleted: 0,
+    totalExercises: 48,
+    xpEarned: 0,
+    totalXp: 700
+  };
+
+  const modules = [
+    {
+      id: 1,
+      title: "Getting Started",
+      description: "Set up your C++ environment and write your first program with basic output.",
+      exercises: [
+        { id: 1, name: "Setup & Installation", status: "available" },
+        { id: 2, name: "Hello World", status: "locked" },
+        { id: 3, name: "Comments", status: "locked" },
+        { id: 4, name: "Basic Output", status: "locked" }
+      ]
+    },
+    {
+      id: 2,
+      title: "Variables & Data Types",
+      description: "Learn about different data types, variables, and how to work with them in C++.",
+      exercises: [
+        { id: 1, name: "Variables", status: "locked" },
+        { id: 2, name: "Data Types", status: "locked" },
+        { id: 3, name: "Constants", status: "locked" },
+        { id: 4, name: "Type Casting", status: "locked" }
+      ]
+    },
+    {
+      id: 3,
+      title: "Operators & Expressions",
+      description: "Master arithmetic, comparison, and logical operators in C++.",
+      exercises: [
+        { id: 1, name: "Arithmetic Operators", status: "locked" },
+        { id: 2, name: "Comparison Operators", status: "locked" },
+        { id: 3, name: "Logical Operators", status: "locked" },
+        { id: 4, name: "Assignment Operators", status: "locked" }
+      ]
+    },
+    {
+      id: 4,
+      title: "Control Flow",
+      description: "Learn to control program flow with conditional statements and loops.",
+      exercises: [
+        { id: 1, name: "If Statements", status: "locked" },
+        { id: 2, name: "Switch Case", status: "locked" },
+        { id: 3, name: "For Loops", status: "locked" },
+        { id: 4, name: "While Loops", status: "locked" }
+      ]
+    }
+  ];
+
+  const toggleModule = (moduleId) => {
+    setExpandedModule(expandedModule === moduleId ? null : moduleId);
+  };
+
+  const getStatusIcon = (status) => {
+    if (status === "completed") return <CheckCircle className="status-icon completed" />;
+    if (status === "locked") return <Lock className="status-icon locked" />;
+    return <Circle className="status-icon available" />;
+  };
+
+  return (
+    <div className="cpp-course-page">
+      {/* Hero Section */}
+      <section className="cpp-hero">
+        <div className="cpp-hero-content">
+          <div className="course-badge">
+            <span className="badge-text">BEGINNER</span>
+            <span className="badge-text">COURSE</span>
+          </div>
+          <h1 className="cpp-hero-title">C++</h1>
+          <p className="cpp-hero-description">
+            Build high-performance applications with C++. Learn memory management, pointers, and system-level programming.
+          </p>
+          <button className="start-learning-btn">Start Learning for Free</button>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <div className="cpp-content">
+        {/* Modules Section */}
+        <div className="modules-section">
+          {modules.map((module) => (
+            <div key={module.id} className="module-card">
+              <div 
+                className="module-header"
+                onClick={() => toggleModule(module.id)}
+              >
+                <div className="module-info">
+                  <div className="module-icon">+</div>
+                  <h3 className="module-title">{module.title}</h3>
+                </div>
+                {expandedModule === module.id ? (
+                  <ChevronUp className="chevron-icon" />
+                ) : (
+                  <ChevronDown className="chevron-icon" />
+                )}
+              </div>
+
+              {expandedModule === module.id && (
+                <div className="module-content">
+                  <p className="module-description">{module.description}</p>
+                  <div className="exercises-list">
+                    {module.exercises.map((exercise) => (
+                      <div key={exercise.id} className={`exercise-item ${exercise.status}`}>
+                        <div className="exercise-info">
+                          <span className="exercise-number">Exercise {exercise.id}</span>
+                          <span className="exercise-name">{exercise.name}</span>
+                        </div>
+                        <div className="exercise-status">
+                          {exercise.status === "available" ? (
+                            <button className="start-btn">Start</button>
+                          ) : (
+                            <button className="locked-btn" disabled>
+                              {getStatusIcon(exercise.status)}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Sidebar */}
+        <div className="sidebar">
+          <div className="profile-card">
+            <div className="profile-avatar">
+              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=user" alt="Profile" />
+            </div>
+            <div className="profile-info">
+              <h4>{userProgress.name}</h4>
+              <p>Level {userProgress.level}</p>
+            </div>
+            <button className="view-profile-btn">View Profile</button>
+          </div>
+
+          <div className="progress-card">
+            <h4 className="progress-title">Course Progress</h4>
+            
+            <div className="progress-item">
+              <div className="progress-label">
+                <div className="progress-icon exercises"></div>
+                <span>Exercises</span>
+              </div>
+              <span className="progress-value">
+                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
+              </span>
+            </div>
+
+            <div className="progress-item">
+              <div className="progress-label">
+                <div className="progress-icon xp"></div>
+                <span>XP Earned</span>
+              </div>
+              <span className="progress-value">
+                {userProgress.xpEarned} / {userProgress.totalXp}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CppCourse;

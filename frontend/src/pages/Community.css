@@ -1,11 +1,19 @@
 /* Community Page Styles */
 .community-page {
-  max-width: 768px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  width: 100%;
+  min-height: 100vh;
+  background: #0f172a;
   color: white;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+.community-page > * {
+  width: 100%;
+  max-width: 768px;
 }
 
 /* Search Bar */

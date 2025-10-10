@@ -6,6 +6,10 @@ import Header from "./components/header";
 import Footer from "./components/footer";
 import Community from "./pages/Community";
 import Leaderboard from "./pages/Leaderboard";
+import Learn from "./pages/Learn";
+import PythonCourse from "./pages/PythonCourse";
+import CppCourse from "./pages/CppCourse";
+import JavaScriptCourse from "./pages/JavaScriptCourse";
 
 const Home = () => (
   <>
@@ -87,7 +91,11 @@ function App() {
         <Header />
         <main className="main-content">
           <Routes>
-              <Route path="/community" element={<Community />} />
+            <Route path="/learn" element={<Learn />} />
+            <Route path="/learn/python" element={<PythonCourse />} />
+            <Route path="/learn/cpp" element={<CppCourse />} />
+            <Route path="/learn/javascript" element={<JavaScriptCourse />} />
+            <Route path="/community" element={<Community />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/" element={<Home />} />
           </Routes>

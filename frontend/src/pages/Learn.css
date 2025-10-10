@@ -1,0 +1,215 @@
+/* Learn Page Styles */
+.learn-page {
+  width: 100%;
+  color: white;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Hero Section */
+.learn-hero {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background: url('/src/assets/learnpage.gif') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.learn-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5));
+  z-index: 1;
+}
+
+.learn-hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.learn-hero-subtitle {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  color: #e2e8f0;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.learn-hero-title {
+  font-family: 'Jersey 25', sans-serif;
+  font-size: 4rem;
+  color: white;
+  margin-bottom: 1rem;
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9);
+  letter-spacing: 2px;
+}
+
+.learn-hero-description {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  color: #ffffff;
+  line-height: 1.6;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Courses Section */
+.courses-section {
+  background: #0f172a;
+  padding: 4rem 2rem;
+  min-height: 60vh;
+}
+
+.courses-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.courses-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #3CB371;
+}
+
+.courses-title {
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 2.5rem;
+  color: white;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.courses-subtitle {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  line-height: 1.6;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.course-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.course-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(251, 191, 36, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.course-image-wrapper {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #1e293b;
+}
+
+.course-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.course-card:hover .course-image {
+  transform: scale(1.1);
+}
+
+.course-content {
+  padding: 1.5rem;
+}
+
+.course-level {
+  display: inline-block;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.course-title {
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 2rem;
+  margin: 0.5rem 0;
+  letter-spacing: 1px;
+}
+
+.course-description {
+  color: #cbd5e1;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.course-btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+
+.course-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .learn-hero {
+    height: 300px;
+  }
+
+  .learn-hero-title {
+    font-size: 2.5rem;
+  }
+
+  .learn-hero-description {
+    font-size: 1.2rem;
+  }
+
+  .courses-title {
+    font-size: 2rem;
+  }
+
+  .courses-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,6 @@
 // src/components/Header.jsx
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import "../App.css"; // keep styles the same
 import crown from "../assets/crown.png";
 
@@ -12,9 +12,17 @@ const Header = () => {
         <h1 className="logo-text">Code Mania</h1>
       </div>
       <nav className="nav">
-        <Link to="/" className="nav-link">LEARN</Link>
-        <Link to="/community" className="nav-link">COMMUNITY</Link>
-        <Link to="/leaderboard" className="nav-link">LEADERBOARD</Link>
+        <NavLink to="/" className="nav-link">HOME</NavLink>
+        <div className="nav-dropdown">
+          <NavLink to="/learn" className="nav-link">LEARN</NavLink>
+          <div className="dropdown-menu">
+            <Link to="/learn/python" className="dropdown-item">Python</Link>
+            <Link to="/learn/cpp" className="dropdown-item">C++</Link>
+            <Link to="/learn/javascript" className="dropdown-item">JavaScript</Link>
+          </div>
+        </div>
+        <NavLink to="/community" className="nav-link">COMMUNITY</NavLink>
+        <NavLink to="/leaderboard" className="nav-link">LEADERBOARD</NavLink>
         <button className="sign-in-btn">
           Sign In
         </button>
