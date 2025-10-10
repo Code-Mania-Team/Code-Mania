@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Code, Play, Twitter, Youtube } from 'lucide-react';
 import './App.css';
 import Header from "./components/header";
@@ -10,6 +10,21 @@ import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
 import CppCourse from "./pages/CppCourse";
 import JavaScriptCourse from "./pages/JavaScriptCourse";
+
+// Component to handle scrolling to top on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Scroll to top smoothly when path changes
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [pathname]);
+
+  return null;
+};
 
 const Home = () => (
   <>
@@ -89,6 +104,7 @@ function App() {
     <Router>
       <div className="app">
         <Header />
+        <ScrollToTop />
         <main className="main-content">
           <Routes>
             <Route path="/learn" element={<Learn />} />
