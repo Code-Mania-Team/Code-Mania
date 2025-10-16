@@ -1,33 +1,59 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Press+Start+2P&display=swap");
 
 /* Fullscreen base */
-.codex-fullscreen {
-  background-color: #0f172a;
-  color: #e2e8f0;
-  width: 100vw;
-  height: 100vh;
+.python-exercise-page {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #0f172a;
+  color: #e2e8f0;
   font-family: "Fira Code", monospace;
-  overflow: hidden;
 }
 
-.python-exercise-page .main-content {
-  padding-top: 0 !important;
+.codex-fullscreen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-y: auto;
+  padding: 1rem 0;
 }
 
 /* Grid layout for 2x2 panels */
 .codex-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 0.6rem;
-  width: 98%;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1rem;
+  width: 95%;
   max-width: 1600px;
-  height: 100%;
   margin: 0 auto;
-  padding: 0.5rem 0.8rem;
+  padding: 0 1rem;
   box-sizing: border-box;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .codex-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  
+  .codex-grid > * {
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .codex-grid {
+    width: 100%;
+    padding: 0 0.5rem;
+    gap: 0.8rem;
+  }
+  
+  .codex-fullscreen {
+    padding: 0.5rem 0;
+  }
 }
 
 
@@ -38,11 +64,12 @@
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  min-height: 300px;
 }
 
 .game-preview h3 {
   color: #38bdf8;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
   font-size: 1rem;
 }
 
@@ -55,6 +82,10 @@
   justify-content: center;
   color: #9ca3af;
   font-size: 0.9rem;
+  padding: 1rem;
+  text-align: center;
+  word-break: break-word;
+  overflow: auto;
 }
 
 /* Code Editor */
@@ -64,6 +95,22 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 300px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .game-preview, .code-editor, .lesson-section, .terminal {
+    min-height: 250px;
+  }
+  
+  .lesson-section {
+    padding: 1rem;
+  }
+  
+  .terminal-body {
+    padding: 0.75rem;
+  }
 }
 
 .editor-header {
@@ -105,31 +152,53 @@
   line-height: 1.5;
 }
 
-/* Lesson */
+/* Lesson Section */
 .lesson-section {
   background-color: #111827;
   border-radius: 8px;
   padding: 1.5rem;
   overflow-y: auto;
+  min-height: 300px;
 }
 
 .lesson-title {
   font-family: "Press Start 2P", cursive;
   color: #38bdf8;
   font-size: 0.8rem;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
+}
+
+.lesson-section h3 {
+  color: #60a5fa;
+  font-size: 1rem;
+  margin: 1.2rem 0 0.8rem 0;
 }
 
 .lesson-text {
   color: #cbd5e1;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
   font-size: 0.9rem;
   line-height: 1.6;
+}
+
+.lesson-section ul {
+  padding-left: 1.2rem;
+  margin: 0 0 1rem 0;
+}
+
+.lesson-section li {
+  color: #cbd5e1;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .lesson-footer {
   color: #94a3b8;
   font-size: 0.85rem;
+  margin: 1.5rem 0 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid #1e293b;
 }
 
 /* Terminal */
@@ -139,26 +208,47 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 300px;
 }
 
 .terminal-header {
   background: #252526;
   color: #d4d4d4;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
   font-size: 0.8rem;
+  font-family: "Fira Code", monospace;
+  border-bottom: 1px solid #333;
 }
 
 .terminal-body {
   padding: 1rem;
   color: #d4d4d4;
+  font-family: "Fira Code", monospace;
   font-size: 0.9rem;
   flex: 1;
   overflow-y: auto;
+  background: #1e1e1e;
+  line-height: 1.5;
+}
+
+.terminal-line {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .prompt {
   color: #4ade80;
   margin-right: 0.5rem;
+  user-select: none;
+}
+
+.terminal-output {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 0.5rem;
 }
 
 .cursor {
@@ -167,6 +257,12 @@
   height: 1.2rem;
   background-color: #d4d4d4;
   animation: blink 1s infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* Header + Progress bar */

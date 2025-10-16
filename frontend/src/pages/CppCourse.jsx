@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import "./CppCourse.css";
 
 const CppCourse = () => {
@@ -61,8 +62,14 @@ const CppCourse = () => {
     }
   ];
 
+  const navigate = useNavigate();
+
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
+  };
+
+  const handleStartExercise = (moduleId, exerciseId) => {
+    navigate(`/learn/cpp/exercise/${moduleId}/${exerciseId}`);
   };
 
   const getStatusIcon = (status) => {
@@ -121,7 +128,12 @@ const CppCourse = () => {
                         </div>
                         <div className="exercise-status">
                           {exercise.status === "available" ? (
-                            <button className="start-btn">Start</button>
+                            <button 
+                              className="start-btn"
+                              onClick={() => handleStartExercise(module.id, exercise.id)}
+                            >
+                              Start
+                            </button>
                           ) : (
                             <button className="locked-btn" disabled>
                               {getStatusIcon(exercise.status)}

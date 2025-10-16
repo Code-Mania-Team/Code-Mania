@@ -9,6 +9,7 @@ import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
 import PythonExercise from "./pages/PythonExercise";
 import CppCourse from "./pages/CppCourse";
+import CppExercise from "./pages/CppExercise";
 import JavaScriptCourse from "./pages/JavaScriptCourse";
 import SignInModal from "./components/SignInModal";
 
@@ -113,8 +114,10 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
 
-  // hide header/footer on PythonExercise route
-  const isExercisePage = location.pathname.startsWith("/learn/python/exercise");
+  // hide header/footer on exercise routes
+  const isExercisePage = 
+    location.pathname.startsWith("/learn/python/exercise") || 
+    location.pathname.startsWith("/learn/cpp/exercise");
 
   return (
     <div className="app">
@@ -128,6 +131,7 @@ function App() {
           <Route path="/learn/python" element={<PythonCourse />} />
           <Route path="/learn/python/exercise/:exerciseId" element={<PythonExercise />} />
           <Route path="/learn/cpp" element={<CppCourse />} />
+          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route path="/community" element={<Community />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
