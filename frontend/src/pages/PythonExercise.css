@@ -1,0 +1,217 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Press+Start+2P&display=swap");
+
+/* Fullscreen base */
+.codex-fullscreen {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Fira Code", monospace;
+  overflow: hidden;
+}
+
+.python-exercise-page .main-content {
+  padding-top: 0 !important;
+}
+
+/* Grid layout for 2x2 panels */
+.codex-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.6rem;
+  width: 98%;
+  max-width: 1600px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0.5rem 0.8rem;
+  box-sizing: border-box;
+}
+
+
+/* Game Preview */
+.game-preview {
+  background: #111827;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-preview h3 {
+  color: #38bdf8;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.preview-box {
+  background: #1e293b;
+  border-radius: 8px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+/* Code Editor */
+.code-editor {
+  background: #1e1e1e;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-header {
+  background-color: #252526;
+  color: #d4d4d4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+}
+
+.run-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background-color: #3b82f6;
+  border: none;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.run-btn:hover {
+  background-color: #2563eb;
+}
+
+.code-box {
+  flex: 1;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 1rem;
+  font-family: "Fira Code", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Lesson */
+.lesson-section {
+  background-color: #111827;
+  border-radius: 8px;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.lesson-title {
+  font-family: "Press Start 2P", cursive;
+  color: #38bdf8;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.lesson-text {
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.lesson-footer {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+/* Terminal */
+.terminal {
+  background: #1e1e1e;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal-header {
+  background: #252526;
+  color: #d4d4d4;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+}
+
+.terminal-body {
+  padding: 1rem;
+  color: #d4d4d4;
+  font-size: 0.9rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.prompt {
+  color: #4ade80;
+  margin-right: 0.5rem;
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.5rem;
+  height: 1.2rem;
+  background-color: #d4d4d4;
+  animation: blink 1s infinite;
+}
+
+/* Header + Progress bar */
+.lesson-progress {
+  padding: 1rem 1.2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lesson-stage {
+  font-family: "Press Start 2P", cursive;
+  color: #38bdf8;
+  font-size: 0.9rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #1e293b;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #38bdf8;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .codex-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+}

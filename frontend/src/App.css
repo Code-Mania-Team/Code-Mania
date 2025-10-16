@@ -103,10 +103,16 @@ body {
   margin-bottom: 8px;
 }
 
-.logo-text {
+.logo-text,
+.logo-text a,
+.logo-text a:link,
+.logo-text a:visited,
+.logo-text a:hover,
+.logo-text a:active {
   font-family: "Press Start 2P", system-ui;
   font-size: 1.2rem;
-  color: white;
+  color: white !important;
+  text-decoration: none;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   margin-left: 0.5rem;
@@ -369,21 +375,32 @@ body {
   color: white;
   margin-bottom: 1.5rem;
   text-transform: uppercase;
-  line-height: 1.2;
-  letter-spacing: 1px;
 }
 
 .learn-text p {
-  font-size: 1.2rem;
-  color: #cbd5e1;
-  margin-bottom: 2.5rem;
-  line-height: 1.6;
-  max-width: 90%;
+font-size: 1.2rem;
+color: #cbd5e1;
+margin-bottom: 2.5rem;
+line-height: 1.6;
+max-width: 90%;
+}
+
+.subtext {
+color: #a0a0a0;
+margin: 0 auto 1.5rem;
+font-size: 0.9rem;
+text-align: center;
+display: block;
+width: 100%;
 }
 
 .learn-image img {
-  max-width: 500px;
-  width: 100%;
+max-width: 500px;
+width: 100%;
+height: auto;
+border-radius: 1rem;
+box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+transition: transform 0.3s ease;
   height: auto;
   border-radius: 1rem;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -488,7 +505,187 @@ body {
   color: white;
 }
 
-/* === Footer === */
+/* Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal */
+.signin-modal {
+  background: #111118;
+  border: 2px solid #2e2e3f;
+  border-radius: 16px;
+  padding: 2.5rem;
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.welcome-section h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.pixel-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.pixel-sword {
+  transform: rotate(-15deg);
+}
+
+.pixel-shield {
+  transform: rotate(15deg);
+}
+
+/* Close Button */
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 1.8rem;
+  line-height: 1;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 10;
+}
+.close-modal:hover {
+  color: #fff;
+}
+
+/* Adjust modal padding to prevent content from being too close to the close button */
+.signin-modal {
+  padding-top: 3rem;  /* Increased top padding */
+}
+
+/* Ensure welcome section has enough top margin */
+.welcome-section {
+  margin-top: 1rem;
+}
+
+/* Welcome Title */
+.welcome-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Press Start 2P', cursive;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+.pixel-sword,
+.pixel-shield {
+  font-size: 1.3rem;
+}
+.subtext {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.65rem;
+  background: linear-gradient(90deg, #007bff, #7f00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 2rem;
+}
+
+/* Inputs */
+.signin-form label {
+  color: #ddd;
+  font-size: 0.75rem;
+  display: block;
+  text-align: left;
+  margin-bottom: 0.4rem;
+}
+.signin-form input {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1b1b25;
+  color: #fff;
+  font-size: 0.9rem;
+  margin-bottom: 1.2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.signin-form input:focus {
+  border-color: #7f00ff;
+  box-shadow: 0 0 6px rgba(127, 0, 255, 0.4);
+  outline: none;
+}
+
+/* Remember Me */
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 1.5rem;
+}
+.remember-me input {
+  accent-color: #7f00ff;
+}
+
+/* Gradient Button */
+.signin-button {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(90deg, #007bff, #7f00ff);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.signin-button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* Signup link */
+.signup-link {
+  margin-top: 1.5rem;
+  font-size: 0.7rem;
+  color: #aaa;
+  font-family: 'Press Start 2P', cursive;
+}
+.signup-link a {
+  color: #7f00ff;
+  text-decoration: none;
+  margin-left: 0.2rem;
+}
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+
 .footer {
   background: #0a0a0a;
   padding: 3rem 2rem 1.5rem;
@@ -507,20 +704,6 @@ body {
   gap: 3rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-@media (max-width: 768px) {
-  .footer-top {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  
-  .footer-brand {
-    padding-right: 0;
-    border-right: none;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
 }
 
 .footer-brand {

@@ -1,37 +1,36 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { Code, Play, Twitter, Youtube } from 'lucide-react';
-import './App.css';
+import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import Community from "./pages/Community";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
+import PythonExercise from "./pages/PythonExercise";
 import CppCourse from "./pages/CppCourse";
 import JavaScriptCourse from "./pages/JavaScriptCourse";
+import SignInModal from "./components/SignInModal";
 
-// Component to handle scrolling to top on route change
+// Scroll to top on route change
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-
   useEffect(() => {
-    // Scroll to top smoothly when path changes
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pathname]);
-
   return null;
 };
 
+// Home page
 const Home = () => (
   <>
     <section className="hero-section">
       <div className="hero-content">
         <h1 className="hero-title">LEARN TO CODE</h1>
-        <p className="hero-description">Master programming with interactive courses and hands-on projects. Build real-world applications while learning.</p>
+        <p className="hero-description">
+          Master programming with interactive courses and hands-on projects.
+          Build real-world applications while learning.
+        </p>
         <button className="get-started-btn">Get Started</button>
       </div>
     </section>
@@ -69,30 +68,41 @@ const Home = () => (
       <div className="learn-content">
         <div className="learn-text">
           <h2>Start Your Coding Quest</h2>
-          <p>Embark on an epic journey where programming is your weapon. Complete challenges, unlock new skills, and level up as you build real projects.</p>
+          <p>
+            Embark on an epic journey where programming is your weapon.
+            Complete challenges, unlock new skills, and level up as you build
+            real projects.
+          </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/learntocode.gif" alt="Learn to code"/>
+          <img src="/src/assets/learntocode.gif" alt="Learn to code" />
         </div>
       </div>
 
       <div className="learn-content">
-        <div className='learn-text'>
+        <div className="learn-text">
           <h2>Level Up Your Skills</h2>
-          <p>Coding is your next adventure. Master quests, earn achievements, and progress from beginner to pro while creating powerful applications.</p>
+          <p>
+            Coding is your next adventure. Master quests, earn achievements,
+            and progress from beginner to pro while creating powerful
+            applications.
+          </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/chill.gif" alt="Learn to code"/>
+          <img src="/src/assets/chill.gif" alt="Chill coding" />
         </div>
       </div>
 
       <div className="learn-content">
         <div className="learn-text">
           <h2>Play. Code. Conquer.</h2>
-          <p>Turn coding into your next big win. Face challenges, build real-world projects, and climb the leaderboard of your own success.</p>
+          <p>
+            Turn coding into your next big win. Face challenges, build
+            real-world projects, and climb the leaderboard of your own success.
+          </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/117.gif" alt="Learn to code"/>
+          <img src="/src/assets/117.gif" alt="Coding challenge" />
         </div>
       </div>
     </section>
@@ -100,26 +110,42 @@ const Home = () => (
 );
 
 function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const location = useLocation();
+
+  // hide header/footer on PythonExercise route
+  const isExercisePage = location.pathname.startsWith("/learn/python/exercise");
+
   return (
-    <Router>
-      <div className="app">
-        <Header />
-        <ScrollToTop />
-        <main className="main-content">
-          <Routes>
-            <Route path="/learn" element={<Learn />} />
-            <Route path="/learn/python" element={<PythonCourse />} />
-            <Route path="/learn/cpp" element={<CppCourse />} />
-            <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/" element={<Home />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <div className="app">
+      {!isExercisePage && <Header onOpenModal={() => setIsModalOpen(true)} />}
+      <ScrollToTop />
+
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/learn" element={<Learn />} />
+          <Route path="/learn/python" element={<PythonCourse />} />
+          <Route path="/learn/python/exercise/:exerciseId" element={<PythonExercise />} />
+          <Route path="/learn/cpp" element={<CppCourse />} />
+          <Route path="/learn/javascript" element={<JavaScriptCourse />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+        </Routes>
+      </main>
+
+      {!isExercisePage && <Footer />}
+
+      <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    </div>
   );
 }
 
-export default App;
+// Wrap in Router
+export default function AppWithRouter() {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}

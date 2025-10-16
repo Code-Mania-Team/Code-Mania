@@ -1,9 +1,16 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import "./PythonCourse.css";
 
 const PythonCourse = () => {
+  const navigate = useNavigate();
   const [expandedModule, setExpandedModule] = useState(1);
+
+  const handleStartExercise = (moduleId, exerciseName) => {
+    const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/learn/python/exercise/${moduleId}-${exerciseId}`);
+  };
 
   const userProgress = {
     name: "Your Name",
@@ -123,7 +130,12 @@ const PythonCourse = () => {
                         </div>
                         <div className="exercise-status">
                           {exercise.status === "available" ? (
-                            <button className="start-btn">Start</button>
+                            <button 
+                              className="start-btn"
+                              onClick={() => handleStartExercise(module.id, exercise.name)}
+                            >
+                              Start
+                            </button>
                           ) : (
                             <button className="locked-btn" disabled>
                               {getStatusIcon(exercise.status)}
