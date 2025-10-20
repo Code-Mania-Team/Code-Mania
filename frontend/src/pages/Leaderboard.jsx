@@ -5,9 +5,9 @@ import './Leaderboard.css';
 const Leaderboard = () => {
   // Sample leaderboard data
   const leaderboardData = [
-    { rank: 1, name: 'Alex Johnson', score: 9850, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=alex' },
-    { rank: 2, name: 'Maria Garcia', score: 8765, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=maria' },
-    { rank: 3, name: 'James Wilson', score: 7654, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=james' },
+    { rank: 1, name: 'Vince De Castro', score: 9850, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=alex' },
+    { rank: 2, name: 'Diether Pano', score: 8765, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=maria' },
+    { rank: 3, name: 'Wilson Esmabe', score: 7654, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=james' },
     { rank: 4, name: 'Sarah Lee', score: 7432, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=sarah' },
     { rank: 5, name: 'David Kim', score: 7210, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=david' },
   ];

@@ -11,6 +11,7 @@ import PythonExercise from "./pages/PythonExercise";
 import CppCourse from "./pages/CppCourse";
 import CppExercise from "./pages/CppExercise";
 import JavaScriptCourse from "./pages/JavaScriptCourse";
+import JavaScriptExercise from "./pages/JavaScriptExercise";
 import SignInModal from "./components/SignInModal";
 
 // Scroll to top on route change
@@ -117,7 +118,8 @@ function App() {
   // hide header/footer on exercise routes
   const isExercisePage = 
     location.pathname.startsWith("/learn/python/exercise") || 
-    location.pathname.startsWith("/learn/cpp/exercise");
+    location.pathname.startsWith("/learn/cpp/exercise") ||
+    location.pathname.startsWith("/learn/javascript/exercise");
 
   return (
     <div className="app">
@@ -133,6 +135,7 @@ function App() {
           <Route path="/learn/cpp" element={<CppCourse />} />
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
+          <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
           <Route path="/community" element={<Community />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Play } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -8,6 +8,44 @@ const PythonExercise = () => {
   const [code, setCode] = useState(`# Write code below ❤️
 print("Hello, World!")`);
   const [output, setOutput] = useState("");
+
+  // ✅ Add this line to fix the error
+  const [showHelp, setShowHelp] = useState(false);
+
+  // === Dialogue System ===
+  const dialogues = [
+    "Welcome to your first Python lesson! (click to continue)",
+    "Let's start by printing something to the screen!"
+  ];
+  const [currentDialogue, setCurrentDialogue] = useState(0);
+  const [displayedText, setDisplayedText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Automatically start dialogue on component mount
+  useEffect(() => {
+    handleNextDialogue();
+  }, []);
+
+  const handleNextDialogue = () => {
+    if (isTyping) return;
+    const nextText = dialogues[currentDialogue];
+    if (!nextText) return;
+    setIsTyping(true);
+    setDisplayedText("");
+
+    let index = 0;
+    const interval = setInterval(() => {
+      setDisplayedText(nextText.slice(0, index));
+      index++;
+      if (index > nextText.length) {
+        clearInterval(interval);
+        setIsTyping(false);
+        setCurrentDialogue((prev) =>
+          prev + 1 < dialogues.length ? prev + 1 : prev
+        );
+      }
+    }, 40); // typing speed
+  };
 
   const handleRunCode = () => {
     if (!code.includes("print(") && !code.includes("print ")) {
@@ -52,77 +90,93 @@ print("Hello, World!")`);
           <p className={styles["progress-text"]}>Lesson 1 of 12</p>
         </div>
 
-        {/* === MAIN GRID === */}
-        <div className={styles["codex-grid"]}>
-          {/* Game Preview */}
-          <div className={styles["game-preview"]}>
-            <h3>🕹️ Game Preview</h3>
-            <div className={styles["preview-box"]}>
-              [ Game Screen Placeholder ]
-            </div>
-          </div>
-
-          {/* Code Editor */}
-          <div className={styles["code-editor"]}>
-            <div className={styles["editor-header"]}>
-              <span>script.py</span>
-              <button className={styles["run-btn"]} onClick={handleRunCode}>
-                <Play size={16} /> Run
-              </button>
-            </div>
-            <textarea
-              className={styles["code-box"]}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            ></textarea>
-          </div>
-
-          {/* Lesson Section */}
-          <div className={styles["lesson-section"]}>
-            <h2 className={styles["lesson-title"]}># Python</h2>
-            <p className={styles["lesson-text"]}>
-              Welcome to the first chapter of <b>The Legend of Python!</b> 🐍
-              <br />
-              The programming language we are learning is called <b>Python</b>,
-              created by <b>Guido van Rossum</b> in the early 90s.
-            </p>
-            <p className={styles["lesson-text"]}>
-              Python is designed to be easy for us to read, which makes it the
-              perfect coding language for beginners.
-            </p>
-
-            <h3>It’s used in the following areas:</h3>
-            <ul>
-              <li>• Data analysis & visualization</li>
-              <li>• Artificial intelligence (AI)</li>
-              <li>• Machine learning (ML)</li>
-              <li>• Web development</li>
-              <li>• And more!</li>
-            </ul>
-
-            <p className={styles["lesson-footer"]}>
-              All the code we write in this course will be in Python files (.py).
-              <br />
-              There’s a code editor on the right side, created just for you. 💻
-            </p>
-          </div>
-
-          {/* Terminal */}
-          <div className={styles["terminal"]}>
-            <div className={styles["terminal-header"]}>Terminal</div>
-            <div className={styles["terminal-body"]}>
-              <div className={styles["terminal-line"]}>
-                <span className={styles["prompt"]}>$</span> python script.py
+        <div className={styles["main-layout"]}>
+          {/* Left Side - Game Preview */}
+          <div className={styles["game-container"]}>
+            <div className={styles["game-preview"]}>
+              <div className={styles["game-scene"]}>
+                <img
+                  alt="Game background"
+                  className={styles["game-bg"]}
+                />
+                <img
+                  src="https://www.freepngimg.com/thumb/rpg/3-2-rpg-png-6.png"
+                  alt="Character"
+                  className={styles["game-character"]}
+                />
               </div>
-              {output && (
-                <div className={styles["terminal-output"]}>{output}</div>
-              )}
-              <div className={styles["terminal-line"]}>
-                <span className={styles["prompt"]}>$</span>
-                <span className={styles["cursor"]}></span>
+
+              {/* Dialogue Box */}
+              <div
+                className={styles["dialogue-box"]}
+                onClick={handleNextDialogue}
+              >
+                <p className={styles["dialogue-text"]}>
+                  {displayedText}
+                </p>
               </div>
             </div>
           </div>
+
+          {/* Right Side - Code Editor and Terminal */}
+          <div className={styles["code-container"]}>
+            <div className={styles["code-editor"]}>
+              <div className={styles["editor-header"]}>
+                <span>script.py</span>
+                <button className={styles["run-btn"]} onClick={handleRunCode}>
+                  <Play size={16} /> Run
+                </button>
+              </div>
+              <textarea
+                className={styles["code-box"]}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+              ></textarea>
+            </div>
+
+            <div className={styles["terminal"]}>
+              <div className={styles["terminal-header"]}>Terminal</div>
+              <div className={styles["terminal-body"]}>
+                <div className={styles["terminal-line"]}>
+                  <span className={styles["prompt"]}>$</span> python script.py
+                </div>
+                {output && (
+                  <div className={styles["terminal-output"]}>{output}</div>
+                )}
+                <div className={styles["terminal-line"]}>
+                  <span className={styles["prompt"]}>$</span>
+                  <span className={styles["cursor"]}></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Help Section */}
+        <h3 className={styles["help-title"]}>Help</h3>
+        <div className={styles["help-section"]}>
+          <div
+            className={styles["help-header"]}
+            onClick={() => setShowHelp((prev) => !prev)}
+          >
+            <span>💡 Hint</span>
+            <span className={styles["help-arrow"]}>{showHelp ? "▴" : "▾"}</span>
+          </div>
+
+          {showHelp && (
+            <div className={styles["help-content"]}>
+              <p>
+                Remember: In Python, <code>print()</code> displays text on the screen.
+              </p>
+              <p>
+                Example: <code>print("Hello, World!")</code>
+              </p>
+              <p>
+                Try changing the text to <code>"Hi"</code> or your name and press{" "}
+                <b>Run</b> to test it!
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

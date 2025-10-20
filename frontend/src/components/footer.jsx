@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { Instagram, Twitter, Github, Youtube, Linkedin } from 'lucide-react';
 import crown from "../assets/crown.png";
 import "../App.css";
@@ -19,7 +20,7 @@ const Footer = () => {
               <h4>COMPANY</h4>
               <ul>
                 <li><a href="#about">About</a></li>
-                <li><a href="#community">Community</a></li>
+                <li><NavLink to="/community">Community</NavLink></li>
               </ul>
             </div>
           </div>
