@@ -4,7 +4,7 @@ import swordImage from '../assets/sword.png';
 import shieldImage from '../assets/shield.png';
 import '../App.css';
 
-const SignInModal = ({ isOpen, onClose }) => {
+const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -13,7 +13,9 @@ const SignInModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Signing in with:', { email, password, rememberMe });
+    onSignInSuccess && onSignInSuccess()
+    e.stopPropagation();
+    return false;
   };
 
   return (

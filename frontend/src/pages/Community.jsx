@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Search, Send } from "lucide-react";
-import "./Community.css";
+import "../styles/Community.css";
 
 const Community = () => {
   const [comments, setComments] = useState([

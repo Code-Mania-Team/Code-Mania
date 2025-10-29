@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
-import "./Learn.css";
+import styles from "../styles/Learn.module.css";
 
 const Learn = () => {
   const navigate = useNavigate();
@@ -37,42 +37,42 @@ const Learn = () => {
   ];
 
   return (
-    <div className="learn-page">
+    <div className={styles.page}>
       {/* Hero Section with Background Image */}
-      <section className="learn-hero">
-        <div className="learn-hero-content">
-          <p className="learn-hero-subtitle">Discover the universe of</p>
-          <h1 className="learn-hero-title">Code Mania</h1>
-          <p className="learn-hero-description">
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <p className={styles.heroSubtitle}>Discover the universe of</p>
+          <h1 className={styles.heroTitle}>Code Mania</h1>
+          <p className={styles.heroDescription}>
             Begin your programming adventure with hands-on coding challenges. Start learning today for free!
           </p>
         </div>
       </section>
 
       {/* Courses Section */}
-      <section className="courses-section">
-        <div className="courses-header">
-          <BookOpen className="courses-icon" />
-          <h2 className="courses-title">Your Coding Journey Begins</h2>
+      <section className={styles.section}>
+        <div className={styles.header}>
+          <BookOpen className={styles.icon} />
+          <h2 className={styles.title}>Your Coding Journey Begins</h2>
         </div>
-        <p className="courses-subtitle">
+        <p className={styles.subtitle}>
           Master programming languages from the ground up. Perfect for beginners looking to build a strong foundation in coding and problem-solving.
         </p>
 
-        <div className="courses-grid">
+        <div className={styles.grid}>
           {courses.map((course) => (
-            <div key={course.id} className="course-card">
-              <div className="course-image-wrapper">
-                <img src={course.image} alt={course.title} className="course-image" />
+            <div key={course.id} className={styles.card}>
+              <div className={styles.imageWrapper}>
+                <img src={course.image} alt={course.title} className={styles.image} />
               </div>
-              <div className="course-content">
-                <div className="course-level">{course.level}</div>
-                <h3 className="course-title" style={{ color: course.color }}>
+              <div className={styles.content}>
+                <div className={styles.level}>{course.level}</div>
+                <h3 className={styles.cardTitle} style={{ color: course.color }}>
                   {course.title}
                 </h3>
-                <p className="course-description">{course.description}</p>
+                <p className={styles.description}>{course.description}</p>
                 <button 
-                  className="course-btn"
+                  className={styles.button}
                   onClick={() => course.route && navigate(course.route)}
                   disabled={!course.route}
                 >

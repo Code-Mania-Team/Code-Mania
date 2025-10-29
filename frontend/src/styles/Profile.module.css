@@ -1,0 +1,381 @@
+/* Main container */
+.container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #000000;
+  box-sizing: border-box;
+}
+
+/* Header section */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Profile info section */
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #333333, #555555);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(112, 75, 75, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userName {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.username {
+  color: #a0aec0;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stats > span {
+  position: relative;
+}
+
+.stats > span:not(:last-child)::after {
+  content: '•';
+  position: absolute;
+  right: -0.9rem;
+  color: #4b5563;
+}
+
+.stats span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Rank section */
+.rankSection {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.rankItem {
+  text-align: center;
+  padding: 1rem 1.5rem;
+  min-width: 100px;
+  backdrop-filter: blur(10px);
+}
+
+.rankNumber {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 0.25rem;
+}
+
+.rankLabel {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabs {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  overflow: hidden;
+  width: 100%;
+  margin: 2rem auto;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  gap: 20rem;
+}
+
+/* Each tab */
+.tab {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.8rem 2.5rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  font-family: 'Press Start 2P', sans-serif;
+}
+
+/* Neon RGB gradient text for active tab */
+.tab.active {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(to right, #00E1FF, #00FF33, #FF00EA);
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.tab:focus {
+  outline: none; /* removes the white ring */
+  box-shadow: none; /* ensures no glow appears */
+}
+
+/* Achievements */
+.achievementsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.achievementItem {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.achievementItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.achievementIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.achievementDetails {
+  flex: 1;
+}
+
+.achievementTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 0.25rem;
+}
+
+.achievementTime {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+/* Friends section */
+.certificatesList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 1rem 0;
+  gap: 1.5rem;
+}
+
+.addFriendsBtn {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.addFriendsBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+}
+
+.achievementsTable {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  width: 100%;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  margin: 1rem 0;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  background: #fff;
+  color: #000;
+  font-weight: 700;
+  text-align: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 0.8rem;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1a1a1a;
+  transition: background 0.3s ease;
+}
+
+.tableRow:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.badgeCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.badgeIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
+}
+
+.achievementCell {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.timeCell {
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+  .tableHeader, .tableRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .timeCell {
+    display: none;
+  }
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .profileInfo {
+    flex-direction: row;
+    text-align: left;
+    align-items: flex-start;
+  }
+  
+  .userDetails {
+    align-items: flex-start;
+  }
+  
+  .rankSection {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+  }
+  
+  .userName {
+    font-size: 1.5rem;
+  }
+  
+  .rankSection {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .tab {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+}

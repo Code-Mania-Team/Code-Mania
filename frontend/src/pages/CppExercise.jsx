@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Play } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import styles from "./CppExercise.module.css";
+import SignInModal from "../components/SignInModal";
+import ProgressBar from "../components/ProgressBar";
+import styles from "../styles/CppExercise.module.css";
+import map1 from "../assets/aseprites/map1.png";
 
 const CppExercise = () => {
   const [code, setCode] = useState(`// Write your C++ code below ❤️
@@ -15,39 +18,11 @@ int main() {
 }`);
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // === Dialogue ===
-  const dialogues = [
-    "Welcome to your first C++ lesson! (click to continue)",
-    "Let's start by printing something to the terminal!"
-  ];
-  const [currentDialogue, setCurrentDialogue] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-
-  useEffect(() => {
-    handleNextDialogue();
-  }, []);
-
-  const handleNextDialogue = () => {
-    if (isTyping) return;
-    const nextText = dialogues[currentDialogue];
-    if (!nextText) return;
-    setIsTyping(true);
-    setDisplayedText("");
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayedText(nextText.slice(0, i));
-      i++;
-      if (i > nextText.length) {
-        clearInterval(interval);
-        setIsTyping(false);
-        setCurrentDialogue((prev) =>
-          prev + 1 < dialogues.length ? prev + 1 : prev
-        );
-      }
-    }, 40);
-  };
+  const [showScroll, setShowScroll] = useState(false);
 
   const handleRunCode = () => {
     setOutput("Compiling and running main.cpp...\n");
@@ -64,45 +39,108 @@ int main() {
     }, 1000);
   };
 
+  const handleOpenModal = () => {
+    setIsSignInModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsSignInModalOpen(false);
+  };
+
+  const handleSignInSuccess = () => {
+    // In a real app, you would get user data from your auth provider
+    const mockUser = { name: 'Coder', email: 'coder@example.com' };
+    setUser(mockUser);
+    setIsAuthenticated(true);
+    setIsSignInModalOpen(false);
+  };
+
   return (
     <div className={styles["cpp-exercise-page"]}>
-      <Header />
+      <div className={styles["scroll-background"]}></div>
+      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} user={user} />
+      
+      {isSignInModalOpen && (
+        <SignInModal 
+          isOpen={isSignInModalOpen}
+          onClose={handleCloseModal}
+          onSignInSuccess={handleSignInSuccess}
+        />
+      )}
 
       <div className={styles["codex-fullscreen"]}>
-        {/* === PROGRESS === */}
-        <div className={styles["lesson-progress"]}>
-          <h2 className={styles["lesson-stage"]}>⚙️ Setting up</h2>
-          <div className={styles["progress-bar"]}>
-            <div className={styles["progress-fill"]} style={{ width: "8.33%" }} />
-          </div>
-          <p className={styles["progress-text"]}>Lesson 1 of 12</p>
-        </div>
+        <ProgressBar currentLesson={1} totalLessons={12} title="⚙️ Setting up" />
 
-        {/* === GRID LAYOUT === */}
-        <div className={styles["codex-grid"]}>
-          {/* === LEFT SIDE === */}
+        <div className={styles["main-layout"]}>
+          {/* Left Side - Game Preview */}
           <div className={styles["game-container"]}>
             <div className={styles["game-preview"]}>
-              <div className={styles["game-scene"]}>
-                <img
-                  src="https://cdn.pixabay.com/photo/2017/06/20/18/45/background-2426328_960_720.png"
-                  alt="Game background"
-                  className={styles["game-bg"]}
-                />
-                <img
-                  src="https://www.freepngimg.com/thumb/rpg/3-2-rpg-png-6.png"
-                  alt="Character"
-                  className={styles["game-character"]}
-                />
-              </div>
+              <div 
+                className={styles["game-scene"]}
+                style={{
+                  backgroundImage: `url(${map1})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  minHeight: '400px',
+                  position: 'relative',
+                  borderRadius: '8px',
+                  overflow: 'hidden'
+                }}
+              >
+                {!showScroll && (
+                  <button 
+                    onClick={() => setShowScroll(true)}
+                    className={styles["show-scroll-btn"]}
+                  >
+                    View Challenge
+                  </button>
+                )}
 
-              <div className={styles["dialogue-box"]} onClick={handleNextDialogue}>
-                <p className={styles["dialogue-text"]}>{displayedText}</p>
+                {showScroll && (
+                  <div className={styles["scroll-container"]}>
+                    <div className={styles["scroll-content"]}>
+                      <h2>🖥️ C++</h2>
+                      <p>
+                        Welcome to the first chapter of <strong>The Legend of C++!</strong><br />
+                        C++ is a powerful language created by{" "}
+                        <a href="https://en.wikipedia.org/wiki/Bjarne_Stroustrup" target="_blank" rel="noreferrer">
+                          Bjarne Stroustrup
+                        </a>{" "}
+                        as an extension of the C programming language.
+                      </p>
+                      <ul>
+                        <li>• Game Development</li>
+                        <li>• System Software</li>
+                        <li>• High-Performance Applications</li>
+                        <li>• Embedded Systems</li>
+                      </ul>
+                      <p>Let's give it a try! Here's a simple C++ example:</p>
+                      <div className={styles["code-example"]}>
+                        <pre>
+                          <code>
+                            {`#include <iostream>
+using namespace std;
+
+int main() {
+  cout << "Hello, World!" << endl;
+  return 0;
+}
+
+This should appear in the Terminal window:
+Hello, World!`}
+                          </code>
+                        </pre>
+                      </div>
+                      <p>Try writing your own code on the right! 👉</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* === RIGHT SIDE === */}
+          {/* Right Side - Code Editor and Terminal */}
           <div className={styles["code-container"]}>
             <div className={styles["code-editor"]}>
               <div className={styles["editor-header"]}>
@@ -136,34 +174,64 @@ int main() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* === HELP === */}
-        <h3 className={styles["help-title"]}>Help</h3>
-        <div className={styles["help-section"]}>
-          <div
-            className={styles["help-header"]} 
-            onClick={() => setShowHelp(!showHelp)}
-          >
-            <span>💡 Hint</span>
-            <span className={styles["help-arrow"]}>{showHelp ? "▴" : "▾"}</span>
           </div>
 
+        </div>
+        
+        {/* Help Section */}
+        <h3 className={styles["help-title"]}>Help</h3>
+                <div className={styles["help-section"]}>
+                  <div
+                    className={styles["help-header"]}
+                    onClick={() => setShowHelp((prev) => !prev)}
+                  >
+                    <span>💡 Hint</span>
+                    <span className={styles["help-arrow"]}>{showHelp ? "▴" : "▾"}</span>
+                  </div>
           {showHelp && (
-            <div className={styles["help-content"]}>
-              <p>
-                Remember: In C++, <code>cout &lt;&lt; "Hello, World!";</code>
-              </p>
-              <p>
-                Use <code>&lt;&lt;</code> to send text to <code>cout</code>.
-              </p>
+            <div className={styles['help-content']}>
+              <h3 className={styles['help-title']}>C++ Quick Reference</h3>
+              <p>Here's a quick guide to get you started with C++:</p>
+              
+              <h4>Basic Structure</h4>
+              <pre>{
+`#include <iostream>
+using namespace std;
+
+int main() {
+  // Your code here
+  return 0;
+}`}
+              </pre>
+
+              <h4>Printing Output</h4>
+              <pre>{
+`cout << "Hello, World!" << endl;  // Prints with newline
+cout << "No newline";            // Prints without newline`}
+              </pre>
+
+              <h4>Variables</h4>
+              <pre>{
+`int number = 10;          // Integer
+float decimal = 3.14f;    // Floating point
+double precise = 3.14159; // Double precision
+char letter = 'A';        // Single character
+bool isTrue = true;       // Boolean`}
+              </pre>
+
+              <h4>User Input</h4>
+              <pre>{
+`int age;
+cout << "Enter your age: ";
+cin >> age;`}
+              </pre>
             </div>
           )}
         </div>
+        
+        <Footer />
       </div>
-
-      <Footer />
-    </div>
   );
 };
 

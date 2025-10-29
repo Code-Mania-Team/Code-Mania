@@ -1,0 +1,484 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Press+Start+2P&display=swap");
+
+/* Fullscreen base */
+.javascript-exercise-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  font-family: "Fira Code", monospace;
+}
+
+.codex-fullscreen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-y: auto;
+  padding: 1rem 0;
+}
+
+/* Main layout */
+.main-layout {
+  display: flex;
+  gap: 1rem;
+  width: 95%;
+  max-width: 1600px;
+  margin: 0 auto 1rem;
+  min-height: 60vh;
+}
+
+/* Game container - Left side */
+.game-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.game-preview {
+  background: #111827;
+  border-radius: 8px;
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-preview h3 {
+  margin: 0 0 1rem 0;
+  color: #38bdf8;
+}
+
+/* === Game Scene Styles === */
+.game-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -o-crisp-edges;
+  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1a1a;
+  min-height: 200px;
+}
+
+/* Show Scroll Button */
+.show-scroll-btn {
+  padding: 12px 24px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  color: #fff;
+  background-color: #f0db4f;
+  border: 4px solid #d4b946;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 #c9a93a;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.show-scroll-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+  background-color: #f7df1e;
+}
+
+.show-scroll-btn:active {
+  transform: translateY(1px);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Scroll Container */
+.scroll-container {
+  position: relative;
+  width: 70%;
+  max-width: 850px;
+  margin: 2rem auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scroll-image {
+  width: 1600px;
+  height: 950px;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.scroll-content {
+  position: absolute;
+  top: 8%;
+  left: 12%;
+  bottom: 16%;
+  overflow-y: auto;
+  color: #2b1a0a;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.7rem;
+  line-height: 3;
+  text-align: left;
+  padding: 1rem 1.5rem;
+  text-shadow: 0.5px 0.5px 0 #f5deb3;
+  background: rgba(255, 248, 220, 0.1);
+  border-radius: 6px;
+  max-height: 70%;
+  animation: fadeInScroll 0.8s ease-in-out;
+}
+
+.scroll-content h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #2f1d0e;
+  text-shadow: 1px 1px 0 #e9cfa0;
+  font-size: 0.7rem;
+}
+
+.scroll-content a {
+  color: #2b6cb0;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.scroll-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1rem 0;
+}
+
+.scroll-content li {
+  margin: 0.4rem 0;
+}
+
+@keyframes fadeInScroll {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.code-example {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: #2d3748;
+  white-space: pre;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.code-example pre {
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  white-space: pre;
+}
+
+.code-example code {
+  display: block;
+  font-family: inherit;
+  color: inherit;
+  white-space: pre;
+}
+
+/* Code container - Right side */
+.code-container {
+  width: 45%;
+  min-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.code-editor,
+.terminal {
+  flex: 1;
+  min-height: 300px;
+}
+
+/* Code Editor */
+.code-editor {
+  background: #1e1e1e;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-header {
+  background-color: #252526;
+  color: #d4d4d4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #333;
+}
+
+.run-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #f0db4f;
+  border: none;
+  color: #323330;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  justify-content: center;
+  font-family: "Fira Code", monospace;
+}
+
+.run-btn:hover:not(:disabled) {
+  background-color: #f7df1e;
+  transform: translateY(-1px);
+}
+
+.run-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.run-btn:disabled {
+  background-color: #64748b;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.disabled-btn {
+  background-color: #64748b !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+}
+
+.code-box {
+  flex: 1;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 1rem;
+  font-family: "Fira Code", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+/* Terminal */
+.terminal {
+  background: #1e1e1e;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal-header {
+  background: #252526;
+  color: #d4d4d4;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.submit-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: all 0.2s;
+  padding: 0.4rem 0.8rem;
+  font-family: "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+  background-color: #6b7280;
+  cursor: not-allowed;
+}
+
+.submit-btn:active {
+  transform: translateY(1px);
+}
+
+.terminal-body {
+  padding: 1rem;
+  color: #d4d4d4;
+  font-family: "Fira Code", monospace;
+  font-size: 0.9rem;
+  flex: 1;
+  overflow-y: auto;
+  background: #1e1e1e;
+  line-height: 1.5;
+}
+
+.terminal-line {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.prompt {
+  color: #f0db4f;
+  margin-right: 0.5rem;
+  user-select: none;
+  font-weight: bold;
+}
+
+.terminal-output {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.5rem;
+  height: 1.2rem;
+  background-color: #d4d4d4;
+  animation: blink 1s infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* =============== HELP / HINT SECTION =============== */
+.help-title {
+  width: 95%;
+  max-width: 1600px;
+  margin: 1.5rem auto 0.5rem;
+  font-size: 1rem;
+  color: #9ca3af;
+  font-weight: 600;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 0.25rem;
+}
+
+.help-section {
+  width: 95%;
+  max-width: 1600px;
+  margin: 1rem auto 2rem;
+  border: 1px solid #2d2f34;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #1c1e22;
+  font-family: "Fira Code", monospace;
+}
+
+.help-header {
+  background-color: #2a2d31;
+  color: #e5e7eb;
+  padding: 0.8rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.help-header:hover {
+  background-color: #35383d;
+}
+
+.help-arrow {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.dialogue-terminal {
+  background-color: #1f2125;
+  padding: 1rem 1.2rem;
+  border-top: 1px solid #2d2f34;
+  cursor: pointer;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+.dialogue-text {
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .main-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .code-container,
+  .game-container {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .codex-fullscreen {
+    padding: 0.5rem 0;
+  }
+
+  .game-preview,
+  .code-editor,
+  .terminal {
+    min-height: 250px;
+  }
+
+  .terminal-body {
+    padding: 0.75rem;
+  }
+}

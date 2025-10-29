@@ -1,0 +1,41 @@
+.lesson-progress {
+  text-align: left;
+  margin: 0 auto 2rem;
+  width: 95%;
+  max-width: 1600px;
+  padding: 1.5rem 1rem;
+  border-radius: 8px;
+  background: #0f172a;
+}
+
+.lesson-stage {
+  color: #60a5fa;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-family: "Press Start 2P", cursive;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #1e293b;
+  border-radius: 5px;
+  margin: 0.5rem 0;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 5px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.progress-text {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  font-family: "Fira Code", monospace;
+}

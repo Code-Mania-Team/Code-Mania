@@ -31,8 +31,8 @@ const Footer = () => {
               <h4>LEARN</h4>
               <ul>
                 <li><a href="/learn/python">Python</a></li>
-                <li><a href="/learn/javascript">JavaScript</a></li>
                 <li><a href="/learn/cpp">C++</a></li>
+                <li><a href="/learn/javascript">JavaScript</a></li>
               </ul>
             </div>
 

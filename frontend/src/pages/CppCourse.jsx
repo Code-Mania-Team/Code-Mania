@@ -1,16 +1,26 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "./CppCourse.css";
+import "../styles/CppCourse.css";
+import SignInModal from "../components/SignInModal";
 
 const CppCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const onOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const onCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   const userProgress = {
     name: "Your Name",
     level: 1,
     exercisesCompleted: 0,
-    totalExercises: 48,
+    totalExercises: 16,
     xpEarned: 0,
     totalXp: 700
   };
@@ -159,7 +169,7 @@ const CppCourse = () => {
               <h4>{userProgress.name}</h4>
               <p>Level {userProgress.level}</p>
             </div>
-            <button className="view-profile-btn">View Profile</button>
+            <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
           </div>
 
           <div className="progress-card">
@@ -187,6 +197,12 @@ const CppCourse = () => {
           </div>
         </div>
       </div>
+      
+      <SignInModal 
+        isOpen={isModalOpen}
+        onClose={onCloseModal}
+        onSignInSuccess={onCloseModal}
+      />
     </div>
   );
 };

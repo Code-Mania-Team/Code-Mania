@@ -1,9 +1,20 @@
 import React from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import crown from "../assets/crown.png";
+import profileIcon from "../assets/profile-icon.png";
 
-const Header = ({ onOpenModal }) => {
+const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  const handleSignOut = (e) => {
+    e.stopPropagation();
+    onSignOut();
+  };
   return (
     <header className="header">
       <div className="logo">
@@ -26,9 +37,22 @@ const Header = ({ onOpenModal }) => {
         <NavLink to="/community" className="nav-link">COMMUNITY</NavLink>
         <NavLink to="/leaderboard" className="nav-link">LEADERBOARD</NavLink>
 
-        <button className="sign-in-btn" onClick={onOpenModal}>
-          Sign In
-        </button>
+        {isAuthenticated ? (
+          <div className="profile-icon-container" onClick={handleProfileClick}>
+            <div className="profile-icon">
+              <span role="img" aria-label="Profile">👤</span>
+            </div>
+            <div className="profile-dropdown">
+              <button className="dropdown-item" onClick={handleSignOut}>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button className="sign-in-btn" onClick={onOpenModal}>
+            Sign In
+          </button>
+        )}
       </nav>
     </header>
   );

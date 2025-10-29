@@ -2,20 +2,22 @@ import React, { useState, useEffect } from "react";
 import { Play } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import styles from "./PythonExercise.module.css"; // ✅ Scoped CSS Modules import
+import SignInModal from "../components/SignInModal";
+import ProgressBar from "../components/ProgressBar";
+import styles from "../styles/PythonExercise.module.css";
+import map1 from "../assets/aseprites/map1.png"; // Import the map1 image
 
 const PythonExercise = () => {
   const [code, setCode] = useState(`# Write code below ❤️
+
 print("Hello, World!")`);
   const [output, setOutput] = useState("");
-
-  // ✅ Add this line to fix the error
   const [showHelp, setShowHelp] = useState(false);
+  const [showScroll, setShowScroll] = useState(false);
 
   // === Dialogue System ===
   const dialogues = [
-    "Welcome to your first Python lesson! (click to continue)",
-    "Let's start by printing something to the screen!"
+    "Remember to check the hints if you get stuck during the course. But for this exercise, you don't have to know what's going on with the code – just copy and paste it.",
   ];
   const [currentDialogue, setCurrentDialogue] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
@@ -63,58 +65,116 @@ print("Hello, World!")`);
 
       const match = code.match(/print\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/);
       const outputText = match ? match[1] : "Hello, World!";
-      setOutput(`${outputText}\n>>> Program finished with exit code 0`);
+      setOutput(`${outputText}\n`);
     } catch (error) {
-      setOutput(`Error: ${error.message}\n>>> Program failed with exit code 1`);
+      setOutput(`Error: ${error.message}\n>>> Program failed`);
     }
   };
 
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+
   const handleOpenModal = () => {
-    console.log("Open sign in modal");
+    setIsSignInModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsSignInModalOpen(false);
+  };
+
+  const handleSignInSuccess = () => {
+    // In a real app, you would get user data from your auth provider
+    const mockUser = { name: 'Coder', email: 'coder@example.com' };
+    setUser(mockUser);
+    setIsAuthenticated(true);
+    setIsSignInModalOpen(false);
   };
 
   return (
     <div className={styles["python-exercise-page"]}>
-      <Header onOpenModal={handleOpenModal} />
+      <div className={styles["scroll-background"]}></div>
+      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} user={user} />
+      
+      {isSignInModalOpen && (
+        <SignInModal 
+          isOpen={isSignInModalOpen}
+          onClose={handleCloseModal}
+          onSignInSuccess={handleSignInSuccess}
+        />
+      )}
 
       <div className={styles["codex-fullscreen"]}>
-        {/* === PROGRESS BAR === */}
-        <div className={styles["lesson-progress"]}>
-          <h2 className={styles["lesson-stage"]}>⚙️ Setting up</h2>
-          <div className={styles["progress-bar"]}>
-            <div
-              className={styles["progress-fill"]}
-              style={{ width: "8.33%" }}
-            ></div>
-          </div>
-          <p className={styles["progress-text"]}>Lesson 1 of 12</p>
-        </div>
+        <ProgressBar currentLesson={1} totalLessons={12} title="🐍 Python Basics" />
 
         <div className={styles["main-layout"]}>
           {/* Left Side - Game Preview */}
           <div className={styles["game-container"]}>
             <div className={styles["game-preview"]}>
-              <div className={styles["game-scene"]}>
-                <img
-                  alt="Game background"
-                  className={styles["game-bg"]}
-                />
-                <img
-                  src="https://www.freepngimg.com/thumb/rpg/3-2-rpg-png-6.png"
-                  alt="Character"
-                  className={styles["game-character"]}
-                />
+              <div 
+                className={styles["game-scene"]}
+                style={{
+                  backgroundImage: `url(${map1})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  minHeight: '400px',
+                  position: 'relative',
+                  borderRadius: '8px',
+                  overflow: 'hidden'
+                }}
+              >
+                {!showScroll && (
+                  <button 
+                    onClick={() => setShowScroll(true)}
+                    className={styles["show-scroll-btn"]}
+                  >
+                    View Challenge
+                  </button>
+                )}
+
+                {showScroll && (
+                  <div className={styles["scroll-container"]}>
+                    <img
+                      src="/src/assets/aseprites/scroll.png"
+                      alt="Scroll"
+                      className={styles["scroll-image"]}
+                    />
+
+                    <div className={styles["scroll-content"]}>
+                      <h2>🐍 Python</h2>
+                      <p>
+                        Welcome to the first chapter of <strong>The Legend of Python!</strong><br />
+                        Python is a beginner-friendly language created by{" "}
+                        <a href="https://en.wikipedia.org/wiki/Guido_van_Rossum" target="_blank" rel="noreferrer">
+                          Guido van Rossum
+                        </a>{" "}
+                        in the early 90s.
+                      </p>
+                      <ul>
+                        <li>• Artificial Intelligence</li>
+                        <li>• Web Development</li>
+                        <li>• Data Analysis</li>
+                        <li>• Machine Learning</li>
+                      </ul>
+                      <p>Let's give it a try! Here's a simple Python example:</p>
+                      <div className={styles["code-example"]}>
+                        <pre>
+                          <code>
+                            {`# This is a simple Python function
+print("Hi")
+
+This should appear in the Terminal window:
+Hi`}
+                          </code>
+                        </pre>
+                      </div>
+                      <p>Try writing your own code on the right! 👉</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Dialogue Box */}
-              <div
-                className={styles["dialogue-box"]}
-                onClick={handleNextDialogue}
-              >
-                <p className={styles["dialogue-text"]}>
-                  {displayedText}
-                </p>
-              </div>
             </div>
           </div>
 
@@ -123,7 +183,12 @@ print("Hello, World!")`);
             <div className={styles["code-editor"]}>
               <div className={styles["editor-header"]}>
                 <span>script.py</span>
-                <button className={styles["run-btn"]} onClick={handleRunCode}>
+                <button 
+                  className={`${styles["run-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`} 
+                  onClick={handleRunCode}
+                  disabled={!showScroll}
+                  title={!showScroll ? "View the lesson first" : "Run code"}
+                >
                   <Play size={16} /> Run
                 </button>
               </div>
@@ -135,10 +200,19 @@ print("Hello, World!")`);
             </div>
 
             <div className={styles["terminal"]}>
-              <div className={styles["terminal-header"]}>Terminal</div>
+              <div className={styles["terminal-header"]}>
+                Terminal
+                <button 
+                  className={`${styles["submit-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`}
+                  onClick={handleRunCode}
+                  disabled={!showScroll}
+                  title={!showScroll ? "View the lesson first" : "Submit code"}
+                >
+                  Submit
+                </button>
+              </div>
               <div className={styles["terminal-body"]}>
                 <div className={styles["terminal-line"]}>
-                  <span className={styles["prompt"]}>$</span> python script.py
                 </div>
                 {output && (
                   <div className={styles["terminal-output"]}>{output}</div>
@@ -152,7 +226,6 @@ print("Hello, World!")`);
           </div>
         </div>
 
-        {/* Help Section */}
         <h3 className={styles["help-title"]}>Help</h3>
         <div className={styles["help-section"]}>
           <div
@@ -164,17 +237,17 @@ print("Hello, World!")`);
           </div>
 
           {showHelp && (
-            <div className={styles["help-content"]}>
-              <p>
-                Remember: In Python, <code>print()</code> displays text on the screen.
-              </p>
-              <p>
-                Example: <code>print("Hello, World!")</code>
-              </p>
-              <p>
-                Try changing the text to <code>"Hi"</code> or your name and press{" "}
-                <b>Run</b> to test it!
-              </p>
+            <div 
+              className={styles["dialogue-terminal"]}
+              onClick={handleNextDialogue}
+            >
+              <div className={styles["terminal-line"]}>
+                <span className={styles["prompt"]}></span>
+                <span className={styles["dialogue-text"]}>
+                  {displayedText}
+                  <span className={styles["cursor"]}></span>
+                </span>
+              </div>
             </div>
           )}
         </div>

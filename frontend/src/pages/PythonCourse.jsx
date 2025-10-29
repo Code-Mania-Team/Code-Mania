@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "./PythonCourse.css";
+import "../styles/PythonCourse.css";
+import SignInModal from "../components/SignInModal";
 
 const PythonCourse = () => {
   const navigate = useNavigate();
   const [expandedModule, setExpandedModule] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const onOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const onCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   const handleStartExercise = (moduleId, exerciseName) => {
     const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
@@ -16,7 +26,7 @@ const PythonCourse = () => {
     name: "Your Name",
     level: 1,
     exercisesCompleted: 0,
-    totalExercises: 43,
+    totalExercises: 16,
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: 0,
@@ -161,7 +171,7 @@ const PythonCourse = () => {
               <h4>{userProgress.name}</h4>
               <p>Level {userProgress.level}</p>
             </div>
-            <button className="view-profile-btn">View Profile</button>
+            <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
           </div>
 
           <div className="progress-card">
@@ -189,6 +199,12 @@ const PythonCourse = () => {
           </div>
         </div>
       </div>
+      
+      <SignInModal 
+        isOpen={isModalOpen}
+        onClose={onCloseModal}
+        onSignInSuccess={onCloseModal}
+      />
     </div>
   );
 };

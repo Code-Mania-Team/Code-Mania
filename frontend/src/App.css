@@ -68,6 +68,7 @@ body {
 .main-content {
   flex: 1;
   padding-top: 70px;
+  background-color: black;
 }
 
 /* === Header === */
@@ -138,6 +139,8 @@ body {
   letter-spacing: 1px;
   transition: all 0.2s ease;
   position: relative;
+  display: inline-block;
+  padding: 8px 0;
 }
 
 .nav-link:hover {
@@ -153,8 +156,9 @@ body {
   content: '';
   position: absolute;
   bottom: -8px;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
   height: 3px;
   background: linear-gradient(90deg, #fbbf24, #f59e0b);
   border-radius: 2px;
@@ -236,6 +240,76 @@ body {
 .sign-in-btn:hover {
   background-color: #1d4ed8;
   transform: translateY(-1px);
+}
+
+/* Profile Icon */
+.profile-icon-container {
+  position: relative;
+  cursor: pointer;
+  margin-left: 1rem;
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  border: 2px solid #fff;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.profile-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  background-color: #1d4ed8;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #1e293b;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.profile-icon-container:hover .profile-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.profile-dropdown .dropdown-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #f8fafc;
+  text-decoration: none;
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-dropdown .dropdown-item:hover {
+  background-color: #334155;
+  color: #60a5fa;
 }
 
 /* === Hero Section === */
@@ -503,6 +577,42 @@ transition: transform 0.3s ease;
   font-size: 1.5rem;
   font-weight: 600;
   color: white;
+}
+
+/* Language card links */
+.language-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+
+.language-card-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Language-specific colors for card titles */
+.language-card-link:nth-child(1) .language-card h4 {
+  color: #3CB371; /* Python green */
+  text-shadow: 0 0 10px rgba(60, 179, 113, 0.5);
+}
+
+.language-card-link:nth-child(2) .language-card h4 {
+  color: #5B8FB9; /* C++ blue */
+  text-shadow: 0 0 10px rgba(91, 143, 185, 0.5);
+}
+
+.language-card-link:nth-child(3) .language-card h4 {
+  color: #FFD700; /* JavaScript yellow */
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Remove the previous language-specific styles that were causing conflicts */
+.language-card h4 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 /* Overlay */

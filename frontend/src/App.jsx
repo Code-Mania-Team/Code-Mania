@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link } from "react-router-dom";
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
@@ -13,6 +13,8 @@ import CppExercise from "./pages/CppExercise";
 import JavaScriptCourse from "./pages/JavaScriptCourse";
 import JavaScriptExercise from "./pages/JavaScriptExercise";
 import SignInModal from "./components/SignInModal";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -40,29 +42,35 @@ const Home = () => (
     <section className="featured-languages">
       <h2 className="section-title">Featured Languages</h2>
       <div className="languages-grid">
-        <div className="language-card">
-          <div className="language-image">
-            <img src="/src/assets/python.gif" alt="Python" className="language-img" />
+        <Link to="/learn/python" className="language-card-link">
+          <div className="language-card">
+            <div className="language-image">
+              <img src="/src/assets/python.gif" alt="Python" className="language-img" />
+            </div>
+            <h4>Python</h4>
+            <p className="language-description">Versatile and beginner-friendly</p>
           </div>
-          <h4>Python</h4>
-          <p className="language-description">Versatile and beginner-friendly</p>
-        </div>
+        </Link>
 
-        <div className="language-card">
-          <div className="language-image">
-            <img src="/src/assets/c++.gif" alt="C++" className="language-img" />
+        <Link to="/learn/cpp" className="language-card-link">
+          <div className="language-card">
+            <div className="language-image">
+              <img src="/src/assets/c++.gif" alt="C++" className="language-img" />
+            </div>
+            <h4>C++</h4>
+            <p className="language-description">High-performance programming</p>
           </div>
-          <h4>C++</h4>
-          <p className="language-description">High-performance programming</p>
-        </div>
+        </Link>
 
-        <div className="language-card">
-          <div className="language-image">
-            <img src="/src/assets/javascript.gif" alt="JavaScript" className="language-img" />
+        <Link to="/learn/javascript" className="language-card-link">
+          <div className="language-card">
+            <div className="language-image">
+              <img src="/src/assets/javascript.gif" alt="JavaScript" className="language-img" />
+            </div>
+            <h4>JavaScript</h4>
+            <p className="language-description">Web development powerhouse</p>
           </div>
-          <h4>JavaScript</h4>
-          <p className="language-description">Web development powerhouse</p>
-        </div>
+        </Link>
       </div>
     </section>
 
@@ -113,17 +121,34 @@ const Home = () => (
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Initialize from localStorage if available
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Update localStorage when isAuthenticated changes
+  useEffect(() => {
+    localStorage.setItem('isAuthenticated', isAuthenticated);
+  }, [isAuthenticated]);
 
   // hide header/footer on exercise routes
   const isExercisePage = 
     location.pathname.startsWith("/learn/python/exercise") || 
     location.pathname.startsWith("/learn/cpp/exercise") ||
-    location.pathname.startsWith("/learn/javascript/exercise");
+    location.pathname.startsWith("/learn/javascript/exercise") ||
+    location.pathname === "/dashboard";
 
   return (
     <div className="app">
-      {!isExercisePage && <Header onOpenModal={() => setIsModalOpen(true)} />}
+      {!isExercisePage && (
+        <Header 
+          isAuthenticated={isAuthenticated}
+          onOpenModal={() => setIsModalOpen(true)}
+          onSignOut={() => setIsAuthenticated(false)}
+        />
+      )}
       <ScrollToTop />
 
       <main className="main-content">
@@ -138,12 +163,22 @@ function App() {
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
           <Route path="/community" element={<Community />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </main>
 
       {!isExercisePage && <Footer />}
 
-      <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <SignInModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onSignInSuccess={() => {
+          setIsAuthenticated(true);
+          setIsModalOpen(false);
+          navigate('/dashboard');
+        }}
+      />
     </div>
   );
 }

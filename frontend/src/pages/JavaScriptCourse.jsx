@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "./JavaScriptCourse.css";
+import "../styles/JavaScriptCourse.css";
+import SignInModal from "../components/SignInModal";
 
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const [expandedModule, setExpandedModule] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const onOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const onCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   const handleStartExercise = (moduleId, exerciseName) => {
     const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
@@ -16,7 +26,7 @@ const JavaScriptCourse = () => {
     name: "Your Name",
     level: 1,
     exercisesCompleted: 0,
-    totalExercises: 52,
+    totalExercises: 16,
     xpEarned: 0,
     totalXp: 750
   };
@@ -159,7 +169,7 @@ const JavaScriptCourse = () => {
               <h4>{userProgress.name}</h4>
               <p>Level {userProgress.level}</p>
             </div>
-            <button className="view-profile-btn">View Profile</button>
+            <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
           </div>
 
           <div className="progress-card">
@@ -187,6 +197,12 @@ const JavaScriptCourse = () => {
           </div>
         </div>
       </div>
+      
+      <SignInModal 
+        isOpen={isModalOpen}
+        onClose={onCloseModal}
+        onSignInSuccess={onCloseModal}
+      />
     </div>
   );
 };
