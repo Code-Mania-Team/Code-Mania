@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Code-Mania-Team/Code-Mania#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^1.21.0",
     "cookie-parser": "^1.4.7",

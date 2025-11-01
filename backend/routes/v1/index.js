@@ -1,9 +1,11 @@
 import { Router } from 'express';
 
-import homeRouter from './homeRoutes.js';
+import accountRouter from './accountRoutes.js';
+
+//import homeRouter from './homeRoutes.js';
 
 const v1 = new Router();
 
-v1.use('/', homeRouter);
+v1.use('/signin', accountRouter);
 
 export default v1;

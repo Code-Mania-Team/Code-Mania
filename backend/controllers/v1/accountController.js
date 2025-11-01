@@ -1,123 +1,123 @@
+// controllers/accountController.js
+import { supabase } from '../core/supabaseClient.js';
 import jwt from 'jsonwebtoken';
-import User from '../../models/user.js';
 
-class AccountController{
-    constructor() {
-        this.user = new User();
+class AccountController {
+  constructor() {}
+
+  /* ---------------------------------
+     ✉️ Magic Link (Send Login Email)
+  ----------------------------------- */
+  async sendMagicLink(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).send({ success: false, message: 'Email is required' });
+
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: process.env.FRONTEND_URL + '/auth/callback',
+        },
+      });
+
+      if (error) throw error;
+
+      res.send({
+        success: true,
+        message: 'Magic link sent! Check your email.',
+      });
+    } catch (err) {
+      res.send({
+        success: false,
+        message: err.message || 'Failed to send magic link',
+      });
     }
+  }
 
-    async create(req, res) {
-        const { username, email, password, gender } = req.body || {};
-    
-        try {
-            const response = await this.user.create(username, email, password, gender, null);
-    
-            res.send({
-                success: true,
-                data: {
-                    recordIndex: response?.insertId,
-                },
-            });
-        } catch (err) {
-            
-            res.send({
-                success: false,
-                message: err.message === 'username' || err.message === 'email' ? err.message : 'Failed to create account',
-            });
-        }
+  /* ---------------------------------
+     🔐 Verify Session Token (optional)
+  ----------------------------------- */
+  async verifyToken(req, res) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) return res.status(401).send({ success: false, message: 'No token provided' });
+
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+
+      if (error || !user) return res.status(401).send({ success: false, message: 'Invalid or expired token' });
+
+      res.send({
+        success: true,
+        data: { user },
+      });
+    } catch (err) {
+      res.status(500).send({
+        success: false,
+        message: err.message,
+      });
     }
+  }
 
-    async login(req, res){
-        try{
-            const { username, password } = req.body || {}
+  /* ---------------------------------
+     🧑 Google OAuth Sign-in (frontend)
+     (for info: frontend handles popup)
+  ----------------------------------- */
+  async googleCallback(req, res) {
+    try {
+      const { access_token } = req.query;
+      if (!access_token) return res.status(400).send({ success: false, message: 'No access token' });
 
-            const result = await this.user.verify(username,  password);
+      const { data: { user }, error } = await supabase.auth.getUser(access_token);
+      if (error) throw error;
 
-            console.log(result)
+      // Optional: Create your own JWT for internal API protection
+      const token = jwt.sign(
+        { user_id: user.id, email: user.email },
+        process.env.API_SECRET_KEY,
+        { expiresIn: '1d' }
+      );
 
-            if(!result?.user_id){
-                return res.send({
-                    success: false,
-                    message: 'Invalid username or password',
-                })
-            } else {
-                res.send({
-                    success: true,
-                    data: {
-                        token: jwt.sign({ 'username': username, 'user_id': result?.user_id }, process.env.API_SECRET_KEY, {
-                            expiresIn: '1d',
-                        })
-                    }
-                })
-            }
-        } catch (err){
-            res.send({
-                success: false,
-                message: err.toString(),
-            })
-        }
+      res.send({
+        success: true,
+        message: 'Google login successful',
+        token,
+        data: user,
+      });
+    } catch (err) {
+      res.send({
+        success: false,
+        message: err.message,
+      });
     }
+  }
 
-    async profile(req, res){
-        try{
-            const userInfo = await this.user.getUser(res.locals.username);
+  /* ---------------------------------
+     🧍 Profile (protected)
+  ----------------------------------- */
+  async profile(req, res) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) return res.status(401).send({ success: false, message: 'No token provided' });
 
-            res.send({
-                success: true,
-                data: {
-                    id: res.locals.user_id,
-                    username: res.locals.username,
-                    email: userInfo?.email,
-                    profile_img: userInfo?.profile_image,
-                }
-            })
-        } catch (err){
-            res.send({
-                success: false,
-                message: err.toString(),
-            });
-        }
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      if (error || !user) return res.status(401).send({ success: false, message: 'Invalid token' });
+
+      res.send({
+        success: true,
+        data: {
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.full_name || 'No name',
+          avatar: user.user_metadata?.avatar_url || null,
+        },
+      });
+    } catch (err) {
+      res.status(500).send({
+        success: false,
+        message: err.message,
+      });
     }
-
-    async getUsersProfile(req, res){
-        try{
-            const { userId } = req.params;
-            const loginUser = res.locals.user_id;
-
-            if (parseInt(userId, 10) === parseInt(loginUser, 10)){
-                return res.send({
-                    success: true,
-                    redirectToProfile: true,
-                })
-            }
-
-            const userInfo = await this.user.getSpecificUserAccount(userId,loginUser);
-
-            res.send({
-                success: true,
-                data: {
-                    id: userInfo?.user_id,
-                    username: userInfo?.username,
-                    bio: userInfo?.bio,
-                    email: userInfo?.email,
-                    fullname: userInfo?.fullname,
-                    is_following: userInfo?.is_following,
-                    profile_img: userInfo?.profile_image,
-                    created_at: userInfo?.created_at
-                }
-            })
-        } catch (err){
-            res.send({
-                success: false,
-                message: err.toString(),
-            });
-        }
-    }
-
-    
-    
+  }
 }
-
-
 
 export default AccountController;

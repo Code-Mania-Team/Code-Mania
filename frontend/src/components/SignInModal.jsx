@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import swordImage from '../assets/sword.png';
 import shieldImage from '../assets/shield.png';
 import '../App.css';
+import { signInWithEmail } from '../supabaseClient/Auth';
+
+
 
 const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [email, setEmail] = useState('');
@@ -11,11 +14,18 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     onSignInSuccess && onSignInSuccess()
     e.stopPropagation();
-    return false;
+
+    try {
+      await signInWithEmail(email);
+      console.log('Sign-in email sent to:', email);
+
+      }catch (error) {
+        console.error('Error during sign-in:', error);}
+    console.log('Signing in with:', { email, password, rememberMe });
   };
 
   return (
