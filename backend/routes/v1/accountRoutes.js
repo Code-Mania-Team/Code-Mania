@@ -1,20 +1,17 @@
 // routes/v1/auth.js
 import express from 'express';
 import AccountController from '../../controllers/accountController.js';
+import authorization from "../../middlewares/authorization.js";
+import authentication from "../../middlewares/authentication.js";
+import { use } from 'react';
 
 const router = express.Router();
 const account = new AccountController();
 
-// 🔹 Magic Link (Send email)
-router.post('/send-magic-link', account.sendMagicLink);
+//accountRouter,use(authorization)
 
-// 🔹 Verify token
-router.get('/verify-token', account.verifyToken);
+// Magic Link (Send email)
+//router.post('/sign-up', account.sendMagicLink);
 
-// 🔹 Google callback (optional if you manage OAuth server-side)
-router.get('/google/callback', account.googleCallback);
-
-// 🔹 Profile (protected)
-router.get('/profile', account.profile);
 
 export default router;
