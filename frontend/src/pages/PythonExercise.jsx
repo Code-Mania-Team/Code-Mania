@@ -6,6 +6,11 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import styles from "../styles/PythonExercise.module.css";
 import map1 from "../assets/aseprites/map1.png"; // Import the map1 image
+import characterIdle from "../assets/aseprites/Idle-Sheet.png";
+import walkDown from "../assets/aseprites/walkdown-Sheet.png";
+import walkLeft from "../assets/aseprites/walkleft-Sheet.png";
+import walkRight from "../assets/aseprites/walkright-Sheet.png";
+import walkUp from "../assets/aseprites/walkup-Sheet.png";
 
 const PythonExercise = () => {
   const [code, setCode] = useState(`# Write code below ❤️
@@ -22,6 +27,34 @@ print("Hello, World!")`);
   const [currentDialogue, setCurrentDialogue] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  
+  // Character state
+  const [character, setCharacter] = useState({
+    x: 100,
+    y: 100,
+    direction: 'down',
+    isMoving: false,
+    sprite: characterIdle,
+    frame: 0,
+    frameCount: 4, // 4 frames per animation
+    frameDuration: 200, // ms per frame
+    lastUpdate: 0,
+    // Add these for smoother animation
+    animationTimer: 0,
+    frameProgress: 0,
+    // Sprite dimensions - increased size
+    spriteWidth: 64,
+    spriteHeight: 64,
+    scale: 1 // Scale factor for the character
+  });
+  
+  const [keys, setKeys] = useState({
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false
+  });
+  const moveSpeed = 3; // Increased move speed to compensate for larger character
 
   // Automatically start dialogue on component mount
   useEffect(() => {
@@ -91,6 +124,111 @@ print("Hello, World!")`);
     setIsSignInModalOpen(false);
   };
 
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (keys.hasOwnProperty(e.key)) {
+        // Prevent default to stop page scrolling with arrow keys
+        e.preventDefault();
+        setKeys(prev => ({ ...prev, [e.key]: true }));
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (keys.hasOwnProperty(e.key)) {
+        e.preventDefault();
+        setKeys(prev => ({ ...prev, [e.key]: false }));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [keys]);
+
+  // Animation and movement loop
+  useEffect(() => {
+    let animationFrameId;
+    let lastTimestamp = 0;
+    const frameTime = 100; // Time per frame in ms
+
+    const updateCharacter = (timestamp) => {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const deltaTime = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+
+      setCharacter(prev => {
+        let { x, y, direction, frame, lastUpdate, isMoving, animationTimer } = prev;
+        let newX = x;
+        let newY = y;
+        let newDirection = direction;
+        let newIsMoving = false;
+        let newFrame = frame;
+        let newLastUpdate = lastUpdate;
+        let newAnimationTimer = animationTimer + deltaTime;
+        let sprite = characterIdle;
+
+        // Handle movement
+        if (keys.ArrowUp) {
+          newY = Math.max(0, y - moveSpeed);
+          newDirection = 'up';
+          newIsMoving = true;
+          sprite = walkUp;
+        } else if (keys.ArrowDown) {
+          newY = Math.min(400 - 64, y + moveSpeed);
+          newDirection = 'down';
+          newIsMoving = true;
+          sprite = walkDown;
+        }
+        
+        if (keys.ArrowLeft) {
+          newX = Math.max(0, x - moveSpeed);
+          newDirection = 'left';
+          newIsMoving = true;
+          sprite = walkLeft;
+        } else if (keys.ArrowRight) {
+          newX = Math.min(400 - 32, x + moveSpeed);
+          newDirection = 'right';
+          newIsMoving = true;
+          sprite = walkRight;
+        }
+
+        // Update animation frame
+        if (newIsMoving) {
+          // Only update frame every frameTime milliseconds
+          if (newAnimationTimer >= frameTime) {
+            newFrame = (frame + 4) % prev.frameCount;
+            newAnimationTimer = 0; // Reset the timer
+          }
+        } else {
+          newFrame = 0; // Reset to first frame when not moving
+          newAnimationTimer = 0;
+        }
+
+        return {
+          ...prev,
+x: newX,
+          y: newY,
+          direction: newDirection,
+          isMoving: newIsMoving,
+          sprite,
+          frame: newFrame,
+          lastUpdate: newLastUpdate,
+          animationTimer: newAnimationTimer
+        };
+      });
+
+      animationFrameId = requestAnimationFrame(updateCharacter);
+    };
+
+    animationFrameId = requestAnimationFrame(updateCharacter);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [keys]);
+
   return (
     <div className={styles["python-exercise-page"]}>
       <div className={styles["scroll-background"]}></div>
@@ -124,6 +262,24 @@ print("Hello, World!")`);
                   overflow: 'hidden'
                 }}
               >
+                {/* Character Sprite */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    left: `${character.x}px`,
+                    top: `${character.y}px`,
+                    width: `${character.spriteWidth}px`,
+                    height: `${character.spriteHeight}px`,
+                    backgroundImage: `url(${character.sprite})`,
+                    backgroundPosition: `-${character.frame * (character.spriteWidth / character.scale)}px 0`,
+                    backgroundSize: `${(character.spriteWidth * character.frameCount) / character.scale}px ${character.spriteHeight / character.scale}px`,
+                    imageRendering: 'pixelated',
+                    zIndex: 10,
+                    transform: `scale(${character.scale})`,
+                    transformOrigin: 'top left',
+                    willChange: 'transform'
+                  }}
+                />
                 {!showScroll && (
                   <button 
                     onClick={() => setShowScroll(true)}
