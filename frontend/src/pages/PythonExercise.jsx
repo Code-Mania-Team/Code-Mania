@@ -11,14 +11,25 @@ import walkDown from "../assets/aseprites/walkdown-Sheet.png";
 import walkLeft from "../assets/aseprites/walkleft-Sheet.png";
 import walkRight from "../assets/aseprites/walkright-Sheet.png";
 import walkUp from "../assets/aseprites/walkup-Sheet.png";
+import monsterImage from "../assets/aseprites/gloo.png";
 
-const PythonExercise = () => {
+const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [code, setCode] = useState(`# Write code below ❤️
 
 print("Hello, World!")`);
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+  
+  // Monster state
+  const [monster] = useState({
+    x: 600,
+    y: 200,
+    width: 80,
+    height: 80,
+    // Reduced detection radius to make the scroll appear only when very close
+    detectionRadius: 50 // How close the character needs to be to show scroll
+  });
 
   // === Dialogue System ===
   const dialogues = [
@@ -43,8 +54,8 @@ print("Hello, World!")`);
     animationTimer: 0,
     frameProgress: 0,
     // Sprite dimensions - increased size
-    spriteWidth: 64,
-    spriteHeight: 64,
+    spriteWidth: 100,
+    spriteHeight: 100,
     scale: 1 // Scale factor for the character
   });
   
@@ -104,9 +115,8 @@ print("Hello, World!")`);
     }
   };
 
+  // Authentication state is managed in App.jsx and passed down through props
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
 
   const handleOpenModal = () => {
     setIsSignInModalOpen(true);
@@ -117,11 +127,7 @@ print("Hello, World!")`);
   };
 
   const handleSignInSuccess = () => {
-    // In a real app, you would get user data from your auth provider
-    const mockUser = { name: 'Coder', email: 'coder@example.com' };
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    setIsSignInModalOpen(false);
+    handleCloseModal();
   };
 
   // Handle keyboard input
@@ -149,6 +155,38 @@ print("Hello, World!")`);
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [keys]);
+
+  // Check for collisions or proximity to objects using requestAnimationFrame
+  useEffect(() => {
+    let animationFrameId;
+    let lastTime = 0;
+    const checkInterval = 50; // Check every 50ms for better responsiveness
+
+    const checkProximity = (timestamp) => {
+      if (!lastTime || timestamp - lastTime >= checkInterval) {
+        lastTime = timestamp;
+        
+        // Calculate distance between character and monster
+        const charCenterX = character.x + character.spriteWidth / 2;
+        const charCenterY = character.y + character.spriteHeight / 2;
+        const monsterCenterX = monster.x + monster.width / 2;
+        const monsterCenterY = monster.y + monster.height / 2;
+        
+        const distance = Math.sqrt(
+          Math.pow(charCenterX - monsterCenterX, 2) + 
+          Math.pow(charCenterY - monsterCenterY, 2)
+        );
+
+        // Show scroll if character is near the monster
+        setShowScroll(distance < monster.detectionRadius);
+      }
+      
+      animationFrameId = requestAnimationFrame(checkProximity);
+    };
+
+    animationFrameId = requestAnimationFrame(checkProximity);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [character, monster]);
 
   // Animation and movement loop
   useEffect(() => {
@@ -179,7 +217,7 @@ print("Hello, World!")`);
           newIsMoving = true;
           sprite = walkUp;
         } else if (keys.ArrowDown) {
-          newY = Math.min(400 - 64, y + moveSpeed);
+          newY = Math.min(350 - 64, y + moveSpeed);
           newDirection = 'down';
           newIsMoving = true;
           sprite = walkDown;
@@ -191,7 +229,7 @@ print("Hello, World!")`);
           newIsMoving = true;
           sprite = walkLeft;
         } else if (keys.ArrowRight) {
-          newX = Math.min(400 - 32, x + moveSpeed);
+          newX = Math.min(600 - 32, x + moveSpeed);
           newDirection = 'right';
           newIsMoving = true;
           sprite = walkRight;
@@ -232,7 +270,7 @@ x: newX,
   return (
     <div className={styles["python-exercise-page"]}>
       <div className={styles["scroll-background"]}></div>
-      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} user={user} />
+      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} />
       
       {isSignInModalOpen && (
         <SignInModal 
@@ -262,31 +300,43 @@ x: newX,
                   overflow: 'hidden'
                 }}
               >
-                {/* Character Sprite */}
-                <div 
-                  style={{
-                    position: 'absolute',
-                    left: `${character.x}px`,
-                    top: `${character.y}px`,
-                    width: `${character.spriteWidth}px`,
-                    height: `${character.spriteHeight}px`,
-                    backgroundImage: `url(${character.sprite})`,
-                    backgroundPosition: `-${character.frame * (character.spriteWidth / character.scale)}px 0`,
-                    backgroundSize: `${(character.spriteWidth * character.frameCount) / character.scale}px ${character.spriteHeight / character.scale}px`,
-                    imageRendering: 'pixelated',
-                    zIndex: 10,
-                    transform: `scale(${character.scale})`,
-                    transformOrigin: 'top left',
-                    willChange: 'transform'
-                  }}
-                />
+                {/* Monster - Only show when scroll is not visible */}
                 {!showScroll && (
-                  <button 
-                    onClick={() => setShowScroll(true)}
-                    className={styles["show-scroll-btn"]}
-                  >
-                    View Challenge
-                  </button>
+                  <div 
+                    style={{
+                      position: 'absolute',
+                      left: `${monster.x}px`,
+                      top: `${monster.y}px`,
+                      width: `${monster.width}px`,
+                      height: `${monster.height}px`,
+                      backgroundImage: `url(${monsterImage})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center center',
+                      zIndex: 5,
+                      transform: 'scale(1.5)'
+                    }}
+                  />
+                )}
+
+                {/* Character Sprite - Only show when scroll is not visible */}
+                {!showScroll && (
+                  <div 
+                    style={{
+                      position: 'absolute',
+                      left: `${character.x}px`,
+                      top: `${character.y}px`,
+                      width: `${character.spriteWidth}px`,
+                      height: `${character.spriteHeight}px`,
+                      backgroundImage: `url(${character.sprite})`,
+                      backgroundPosition: `-${character.frame * (character.spriteWidth / character.scale)}px 0`,
+                      backgroundSize: `${(character.spriteWidth * character.frameCount) / character.scale}px ${character.spriteHeight / character.scale}px`,
+                      imageRendering: 'pixelated',
+                      zIndex: 10,
+                      transform: `scale(${character.scale})`,
+                      transformOrigin: 'top left',
+                      willChange: 'transform'
+                    }}
+                  />
                 )}
 
                 {showScroll && (

@@ -133,8 +133,8 @@ function App() {
     localStorage.setItem('isAuthenticated', isAuthenticated);
   }, [isAuthenticated]);
 
-  // hide header/footer on exercise routes
-  const isExercisePage = 
+  // hide header/footer on exercise routes and dashboard
+  const hideGlobalHeaderFooter = 
     location.pathname.startsWith("/learn/python/exercise") || 
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
@@ -142,7 +142,7 @@ function App() {
 
   return (
     <div className="app">
-      {!isExercisePage && (
+      {!hideGlobalHeaderFooter && (
         <Header 
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
@@ -156,7 +156,16 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/python" element={<PythonCourse />} />
-          <Route path="/learn/python/exercise/:exerciseId" element={<PythonExercise />} />
+          <Route 
+            path="/learn/python/exercise/:exerciseId" 
+            element={
+              <PythonExercise 
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={() => setIsAuthenticated(false)}
+              />
+            } 
+          />
           <Route path="/learn/cpp" element={<CppCourse />} />
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
@@ -168,7 +177,7 @@ function App() {
         </Routes>
       </main>
 
-      {!isExercisePage && <Footer />}
+      {!hideGlobalHeaderFooter && <Footer />}
 
       <SignInModal 
         isOpen={isModalOpen} 

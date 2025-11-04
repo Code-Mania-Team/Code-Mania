@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/header';
 import Footer from '../components/footer';
+import Header from '../components/header';
 import pythonGif from '../assets/python.gif';
 import styles from '../styles/Dashboard.module.css';
 
@@ -31,16 +31,18 @@ const Dashboard = () => {
 
   return (
     <div className={styles.container}>
+      <Header />
       {/* Animated Background Circles */}
       <div className={styles.circles}>
         <div className={`${styles.circle} ${styles.circle1}`}></div>
         <div className={`${styles.circle} ${styles.circle2}`}></div>
         <div className={`${styles.circle} ${styles.circle3}`}></div>
       </div>
-      <Header />
       {/* Welcome Message */}
       <div className={styles['welcome-section']}>
-        <div className={styles['robot-icon']}>🤖</div>
+        <div className={styles['robot-icon']}>
+          <img src="/src/assets/COMPUTER.png" alt="Computer" style={{ width: '60px', height: '60px' }} />
+        </div>
         <div className={styles['speech-bubble']}>
           Hi @{userStats.name}! We've been waiting for you.
         </div>

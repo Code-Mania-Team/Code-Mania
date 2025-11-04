@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './ProgressBar.module.css';
+import styles from '../styles/ProgressBar.module.css';
 
 const ProgressBar = ({ currentLesson = 1, totalLessons = 12, title = '⚙️ Setting up' }) => {
   const progressPercentage = (currentLesson / totalLessons) * 100;
