@@ -1,12 +1,9 @@
 // controllers/accountController.js
-import { supabase } from '../core/supabaseClient.js';
-import user from '../models/user.js';
+import { supabase } from '../../core/supabaseClient.js';
 import jwt from 'jsonwebtoken';
 
 class AccountController {
-  constructor() {this.user = new user();
-
-  }
+  
 
   /* ---------------------------------
      Magic Link (Send Login Email)

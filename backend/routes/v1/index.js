@@ -6,6 +6,6 @@ import accountRouter from './accountRoutes.js';
 
 const v1 = new Router();
 
-v1.use('/signin', accountRouter);
+v1.use('/', accountRouter);
 
 export default v1;
