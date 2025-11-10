@@ -16,7 +16,7 @@ class AccountController {
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: 'http://localhost:5173',
+          emailRedirectTo: 'http://localhost:5173/dashboard',
         },
       });
 
