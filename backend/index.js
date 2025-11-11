@@ -20,13 +20,13 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// // Configure CORS for frontend communication
-// app.use(
-//   cors({
-//     origin: process.env.FRONTEND_URL || 'http://localhost:5173', // your frontend
-//     credentials: true, // allow cookies
-//   })
-// );
+// Configure CORS for frontend communication
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // your frontend
+    credentials: true, // allow cookies
+  })
+);
 
 /* ---------------------------------
    3️⃣ Routes

@@ -14,6 +14,5 @@ const account = new AccountController();
 router.post('/sign-up', account.sendMagicLink);
 
 
-
 export default router;
 //export default  accountRouter; (with authorization)

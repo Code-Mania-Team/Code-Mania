@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import swordImage from '../assets/sword.png';
 import shieldImage from '../assets/shield.png';
 import '../App.css';
-import { signInWithEmail } from '../supabaseClient/Auth';
+import { signUp } from '../service/signup.js';
 
 
 
@@ -32,10 +32,14 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     }, 1000);
 
     e.stopPropagation();
+    setLoading(true);
+    setMessage('');
 
     try {
-      await signInWithEmail(email);
+      await signUp(email);
       console.log('Sign-in email sent to:', email);
+      setMessage(`Magic link sent to ${email}! Check your inbox.`);
+      onSignInSuccess && onSignInSuccess()
 
       }catch (error) {
         console.error('Error during sign-in:', error);}
