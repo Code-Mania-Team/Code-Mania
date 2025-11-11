@@ -89,8 +89,6 @@ print("Hello, World!")`);
   useEffect(() => {
     const game = initPhaserGame("phaser-container");
 
-    setTimeout(() => setShowScroll(true), 1500);
-
     return () => {
       if (game) game.cleanup(); 
     };
@@ -121,11 +119,27 @@ print("Hello, World!")`);
               <div
                 id="phaser-container"
                 className={styles["game-scene"]}
-                
               />
+              
+              {/* Button to show scroll */}
+              {!showScroll && (
+                <button
+                  className={styles["lesson-button"]}
+                  onClick={() => setShowScroll(true)}
+                >
+                  📜 View Lesson
+                </button>
+              )}
 
               {showScroll && (
                 <div className={styles["scroll-container"]}>
+                  <button
+                    className={styles["close-scroll"]}
+                    onClick={() => setShowScroll(false)}
+                    title="Close lesson"
+                  >
+                    ✕
+                  </button>
                   <img
                     src="/src/assets/aseprites/scroll.png"
                     alt="Scroll"

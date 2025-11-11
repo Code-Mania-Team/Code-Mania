@@ -717,6 +717,7 @@ transition: transform 0.3s ease;
   font-family: 'Press Start 2P', cursive;
   font-size: 0.65rem;
   background: linear-gradient(90deg, #007bff, #7f00ff);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 2rem;
@@ -793,6 +794,87 @@ transition: transform 0.3s ease;
 }
 .signup-link a:hover {
   text-decoration: underline;
+}
+
+/* Magic Link Sent Screen */
+.magic-link-sent {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.magic-link-title {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  font-weight: normal;
+}
+
+.magic-link-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #aaa;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+.email-highlight {
+  color: #fff;
+  font-weight: 600;
+}
+
+.try-different-email {
+  background: none;
+  border: none;
+  color: #fff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.try-different-email:hover {
+  color: #7f00ff;
+}
+
+.resend-button {
+  width: 100%;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 2rem;
+}
+
+.resend-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.support-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: #888;
+  line-height: 1.8;
+}
+
+.support-link {
+  color: #fff;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.support-link:hover {
+  color: #7f00ff;
 }
 
 

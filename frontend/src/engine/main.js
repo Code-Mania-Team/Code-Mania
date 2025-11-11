@@ -7,7 +7,8 @@ export function initPhaserGame(containerId) {
     type: Phaser.AUTO,
     parent: containerId,
     backgroundColor: "#1d1f27",
-    pixelArt: true, 
+    pixelArt: true,
+    roundPixels: true,
     physics: {
       default: "arcade",
       arcade: {
@@ -23,6 +24,8 @@ export function initPhaserGame(containerId) {
     },
     render: {
       antialias: false,
+      pixelArt: true,
+      roundPixels: true,
     },
     scene: [GameScene],
   };
