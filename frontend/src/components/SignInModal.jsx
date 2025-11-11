@@ -9,7 +9,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [countdown, setCountdown] = useState(28);
+  const [countdown, setCountdown] = useState(60);
 
   if (!isOpen) return null;
 
@@ -22,7 +22,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          return 28;
+          return 60;
         }
         return prev - 1;
       });
@@ -33,7 +33,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   };
 
   const handleResendLink = () => {
-    setCountdown(28);
+    setCountdown(60);
     // Add your resend logic here
   };
 
