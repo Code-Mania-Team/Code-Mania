@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '../components/header';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/footer';
+import Header from '../components/header';
+import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import pythonGif from '../assets/python.gif';
 import styles from '../styles/Dashboard.module.css';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(9);
-  const [userStats] = useState({
-    name: 'Vadeer',
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
+  const [userStats, setUserStats] = useState({
+    name: 'User',
     level: 1,
     totalXP: 68,
     rank: 1,
@@ -29,18 +35,64 @@ const Dashboard = () => {
     timeLeft: '3 HOURS LEFT'
   });
 
+  useEffect(() => {
+    // Check if user is new (hasn't seen onboarding)
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+
+    // Load username from localStorage
+    const savedUsername = localStorage.getItem('username');
+    if (savedUsername) {
+      setUserStats(prev => ({
+        ...prev,
+        name: savedUsername
+      }));
+    }
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('hasSeenOnboarding', 'false');
+    
+    // Update username after onboarding
+    const savedUsername = localStorage.getItem('username');
+    if (savedUsername) {
+      setUserStats(prev => ({
+        ...prev,
+        name: savedUsername
+      }));
+    }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    setIsAuthenticated(false);
+    navigate('/');
+  };
+
   return (
     <div className={styles.container}>
+      {showOnboarding && <WelcomeOnboarding onComplete={handleOnboardingComplete} />}
+      <Header 
+        isAuthenticated={isAuthenticated}
+        onOpenModal={() => {}}
+        onSignOut={handleSignOut}
+      />
       {/* Animated Background Circles */}
       <div className={styles.circles}>
         <div className={`${styles.circle} ${styles.circle1}`}></div>
         <div className={`${styles.circle} ${styles.circle2}`}></div>
         <div className={`${styles.circle} ${styles.circle3}`}></div>
       </div>
-      <Header />
       {/* Welcome Message */}
       <div className={styles['welcome-section']}>
-        <div className={styles['robot-icon']}>🤖</div>
+        <div className={styles['robot-icon']}>
+          <img src="/src/assets/COMPUTER.png" alt="Computer" style={{ width: '60px', height: '60px' }} />
+        </div>
         <div className={styles['speech-bubble']}>
           Hi @{userStats.name}! We've been waiting for you.
         </div>

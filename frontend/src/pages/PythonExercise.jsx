@@ -5,9 +5,9 @@ import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import styles from "../styles/PythonExercise.module.css";
-import map1 from "../assets/aseprites/map1.png"; // Import the map1 image
+import { initPhaserGame } from "../engine/main.js";
 
-const PythonExercise = () => {
+const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [code, setCode] = useState(`# Write code below ❤️
 
 print("Hello, World!")`);
@@ -23,7 +23,6 @@ print("Hello, World!")`);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Automatically start dialogue on component mount
   useEffect(() => {
     handleNextDialogue();
   }, []);
@@ -46,7 +45,7 @@ print("Hello, World!")`);
           prev + 1 < dialogues.length ? prev + 1 : prev
         );
       }
-    }, 40); // typing speed
+    }, 40);
   };
 
   const handleRunCode = () => {
@@ -71,9 +70,8 @@ print("Hello, World!")`);
     }
   };
 
+  // === Sign-in modal handling ===
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
 
   const handleOpenModal = () => {
     setIsSignInModalOpen(true);
@@ -84,20 +82,26 @@ print("Hello, World!")`);
   };
 
   const handleSignInSuccess = () => {
-    // In a real app, you would get user data from your auth provider
-    const mockUser = { name: 'Coder', email: 'coder@example.com' };
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    setIsSignInModalOpen(false);
+    handleCloseModal();
   };
+
+
+  useEffect(() => {
+    const game = initPhaserGame("phaser-container");
+
+    return () => {
+      if (game) game.cleanup(); 
+    };
+  }, []);
+
 
   return (
     <div className={styles["python-exercise-page"]}>
       <div className={styles["scroll-background"]}></div>
-      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} user={user} />
-      
+      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} />
+
       {isSignInModalOpen && (
-        <SignInModal 
+        <SignInModal
           isOpen={isSignInModalOpen}
           onClose={handleCloseModal}
           onSignInSuccess={handleSignInSuccess}
@@ -108,83 +112,90 @@ print("Hello, World!")`);
         <ProgressBar currentLesson={1} totalLessons={12} title="🐍 Python Basics" />
 
         <div className={styles["main-layout"]}>
-          {/* Left Side - Game Preview */}
+          {/* === LEFT SIDE: Phaser Game === */}
           <div className={styles["game-container"]}>
             <div className={styles["game-preview"]}>
-              <div 
+              {/* Phaser mounts here */}
+              <div
+                id="phaser-container"
                 className={styles["game-scene"]}
-                style={{
-                  backgroundImage: `url(${map1})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  minHeight: '400px',
-                  position: 'relative',
-                  borderRadius: '8px',
-                  overflow: 'hidden'
-                }}
-              >
-                {!showScroll && (
-                  <button 
-                    onClick={() => setShowScroll(true)}
-                    className={styles["show-scroll-btn"]}
+              />
+              
+              {/* Button to show scroll */}
+              {!showScroll && (
+                <button
+                  className={styles["lesson-button"]}
+                  onClick={() => setShowScroll(true)}
+                >
+                  📜 View Lesson
+                </button>
+              )}
+
+              {showScroll && (
+                <div className={styles["scroll-container"]}>
+                  <button
+                    className={styles["close-scroll"]}
+                    onClick={() => setShowScroll(false)}
+                    title="Close lesson"
                   >
-                    View Challenge
+                    ✕
                   </button>
-                )}
+                  <img
+                    src="/src/assets/aseprites/scroll.png"
+                    alt="Scroll"
+                    className={styles["scroll-image"]}
+                  />
 
-                {showScroll && (
-                  <div className={styles["scroll-container"]}>
-                    <img
-                      src="/src/assets/aseprites/scroll.png"
-                      alt="Scroll"
-                      className={styles["scroll-image"]}
-                    />
-
-                    <div className={styles["scroll-content"]}>
-                      <h2>🐍 Python</h2>
-                      <p>
-                        Welcome to the first chapter of <strong>The Legend of Python!</strong><br />
-                        Python is a beginner-friendly language created by{" "}
-                        <a href="https://en.wikipedia.org/wiki/Guido_van_Rossum" target="_blank" rel="noreferrer">
-                          Guido van Rossum
-                        </a>{" "}
-                        in the early 90s.
-                      </p>
-                      <ul>
-                        <li>• Artificial Intelligence</li>
-                        <li>• Web Development</li>
-                        <li>• Data Analysis</li>
-                        <li>• Machine Learning</li>
-                      </ul>
-                      <p>Let's give it a try! Here's a simple Python example:</p>
-                      <div className={styles["code-example"]}>
-                        <pre>
-                          <code>
-                            {`# This is a simple Python function
+                  <div className={styles["scroll-content"]}>
+                    <h2>🐍 Python</h2>
+                    <p>
+                      Welcome to the first chapter of{" "}
+                      <strong>The Legend of Python!</strong>
+                      <br />
+                      Python is a beginner-friendly language created by{" "}
+                      <a
+                        href="https://en.wikipedia.org/wiki/Guido_van_Rossum"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Guido van Rossum
+                      </a>{" "}
+                      in the early 90s.
+                    </p>
+                    <ul>
+                      <li>• Artificial Intelligence</li>
+                      <li>• Web Development</li>
+                      <li>• Data Analysis</li>
+                      <li>• Machine Learning</li>
+                    </ul>
+                    <p>Let's give it a try! Here's a simple Python example:</p>
+                    <div className={styles["code-example"]}>
+                      <pre>
+                        <code>
+                          {`# This is a simple Python function
 print("Hi")
 
 This should appear in the Terminal window:
 Hi`}
-                          </code>
-                        </pre>
-                      </div>
-                      <p>Try writing your own code on the right! 👉</p>
+                        </code>
+                      </pre>
                     </div>
+                    <p>Try writing your own code on the right! 👉</p>
                   </div>
-                )}
-              </div>
-
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Side - Code Editor and Terminal */}
+          {/* === RIGHT SIDE: Code Editor and Terminal === */}
           <div className={styles["code-container"]}>
             <div className={styles["code-editor"]}>
               <div className={styles["editor-header"]}>
                 <span>script.py</span>
-                <button 
-                  className={`${styles["run-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`} 
+                <button
+                  className={`${styles["run-btn"]} ${
+                    !showScroll ? styles["disabled-btn"] : ""
+                  }`}
                   onClick={handleRunCode}
                   disabled={!showScroll}
                   title={!showScroll ? "View the lesson first" : "Run code"}
@@ -202,8 +213,10 @@ Hi`}
             <div className={styles["terminal"]}>
               <div className={styles["terminal-header"]}>
                 Terminal
-                <button 
-                  className={`${styles["submit-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`}
+                <button
+                  className={`${styles["submit-btn"]} ${
+                    !showScroll ? styles["disabled-btn"] : ""
+                  }`}
                   onClick={handleRunCode}
                   disabled={!showScroll}
                   title={!showScroll ? "View the lesson first" : "Submit code"}
@@ -212,8 +225,6 @@ Hi`}
                 </button>
               </div>
               <div className={styles["terminal-body"]}>
-                <div className={styles["terminal-line"]}>
-                </div>
                 {output && (
                   <div className={styles["terminal-output"]}>{output}</div>
                 )}
@@ -233,16 +244,17 @@ Hi`}
             onClick={() => setShowHelp((prev) => !prev)}
           >
             <span>💡 Hint</span>
-            <span className={styles["help-arrow"]}>{showHelp ? "▴" : "▾"}</span>
+            <span className={styles["help-arrow"]}>
+              {showHelp ? "▴" : "▾"}
+            </span>
           </div>
 
           {showHelp && (
-            <div 
+            <div
               className={styles["dialogue-terminal"]}
               onClick={handleNextDialogue}
             >
               <div className={styles["terminal-line"]}>
-                <span className={styles["prompt"]}></span>
                 <span className={styles["dialogue-text"]}>
                   {displayedText}
                   <span className={styles["cursor"]}></span>
