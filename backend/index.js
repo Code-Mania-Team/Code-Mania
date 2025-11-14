@@ -1,49 +1,46 @@
-// server.js
+// server.js (cleaned & fixed)
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import 'dotenv/config.js';
 import v1 from './routes/v1/index.js';
-import './core/supabaseClient.js'  // Ensure this import is present
+import './core/supabaseClient.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-
 /* ---------------------------------
-   2️⃣ Middlewares
+   Middleware
 ----------------------------------- */
 app.use(morgan('combined'));
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
 
-// Configure CORS for frontend communication
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // your frontend
-    credentials: true, // allow cookies
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
   })
 );
 
+// ✅ Use built-in Express body parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 /* ---------------------------------
-   3️⃣ Routes
+   Routes
 ----------------------------------- */
-app.use('/v1', cors(), v1);
-
+app.use('/v1', v1);
 
 /* ---------------------------------
-   4️⃣ Health Check Route
+   Health Check
 ----------------------------------- */
 app.get('/', (req, res) => {
   res.json({ message: 'Backend is running successfully!' });
 });
 
-
 /* ---------------------------------
-   5️⃣ Server Init
+   Start Server
 ----------------------------------- */
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);

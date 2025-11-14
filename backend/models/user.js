@@ -1,5 +1,6 @@
 // controllers/v1/userController.js
-import { supabase } from '../../core/supabaseClient.js';
+import { supabase } from '../core/supabaseClient.js';
+
 
 class UserController {
   /* 🧠 Get all users */
