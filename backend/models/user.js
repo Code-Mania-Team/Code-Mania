@@ -1,67 +1,49 @@
-// controllers/v1/userController.js
+// models/user.js
 import { supabase } from '../core/supabaseClient.js';
 
-
 class UserController {
-  /* 🧠 Get all users */
-  async getAllUsers(req, res) {
-    try {
-      const { data, error } = await supabase.from('users').select('*');
-      if (error) throw error;
-
-      res.status(200).json({ success: true, users: data });
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
-    }
+  // Check if a user exists by user_id
+  async getById(userId) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('user_id, email, username')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
   }
 
-  /* 👤 Get single user by ID */
-  async getUserById(req, res) {
-    try {
-      const { id } = req.params;
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .single();
-
+  // Create a new user if not exists
+  async createIfNotExists(user) {
+    const existing = await this.getById(user.id);
+    if (!existing) {
+      const { error } = await supabase.from('users').insert({
+        user_id: user.id,
+        email: user.email,
+      });
       if (error) throw error;
-      res.status(200).json({ success: true, user: data });
-    } catch (err) {
-      res.status(404).json({ success: false, message: 'User not found' });
+      return { user_id: user.id, email: user.email };
     }
+    return existing;
   }
 
-  /* ✏️ Update user profile */
-  async updateUser(req, res) {
-    try {
-      const { id } = req.params;
-      const updates = req.body;
-
-      const { data, error } = await supabase
-        .from('users')
-        .update(updates)
-        .eq('id', id)
-        .select();
-
-      if (error) throw error;
-      res.status(200).json({ success: true, message: 'User updated', user: data[0] });
-    } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
-    }
+  // Delete a user
+  async delete(userId) {
+    const { error } = await supabase.from('users').delete().eq('user_id', userId);
+    if (error) throw error;
+    return true;
   }
 
-  /* ❌ Delete user */
-  async deleteUser(req, res) {
-    try {
-      const { id } = req.params;
-      const { error } = await supabase.from('users').delete().eq('id', id);
-
-      if (error) throw error;
-      res.status(200).json({ success: true, message: 'User deleted' });
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
-    }
+  // Set username
+  async setUsername(userId, username) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ username })
+      .eq('user_id', userId)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data;
   }
 }
 

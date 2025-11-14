@@ -1,4 +1,3 @@
-// controllers/v1/accountController.js
 import { supabase } from '../../core/supabaseClient.js';
 import jwt from 'jsonwebtoken';
 import UserController from '../../models/user.js';
@@ -6,7 +5,6 @@ import UserController from '../../models/user.js';
 const userController = new UserController();
 
 class AccountController {
-  // Step 1: send magic link
   async sendMagicLink(req, res) {
     try {
       const { email } = req.body;
@@ -32,23 +30,18 @@ class AccountController {
     }
   }
 
-  // Step 2: verify magic link and generate JWT
   async verifyMagicLink(req, res) {
     try {
       const token = req.body?.token || req.query?.token;
-      if (!token) {
-        return res.status(400).json({ success: false, message: 'Missing access token' });
-      }
+      if (!token) return res.status(400).json({ success: false, message: 'Missing access token' });
 
       const { data, error } = await supabase.auth.getUser(token);
-      if (error || !data?.user) {
-        return res.status(401).json({ success: false, message: 'Invalid or expired token' });
-      }
+      if (error || !data?.user) return res.status(401).json({ success: false, message: 'Invalid or expired token' });
 
       const user = data.user;
 
-      // Ensure user exists in users table via UserController
-      //await userController.ensureUserExists(user);
+      // ✅ Ensure user exists in users table
+      await userController.createIfNotExists(user);
 
       // Create backend JWT
       const jwtToken = jwt.sign(
@@ -69,11 +62,10 @@ class AccountController {
     }
   }
 
-  // Delete current authenticated user
   async deleteUser(req, res) {
     try {
       const userId = req.user.id;
-      await supabase.from('users').delete().eq('id', userId);
+      await userController.delete(userId);
       await supabase.auth.admin.deleteUser(userId);
 
       res.json({ success: true, message: 'Account deleted successfully' });
@@ -82,31 +74,24 @@ class AccountController {
     }
   }
 
-  // ✅ Now this simply calls userController.setUsername
   async setUsername(req, res) {
-    return userController.setUsername(req, res);
+    try {
+      const userId = req.user.id;
+      const { username } = req.body;
+      const data = await userController.setUsername(userId, username);
+      res.json({ success: true, user: data });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
   }
 
-  // Get current authenticated user's profile
   async getProfile(req, res) {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('user_id, email, username')
-        .eq('auth_id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('getProfile db error', error);
-        return res.status(500).json({ success: false, message: 'Database error' });
-      }
-
-      if (!data) {
-        return res.status(404).json({ success: false, message: 'User not found' });
-      }
+      const data = await userController.getById(userId);
+      if (!data) return res.status(404).json({ success: false, message: 'User not found' });
 
       return res.json({ success: true, user: data });
     } catch (err) {
