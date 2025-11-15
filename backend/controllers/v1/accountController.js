@@ -99,6 +99,21 @@ class AccountController {
       return res.status(500).json({ success: false, message: 'Server error' });
     }
   }
+
+  async signOut(req, res) {
+    try {
+      // Current auth model issues stateless JWTs to the client, so the server
+      // doesn't keep a session to destroy. We'll accept the request (optionally
+      // authenticated) and return success so the frontend can clear its local state.
+
+      // If a Supabase access token is sent in the body, we could attempt to
+      // revoke it here using an admin key; for now, keep this lightweight.
+      return res.json({ success: true, message: 'Signed out' });
+    } catch (err) {
+      console.error('signOut error', err);
+      return res.status(500).json({ success: false, message: 'Server error' });
+    }
+  }
 }
 
 export default AccountController;

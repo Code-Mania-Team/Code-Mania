@@ -25,6 +25,6 @@ accountRouter.post('/username', authentication, account.setUsername.bind(account
 accountRouter.get('/profile', authentication, account.getProfile.bind(account));
 
 // Delete Account
-accountRouter.delete('/', authentication, authorization, account.deleteUser.bind(account));
+accountRouter.delete('/', authentication, account.deleteUser.bind(account));
 
 export default accountRouter;
