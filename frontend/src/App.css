@@ -757,8 +757,199 @@ transition: transform 0.3s ease;
   color: #aaa;
   margin-bottom: 1.5rem;
 }
-.remember-me input {
+/* Sign In Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.signin-modal {
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  padding: 2.5rem 3rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.close-modal:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Form Elements */
+.signin-form {
+  width: 100%;
+}
+
+.form-group {
+  width: 100%;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #7f00ff;
+  box-shadow: 0 0 0 2px rgba(127, 0, 255, 0.2);
+}
+
+.form-group input::placeholder {
+  color: #64748b;
+}
+
+/* Remember Me */
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 1.5rem;
+}
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0 8px 0 0;
+  cursor: pointer;
   accent-color: #7f00ff;
+  flex-shrink: 0;
+}
+.remember-me label {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  margin: 0;
+  line-height: 1.4;
+  user-select: none;
+}
+
+/* Buttons */
+.signin-button {
+  width: 100%;
+  padding: 0.9rem;
+  background: linear-gradient(90deg, #7f00ff, #4b0082);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 1rem;
+}
+
+.signin-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(127, 0, 255, 0.3);
+}
+
+.signin-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.back-button {
+  width: 100%;
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.9rem;
+  margin-top: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+/* OTP Sent Message */
+.otp-sent {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.otp-sent h2 {
+  color: white;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.otp-sent p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.email-highlight {
+  color: #7f00ff;
+  font-weight: 500;
+}
+
+.otp-note {
+  color: #64748b;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  font-style: italic;
 }
 
 /* Gradient Button */
