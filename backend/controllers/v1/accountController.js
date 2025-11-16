@@ -1,119 +1,145 @@
-import { supabase } from '../../core/supabaseClient.js';
-import jwt from 'jsonwebtoken';
-import UserController from '../../models/user.js';
-
-const userController = new UserController();
+import jwt from "jsonwebtoken";
+import User from "../../models/user.js";
 
 class AccountController {
-  async sendMagicLink(req, res) {
-    try {
-      const { email } = req.body;
-      if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+    constructor() {
+        this.user = new User();
+    }
 
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: 'http://localhost:5173/dashboard',
-        },
-      });
+    // SINGLE ENDPOINT: request OTP (signup or login)
+    async requestOtp(req, res) {
+        const { email, password } = req.body || {};
 
-      if (error) {
-        if (error.status === 429) {
-          return res.status(429).json({ success: false, message: 'Too many magic link requests. Please try again later.' });
+        try {
+            let authUser;
+            let isNewUser = false;
+
+            const existingUser = await this.user.findByEmail(email);
+
+            if (existingUser) {
+                // Login
+                authUser = await this.user.loginOtp(email, password);
+            } else {
+                // Signup
+                authUser = await this.user.signUp(email, password);
+                isNewUser = true;
+            }
+
+            res.send({
+                success: true,
+                type: "otp_sent",
+                isNewUser,
+                email: authUser?.email
+            });
+        } catch (err) {
+            console.error("requestOtp error:", err);
+            res.send({
+                success: false,
+                message: "Unable to send OTP. Please try again."
+            });
         }
-        throw error;
-      }
-
-      res.json({ success: true, message: 'Magic link sent! Check your email.' });
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
     }
-  }
 
-  async verifyMagicLink(req, res) {
-    try {
-      const token = req.body?.token || req.query?.token;
-      if (!token) return res.status(400).json({ success: false, message: 'Missing access token' });
+    // VERIFY OTP
+    async verifyOtp(req, res) {
+        const { user_id, code } = req.body || {};
 
-      const { data, error } = await supabase.auth.getUser(token);
-      if (error || !data?.user) return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+        try {
+            const authUser = await this.user.verifyOtp(user_id, code);
 
-      const user = data.user;
+            const profile = await this.user.getProfile(authUser.user_id);
 
-      // ✅ Ensure user exists in users table
-      await userController.createIfNotExists(user);
+            if (!profile?.username) {
+                return res.send({
+                    success: true,
+                    requiresUsername: true,
+                    user_id: authUser.user_id
+                });
+            }
 
-      // Create backend JWT
-      const jwtToken = jwt.sign(
-        { id: user.id, email: user.email },
-        process.env.API_SECRET_KEY,
-        { expiresIn: '1h' }
-      );
+            const token = jwt.sign(
+                { user_id: authUser.user_id, username: profile.username },
+                process.env.API_SECRET_KEY,
+                { expiresIn: "1d" }
+            );
 
-      if (req.method === 'POST') {
-        return res.json({ success: true, message: 'Verified', token: jwtToken });
-      }
-
-      const redirectTo = process.env.FRONTEND_URL || 'http://localhost:5173';
-      return res.redirect(`${redirectTo}/dashboard?token=${encodeURIComponent(jwtToken)}`);
-    } catch (err) {
-      console.error('verifyMagicLink error:', err);
-      return res.status(500).json({ success: false, message: 'Server error' });
+            res.send({
+                success: true,
+                requiresUsername: false,
+                token
+            });
+        } catch (err) {
+            res.send({
+                success: false,
+                message: err.message
+            });
+        }
     }
-  }
 
-  async deleteUser(req, res) {
-    try {
-      const userId = req.user.id;
-      await userController.delete(userId);
-      await supabase.auth.admin.deleteUser(userId);
+    // SET USERNAME
+    async setUsername(req, res) {
+        const { user_id, username } = req.body || {};
 
-      res.json({ success: true, message: 'Account deleted successfully' });
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+        try {
+            await this.user.setUsername(user_id, username);
+
+            const token = jwt.sign(
+                { user_id, username },
+                process.env.API_SECRET_KEY,
+                { expiresIn: "1d" }
+            );
+
+            res.send({
+                success: true,
+                message: "Username set successfully",
+                token
+            });
+        } catch (err) {
+            res.send({
+                success: false,
+                message: err.message
+            });
+        }
     }
-  }
 
-  async setUsername(req, res) {
-    try {
-      const userId = req.user.id;
-      const { username } = req.body;
-      const data = await userController.setUsername(userId, username);
-      res.json({ success: true, user: data });
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+    // PROFILE
+    async profile(req, res) {
+        try {
+            const userId = res.locals.user_id;
+            const profile = await this.user.getProfile(userId);
+            res.send({ success: true, data: profile });
+        } catch (err) {
+            res.send({ success: false, message: err.message });
+        }
     }
-  }
 
-  async getProfile(req, res) {
-    try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    async updateProfile(req, res) {
+        const { username, bio } = req.body || {};
+        const userId = res.locals.user_id;
 
-      const data = await userController.getById(userId);
-      if (!data) return res.status(404).json({ success: false, message: 'User not found' });
+        try {
+            await this.user.updateProfile(userId, { username, bio });
 
-      return res.json({ success: true, user: data });
-    } catch (err) {
-      console.error('getProfile error', err);
-      return res.status(500).json({ success: false, message: 'Server error' });
+            const token = username
+                ? jwt.sign({ user_id: userId, username }, process.env.API_SECRET_KEY, { expiresIn: "1d" })
+                : null;
+
+            res.send({ success: true, message: "Profile updated", token });
+        } catch (err) {
+            res.send({ success: false, message: err.message });
+        }
     }
-  }
 
-  async signOut(req, res) {
-    try {
-      // Current auth model issues stateless JWTs to the client, so the server
-      // doesn't keep a session to destroy. We'll accept the request (optionally
-      // authenticated) and return success so the frontend can clear its local state.
+    async deleteUser(req, res) {
+        const userId = res.locals.user_id;
 
-      // If a Supabase access token is sent in the body, we could attempt to
-      // revoke it here using an admin key; for now, keep this lightweight.
-      return res.json({ success: true, message: 'Signed out' });
-    } catch (err) {
-      console.error('signOut error', err);
-      return res.status(500).json({ success: false, message: 'Server error' });
+        try {
+            await this.user.deleteUser(userId);
+            res.send({ success: true, message: "Account deleted" });
+        } catch (err) {
+            res.send({ success: false, message: err.message });
+        }
     }
-  }
 }
 
 export default AccountController;
