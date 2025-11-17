@@ -48,27 +48,25 @@ print("Hello, World!")`);
     }, 40);
   };
 
-  const handleRunCode = () => {
-    if (!code.includes("print(") && !code.includes("print ")) {
-      setOutput("Error: No print statement found. Did you include 'print()'?");
-      return;
-    }
-
+  const handleRunCode = async () => {
     try {
-      const openParen = (code.match(/\(/g) || []).length;
-      const closeParen = (code.match(/\)/g) || []).length;
+      const response = await fetch("http://localhost:3000/v1/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": "hotdog" },
+        body: JSON.stringify({
+          code: code,
+          language: "python"
+        })
+      });
 
-      if (openParen !== closeParen) {
-        throw new Error("SyntaxError: Unmatched parentheses in print statement");
-      }
-
-      const match = code.match(/print\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/);
-      const outputText = match ? match[1] : "Hello, World!";
-      setOutput(`${outputText}\n`);
-    } catch (error) {
-      setOutput(`Error: ${error.message}\n>>> Program failed`);
+      const data = await response.json();
+      console.log(data);
+      setOutput(data.output || data.error || "No output");
+    } catch (err) {
+      setOutput("Error connecting to server");
     }
   };
+
 
   // === Sign-in modal handling ===
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
@@ -179,7 +177,7 @@ Hi`}
               <div className={styles["editor-header"]}>
                 <span>script.py</span>
                 <button
-                  className={`${styles["run-btn"]} ${
+                   className={`${styles["submit-btn"]} ${
                     !showScroll ? styles["disabled-btn"] : ""
                   }`}
                   onClick={handleRunCode}
