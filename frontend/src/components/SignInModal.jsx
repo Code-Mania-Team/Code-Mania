@@ -89,7 +89,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     />
                   </div>
 
-                  <div className="form-group" style={{ display: 'flex', alignItems: 'center', margin: '10px 0' }}>
+                  <div className="form-group" style={{ display: 'flex', margin: '10px 0' }}>
                     <input
                       type="checkbox"
                       id="rememberMe"

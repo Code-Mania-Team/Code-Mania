@@ -102,7 +102,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Scale player
     if (this.player) {
-      this.player.setScale(scale * 1.5);
+      this.player.setScale(scale * 0.8); // Reduced from 1.5 to 0.8 for a smaller character
       this.player.body.setSize(32, 32);
     }
 
