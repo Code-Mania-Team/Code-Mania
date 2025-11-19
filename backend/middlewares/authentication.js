@@ -1,38 +1,34 @@
 import jwt from 'jsonwebtoken';
 
-export function authentication(req, res, next) {
-  let token = null;
+export default function authentication(req, res, next) {
+    // Support both custom header and standard Bearer token
+    let token = req.headers['authorization'] || req.headers['token'];
 
-  // 1. Authorization: Bearer <token>
-  const authHeader = req.headers?.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.slice('Bearer '.length);
-  }
+    if (token?.startsWith('Bearer ')) {
+        token = token.slice(7, token.length);
+    }
 
-  // 2. query parameter ?token=
-  if (!token && req.query?.token) {
-    token = req.query.token;
-  }
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'Unauthenticated user',
+        });
+    }
 
-  // 3. cookie token
-  if (!token && req.cookies?.token) {
-    token = req.cookies.token;
-  }
+    jwt.verify(token, process.env.API_SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid token',
+            });
+        }
 
-  // 4. token header
-  if (!token && req.headers?.token) {
-    token = req.headers.token;
-  }
+        // Attach user info to res.locals for downstream handlers
+        res.locals.username = decoded?.username || null;
+        res.locals.user_id = decoded?.user_id;
+        res.locals.authenticated = true;
 
-  if (!token) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.API_SECRET_KEY);
-    req.user = decoded; // { id, email }
-    next();
-  } catch {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
-  }
+        next();
+    });
 }
+export { authentication };

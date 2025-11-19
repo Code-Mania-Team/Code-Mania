@@ -7,33 +7,87 @@ class User {
         this.db = supabase;
     }
 
+    // STEP 1 → Insert / Update temp_user
+    async createTempUser(email, password) {
+        const otp = generateOtp();
+        const hashedPassword = encryptPassword(password);
+        const expiresAt = new Date(Date.now() + 1000 * 60 * 1000); // 1 mins
+        console.log("OTP for", email, "is", otp);
+
+        const { data, error } = await supabase
+            .from("temp_user")
+            .upsert(
+                {
+                    email,
+                    password: hashedPassword,
+                    otp,
+                    expiry_time: expiresAt.toISOString(),
+                    is_verified: false,
+                    created_at: new Date().toISOString()
+                },
+                { onConflict: ["email"] }
+            )
+            .select("*")
+            .maybeSingle();
+
+        if (error) throw error;
+
+        await sendOtpEmail(email, otp, true);
+
+        return data;
+    }
+
+    // VERIFY OTP
+    async verifyOtp(email, otp) {
+        const { data: otpEntry, error } = await this.db
+            .from("temp_user")
+            .select("*")
+            .eq("email", email)
+            .eq("otp", otp)
+            .maybeSingle();
+        
+            console.log("OTP Entry:", otpEntry);
+        if (error) throw error;                 // handle Supabase error
+        if (!otpEntry) throw new Error("OTP not found");
+        if (otpEntry.is_verified) throw new Error("OTP already used");
+        if (new Date(otpEntry.expiry_time) < new Date()) throw new Error("OTP expired");
+
+        // Mark OTP as verified
+        await this.db
+            .from("temp_user")
+            .update({ is_verified: true })
+            .eq("temp_user_id", otpEntry.temp_user_id);
+
+        // Check if user already exists
+        const existingUser = await this.findByEmail(email);
+        if (existingUser) return existingUser;  // for signup OTP, user already exists
+
+        // Create new user if not exists
+        const { data: newUser, error: createError } = await this.db
+            .from("users")
+            .insert({
+                email: otpEntry.email,
+                password: otpEntry.password
+            })
+            .select("*")
+            .maybeSingle();
+
+        if (createError) throw createError;
+
+        return newUser;
+    }
+
     // Helper: find user by email
     async findByEmail(email) {
         const { data } = await this.db
             .from("users")
             .select("user_id, email, password, username")
             .eq("email", email)
-            .single();
+            .maybeSingle();
         return data ?? null;
     }
 
-    // SIGNUP: create user + send OTP
-    async signUp(email, password) {
-        const hashedPassword = encryptPassword(password);
-
-        const { data: user, error } = await this.db
-            .from("users")
-            .insert({ email, password: hashedPassword })
-            .select()
-            .single();
-        if (error) throw error;
-
-        await this.generateAndSendOtp(user.user_id, email, true);
-
-        return user;
-    }
-
-    // LOGIN: verify password + send OTP
+    
     async loginOtp(email, password) {
         const user = await this.findByEmail(email);
         if (!user) throw new Error("Email not registered");
@@ -41,50 +95,39 @@ class User {
         const hashedPassword = encryptPassword(password);
         if (hashedPassword !== user.password) throw new Error("Incorrect password");
 
-        await this.generateAndSendOtp(user.user_id, email, false);
+        const otp = generateOtp();
+        const expiresAt = new Date(Date.now() + 1000 * 60); // 1 min
 
-        return user;
-    }
-
-    // GENERATE OTP AND OVERWRITE PREVIOUS
-    async generateAndSendOtp(user_id, email, isNewUser = true) {
-        const code = generateOtp();
-        const expiry_time = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
-
-        // Upsert OTP (overwrite previous)
-        await this.db.from("otp").upsert(
-            { user_id, code, is_verified: false, expiry_time },
-            { onConflict: ["user_id"] }
+        await this.db.from("temp_user").upsert(
+            {
+                email,
+                otp,
+                expiry_time: expiresAt.toISOString(),
+                is_verified: false,
+                created_at: new Date().toISOString()
+            },
+            { onConflict: "email" }
         );
 
-        await sendOtpEmail(email, code, isNewUser);
-    }
-
-    // VERIFY OTP
-    async verifyOtp(user_id, code) {
-        const { data: otpEntry } = await this.db
-            .from("otp")
-            .select("otp_id, is_verified, expiry_time")
-            .eq("user_id", user_id)
-            .eq("code", code)
-            .single();
-
-        if (!otpEntry) throw new Error("OTP not found");
-        if (otpEntry.is_verified) throw new Error("OTP already used");
-        if (new Date(otpEntry.expiry_time) < new Date()) throw new Error("OTP expired");
-
-        // Mark OTP as verified
-        await this.db.from("otp").update({ is_verified: true }).eq("otp_id", otpEntry.otp_id);
-
-        // Return user
-        const { data: user } = await this.db
-            .from("users")
-            .select("*")
-            .eq("user_id", user_id)
-            .single();
-
+        await sendOtpEmail(email, otp, false);
         return user;
     }
+
+    // // GENERATE OTP AND OVERWRITE PREVIOUS
+    // async generateAndSendOtp(user_id, email, isNewUser = true) {
+    //     const code = generateOtp();
+    //     const expiry_time = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
+
+    //     // Upsert OTP (overwrite previous)
+    //     await this.db.from("otp").upsert(
+    //         { user_id, code, is_verified: false, expiry_time },
+    //         { onConflict: ["user_id"] }
+    //     );
+
+    //     await sendOtpEmail(email, code, isNewUser);
+    // }
+
+    
 
     // ONE-TIME USERNAME SETUP
     async setUsername(user_id, username) {
@@ -101,7 +144,7 @@ class User {
     async getProfile(user_id) {
         const { data } = await this.db
             .from("users")
-            .select("user_id, email, username, fullname, profile_image, bio, created_at")
+            .select("user_id, email, username, full_name, profile_image, created_at")
             .eq("user_id", user_id)
             .single();
         return data;
