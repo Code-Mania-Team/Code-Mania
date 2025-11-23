@@ -81,7 +81,66 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 />
               </div>
 
-              <button type="submit" className="signin-button">Submit</button>
+              {!showOtpField ? (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="password">Password</label>
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ display: 'flex', margin: '10px 0' }}>
+                    <input
+                      type="checkbox"
+                      id="rememberMe"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      style={{ marginRight: '8px', width: '16px', height: '16px' }}
+                    />
+                    <label 
+                      htmlFor="rememberMe"
+                      style={{ margin: 0, cursor: 'pointer', fontSize: '14px' }}
+                    >
+                      Remember me
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <div className="form-group">
+                  <label htmlFor="otp">Enter OTP</label>
+                  <input
+                    type="text"
+                    id="otp"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="Enter the 6-digit OTP"
+                    required
+                    maxLength="6"
+                  />
+                  <p className="otp-note">We've sent a 6-digit OTP to your email</p>
+                </div>
+              )}
+
+              <button type="submit" className="signin-button" disabled={isLoading}>
+                {isLoading ? 'Processing...' : showOtpField ? 'Verify OTP' : 'Continue'}
+              </button>
+
+              {showOtpField && (
+                <button 
+                  type="button" 
+                  className="back-button"
+                  onClick={handleBackToEmailPassword}
+                  disabled={isLoading}
+                >
+                  Back to email & password
+                </button>
+              )}
             </form>
           </>
         ) : (

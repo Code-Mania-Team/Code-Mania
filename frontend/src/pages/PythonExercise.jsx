@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Play } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -6,22 +7,37 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../engine/main.js";
+import exercises from "../data/pythonExercises.json";
 
 const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
-  const [code, setCode] = useState(`# Write code below ❤️
-
-print("Hello, World!")`);
+  const { exerciseId } = useParams();
+  const [currentExercise, setCurrentExercise] = useState(null);
+  const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
 
+  // Load exercise data
+  useEffect(() => {
+    if (exerciseId) {
+      // Extract the numeric ID from the URL parameter (e.g., "1-hello" -> 1)
+      const id = parseInt(exerciseId.split('-')[0], 10);
+      const exercise = exercises.find(ex => ex.id === id);
+      if (exercise) {
+        setCurrentExercise(exercise);
+        setCode(exercise.startingCode || `# ${exercise.title}\n\n${exercise.startingCode || ''}`);
+      }
+    }
+  }, [exerciseId]);
+
   // === Dialogue System ===
-  const dialogues = [
-    "Remember to check the hints if you get stuck during the course. But for this exercise, you don't have to know what's going on with the code – just copy and paste it.",
-  ];
   const [currentDialogue, setCurrentDialogue] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  
+  const dialogues = currentExercise?.hints || [
+    "Use the hints above if you get stuck during the exercise."
+  ];
 
   useEffect(() => {
     handleNextDialogue();
@@ -49,22 +65,22 @@ print("Hello, World!")`);
   };
 
   const handleRunCode = () => {
-    if (!code.includes("print(") && !code.includes("print ")) {
-      setOutput("Error: No print statement found. Did you include 'print()'?");
-      return;
+    if (!currentExercise) return;
+    
+    // Basic validation for required elements in the code
+    if (currentExercise.requirements?.mustInclude) {
+      for (const required of currentExercise.requirements.mustInclude) {
+        if (!code.includes(required)) {
+          setOutput(`Error: Your code must include "${required}"`);
+          return;
+        }
+      }
     }
 
     try {
-      const openParen = (code.match(/\(/g) || []).length;
-      const closeParen = (code.match(/\)/g) || []).length;
-
-      if (openParen !== closeParen) {
-        throw new Error("SyntaxError: Unmatched parentheses in print statement");
-      }
-
-      const match = code.match(/print\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/);
-      const outputText = match ? match[1] : "Hello, World!";
-      setOutput(`${outputText}\n`);
+      // For now, just show the expected output
+      // In a real implementation, you'd want to actually execute the Python code
+      setOutput(currentExercise.expectedOutput || "Code executed successfully!");
     } catch (error) {
       setOutput(`Error: ${error.message}\n>>> Program failed`);
     }
@@ -85,6 +101,23 @@ print("Hello, World!")`);
     handleCloseModal();
   };
 
+  // Navigation between exercises
+  const navigateToExercise = (direction) => {
+    if (!currentExercise) return;
+    
+    const currentIndex = exercises.findIndex(ex => ex.id === currentExercise.id);
+    if (currentIndex === -1) return;
+    
+    let nextIndex;
+    if (direction === 'next') {
+      nextIndex = (currentIndex + 1) % exercises.length;
+    } else {
+      nextIndex = (currentIndex - 1 + exercises.length) % exercises.length;
+    }
+    
+    const nextExercise = exercises[nextIndex];
+    window.location.href = `/learn/python/exercise/${nextExercise.id}-${nextExercise.title.toLowerCase().replace(/\s+/g, '-')}`;
+  };
 
   useEffect(() => {
     const game = initPhaserGame("phaser-container");
@@ -109,7 +142,11 @@ print("Hello, World!")`);
       )}
 
       <div className={styles["codex-fullscreen"]}>
-        <ProgressBar currentLesson={1} totalLessons={12} title="🐍 Python Basics" />
+        <ProgressBar 
+          currentLesson={currentExercise?.id || 1} 
+          totalLessons={exercises.length} 
+          title={currentExercise?.lessonHeader || "🐍 Python Exercise"} 
+        />
 
         <div className={styles["main-layout"]}>
           {/* === LEFT SIDE: Phaser Game === */}
@@ -147,40 +184,45 @@ print("Hello, World!")`);
                   />
 
                   <div className={styles["scroll-content"]}>
-                    <h2>🐍 Python</h2>
-                    <p>
-                      Welcome to the first chapter of{" "}
-                      <strong>The Legend of Python!</strong>
-                      <br />
-                      Python is a beginner-friendly language created by{" "}
-                      <a
-                        href="https://en.wikipedia.org/wiki/Guido_van_Rossum"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Guido van Rossum
-                      </a>{" "}
-                      in the early 90s.
-                    </p>
-                    <ul>
-                      <li>• Artificial Intelligence</li>
-                      <li>• Web Development</li>
-                      <li>• Data Analysis</li>
-                      <li>• Machine Learning</li>
-                    </ul>
-                    <p>Let's give it a try! Here's a simple Python example:</p>
-                    <div className={styles["code-example"]}>
-                      <pre>
-                        <code>
-                          {`# This is a simple Python function
-print("Hi")
+                    <h2>{currentExercise?.title || 'Python Exercise'}</h2>
+                    <p>{currentExercise?.description || 'Complete the exercise by writing code in the editor.'}</p>
+                    
+                    {currentExercise?.bullets && (
+                      <ul>
+                        {currentExercise.bullets.map((bullet, index) => (
+                          <li key={index}>• {bullet}</li>
+                        ))}
+                      </ul>
+                    )}
 
-This should appear in the Terminal window:
-Hi`}
-                        </code>
-                      </pre>
+                    {currentExercise?.lessonExample && (
+                      <>
+                        <p>Here's an example:</p>
+                        <div className={styles["code-example"]}>
+                          <pre>
+                            <code>{currentExercise.lessonExample}</code>
+                          </pre>
+                        </div>
+                      </>
+                    )}
+                    
+                    <div className={styles["exercise-navigation"]}>
+                      <button 
+                        onClick={() => navigateToExercise('prev')}
+                        className={styles["nav-button"]}
+                      >
+                        ← Previous
+                      </button>
+                      <span>Exercise {currentExercise?.id || '?'} of {exercises.length}</span>
+                      <button 
+                        onClick={() => navigateToExercise('next')}
+                        className={styles["nav-button"]}
+                      >
+                        Next →
+                      </button>
                     </div>
-                    <p>Try writing your own code on the right! 👉</p>
+                    
+                    <p>Try writing your own code in the editor! 👉</p>
                   </div>
                 </div>
               )}

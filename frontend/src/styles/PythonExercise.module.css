@@ -156,6 +156,47 @@
   line-height: 1.5;
 }
 
+/* Exercise Navigation */
+.exercise-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-button {
+  background: rgba(59, 130, 246, 0.2);
+  color: black;
+  border: 1px solid black;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-button:hover {
+  background: rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.nav-button:active {
+  transform: translateY(0);
+}
+
+.exercise-navigation span {
+  color: black;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 /* === Game Scene Styles === */
 .game-scene {
   position: relative;
