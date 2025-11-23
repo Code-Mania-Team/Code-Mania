@@ -14,7 +14,7 @@ const Dashboard = () => {
     return localStorage.getItem('isAuthenticated') === 'true';
   });
   const [userStats, setUserStats] = useState({
-    name: '',
+    name: 'User',
     level: 1,
     totalXP: 68,
     rank: 1,

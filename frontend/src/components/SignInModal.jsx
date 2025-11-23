@@ -3,54 +3,47 @@ import { Link } from 'react-router-dom';
 import swordImage from '../assets/sword.png';
 import shieldImage from '../assets/shield.png';
 import '../App.css';
-import { signUp } from '../service/signup.js';
-
-
 
 const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [countdown, setCountdown] = useState(60);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setIsLoading(true);
     
-    // Start countdown timer
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 60;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    try {
+      if (!showOtpField) {
+        // First step: Submit email and password to request OTP
+        // TODO: Replace with your actual API call
+        // await api.requestOtp({ email, password });
+        setShowOtpField(true);
+      } else {
+        // Second step: Submit OTP for verification
+        // const user = await api.verifyOtp({ email, otp });
+        // onSignInSuccess(user);
+        onSignInSuccess({ email }); // Temporary for testing
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      // Handle error (show error message to user)
+    } finally {
+      setIsLoading(false);
+    }
 
     e.stopPropagation();
-    setLoading(true);
-    setMessage('');
-
-    try {
-      await signUp(email);
-      console.log('Sign-in email sent to:', email);
-      setMessage(`Magic link sent to ${email}! Check your inbox.`);
-      onSignInSuccess && onSignInSuccess()
-
-      }catch (error) {
-        console.error('Error during sign-in:', error);}
-    console.log('Signing in with:', { email, password, rememberMe });
+    return false;
   };
 
-  const handleResendLink = () => {
-    setCountdown(60);
-    // Add your resend logic here
+  const handleBackToEmailPassword = () => {
+    setShowOtpField(false);
+    setOtp('');
   };
 
   return (
@@ -58,7 +51,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
       <div className="signin-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-modal" onClick={onClose}>&times;</button>
 
-        {!isSubmitted ? (
+        {!showOtpField ? (
           <>
             <div className="welcome-section">
               <img src={swordImage} alt="Sword" className="pixel-icon pixel-sword" />
@@ -66,7 +59,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
               <img src={shieldImage} alt="Shield" className="pixel-icon pixel-shield" />
             </div>
 
-            <p className="subtext">Connect in with Email</p>
+            <p className="subtext">Sign in to continue your journey</p>
 
             <form onSubmit={handleSubmit} className="signin-form">
               <div className="form-group">
@@ -78,6 +71,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
+                  disabled={showOtpField}
                 />
               </div>
 
@@ -144,25 +138,10 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
             </form>
           </>
         ) : (
-          <div className="magic-link-sent">
-            <h2 className="magic-link-title">We sent you a magic link</h2>
-            
-            <p className="magic-link-text">
-              To sign in, click on the link we sent to{' '}
-              <span className="email-highlight">{email}</span> or{' '}
-              <button className="try-different-email" onClick={() => setIsSubmitted(false)}>
-                Try a different email
-              </button>
-            </p>
-
-            <button className="resend-button" onClick={handleResendLink}>
-              Resend link {countdown}s
-            </button>
-
-            <p className="support-text">
-              Having trouble?<br />
-              Contact <a href="mailto:support@codemania.games" className="support-link">support@codemania.games</a>
-            </p>
+          <div className="otp-sent">
+            <h2>Check your email</h2>
+            <p>We've sent a 6-digit OTP to <span className="email-highlight">{email}</span></p>
+            <p>Please enter it above to complete your sign in.</p>
           </div>
         )}
       </div>
