@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const signUp = async (email, password) => {
+const signUp = async (email, password, token) => {
 
   try {
     const response = await axios.post(

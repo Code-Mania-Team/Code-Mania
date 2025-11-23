@@ -14,6 +14,7 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const handleSignOut = (e) => {
     e.stopPropagation();
     onSignOut();
+    navigate('/');
   };
   return (
     <header className="header">

@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const signUp = async (email, password) => {
+const verifyOtp = async (email, otp) => {
 
   try {
     const response = await axios.post(
-      "http://localhost:3000/v1/account/request-otp",
-      { email, password },
+      "http://localhost:3000/v1/account/verify-otp",
+      { email, otp },
       {
         headers: {
           apikey: "hotdog",
@@ -21,4 +21,4 @@ const signUp = async (email, password) => {
   }
 };
 
-export { signUp };
+export { verifyOtp };
