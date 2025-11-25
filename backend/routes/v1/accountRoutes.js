@@ -19,6 +19,8 @@ accountRouter.post('/verify-otp', account.verifyOtp.bind(account));
 // 🔹 Set username (requires authentication)
 accountRouter.post('/username', authentication, account.setUsername.bind(account));
 
+accountRouter.post('/login', account.login.bind(account));
+
 // 🔹 Get current user's profile
 accountRouter.get('/profile', authentication, account.profile.bind(account));
 

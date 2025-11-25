@@ -88,31 +88,65 @@ class User {
         return data ?? null;
     }
 
-    
-    async loginOtp(email, password) {
-        const user = await this.findByEmail(email);
-        if (!user) throw new Error("Email not registered");
+    //new login function na walang otp
+    async verifyLogin(email, password) {
+        try {
+            
+            const user = await this.findByEmail(email);
+            if (!user) throw new Error("Email not registered");
 
-        const hashedPassword = encryptPassword(password);
-        if (hashedPassword !== user.password) throw new Error("Incorrect password");
+            
+            const hashedPassword = encryptPassword(password);
+            if (hashedPassword !== user.password) {
+                throw new Error("Incorrect password");
+            }
 
-        const otp = generateOtp();
-        const expiresAt = new Date(Date.now() + 1000 * 60); // 1 min
+            const { data, error } = await this.db
+                .from("users")
+                .select("user_id, username, email, full_name, profile_image, created_at")
+                .eq("email", email)
+                .eq("password", hashedPassword); 
 
-        await this.db.from("temp_user").upsert(
-            {
-                email,
-                otp,
-                expiry_time: expiresAt.toISOString(),
-                is_verified: false,
-                created_at: new Date().toISOString()
-            },
-            { onConflict: "email" }
-        );
+            if (error) throw error;
 
-        await sendOtpEmail(email, otp, false);
-        return user;
+            if (!data || data.length === 0) {
+                throw new Error("Invalid username or password");
+            }
+
+            const [result] = data; 
+            return result;
+        } catch (err) {
+            console.error("<error> user.verify", err);
+            throw err;
+        }
     }
+
+    //comment for now baka mabago ulit
+    
+    // async loginOtp(email, password) {
+    //     const user = await this.findByEmail(email);
+    //     if (!user) throw new Error("Email not registered");
+
+    //     const hashedPassword = encryptPassword(password);
+    //     if (hashedPassword !== user.password) throw new Error("Incorrect password");
+
+    //     const otp = generateOtp();
+    //     const expiresAt = new Date(Date.now() + 1000 * 60); // 1 min
+
+    //     await this.db.from("temp_user").upsert(
+    //         {
+    //             email,
+    //             otp,
+    //             expiry_time: expiresAt.toISOString(),
+    //             is_verified: false,
+    //             created_at: new Date().toISOString()
+    //         },
+    //         { onConflict: "email" }
+    //     );
+
+    //     await sendOtpEmail(email, otp, false);
+    //     return user;
+    // }
 
     // // GENERATE OTP AND OVERWRITE PREVIOUS
     // async generateAndSendOtp(user_id, email, isNewUser = true) {

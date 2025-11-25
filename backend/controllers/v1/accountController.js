@@ -6,46 +6,33 @@ class AccountController {
         this.user = new User();
     }
 
-    // REQUEST OTP (SIGNUP OR LOGIN)
+    // REQUEST OTP (SIGNUP)
     async requestOtp(req, res) {
         const { email, password } = req.body || {};
 
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required"
-            });
-        }
-
         try {
-            let authUser;
-            let isNewUser = false;
+            const response = await this.user.createTempUser(email, password);
 
-            const existingUser = await this.user.findByEmail(email);
-
-            if (existingUser) {
-                // Login OTP
-                authUser = await this.user.loginOtp(email, password);
-            } else {
-                // Signup OTP → only creates temp_user
-                authUser = await this.user.createTempUser(email, password);
-                isNewUser = true;
-            }
-
-            return res.status(200).json({
+            res.send({
                 success: true,
-                type: "otp_sent",
-                isNewUser,
-                email: authUser?.email
+                message: "OTP sent to email",
+                data: {
+                    email: response?.email,
+                    isNewUser: true,
+                },
             });
+
         } catch (err) {
-            console.error("requestOtp error:", err);
-            return res.status(500).json({
+            res.send({
                 success: false,
-                message: err.message || "Unable to send OTP"
+                message:
+                    err.message === "email"
+                        ? "Email already exists"
+                        : err.message || "Failed to process OTP request",
             });
         }
     }
+
 
     // VERIFY OTP
     async verifyOtp(req, res) {
@@ -140,6 +127,50 @@ class AccountController {
             return res.status(500).json({
                 success: false,
                 message: err.message
+            });
+        }
+    }
+
+    async login(req, res) {
+        const { email, password } = req.body || {};
+
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required",
+            });
+        }
+
+        try {
+            // Verify user credentials
+            const authUser = await this.user.verifyLogin(email, password);
+            if (!authUser) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid email or password",
+                });
+            }
+
+            // Fetch user profile
+            const profile = await this.user.getProfile(authUser.user_id);
+
+            // Generate JWT
+            const tokenPayload = { user_id: authUser.user_id };
+            if (profile?.username) tokenPayload.username = profile.username;
+
+            const token = jwt.sign(tokenPayload, process.env.API_SECRET_KEY, { expiresIn: "1d" });
+
+            return res.status(200).json({
+                success: true,
+                token,
+                requiresUsername: !profile?.username,
+                user_id: authUser.user_id,
+            });
+        } catch (err) {
+            console.error("login error:", err);
+            return res.status(500).json({
+                success: false,
+                message: err.message || "Login failed",
             });
         }
     }
