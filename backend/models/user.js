@@ -13,8 +13,7 @@ class User {
         const hashedPassword = encryptPassword(password);
         const expiresAt = new Date(Date.now() + 1000 * 60 * 1000); // 1 mins
         console.log("OTP for", email, "is", otp);
-        // Put checking if user already exist. If exist: rewrite otp : write temp_user
-        // This will also solve this problem GENERATE OTP AND OVERWRITE PREVIOUS
+        
         const { data, error } = await supabase
             .from("temp_user")
             .upsert(
