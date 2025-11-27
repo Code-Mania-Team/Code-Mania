@@ -12,6 +12,11 @@ class User {
         const otp = generateOtp();
         const hashedPassword = encryptPassword(password);
         const expiresAt = new Date(Date.now() + 1000 * 60 * 1000); // 1 mins
+
+        // Check if user already exists
+        const existingUser = await this.findByEmail(email);
+        if (existingUser.email) throw new Error("email") // return existingUser;  // for signup OTP, user already exists
+
         console.log("OTP for", email, "is", otp);
         
         const { data, error } = await supabase
@@ -59,8 +64,8 @@ class User {
             .eq("temp_user_id", otpEntry.temp_user_id);
 
         // Check if user already exists
-        const existingUser = await this.findByEmail(email);
-        if (existingUser) return existingUser;  // for signup OTP, user already exists
+        // const existingUser = await this.findByEmail(email);
+        // if (existingUser) return existingUser;  // for signup OTP, user already exists
 
         // Create new user if not exists
         const { data: newUser, error: createError } = await this.db
@@ -84,7 +89,7 @@ class User {
             .select("user_id, email, password, username")
             .eq("email", email)
             .maybeSingle();
-        return data ?? null;
+        return data ?? {};
     }
 
     //new login function na walang otp
@@ -92,7 +97,7 @@ class User {
         try {
             
             const user = await this.findByEmail(email);
-            if (!user) throw new Error("Email not registered");
+            if (!user.email) throw new Error("Email not registered");
 
             
             const hashedPassword = encryptPassword(password);
