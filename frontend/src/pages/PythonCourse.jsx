@@ -30,7 +30,7 @@ const PythonCourse = () => {
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: 0,
-    totalXp: 600
+    totalXp: 1600
   };
 
   const modules = [

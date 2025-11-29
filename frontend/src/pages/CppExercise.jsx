@@ -1,238 +1,326 @@
 import React, { useState, useEffect } from "react";
-import { Play } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
-import styles from "../styles/CppExercise.module.css";
+import XpNotification from "../components/XpNotification";
+import styles from "../styles/JavaScriptExercise.module.css";
+// Reusing CSS – you can replace with C++ styles if you add them
 import map1 from "../assets/aseprites/map1.png";
+import exercises from "../data/cppExercises.json";
 
 const CppExercise = () => {
-  const [code, setCode] = useState(`// Write your C++ code below ❤️
-#include <iostream>
-using namespace std;
+const { exerciseId } = useParams();
+const navigate = useNavigate();
+const [currentExercise, setCurrentExercise] = useState(null);
+const [code, setCode] = useState("");
+const [output, setOutput] = useState("");
+const [showHelp, setShowHelp] = useState(false);
+const [showScroll, setShowScroll] = useState(false);
+const [showXpPanel, setShowXpPanel] = useState(false);
 
-int main() {
-  cout << "Hello, World!" << endl;
-  return 0;
-}`);
-  const [output, setOutput] = useState("");
-  const [showHelp, setShowHelp] = useState(false);
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+// === Dialogue System ===
+const dialogues = [
+"Use the hints if you get stuck. For now, just complete what the exercise asks."
+];
+const [currentDialogue, setCurrentDialogue] = useState(0);
+const [displayedText, setDisplayedText] = useState("");
+const [isTyping, setIsTyping] = useState(false);
 
-  const [showScroll, setShowScroll] = useState(false);
+// Load exercise data when route changes
+useEffect(() => {
+  if (exerciseId) {
+    const id = parseInt(exerciseId.split("-")[0], 10);
+    if (isNaN(id)) {
+      console.error('Invalid exercise ID');
+      return;
+    }
+    
+    const exercise = exercises.find((ex) => ex.id === id);
+    if (!exercise) {
+      console.error(`Exercise with ID ${id} not found`);
+      return;
+    }
+    
+    setCurrentExercise(exercise);
+    setCode(
+      exercise.startingCode ||
+      `// ${exercise.title}\n\n${exercise.startingCode || ""}`
+    );
+    setOutput("");
+    setShowHelp(false);
+    setShowXpPanel(false);
+  }
+}, [exerciseId]);
 
-  const handleRunCode = () => {
-    setOutput("Compiling and running main.cpp...\n");
-    setTimeout(() => {
-      if (code.includes("cout")) {
-        const match = code.match(/"([^"]+)"/);
-        const text = match ? match[1] : "Hello, C++!";
-        setOutput(`${text}\n>>> Program finished with exit code 0`);
-      } else {
-        setOutput(
-          "No output detected. Did you include a cout statement?\n>>> Program finished with exit code 0"
-        );
-      }
-    }, 1000);
-  };
-
-  const handleOpenModal = () => {
-    setIsSignInModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsSignInModalOpen(false);
-  };
-
-  const handleSignInSuccess = () => {
-    // In a real app, you would get user data from your auth provider
-    const mockUser = { name: 'Coder', email: 'coder@example.com' };
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    setIsSignInModalOpen(false);
-  };
-
-  return (
-    <div className={styles["cpp-exercise-page"]}>
-      <div className={styles["scroll-background"]}></div>
-      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} user={user} />
-      
-      {isSignInModalOpen && (
-        <SignInModal 
-          isOpen={isSignInModalOpen}
-          onClose={handleCloseModal}
-          onSignInSuccess={handleSignInSuccess}
-        />
-      )}
-
-      <div className={styles["codex-fullscreen"]}>
-        <ProgressBar currentLesson={1} totalLessons={12} title="⚙️ Setting up" />
-
-        <div className={styles["main-layout"]}>
-          {/* Left Side - Game Preview */}
-          <div className={styles["game-container"]}>
-            <div className={styles["game-preview"]}>
-              <div 
-                className={styles["game-scene"]}
-                style={{
-                  backgroundImage: `url(${map1})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  minHeight: '400px',
-                  position: 'relative',
-                  borderRadius: '8px',
-                  overflow: 'hidden'
-                }}
-              >
-                {!showScroll && (
-                  <button 
-                    onClick={() => setShowScroll(true)}
-                    className={styles["show-scroll-btn"]}
-                  >
-                    View Challenge
-                  </button>
-                )}
-
-                {showScroll && (
-                  <div className={styles["scroll-container"]}>
-                    <div className={styles["scroll-content"]}>
-                      <h2>🖥️ C++</h2>
-                      <p>
-                        Welcome to the first chapter of <strong>The Legend of C++!</strong><br />
-                        C++ is a powerful language created by{" "}
-                        <a href="https://en.wikipedia.org/wiki/Bjarne_Stroustrup" target="_blank" rel="noreferrer">
-                          Bjarne Stroustrup
-                        </a>{" "}
-                        as an extension of the C programming language.
-                      </p>
-                      <ul>
-                        <li>• Game Development</li>
-                        <li>• System Software</li>
-                        <li>• High-Performance Applications</li>
-                        <li>• Embedded Systems</li>
-                      </ul>
-                      <p>Let's give it a try! Here's a simple C++ example:</p>
-                      <div className={styles["code-example"]}>
-                        <pre>
-                          <code>
-                            {`#include <iostream>
-using namespace std;
-
-int main() {
-  cout << "Hello, World!" << endl;
-  return 0;
+// Navigation functions
+const goToNextExercise = () => {
+if (!currentExercise) return;
+const nextId = currentExercise.id + 1;
+if (nextId <= exercises.length) {
+const nextExercise = exercises[nextId - 1];
+const exerciseSlug = nextExercise.title.toLowerCase().replace(/\s+/g, "-");
+navigate(`/learn/cpp/exercise/${nextId}-${exerciseSlug}`);
 }
+};
 
-This should appear in the Terminal window:
-Hello, World!`}
-                          </code>
-                        </pre>
-                      </div>
-                      <p>Try writing your own code on the right! 👉</p>
+const goToPrevExercise = () => {
+if (!currentExercise) return;
+const prevId = currentExercise.id - 1;
+if (prevId >= 1) {
+const prevExercise = exercises[prevId - 1];
+const exerciseSlug = prevExercise.title.toLowerCase().replace(/\s+/g, "-");
+navigate(`/learn/cpp/exercise/${prevId}-${exerciseSlug}`);
+}
+};
+
+// Auto typing dialogue
+useEffect(() => {
+handleNextDialogue();
+}, []);
+
+const handleNextDialogue = () => {
+  if (isTyping) return;
+  const nextText = dialogues[currentDialogue];
+  if (!nextText) return;
+  setIsTyping(true);
+  setDisplayedText("");
+
+  let index = 0;
+  const interval = setInterval(() => {
+    setDisplayedText(nextText.slice(0, index));
+    index++;
+    if (index > nextText.length) {
+      clearInterval(interval);
+      setIsTyping(false);
+      setCurrentDialogue((prev) =>
+        prev + 1 < dialogues.length ? prev + 1 : prev
+      );
+    }
+  }, 40);
+};
+
+// Run code — In C++ we simulate output by showing expectedOutput
+const handleRunCode = () => {
+if (!currentExercise) return;
+  setOutput("Compiling...\n");
+
+setTimeout(() => {
+  setOutput(currentExercise.expectedOutput || "✔ Code compiled!");
+  setXpEarned(100); // Assuming 100 XP is earned for each successful submit
+  setShowXpPanel(true);
+}, 500);
+};
+
+// --- Auth modal setup ---
+const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+const [isAuthenticated, setIsAuthenticated] = useState(false);
+const [user, setUser] = useState(null);
+
+const handleOpenModal = () => setIsSignInModalOpen(true);
+const handleCloseModal = () => setIsSignInModalOpen(false);
+
+const handleSignInSuccess = () => {
+const mockUser = { name: "Coder", email: "[coder@example.com](mailto:coder@example.com)" };
+setUser(mockUser);
+setIsAuthenticated(true);
+setIsSignInModalOpen(false);
+};
+
+return (
+<div className={styles["javascript-exercise-page"]}>
+<div className={styles["scroll-background"]}></div>
+<Header
+onOpenModal={isAuthenticated ? null : handleOpenModal}
+user={user}
+/>
+  {isSignInModalOpen && (
+    <SignInModal
+      isOpen={isSignInModalOpen}
+      onClose={handleCloseModal}
+      onSignInSuccess={handleSignInSuccess}
+    />
+  )}
+
+  <div className={styles["codex-fullscreen"]}>
+    <ProgressBar
+      currentLesson={currentExercise ? currentExercise.id : 1}
+      totalLessons={exercises.length}
+      title={currentExercise?.lessonHeader || "⚙️ C++ Basics"}
+    />
+
+    <div className={styles["main-layout"]}>
+      {/* Left Side */}
+      <div className={styles["game-container"]}>
+        <div className={styles["game-preview"]}>
+          <div
+            className={styles["game-scene"]}
+            style={{
+              backgroundImage: `url(${map1})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              minHeight: "400px",
+              position: "relative",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            {!showScroll && (
+              <button
+                onClick={() => setShowScroll(true)}
+                className={styles["show-scroll-btn"]}
+              >
+                View Challenge
+              </button>
+            )}
+
+            {showScroll && (
+              <div className={styles["scroll-container"]}>
+                <img
+                  src="/src/assets/aseprites/scroll.png"
+                  alt="Scroll"
+                  className={styles["scroll-image"]}
+                />
+
+                <div className={styles["scroll-content"]}>
+                  <h2>
+                    {currentExercise?.lessonHeader || "⚙️ C++ Exercise"}
+                  </h2>
+                  <p>
+                    {currentExercise?.description ||
+                      "Complete the C++ challenge below."}
+                  </p>
+
+                  {currentExercise?.lessonExample && (
+                    <div className={styles["code-example"]}>
+                      <h3>Example:</h3>
+                      <pre>{currentExercise.lessonExample}</pre>
                     </div>
+                  )}
+
+                  <h3>Your Task:</h3>
+                  <p>
+                    {currentExercise?.description ||
+                      "Complete the C++ code below."}
+                  </p>
+
+                  <div className={styles.navigation}>
+                    <button
+                      onClick={goToPrevExercise}
+                      disabled={!currentExercise || currentExercise.id <= 1}
+                      className={styles.navButton}
+                    >
+                      <ChevronLeft size={20} /> Previous
+                    </button>
+
+                    <span>
+                      Exercise {currentExercise?.id || 1} of{" "}
+                      {exercises.length}
+                    </span>
+
+                    <button
+                      onClick={goToNextExercise}
+                      disabled={
+                        !currentExercise ||
+                        currentExercise.id >= exercises.length
+                      }
+                      className={styles.navButton}
+                    >
+                      Next <ChevronRight size={20} />
+                    </button>
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side - Code Editor and Terminal */}
-          <div className={styles["code-container"]}>
-            <div className={styles["code-editor"]}>
-              <div className={styles["editor-header"]}>
-                <span>main.cpp</span>
-                <button className={styles["run-btn"]} onClick={handleRunCode}>
-                  <Play size={16} /> Run
-                </button>
-              </div>
-
-              <textarea
-                className={styles["code-box"]}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                spellCheck="false"
-              ></textarea>
-            </div>
-
-            <div className={styles["terminal"]}>
-              <div className={styles["terminal-header"]}>Terminal</div>
-              <div className={styles["terminal-body"]}>
-                <div className={styles["terminal-line"]}>
-                  <span className={styles["prompt"]}>$</span> g++ main.cpp -o main && ./main
-                </div>
-                {output && (
-                  <div className={styles["terminal-output"]}>{output}</div>
-                )}
-                <div className={styles["terminal-line"]}>
-                  <span className={styles["prompt"]}>$</span>
-                  <span className={styles["cursor"]}></span>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-
-          </div>
-
         </div>
-        
-        {/* Help Section */}
-        <h3 className={styles["help-title"]}>Help</h3>
-                <div className={styles["help-section"]}>
-                  <div
-                    className={styles["help-header"]}
-                    onClick={() => setShowHelp((prev) => !prev)}
-                  >
-                    <span>💡 Hint</span>
-                    <span className={styles["help-arrow"]}>{showHelp ? "▴" : "▾"}</span>
-                  </div>
-          {showHelp && (
-            <div className={styles['help-content']}>
-              <h3 className={styles['help-title']}>C++ Quick Reference</h3>
-              <p>Here's a quick guide to get you started with C++:</p>
-              
-              <h4>Basic Structure</h4>
-              <pre>{
-`#include <iostream>
-using namespace std;
-
-int main() {
-  // Your code here
-  return 0;
-}`}
-              </pre>
-
-              <h4>Printing Output</h4>
-              <pre>{
-`cout << "Hello, World!" << endl;  // Prints with newline
-cout << "No newline";            // Prints without newline`}
-              </pre>
-
-              <h4>Variables</h4>
-              <pre>{
-`int number = 10;          // Integer
-float decimal = 3.14f;    // Floating point
-double precise = 3.14159; // Double precision
-char letter = 'A';        // Single character
-bool isTrue = true;       // Boolean`}
-              </pre>
-
-              <h4>User Input</h4>
-              <pre>{
-`int age;
-cout << "Enter your age: ";
-cin >> age;`}
-              </pre>
-            </div>
-          )}
-        </div>
-        
-        <Footer />
       </div>
-  );
+
+      {/* Right Side - Code & Terminal */}
+      <div className={styles["code-container"]}>
+        <div className={styles["code-editor"]}>
+          <div className={styles["editor-header"]}>
+            <span>main.cpp</span>
+            <button
+              className={`${styles["run-btn"]} ${
+                !showScroll ? styles["disabled-btn"] : ""
+              }`}
+              onClick={handleRunCode}
+              disabled={!showScroll}
+            >
+              <Play size={16} /> Run
+            </button>
+          </div>
+          <textarea
+            className={styles["code-box"]}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          ></textarea>
+        </div>
+
+        <div className={styles["terminal"]}>
+          <div className={styles["terminal-header"]}>
+            Output
+            <button
+              className={`${styles["submit-btn"]} ${
+                !showScroll ? styles["disabled-btn"] : ""
+              }`}
+              onClick={handleRunCode}
+              disabled={!showScroll}
+            >
+              Submit
+            </button>
+          </div>
+
+          <div className={styles["terminal-body"]}>
+            {output && (
+              <div className={styles["terminal-output"]}>{output}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 className={styles["help-title"]}>Help</h3>
+    <div className={styles["help-section"]}>
+      <div
+        className={styles["help-header"]}
+        onClick={() => setShowHelp((prev) => !prev)}
+      >
+        <span>💡 Hint</span>
+        <span className={styles["help-arrow"]}>
+          {showHelp ? "▴" : "▾"}
+        </span>
+      </div>
+
+      {showHelp && (
+        <div
+          className={styles["dialogue-terminal"]}
+          onClick={handleNextDialogue}
+        >
+          <div className={styles["terminal-line"]}>
+            <span className={styles["dialogue-text"]}>
+              {displayedText}
+              <span className={styles["cursor"]}></span>
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <XpNotification
+    show={showXpPanel}
+    onClose={() => setShowXpPanel(false)}
+    onNext={goToNextExercise}
+  />
+
+  <Footer />
+</div>
+);
 };
 
 export default CppExercise;
