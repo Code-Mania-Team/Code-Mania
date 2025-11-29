@@ -1,0 +1,66 @@
+[
+    {
+    "id": 1,
+    "title": "Introduction",
+    "lessonHeader": "🌐 Introduction to JavaScript",
+    "description": "JavaScript is a programming language used to make web pages interactive. It runs in the browser and allows you to respond to user actions.",
+    "lessonExample": "// This code runs in the browser\nconsole.log(\"Welcome to JavaScript!\")",
+    "startingCode": "console.log(\"Hello, JS!\")",
+    "hints": [
+        "Use console.log() to print output.",
+        "Your code should run without errors."
+    ],
+    "requirements": {
+        "mustInclude": ["console.log"]
+    },
+    "expectedOutput": "Hello, JS!"
+    },
+    {
+    "id": 2,
+    "title": "Console Output",
+    "lessonHeader": "🖥️ Console Output",
+    "description": "Display messages in the browser's console using console.log().",
+    "lessonExample": "console.log(\"Hello World!\")",
+    "startingCode": "console.log()",
+    "hints": [
+        "Put your message inside the parentheses.",
+        "Remember to wrap text in quotes."
+    ],
+    "requirements": {
+        "mustInclude": ["console.log"]
+    },
+    "expectedOutput": "Hello World!"
+    },
+    {
+    "id": 3,
+    "title": "Variables",
+    "lessonHeader": "📦 Variables",
+    "description": "Variables store information that can be used later. Use let or const to create variables.",
+    "lessonExample": "let name = \"Jet\";\nconsole.log(name);",
+    "startingCode": "let heroName = \"\";\nconsole.log(heroName);",
+    "hints": [
+        "Use let or const to create a variable.",
+        "Assign a value using =."
+    ],
+    "requirements": {
+        "mustInclude": ["let", "console.log"]
+    },
+    "expectedOutput": "Jet"
+    },
+    {
+    "id": 4,
+    "title": "Data Types",
+    "lessonHeader": "📊 Data Types",
+    "description": "JavaScript supports different data types such as strings, numbers, and booleans.",
+    "lessonExample": "let age = 18;\nlet isStudent = true;\nconsole.log(age);\nconsole.log(isStudent);",
+    "startingCode": "let age = ;\nconsole.log(age);",
+    "hints": [
+        "Numbers do not need quotes.",
+        "Booleans are true or false."
+    ],
+    "requirements": {
+        "mustInclude": ["let", "console.log"]
+    },
+    "expectedOutput": "18"
+    }
+]

@@ -223,6 +223,11 @@
   min-height: 200px;
 }
 
+.game-blur {
+  filter: blur(4px);
+  min-height: 800px;
+}
+
 /* Show Scroll Button */
 .show-scroll-btn {
   padding: 12px 24px;
@@ -463,17 +468,6 @@
   .codex-fullscreen {
     padding: 0.5rem 0;
   }
-}
-
-
-/* Game Preview */
-.game-preview {
-  background: #111827;
-  border-radius: 8px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  min-height: 300px;
 }
 
 .game-preview h3 {
@@ -761,6 +755,7 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
 
 /* Header + Progress bar */
 .lesson-progress {

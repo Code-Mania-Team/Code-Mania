@@ -5,6 +5,7 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
+import XpNotification from "../components/XpNotification";
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../engine/main.js";
 import exercises from "../data/pythonExercises.json";
@@ -16,6 +17,8 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [showXpPanel, setShowXpPanel] = useState(false);
 
   // Load exercise data
   useEffect(() => {
@@ -26,6 +29,9 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
       if (exercise) {
         setCurrentExercise(exercise);
         setCode(exercise.startingCode || `# ${exercise.title}\n\n${exercise.startingCode || ''}`);
+        setOutput("");
+        setIsCompleted(false);
+        setShowXpPanel(false);
       }
     }
   }, [exerciseId]);
@@ -64,7 +70,8 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
     }, 40);
   };
 
-  const handleRunCode = () => {
+  // Run code without affecting XP/completion (used by the Run button)
+  const handleRunPreview = () => {
     if (!currentExercise) return;
     
     // Basic validation for required elements in the code
@@ -83,6 +90,37 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
       setOutput(currentExercise.expectedOutput || "Code executed successfully!");
     } catch (error) {
       setOutput(`Error: ${error.message}\n>>> Program failed`);
+    }
+  };
+
+  // Submit code and award XP if correct (used by the Submit button)
+  const handleRunCode = () => {
+    if (!currentExercise) return;
+    
+    // Basic validation for required elements in the code
+    if (currentExercise.requirements?.mustInclude) {
+      for (const required of currentExercise.requirements.mustInclude) {
+        if (!code.includes(required)) {
+          setOutput(`Error: Your code must include "${required}"`);
+          return;
+        }
+      }
+    }
+
+    try {
+      // For now, just show the expected output
+      // In a real implementation, you'd want to actually execute the Python code
+      setOutput(currentExercise.expectedOutput || "Code executed successfully!");
+
+      // Mark exercise as completed and show XP notification
+      if (!isCompleted) {
+        setIsCompleted(true);
+        setShowXpPanel(true);
+      }
+    } catch (error) {
+      setOutput(`Error: ${error.message}\n>>> Program failed`);
+      setIsCompleted(false);
+      setShowXpPanel(false);
     }
   };
 
@@ -155,7 +193,7 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
               {/* Phaser mounts here */}
               <div
                 id="phaser-container"
-                className={styles["game-scene"]}
+                className={`${styles["game-scene"]} ${showScroll ? styles["game-blur"] : ""}`}
               />
               
               {/* Button to show scroll */}
@@ -170,13 +208,6 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
 
               {showScroll && (
                 <div className={styles["scroll-container"]}>
-                  <button
-                    className={styles["close-scroll"]}
-                    onClick={() => setShowScroll(false)}
-                    title="Close lesson"
-                  >
-                    ✕
-                  </button>
                   <img
                     src="/src/assets/aseprites/scroll.png"
                     alt="Scroll"
@@ -238,7 +269,7 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
                   className={`${styles["run-btn"]} ${
                     !showScroll ? styles["disabled-btn"] : ""
                   }`}
-                  onClick={handleRunCode}
+                  onClick={handleRunPreview}
                   disabled={!showScroll}
                   title={!showScroll ? "View the lesson first" : "Run code"}
                 >
@@ -276,6 +307,11 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
                 </div>
               </div>
             </div>
+            <XpNotification
+              show={showXpPanel}
+              onClose={() => setShowXpPanel(false)}
+              onNext={() => navigateToExercise('next')}
+            />
           </div>
         </div>
 

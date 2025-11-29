@@ -35,7 +35,7 @@ const Home = () => (
           Master programming with interactive courses and hands-on projects.
           Build real-world applications while learning.
         </p>
-        <button className="get-started-btn">Get Started</button>
+        <Link to="/learn" className="get-started-btn">Get Started</Link>
       </div>
     </section>
 
@@ -167,6 +167,7 @@ function App() {
             } 
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
+          <Route path="/learn/cpp/exercise/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />

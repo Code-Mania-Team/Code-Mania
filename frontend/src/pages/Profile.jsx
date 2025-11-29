@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import styles from '../styles/Profile.module.css';
+import { Code, FileCode2, Terminal } from 'lucide-react';
 
 const Profile = () => {
-  const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'certificates'
+  const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
+  
+  const [learningProgress] = useState({
+    python: { progress: 0, total: 100, icon: <Terminal size={20} /> },
+    cpp: { progress: 0, total: 100, icon: <Code size={20} /> },
+    javascript: { progress: 0, total: 100, icon: <FileCode2 size={20} /> }
+  });
 
   return (
     <div className={styles.container}>
@@ -45,10 +52,10 @@ const Profile = () => {
           ACHIEVEMENTS
         </button>
         <button
-          className={`${styles.tab} ${activeTab === 'certificates' ? styles.active : ''}`}
-          onClick={() => setActiveTab('certificates')}
+          className={`${styles.tab} ${activeTab === 'learningProgress' ? styles.active : ''}`}
+          onClick={() => setActiveTab('learningProgress')}
         >
-          CERTIFICATES
+          LEARNING PROGRESS
         </button>
       </div>
 
@@ -71,10 +78,31 @@ const Profile = () => {
           </div>
         )}
         
-        {activeTab === 'certificates' && (
+        {activeTab === 'learningProgress' && (
           <div className={styles.tabContent}>
-            <div className={styles.certificatesList}>
-              <p className={styles.emptyState}>COMING SOON!</p>
+            <div className={styles.learningProgressContainer}>
+              <h3 className={styles.progressTitle}>Your Learning Progress</h3>
+              <div className={styles.progressGrid}>
+                {Object.entries(learningProgress).map(([language, { progress, total, icon }]) => (
+                  <div key={language} className={styles.progressItem}>
+                    <div className={styles.progressHeader}>
+                      <div className={styles.languageInfo}>
+                        <span className={styles.languageIcon}>{icon}</span>
+                        <span className={styles.languageName}>
+                          {language === 'cpp' ? 'C++' : language.charAt(0).toUpperCase() + language.slice(1)}
+                        </span>
+                      </div>
+                      <span className={styles.progressText}>{progress}%</span>
+                    </div>
+                    <div className={styles.progressBar}>
+                      <div 
+                        className={styles.progressFill} 
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
