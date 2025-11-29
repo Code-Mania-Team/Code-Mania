@@ -19,6 +19,7 @@ class User {
 
         console.log("OTP for", email, "is", otp);
         
+        
         const { data, error } = await supabase
             .from("temp_user")
             .upsert(

@@ -16,6 +16,7 @@ import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 
+
 // Scroll to top on route change
 const ScrollToTop = () => {
   const { pathname } = useLocation();

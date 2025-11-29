@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/WelcomeOnboarding.module.css';
 import idleSheet from '../assets/aseprites/Idle-Sheet.png';
+import {onBoardUsername} from '../service/setUsername';
+
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -43,21 +45,36 @@ const WelcomeOnboarding = ({ onComplete }) => {
     return () => clearTimeout(timer);
   }, [currentStep]);
 
-  const handleContinue = () => {
+  const handleContinue =  async (e) => {
+    e.preventDefault();
     // Validate username on step 1
     if (currentStep === 1) {
       if (!username.trim()) {
         setUsernameError('Please enter a username');
         return;
       }
-      if (username.length < 3) {
-        setUsernameError('Username must be at least 3 characters');
-        return;
-      }
-      // In a real app, check if username is taken
-      // For now, simulate a check
-      if (username.toLowerCase() === 'was') {
-        setUsernameError('Username is already taken :(');
+      // if (username.length < 3) {
+      //   setUsernameError('Username must be at least 3 characters');
+      //   return;
+      // }
+      // // In a real app, check if username is taken
+      // // For now, simulate a check
+      // if (username.toLowerCase() === 'was') {
+      //   setUsernameError('Username is already taken :(');
+      //   return;
+      // }
+      try {
+        // Save to backend
+        const res = await onBoardUsername(username);
+        console.log("onBoardUsername response:", res);
+        if (res.success) {
+          localStorage.setItem("username", username);
+          localStorage.setItem("needsUsername", "false");
+            
+        }
+
+      } catch (error) {
+        setUsernameError("Username already taken or invalid");
         return;
       }
       setUsernameError('');
@@ -68,7 +85,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
     } else {
       // Save user preferences
       localStorage.setItem('selectedCharacter', selectedCharacter);
-      localStorage.setItem('username', username);
       onComplete();
     }
   };

@@ -27,8 +27,17 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           setShowOtpField(true);
       } else {
         const res = await verifyOtp(email, otp); 
-        if (res.success)  
+        if (res.success) {
+          if (res.token) {
+            localStorage.setItem("token", res.token);
+            console.log("Token stored in localStorage:", res.token);
+            localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");
+            // also store user_id if you need it later
+            localStorage.setItem("user_id", res.user_id);
+            
+          }
           onSignInSuccess({ email });
+        }
       }
     } catch (err) {
       console.log(err);

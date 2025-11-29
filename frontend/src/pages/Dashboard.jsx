@@ -37,9 +37,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Check if user is new (hasn't seen onboarding)
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    const needsUsername = localStorage.getItem('needsUsername');
     
-    if (!hasSeenOnboarding) {
+    if (needsUsername === 'true') {
       setShowOnboarding(true);
     }
 

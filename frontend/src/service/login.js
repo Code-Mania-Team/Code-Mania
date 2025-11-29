@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const verifyOtp = async (email, otp) => {
+const login = async (email, password) => {
 
   try {
     const response = await axios.post(
-      "http://localhost:3000/v1/account/verify-otp",
-      { email, otp },
+      "http://localhost:3000/v1/account/login",
+      { email, password },
       {
         headers: {
           apikey: import.meta.env.VITE_API_KEY,
@@ -13,9 +13,6 @@ const verifyOtp = async (email, otp) => {
         },
       }
     );
-    if (response.data?.token) {
-      localStorage.setItem("token", response.data.token);
-    }
     console.log("Sign-up response:", response.data);
     return response.data;
   } catch (error) {
@@ -24,4 +21,4 @@ const verifyOtp = async (email, otp) => {
   }
 };
 
-export { verifyOtp };
+export { login };

@@ -6,9 +6,20 @@ class AccountController {
         this.user = new User();
     }
 
+
+
     // REQUEST OTP (SIGNUP)
     async requestOtp(req, res) {
         const { email, password } = req.body || {};
+
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
+
+        
 
         try {
             const response = await this.user.createTempUser(email, password);

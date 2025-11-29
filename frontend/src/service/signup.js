@@ -8,11 +8,12 @@ const signUp = async (email, password) => {
       { email, password },
       {
         headers: {
-          apikey: "hotdog",
+          apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
         },
       }
     );
+    
     console.log("Sign-up response:", response.data);
     return response.data;
   } catch (error) {
