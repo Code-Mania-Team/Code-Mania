@@ -13,8 +13,10 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
 
   const handleSignOut = (e) => {
     e.stopPropagation();
+    localStorage.clear();   // clears everything
     onSignOut();
     navigate('/');
+    
   };
   return (
     <header className="header">
@@ -43,6 +45,7 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
             <div className="profile-icon">
               <span role="img" aria-label="Profile">👤</span>
             </div>
+            
             <div className="profile-dropdown">
               <button className="dropdown-item" onClick={handleSignOut}>
                 Sign Out

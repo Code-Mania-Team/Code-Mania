@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import swordImage from '../assets/sword.png';
 import shieldImage from '../assets/shield.png';
 import '../App.css';
-import  {signUp} from '../service/signup';
-import  {verifyOtp} from '../service/verifyOtp';
+import  {signUp} from '../services/signup';
+import  {verifyOtp} from '../services/verifyOtp';
+import  {login} from '../services/login';
 
 const OAuthButton = ({ isLoading, onClick, icon, text }) => (
   <button 
@@ -68,27 +69,26 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
             setIsLoading(false);
             return;
           }
-          // const res = await signUp(email, password); 
-          // if (res.success)
-         
-          setShowOtpField(true);
+            const res = await signUp(email, password); 
+            if (res.success)
+            setShowOtpField(true);
         } else {
             const res = await verifyOtp(email, otp);
             if (res.token) {
               localStorage.setItem("token", res.token);
-              console.log("Token stored in localStorage:", res.token);
               localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");
-              // also store user_id if you need it later
               localStorage.setItem("user_id", res.user_id);
               
             }
-            onSignInSuccess({ email }); 
+            onSignInSuccess(res); 
         }
       } else {
-        // LOGIN flow: simple email + password (no OTP)
-        // const user = await api.login({ email, password });
-        // onSignInSuccess(user);
-        onSignInSuccess({ email }); // Temporary for testing
+           const res = await login(email, password);
+           if (res.success) {
+            localStorage.setItem("token", res.token);
+            localStorage.setItem("username", res.username); //
+            localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");}
+            onSignInSuccess(res); // Temporary for testing
       }
     } catch (err) {
       console.log(err);

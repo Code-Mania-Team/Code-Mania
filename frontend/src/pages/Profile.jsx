@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import styles from '../styles/Profile.module.css';
 import { Code, FileCode2, Terminal } from 'lucide-react';
+import { useProfile } from "../hooks/useProfile";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
+  const { profile, loading } = useProfile();
   
   const [learningProgress] = useState({
     python: { progress: 0, total: 100, icon: <Terminal size={20} /> },
@@ -16,14 +18,20 @@ const Profile = () => {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.profileInfo}>
-          <div className={styles.avatar}>J</div>
+          <div className={styles.avatar}>{profile?.username ? profile.username[0].toUpperCase() : ""}</div>
           <div className={styles.userDetails}>
-            <h1 className={styles.userName}>Jet Padilla</h1>
-            <p className={styles.username}>@Jet.padilla</p>
+            <h1 className={styles.userName}>{profile?.fullName || "Loading..."}</h1>
+            <p className={styles.username}>@{profile?.username || ""}</p>
             <div className={styles.stats}>
               <span>0 Following</span>
               <span>0 Followers</span>
-              <span className={styles.joinedDate}>Joined Oct 2023</span>
+              <span className={styles.joinedDate}>Joined {profile?.created_at
+                ? new Date(profile.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : ""}</span>
             </div>
           </div>
         </div>

@@ -22,10 +22,10 @@ accountRouter.post('/username', authentication, account.setUsername.bind(account
 accountRouter.post('/login', account.login.bind(account));
 
 // 🔹 Get current user's profile
-accountRouter.get('/profile', authentication, account.profile.bind(account));
+accountRouter.get('/', authentication, account.profile.bind(account));
 
 // 🔹 Update profile (username/bio)
-accountRouter.patch('/profile', authentication, account.updateProfile.bind(account));
+accountRouter.patch('/', authentication, account.updateProfile.bind(account));
 
 // 🔹 Delete account
 accountRouter.delete('/', authentication, account.deleteUser.bind(account));

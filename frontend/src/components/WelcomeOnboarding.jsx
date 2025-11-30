@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/WelcomeOnboarding.module.css';
 import idleSheet from '../assets/aseprites/Idle-Sheet.png';
-import {onBoardUsername} from '../service/setUsername';
+import {onBoardUsername} from '../services/setUsername';
 
 
 const WelcomeOnboarding = ({ onComplete }) => {

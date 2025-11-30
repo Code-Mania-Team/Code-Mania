@@ -154,7 +154,7 @@ class AccountController {
 
         try {
             // Verify user credentials
-            const authUser = await this.user.verifyLogin(email, password);
+            const authUser = await this.user.verify(email, password);
             if (!authUser) {
                 return res.status(401).json({
                     success: false,
@@ -163,18 +163,19 @@ class AccountController {
             }
 
             // Fetch user profile
-            const profile = await this.user.getProfile(authUser.user_id);
+            const data = await this.user.getProfile(authUser.user_id);
 
             // Generate JWT
             const tokenPayload = { user_id: authUser.user_id };
-            if (profile?.username) tokenPayload.username = profile.username;
+            if (data?.username) tokenPayload.username = data.username;
 
             const token = jwt.sign(tokenPayload, process.env.API_SECRET_KEY, { expiresIn: "1d" });
 
             return res.status(200).json({
                 success: true,
                 token,
-                requiresUsername: !profile?.username,
+                requiresUsername: !data?.username,
+                username: data?.username || null,
                 user_id: authUser.user_id,
             });
         } catch (err) {
@@ -191,15 +192,19 @@ class AccountController {
         try {
             const userId = res.locals.user_id;
             console.log("Fetching profile for user ID:", userId);
-            const profile = await this.user.getProfile(userId);
-            console.log("Retrieved profile:", profile);
-            if (!profile) {
+            const data = await this.user.getProfile(userId);
+            console.log("Retrieved profile:", data);
+            if (!data) {
                 return res.status(404).json({
                     success: false,
                     message: "Profile not found"
                 });
             }
-            return res.status(200).json({ success: true, data: profile });
+            return res.status(200).json({ 
+                success: true,
+                message: "Profile retrieved successfully", 
+                data: data 
+            });
         } catch (err) {
             console.error("profile error:", err);
             return res.status(500).json({ success: false, message: err.message });

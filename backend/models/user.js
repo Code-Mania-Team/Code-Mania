@@ -94,7 +94,7 @@ class User {
     }
 
     //new login function na walang otp
-    async verifyLogin(email, password) {
+    async verify(email, password) {
         try {
             
             const user = await this.findByEmail(email);
