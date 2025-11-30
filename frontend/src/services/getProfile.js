@@ -7,15 +7,13 @@ const getProfile = async () => {
       {
         headers: {
           apikey: import.meta.env.VITE_API_KEY,
-          "Content-Type": "application/json",
-          token: localStorage.getItem("token"),
         },
-        // withCredentials: true,
+        withCredentials: true,
       }
     );
     return response.data;
   } catch (error) {
-    console.error("Error during top-up:", error);
+    console.error("Error fetching user data:", error);
     throw error;
   }
 };

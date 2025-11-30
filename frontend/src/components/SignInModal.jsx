@@ -6,6 +6,7 @@ import '../App.css';
 import  {signUp} from '../services/signup';
 import  {verifyOtp} from '../services/verifyOtp';
 import  {login} from '../services/login';
+// import { useAuth } from '../hooks/useAuth';
 
 const OAuthButton = ({ isLoading, onClick, icon, text }) => (
   <button 
@@ -44,6 +45,7 @@ const GoogleIcon = () => (
 
 
 const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
+  // const { isAuthenticated, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');

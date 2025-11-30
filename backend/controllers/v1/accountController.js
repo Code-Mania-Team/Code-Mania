@@ -74,6 +74,13 @@ class AccountController {
 
             const token = jwt.sign(tokenPayload, process.env.API_SECRET_KEY, { expiresIn: "1d" });
 
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000,
+            });
+
             return res.status(200).json({
                 success: true,
                 token,
@@ -128,6 +135,13 @@ class AccountController {
                 { expiresIn: "1d" }
             );
 
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
+            });
+
             return res.status(200).json({
                 success: true,
                 message: "Username set successfully",
@@ -164,13 +178,21 @@ class AccountController {
 
             // Fetch user profile
             const data = await this.user.getProfile(authUser.user_id);
+            console.log("User profile data:", data);
 
             // Generate JWT
             const tokenPayload = { user_id: authUser.user_id };
+            console.log("tokenpayload", tokenPayload);
             if (data?.username) tokenPayload.username = data.username;
 
             const token = jwt.sign(tokenPayload, process.env.API_SECRET_KEY, { expiresIn: "1d" });
 
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
+            });
             return res.status(200).json({
                 success: true,
                 token,

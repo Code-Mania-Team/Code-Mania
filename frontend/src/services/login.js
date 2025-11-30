@@ -11,6 +11,7 @@ const login = async (email, password) => {
           apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
         },
+        withCredentials: true 
       }
     );
     console.log("Sign-in response:", response.data);

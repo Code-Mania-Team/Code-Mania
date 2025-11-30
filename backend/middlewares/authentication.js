@@ -1,12 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 export default function authentication(req, res, next) {
-    // Support both custom header and standard Bearer token
-    let token = req.headers['authorization'] || req.headers['token'];
-
-    if (token?.startsWith('Bearer ')) {
-        token = token.slice(7, token.length);
-    }
+    const token = req.cookies?.token; // only read from cookies
 
     if (!token) {
         return res.status(401).json({

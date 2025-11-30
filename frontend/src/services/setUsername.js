@@ -14,9 +14,8 @@ const onBoardUsername = async (username) => {
         headers: {
           apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
-          token: localStorage.getItem("token"),
         },
-        // withCredentials: true,
+        withCredentials: true,
       }
     );
     console.log("Username set response:", response.data);

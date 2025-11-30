@@ -11,6 +11,7 @@ const verifyOtp = async (email, otp) => {
           apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
         },
+        withCredentials: true,
       }
     );
     if (response.data?.token) {

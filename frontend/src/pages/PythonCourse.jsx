@@ -3,15 +3,20 @@ import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
+import { useAuth } from "../hooks/useAuth";
 
 const PythonCourse = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+      return localStorage.getItem('isAuthenticated') === 'true';
+    });
   const navigate = useNavigate();
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const onOpenModal = () => {
-    setIsModalOpen(true);
+   const onOpenModal = () => {
+    if (!isAuthenticated) setIsModalOpen(true);
   };
+
 
   const onCloseModal = () => {
     setIsModalOpen(false);
@@ -172,6 +177,11 @@ const PythonCourse = () => {
               <p>Level {userProgress.level}</p>
             </div>
             <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
+              <SignInModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)}
+                onSignInSuccess={(token) => login(token)} 
+              />
           </div>
 
           <div className="progress-card">
