@@ -1,0 +1,67 @@
+[
+    {
+    "id": 1,
+    "title": "The Program",
+    "lessonHeader": "# C++",
+    "description": "Welcome to the first chapter of the C++ course! 🚀\n\nThe programming language we are learning is called C++ (pronounced \"C plus plus\"), created by a Danish developer named Bjarne Stroustrup in 1979.\n\nBecause it's an improvement to the C language, it was originally named \"C with Classes\".\n\nToday, it's one of the most famous programming languages because of its incredible performance, control, and reliability. It's found in:\n- Operating Systems\n- Game Development\n- Robotics & Hardware\n- And many more!\n\nIt's what's used to build operating systems like Windows and Linux, web browsers like Google Chrome and Safari, games like Fornite and Grand Theft Auto, software for SpaceX rockets and Bitcoin, and it's even the language of choice for microwaves!\n\nNot only that, it's still taught in schools around the world because of its memory management, object-oriented programming, and the fundamentals of how computer systems work.\n\nThe code we write will be in C++ files, with .cpp extension. And we write them in a code editor. A code editor is a text editor where we can write and execute code.",
+    "lessonExample": "#include <iostream>\n\nint main() {\n  std::cout << \"Hello world!\";\n}",
+    "startingCode": "#include <iostream>\n\nint main() {\n  // Your code here\n  return 0;\n}",
+    "hints": [
+        "Copy the example code exactly as shown.",
+        "Make sure to include the semicolon at the end of the cout statement.",
+        "The output should be \"Hello world!\""
+    ],
+    "requirements": {
+        "mustInclude": ["#include <iostream>", "std::cout", "int main()"]
+    },
+    "expectedOutput": "Hello world!"
+    },
+    {
+    "id": 2,
+    "title": "Hello World",
+    "lessonHeader": "👋 Hello World",
+    "description": "Write your first C++ program that prints text to the console.",
+    "lessonExample": "#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << \"Hello, C++!\";\n    return 0;\n}",
+    "startingCode": "#include <iostream>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}",
+    "hints": [
+        "Use cout to print text.",
+        "Don’t forget to end statements with a semicolon."
+    ],
+    "requirements": {
+        "mustInclude": ["cout"]
+    },
+    "expectedOutput": "Hello, C++!"
+    },
+    {
+    "id": 3,
+    "title": "Comments",
+    "lessonHeader": "✍️ Comments",
+    "description": "Comments are ignored by the compiler and help explain code.",
+    "lessonExample": "// Single line comment\n/* Multi-line\n   comment */",
+    "startingCode": "#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write a comment below\n\n    return 0;\n}",
+    "hints": [
+        "Use // for single line comments.",
+        "Use /* ... */ for multi-line comments."
+    ],
+    "requirements": {
+        "mustInclude": ["//"]
+    },
+    "expectedOutput": "(No output, just compiles successfully)"
+    },
+    {
+    "id": 4,
+    "title": "Basic Output",
+    "lessonHeader": "🖥️ Basic Output",
+    "description": "Use cout to display text in the console.",
+    "lessonExample": "cout << \"Hello World!\" << endl;",
+    "startingCode": "#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << \"\";\n    return 0;\n}",
+    "hints": [
+        "Use << to send text to the console.",
+        "Use endl to move to the next line."
+    ],
+    "requirements": {
+        "mustInclude": ["cout"]
+    },
+    "expectedOutput": "Hello World!"
+    }
+]

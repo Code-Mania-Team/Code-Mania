@@ -1,0 +1,75 @@
+[
+  {
+    "id": 1,
+    "title": "Setting Up",
+    "lessonHeader": "🐍 Python — Setting Up",
+    "description": "Welcome to the first chapter of The Legend of Python! Python is a beginner-friendly language created in the early 90s.",
+    "bullets": [
+      "Artificial Intelligence",
+      "Web Development",
+      "Data Analysis",
+      "Machine Learning"
+    ],
+    "lessonExample": "# This is a simple Python function\nprint(\"Hi\")\n\nThis should appear in the Terminal window:\nHi",
+    "startingCode": "print(\"Hello, World!\")",
+    "hints": [
+      "Remember to check the hints if you get stuck.",
+      "For this exercise, just copy the example!"
+    ],
+    "requirements": {
+      "mustInclude": ["print("]
+    },
+    "expectedOutput": "Hi"
+  },
+
+  {
+    "id": 2,
+    "title": "Hello World",
+    "lessonHeader": "👋 Hello World",
+    "description": "Your first real Python program. Use the print() function to show text on screen.",
+    "lessonExample": "print(\"Hello, Adventurer!\")",
+    "startingCode": "print(\"Hello, Adventurer!\")",
+    "hints": [
+      "Use print() to display text.",
+      "Make sure your text is inside quotes."
+    ],
+    "requirements": {
+      "mustInclude": ["print("]
+    },
+    "expectedOutput": "Hello, Adventurer!"
+  },
+
+  {
+    "id": 3,
+    "title": "Pattern",
+    "lessonHeader": "🔺 Pattern Printing",
+    "description": "Let's create simple ASCII shapes by printing stars on multiple lines.",
+    "lessonExample": "print(\"*\")\nprint(\"**\")\nprint(\"***\")",
+    "startingCode": "print(\"*\")\nprint(\"**\")",
+    "hints": [
+      "Use multiple print() calls.",
+      "Each print() displays one line."
+    ],
+    "requirements": {
+      "mustInclude": ["print("]
+    },
+    "expectedOutput": "*\n**"
+  },
+
+  {
+    "id": 4,
+    "title": "Initials",
+    "lessonHeader": "✍️ Create Your Initials",
+    "description": "Use ASCII art to print your initials using multiple lines.",
+    "lessonExample": "print(\"\"\"\nJJJJJ\n  J\n  J\n  J\nJ J\nJJJ\n\"\"\")",
+    "startingCode": "print(\"\"\"\nXX\nXX\n\"\"\")",
+    "hints": [
+      "Triple quotes allow multi-line strings.",
+      "Try forming letters using characters."
+    ],
+    "requirements": {
+      "mustInclude": ["print("]
+    },
+    "expectedOutput": "XX\nXX"
+  }
+]

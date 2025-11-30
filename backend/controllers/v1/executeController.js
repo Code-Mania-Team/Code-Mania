@@ -19,10 +19,10 @@ class ExecuteController {
             case "javascript":
                 return { fileName: "main.js", runCmd: "node /usr/src/app/main.js", dockerImage: "node:20-alpine" };
             case "cpp":
-                return { 
+                return {
                     fileName: "main.cpp",
-                    runCmd: "sh -c 'g++ /usr/src/app/main.cpp -o /usr/src/app/main && /usr/src/app/main'",
-                    dockerImage: "gcc:12-alpine"
+                    runCmd: "g++ /usr/src/app/main.cpp -o /usr/src/app/main_exec && /usr/src/app/main_exec",
+                    dockerImage: "gcc:latest"
                 };
             default:
                 return null;
@@ -47,7 +47,8 @@ class ExecuteController {
         const absTempDir = path.resolve(tempDir);
 
         // Build Docker command
-        const dockerCmd = `docker run --rm --network none --cpus="0.5" --memory="256m" -v ${absTempDir}:/usr/src/app ${lang.dockerImage} ${lang.runCmd}`;
+        const dockerCmd = `docker run --rm --network none --cpus="0.5" --memory="256m" -v "${absTempDir}:/usr/src/app" ${lang.dockerImage} sh -c "${lang.runCmd}"`;
+
 
         // Execute Docker
         exec(dockerCmd, { timeout: 5000 }, (err, stdout, stderr) => {

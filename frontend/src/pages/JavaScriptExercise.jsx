@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Play } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
+import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
-import map1 from "../assets/aseprites/map1.png"; // Import the map1 image
+import map1 from "../assets/aseprites/map1.png";
+import exercises from "../data/javascriptExercises.json";
 
 const JavaScriptExercise = () => {
-  const [code, setCode] = useState(`// Write your JavaScript code below ❤️
-console.log("Hello, World!");`);
+  const { exerciseId } = useParams();
+  const navigate = useNavigate();
+  const [currentExercise, setCurrentExercise] = useState(null);
+  const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+  const [showXpPanel, setShowXpPanel] = useState(false);
 
   // === Dialogue System ===
   const dialogues = [
@@ -21,6 +27,42 @@ console.log("Hello, World!");`);
   const [currentDialogue, setCurrentDialogue] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
+  // Load exercise data and reset state when exerciseId changes
+  useEffect(() => {
+    if (exerciseId) {
+      const id = parseInt(exerciseId.split('-')[0], 10);
+      const exercise = exercises.find(ex => ex.id === id);
+      if (exercise) {
+        setCurrentExercise(exercise);
+        setCode(exercise.startingCode || `// ${exercise.title}\n\n${exercise.startingCode || ''}`);
+        setOutput("");
+        setShowHelp(false);
+        setShowXpPanel(false);
+      }
+    }
+  }, [exerciseId]);
+
+  // Navigation functions
+  const goToNextExercise = () => {
+    if (!currentExercise) return;
+    const nextId = currentExercise.id + 1;
+    if (nextId <= exercises.length) {
+      const nextExercise = exercises[nextId - 1];
+      const exerciseSlug = nextExercise.title.toLowerCase().replace(/\s+/g, '-');
+      navigate(`/learn/javascript/exercise/${nextId}-${exerciseSlug}`);
+    }
+  };
+
+  const goToPrevExercise = () => {
+    if (!currentExercise) return;
+    const prevId = currentExercise.id - 1;
+    if (prevId >= 1) {
+      const prevExercise = exercises[prevId - 1];
+      const exerciseSlug = prevExercise.title.toLowerCase().replace(/\s+/g, '-');
+      navigate(`/learn/javascript/exercise/${prevId}-${exerciseSlug}`);
+    }
+  };
 
   // Automatically start dialogue on component mount
   useEffect(() => {
@@ -68,15 +110,18 @@ console.log("Hello, World!");`);
 
         if (logs.length > 0) {
           setOutput(`${logs.join("\n")}\n`);
+          setShowXpPanel(true);
         } else {
           setOutput(
             "No output detected. Did you include a console.log() statement?\n"
           );
+          setShowXpPanel(false);
         }
       } catch (error) {
         setOutput(
           `Error: ${error.message}\n>>> Program failed`
         );
+        setShowXpPanel(false);
       }
     }, 500);
   };
@@ -115,7 +160,11 @@ console.log("Hello, World!");`);
       )}
 
       <div className={styles["codex-fullscreen"]}>
-        <ProgressBar currentLesson={1} totalLessons={12} title="🌐 JavaScript Basics" />
+        <ProgressBar 
+          currentLesson={currentExercise?.id || 1} 
+          totalLessons={exercises.length} 
+          title="🌐 JavaScript Basics" 
+        />
 
         <div className={styles["main-layout"]}>
           {/* Left Side - Game Preview */}
@@ -152,34 +201,36 @@ console.log("Hello, World!");`);
                     />
 
                     <div className={styles["scroll-content"]}>
-                      <h2>🌐 JavaScript</h2>
-                      <p>
-                        Welcome to the first chapter of <strong>The Legend of JavaScript!</strong><br />
-                        JavaScript was created in 10 days by{" "}
-                        <a href="https://en.wikipedia.org/wiki/Brendan_Eich" target="_blank" rel="noreferrer">
-                          Brendan Eich
-                        </a>{" "}
-                        while working at Netscape.
-                      </p>
-                      <ul>
-                        <li>• Web Development</li>
-                        <li>• Frontend & Backend</li>
-                        <li>• Mobile Apps</li>
-                        <li>• Game Development</li>
-                      </ul>
-                      <p>Let's give it a try! Here's a simple JavaScript example:</p>
-                      <div className={styles["code-example"]}>
-                        <pre>
-                          <code>
-                            {`// This is a simple JavaScript function
-console.log("Hi")
-
-This should appear in the Console:
-Hi`}
-                          </code>
-                        </pre>
+                      <h2>{currentExercise?.lessonHeader || '🌐 JavaScript'}</h2>
+                      <p>{currentExercise?.description || 'Welcome to JavaScript exercises!'}</p>
+                      
+                      {currentExercise?.lessonExample && (
+                        <div className={styles["code-example"]}>
+                          <h3>Example:</h3>
+                          <pre>{currentExercise.lessonExample}</pre>
+                        </div>
+                      )}
+                      
+                      <h3>Your Task:</h3>
+                      <p>{currentExercise?.description || 'Complete the JavaScript code below.'}</p>
+                      
+                      <div className={styles.navigation}>
+                        <button 
+                          onClick={goToPrevExercise}
+                          disabled={!currentExercise || currentExercise.id <= 1}
+                          className={styles.navButton}
+                        >
+                          <ChevronLeft size={20} /> Previous
+                        </button>
+                        <span>Exercise {currentExercise?.id || 1} of {exercises.length}</span>
+                        <button 
+                          onClick={goToNextExercise}
+                          disabled={!currentExercise || currentExercise.id >= exercises.length}
+                          className={styles.navButton}
+                        >
+                          Next <ChevronRight size={20} />
+                        </button>
                       </div>
-                      <p>Try writing your own code on the right! 👉</p>
                     </div>
                   </div>
                 )}
@@ -233,6 +284,11 @@ Hi`}
                 </div>
               </div>
             </div>
+            <XpNotification
+              show={showXpPanel}
+              onClose={() => setShowXpPanel(false)}
+              onNext={goToNextExercise}
+            />
           </div>
         </div>
 
