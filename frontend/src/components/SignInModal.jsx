@@ -86,14 +86,16 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         }
       } else {
            const res = await login(email, password);
-           if (res.success) {
+           console.log(`SIGN IN MODAL RESPONSE: ${res.success}`)
+           if (res.success === true) {
             localStorage.setItem("token", res.token);
             localStorage.setItem("username", res.username); //
-            localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");}
+            localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");
             onSignInSuccess(res); // Temporary for testing
+          }
       }
     } catch (err) {
-      console.log(err);
+      console.log(`SIGN IN MODAL ERROR: ${err.message}`);
     } finally {
       setIsLoading(false);
     }

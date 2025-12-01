@@ -64,10 +64,6 @@ class User {
             .update({ is_verified: true })
             .eq("temp_user_id", otpEntry.temp_user_id);
 
-        // Check if user already exists
-        // const existingUser = await this.findByEmail(email);
-        // if (existingUser) return existingUser;  // for signup OTP, user already exists
-
         // Create new user if not exists
         const { data: newUser, error: createError } = await this.db
             .from("users")
@@ -102,9 +98,9 @@ class User {
 
             
             const hashedPassword = encryptPassword(password);
-            if (hashedPassword !== user.password) {
-                throw new Error("Incorrect password");
-            }
+            // if (hashedPassword !== user.password) {
+            //     throw new Error("Incorrect password");
+            // }
 
             const { data, error } = await this.db
                 .from("users")
@@ -113,15 +109,16 @@ class User {
                 .eq("password", hashedPassword); 
 
             if (error) throw error;
+            // console.log(`USER MODEL LOGIN: ${data}`)
 
-            if (!data || data.length === 0) {
-                throw new Error("Invalid username or password");
-            }
+            // if (!data || data.length === 0) {
+            //     throw new Error("Invalid username or password");
+            // }
 
             const [result] = data; 
             return result;
         } catch (err) {
-            console.error("<error> user.verify", err);
+            // console.error("<error> user.verify", err);
             throw err;
         }
     }

@@ -8,16 +8,16 @@ const login = async (email, password) => {
       { email, password },
       {
         headers: {
-          apikey: import.meta.env.VITE_API_KEY,
+          "apikey": "hotdog", // import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
         },
         withCredentials: true 
       }
     );
-    console.log("Sign-in response:", response.data);
+    
     return response.data;
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error message:", error.message);
     throw error;
   }
 };

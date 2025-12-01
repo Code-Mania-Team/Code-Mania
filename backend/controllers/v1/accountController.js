@@ -169,8 +169,9 @@ class AccountController {
         try {
             // Verify user credentials
             const authUser = await this.user.verify(email, password);
+            console.log(`AUTHENTICATE USER: ${authUser}`)
             if (!authUser) {
-                return res.status(401).json({
+                return res.json({
                     success: false,
                     message: "Invalid email or password",
                 });
@@ -178,15 +179,15 @@ class AccountController {
 
             // Fetch user profile
             const data = await this.user.getProfile(authUser.user_id);
-            console.log("User profile data:", data);
+            // console.log("User profile data:", data);
 
             // Generate JWT
             const tokenPayload = { user_id: authUser.user_id };
-            console.log("tokenpayload", tokenPayload);
+            // console.log("tokenpayload", tokenPayload);
             if (data?.username) tokenPayload.username = data.username;
 
             const token = jwt.sign(tokenPayload, process.env.API_SECRET_KEY, { expiresIn: "1d" });
-            console.log("Generated token:", token);
+            // console.log("Generated token:", token);
 
             res.cookie('token', token, {
                 httpOnly: true,
