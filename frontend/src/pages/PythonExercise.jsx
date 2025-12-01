@@ -9,8 +9,9 @@ import XpNotification from "../components/XpNotification";
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../engine/main.js";
 import exercises from "../data/pythonExercises.json";
+import { useProfile } from "../hooks/useProfile";
 
-const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+const PythonExercise = ({  onOpenModal, onSignOut }) => {
   const { exerciseId } = useParams();
   const [currentExercise, setCurrentExercise] = useState(null);
   const [code, setCode] = useState("");
@@ -19,6 +20,7 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [showScroll, setShowScroll] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showXpPanel, setShowXpPanel] = useState(false);
+  const { profile, loading, isAuthenticated } = useProfile();
 
   // Load exercise data
   useEffect(() => {
@@ -169,7 +171,7 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   return (
     <div className={styles["python-exercise-page"]}>
       <div className={styles["scroll-background"]}></div>
-      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} />
+      <Header isAuthenticated={isAuthenticated} onOpenModal={isAuthenticated ? null : handleOpenModal} />
 
       {isSignInModalOpen && (
         <SignInModal

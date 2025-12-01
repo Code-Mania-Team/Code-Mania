@@ -3,14 +3,24 @@ import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import "../styles/JavaScriptCourse.css";
 import SignInModal from "../components/SignInModal";
+import { useProfile } from "../hooks/useProfile";
+
 
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { profile, loading, isAuthenticated } = useProfile();
 
-  const onOpenModal = () => {
-    setIsModalOpen(true);
+  const handleViewProfile = () => {
+    if (loading) return; // optional: wait for profile to load
+    if (isAuthenticated) {
+      setIsModalOpen(false); // show profile modal
+      navigate(`/profile`);
+    } else {
+      // optionally, show login modal if not authenticated
+      setIsModalOpen(true);
+    }
   };
 
   const onCloseModal = () => {
@@ -23,7 +33,7 @@ const JavaScriptCourse = () => {
   };
 
   const userProgress = {
-    name: "Your Name",
+    name: (loading ? "Loading..." : profile?.username || "Your Name"),
     level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,
@@ -169,7 +179,7 @@ const JavaScriptCourse = () => {
               <h4>{userProgress.name}</h4>
               <p>Level {userProgress.level}</p>
             </div>
-            <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
+            <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
           </div>
 
           <div className="progress-card">

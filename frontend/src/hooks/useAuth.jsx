@@ -1,33 +1,33 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { loginService, logoutService, checkAuthService } from "../services/authService";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
-      setIsAuthenticated(true);
-    }
+    // Check auth on mount using service
+    checkAuthService()
+      .then((res) => setIsAuthenticated(res.success))
+      .catch(() => setIsAuthenticated(false))
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = (newToken) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-    setIsAuthenticated(true);
+  const login = async (email, password) => {
+    const res = await loginService(email, password);
+    if (res.success) setIsAuthenticated(true);
+    return res;
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
+  const logout = async () => {
+    await logoutService();
     setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

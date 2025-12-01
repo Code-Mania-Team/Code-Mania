@@ -4,7 +4,7 @@ const onBoardUsername = async (username) => {
   if (username === '' || username.length < 3) {
     throw new Error("Please enter a valid username.");
   }
-  console.log("token retrieved:", localStorage.getItem("token"));
+  
 
   try {
     const response = await axios.post(

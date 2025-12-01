@@ -70,7 +70,6 @@ const Dashboard = () => {
   const handleSignOut = () => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
-    
     setIsAuthenticated(false);
     navigate('/');
   };

@@ -186,6 +186,7 @@ class AccountController {
             if (data?.username) tokenPayload.username = data.username;
 
             const token = jwt.sign(tokenPayload, process.env.API_SECRET_KEY, { expiresIn: "1d" });
+            console.log("Generated token:", token);
 
             res.cookie('token', token, {
                 httpOnly: true,

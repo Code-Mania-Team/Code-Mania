@@ -4,6 +4,7 @@ import "../App.css";
 import crown from "../assets/crown.png";
 import profileIcon from "../assets/profile-icon.png";
 
+
 const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const navigate = useNavigate();
 

@@ -9,6 +9,8 @@ import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 import map1 from "../assets/aseprites/map1.png";
 import exercises from "../data/javascriptExercises.json";
+import { useProfile } from "../hooks/useProfile";
+
 
 const JavaScriptExercise = () => {
   const { exerciseId } = useParams();
@@ -19,6 +21,7 @@ const JavaScriptExercise = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
   const [showXpPanel, setShowXpPanel] = useState(false);
+  const { profile, loading, isAuthenticated } = useProfile();
 
   // === Dialogue System ===
   const dialogues = [
@@ -127,7 +130,7 @@ const JavaScriptExercise = () => {
   };
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
   const [user, setUser] = useState(null);
 
   const handleOpenModal = () => {
@@ -138,6 +141,12 @@ const JavaScriptExercise = () => {
     setIsSignInModalOpen(false);
   };
 
+  const handleSignOut = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    
+    navigate('/');
+  };
   const handleSignInSuccess = () => {
     // In a real app, you would get user data from your auth provider
     const mockUser = { name: 'Coder', email: 'coder@example.com' };
@@ -149,7 +158,7 @@ const JavaScriptExercise = () => {
   return (
     <div className={styles["javascript-exercise-page"]}>
       <div className={styles["scroll-background"]}></div>
-      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} user={user} />
+      <Header isAuthenticated={isAuthenticated} onOpenModal={isAuthenticated ? null : handleOpenModal} user={user} onSignOut={handleSignOut}/>
       
       {isSignInModalOpen && (
         <SignInModal 
