@@ -21,6 +21,9 @@ accountRouter.post('/username', authentication, account.setUsername.bind(account
 
 accountRouter.post('/login', account.login.bind(account));
 
+accountRouter.post('/logout', authentication, account.logout.bind(account));
+
+
 // 🔹 Get current user's profile
 accountRouter.get('/', authentication, account.profile.bind(account));
 

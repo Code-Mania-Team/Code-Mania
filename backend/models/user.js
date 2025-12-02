@@ -209,6 +209,9 @@ class User {
             .single();
         return data;
     }
+    async logout() {
+        return { message: "cookies removed successfully" };
+    }
 }
 
 export default User;

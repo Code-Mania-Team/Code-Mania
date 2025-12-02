@@ -13,9 +13,12 @@ const getProfile = async () => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    if (error.response?.status === 401) {
+      // Not logged in — this is expected on first load
+      return null;
+    }
+    console.error("Error fetching profile:", error);
     throw error;
   }
 };
-
 export { getProfile };

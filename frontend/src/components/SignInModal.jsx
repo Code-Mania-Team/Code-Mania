@@ -6,7 +6,8 @@ import '../App.css';
 import  {signUp} from '../services/signup';
 import  {verifyOtp} from '../services/verifyOtp';
 import  {login} from '../services/login';
-// import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/authProvider';
+
 
 const OAuthButton = ({ isLoading, onClick, icon, text }) => (
   <button 
@@ -54,6 +55,8 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { refreshProfile } = useAuth();
+  
 
 
   if (!isOpen) return null;
@@ -77,19 +80,21 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         } else {
             const res = await verifyOtp(email, otp);
             if (res.token) {
-              localStorage.setItem("token", res.token);
+              // localStorage.setItem("token", res.token);
               localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");
-              localStorage.setItem("user_id", res.user_id);
+              await refreshProfile();
+              // localStorage.setItem("user_id", res.user_id);
               
             }
             onSignInSuccess(res); 
         }
       } else {
            const res = await login(email, password);
-           if (res.success) {
-            localStorage.setItem("token", res.token);
+           if (res.success === true) {
+            // localStorage.setItem("token", res.token);
             localStorage.setItem("username", res.username); //
             localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");}
+            await refreshProfile();  //
             onSignInSuccess(res); // Temporary for testing
       }
     } catch (err) {

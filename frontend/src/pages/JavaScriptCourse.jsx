@@ -33,7 +33,7 @@ const JavaScriptCourse = () => {
   };
 
   const userProgress = {
-    name: (loading ? "Loading..." : profile?.username || "Your Name"),
+    name: (loading ? "Loading..." : profile.data?.username || "Your Name"),
     level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,

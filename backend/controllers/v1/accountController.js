@@ -259,6 +259,26 @@ class AccountController {
         }
     }
 
+    async logout(req, res) {
+        try {
+            res.clearCookie("token", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Logged out"
+            });
+        } catch (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to logout"
+            });
+        }
+    }
+
     // DELETE USER
     async deleteUser(req, res) {
         const userId = res.locals.user_id;

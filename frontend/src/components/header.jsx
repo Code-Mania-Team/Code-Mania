@@ -3,22 +3,32 @@ import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import crown from "../assets/crown.png";
 import profileIcon from "../assets/profile-icon.png";
+import { useAuth } from "../context/authProvider"; 
 
 
-const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+const Header = ({onOpenModal}) => {
   const navigate = useNavigate();
+  const { isAuthenticated, signOut } = useAuth();
+  
 
   const handleProfileClick = () => {
     navigate('/profile');
   };
 
-  const handleSignOut = (e) => {
-    e.stopPropagation();
-    localStorage.clear();   // clears everything
-    onSignOut();
-    navigate('/');
+  // const handleSignOut = (e) => {
+  //   e.stopPropagation();
+  //   localStorage.clear();   // clears everything
+  //   onSignOut();
+  //   navigate('/');
     
+  // };
+
+  const handleSignOut = async (e) => {
+    e.stopPropagation();
+    await signOut();
+    navigate('/');
   };
+
   return (
     <header className="header">
       <div className="logo">

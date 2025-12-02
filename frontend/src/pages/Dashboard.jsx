@@ -5,14 +5,12 @@ import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import pythonGif from '../assets/python.gif';
 import styles from '../styles/Dashboard.module.css';
+// import { useAuth } from '../hooks/useAuth';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(9);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('isAuthenticated') === 'true';
-  });
   const [userStats, setUserStats] = useState({
     name: 'User',
     level: 1,
@@ -68,9 +66,8 @@ const Dashboard = () => {
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem('isAuthenticated');
+    localStorage.clear();
     localStorage.removeItem('username');
-    setIsAuthenticated(false);
     navigate('/');
   };
 
@@ -78,9 +75,7 @@ const Dashboard = () => {
     <div className={styles.container}>
       {showOnboarding && <WelcomeOnboarding onComplete={handleOnboardingComplete} />}
       <Header 
-        isAuthenticated={isAuthenticated}
         onOpenModal={() => {}}
-        onSignOut={handleSignOut}
       />
       {/* Animated Background Circles */}
       <div className={styles.circles}>
