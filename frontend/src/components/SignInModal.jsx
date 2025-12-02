@@ -90,15 +90,21 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         }
       } else {
            const res = await login(email, password);
+           
+          //  console.log(`SIGN IN MODAL REif (res.success === true) {
+          //   // localStorage.setItem("token", res.token);
+          //   localStorage.setItem("username", res.username); //
+          //   localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");}
+          //   await refreshProfile();  //SPONSE: ${res.success}`)
            if (res.success === true) {
-            // localStorage.setItem("token", res.token);
+            localStorage.setItem("token", res.token);
             localStorage.setItem("username", res.username); //
-            localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");}
-            await refreshProfile();  //
+            localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");
             onSignInSuccess(res); // Temporary for testing
+          }
       }
     } catch (err) {
-      console.log(err);
+      console.log(`SIGN IN MODAL ERROR: ${err.message}`);
     } finally {
       setIsLoading(false);
     }

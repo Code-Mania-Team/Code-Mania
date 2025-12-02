@@ -20,7 +20,7 @@ const login = async (email, password) => {
     console.log("Sign-in response:", response.data);
   
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error message:", error.message);
     throw error;
   }
 };
