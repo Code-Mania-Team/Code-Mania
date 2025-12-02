@@ -11,7 +11,8 @@ const PythonCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { profile, loading, isAuthenticated } = useProfile();
-
+  console.log("Profile data:", profile);
+  console.log("profile data:", profile?.data);
   const handleViewProfile = () => {
     if (loading) return; // optional: wait for profile to load
     if (isAuthenticated) {
@@ -33,7 +34,7 @@ const PythonCourse = () => {
   };
 
   const userProgress = {
-    name: (loading ? "Loading..." : profile?.username || "Your Name"),
+    name: (loading ? "Loading..." : profile?.data?.username || "Your Name"),
     level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,
