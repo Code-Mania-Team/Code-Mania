@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Play } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -6,12 +6,12 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../engine/main.js";
+import Terminal from "../components/Terminal";
 
 const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [code, setCode] = useState(`# Write code below ❤️
 
 print("Hello, World!")`);
-  const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
 
@@ -48,52 +48,30 @@ print("Hello, World!")`);
     }, 40);
   };
 
-  const handleRunCode = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/v1/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": "hotdog" },
-        body: JSON.stringify({
-          code: code,
-          language: "python"
-        })
-      });
+  // === Terminal Ref ===
+  const terminalRef = useRef(null);
 
-      const data = await response.json();
-      console.log(data);
-      setOutput(data.output || data.error || "No output");
-    } catch (err) {
-      setOutput("Error connecting to server");
+  // === Run button sends code to Terminal ===
+  const handleRunCode = () => {
+    if (terminalRef.current) {
+      terminalRef.current.runCode(code);
     }
   };
 
-
   // === Sign-in modal handling ===
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-
-  const handleOpenModal = () => {
-    setIsSignInModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsSignInModalOpen(false);
-  };
-
-  const handleSignInSuccess = () => {
-    handleCloseModal();
-  };
-
+  const handleOpenModal = () => setIsSignInModalOpen(true);
+  const handleCloseModal = () => setIsSignInModalOpen(false);
+  const handleSignInSuccess = () => handleCloseModal();
 
   useEffect(() => {
     const game = initPhaserGame("phaser-container");
-
     setTimeout(() => setShowScroll(true), 1500);
 
     return () => {
       if (game) game.cleanup(); 
     };
   }, []);
-
 
   return (
     <div className={styles["python-exercise-page"]}>
@@ -115,12 +93,7 @@ print("Hello, World!")`);
           {/* === LEFT SIDE: Phaser Game === */}
           <div className={styles["game-container"]}>
             <div className={styles["game-preview"]}>
-              {/* Phaser mounts here */}
-              <div
-                id="phaser-container"
-                className={styles["game-scene"]}
-                
-              />
+              <div id="phaser-container" className={styles["game-scene"]} />
 
               {showScroll && (
                 <div className={styles["scroll-container"]}>
@@ -129,42 +102,11 @@ print("Hello, World!")`);
                     alt="Scroll"
                     className={styles["scroll-image"]}
                   />
-
                   <div className={styles["scroll-content"]}>
                     <h2>🐍 Python</h2>
                     <p>
-                      Welcome to the first chapter of{" "}
-                      <strong>The Legend of Python!</strong>
-                      <br />
-                      Python is a beginner-friendly language created by{" "}
-                      <a
-                        href="https://en.wikipedia.org/wiki/Guido_van_Rossum"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Guido van Rossum
-                      </a>{" "}
-                      in the early 90s.
+                      Welcome to the first chapter of <strong>The Legend of Python!</strong>
                     </p>
-                    <ul>
-                      <li>• Artificial Intelligence</li>
-                      <li>• Web Development</li>
-                      <li>• Data Analysis</li>
-                      <li>• Machine Learning</li>
-                    </ul>
-                    <p>Let's give it a try! Here's a simple Python example:</p>
-                    <div className={styles["code-example"]}>
-                      <pre>
-                        <code>
-                          {`# This is a simple Python function
-print("Hi")
-
-This should appear in the Terminal window:
-Hi`}
-                        </code>
-                      </pre>
-                    </div>
-                    <p>Try writing your own code on the right! 👉</p>
                   </div>
                 </div>
               )}
@@ -177,9 +119,7 @@ Hi`}
               <div className={styles["editor-header"]}>
                 <span>script.py</span>
                 <button
-                   className={`${styles["submit-btn"]} ${
-                    !showScroll ? styles["disabled-btn"] : ""
-                  }`}
+                  className={`${styles["submit-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`}
                   onClick={handleRunCode}
                   disabled={!showScroll}
                   title={!showScroll ? "View the lesson first" : "Run code"}
@@ -195,57 +135,10 @@ Hi`}
             </div>
 
             <div className={styles["terminal"]}>
-              <div className={styles["terminal-header"]}>
-                Terminal
-                <button
-                  className={`${styles["submit-btn"]} ${
-                    !showScroll ? styles["disabled-btn"] : ""
-                  }`}
-                  onClick={handleRunCode}
-                  disabled={!showScroll}
-                  title={!showScroll ? "View the lesson first" : "Submit code"}
-                >
-                  Submit
-                </button>
-              </div>
-              <div className={styles["terminal-body"]}>
-                {output && (
-                  <div className={styles["terminal-output"]}>{output}</div>
-                )}
-                <div className={styles["terminal-line"]}>
-                  <span className={styles["prompt"]}>$</span>
-                  <span className={styles["cursor"]}></span>
-                </div>
-              </div>
+              <div className={styles["terminal-header"]}>Interactive Terminal</div>
+              <Terminal ref={terminalRef} />
             </div>
           </div>
-        </div>
-
-        <h3 className={styles["help-title"]}>Help</h3>
-        <div className={styles["help-section"]}>
-          <div
-            className={styles["help-header"]}
-            onClick={() => setShowHelp((prev) => !prev)}
-          >
-            <span>💡 Hint</span>
-            <span className={styles["help-arrow"]}>
-              {showHelp ? "▴" : "▾"}
-            </span>
-          </div>
-
-          {showHelp && (
-            <div
-              className={styles["dialogue-terminal"]}
-              onClick={handleNextDialogue}
-            >
-              <div className={styles["terminal-line"]}>
-                <span className={styles["dialogue-text"]}>
-                  {displayedText}
-                  <span className={styles["cursor"]}></span>
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
