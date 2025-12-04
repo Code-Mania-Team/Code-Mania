@@ -1,42 +1,71 @@
 import { WebSocketServer } from "ws";
 import { spawn } from "child_process";
 
-export function startTerminalSocketServer() {
-  const wss = new WebSocketServer({ port: 3001 });
+export function startTerminalSocketServer(server) {
+  const wss =new WebSocketServer({ server, path: "/ws" })
+
+  console.log("🔥 WebSocket Terminal server running");
 
   wss.on("connection", (ws) => {
-    console.log("Client connected");
+    console.log("Client connected!");
 
-    // Spawn interactive Python inside Docker
-    const python = spawn("docker", [
-      "run",
-      "--rm",
-      "-i",
-      "python:3.11",
-      "python",
-      "-i",
-      "-u",
-      "-q"
-    ]);
+    let shell = null;
 
-    // Send Python stdout to frontend
-    python.stdout.on("data", (data) => {
-      ws.send(data.toString());
-    });
+    const startShell = (language = "python") => {
+      if (shell) shell.kill();
 
-    // Send Python stderr to frontend
-    python.stderr.on("data", (data) => {
-      ws.send(data.toString());
-    });
+      switch (language) {
+        case "python":
+          shell = spawn("docker", ["run", "--rm", "-i", "python:3.11", "python3", "-i", "-q"]);
+          break;
+        case "cpp":
+          shell = spawn("docker", ["run", "--rm", "-i", "gcc:13", "bash"]);
+          ws.send("⚠️ C++ interactive not fully supported, will run after compilation\n");
+          break;
+        case "js":
+          shell = spawn("docker", ["run", "--rm", "-i", "node:20", "node", "-i"]);
+          break;
+        default:
+          shell = spawn("docker", ["run", "--rm", "-i", "python:3.11", "python3", "-i"]);
+      }
 
-    // Receive input from frontend and write to Python stdin
+      shell.stdout.on("data", (data) => {
+        ws.send(data.toString());
+      });
+
+      shell.stderr.on("data", (data) => {
+        ws.send(data.toString());
+      });
+
+      shell.on("close", () => {
+        console.log("Shell process closed");
+      });
+    };
+
+    // start default shell
+    startShell("python");
+
     ws.on("message", (msg) => {
-      python.stdin.write(msg + "\n");
+      let data;
+      try { data = JSON.parse(msg); } catch { return; }
+
+      if (data.type === "code") {
+        if (!shell) startShell(data.language || "python");
+        shell.stdin.write(data.code + "\n");
+      }
+
+      if (data.type === "input") {
+        if (shell) shell.stdin.write(data.value + "\n");
+      }
+
+      if (data.type === "language") {
+        startShell(data.language);
+      }
     });
 
     ws.on("close", () => {
-      python.kill();
       console.log("Client disconnected");
+      if (shell) shell.kill();
     });
   });
 }

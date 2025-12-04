@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import styles from "../styles/Terminal.module.css";
 
 const Terminal = forwardRef((props, ref) => {
@@ -8,66 +8,62 @@ const Terminal = forwardRef((props, ref) => {
   const outputRef = useRef(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:3001");
+    const ws = new WebSocket("ws://localhost:3000/ws"); // same port as API
     wsRef.current = ws;
 
-    ws.onmessage = (e) => appendLine(e.data);
+    ws.onopen = () => console.log("✅ Connected to terminal");
+
+    ws.onmessage = (e) => {
+      // remove prompts like >>> but keep blank lines
+      const clean = e.data.replace(/>>>|node>|cling>/g, "");
+      const newLines = clean.split("\n"); // preserves newlines
+      setLines(prev => [...prev, ...newLines]);
+      if (outputRef.current) outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    };
+
+    ws.onclose = () => console.log("⚠️ Terminal disconnected");
+    ws.onerror = () => console.log("⚠️ WebSocket error");
 
     return () => ws.close();
   }, []);
 
-  const appendLine = (text) => {
-    const newLines = text
-      .split("\n")
-      .map(line => line.replace(/^>>> ?/, "").trim())
-      .filter(line => line !== "");
-
-    if (newLines.length === 0) return;
-
-    setLines(prev => [...prev, ...newLines]);
-    if (outputRef.current) outputRef.current.scrollTop = outputRef.current.scrollHeight;
-  };
-
-  // expose runCode() to parent
+  // Expose runCode to parent
   useImperativeHandle(ref, () => ({
-    runCode(code) {
-      // clear previous output
-      setLines([]);
-
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        code.split("\n").forEach(line => wsRef.current.send(line));
+    runCode(code, language = "python") {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        // set language first
+        wsRef.current.send(JSON.stringify({ type: "language", language }));
+        // send code
+        wsRef.current.send(JSON.stringify({ type: "code", code }));
+        setLines([]); // clear previous output
       } else {
-        appendLine("⚠️ Terminal not connected");
+        console.log("⚠️ Terminal not connected");
       }
-      if (inputRef.current) inputRef.current.focus();
+      inputRef.current?.focus();
     }
   }));
 
+  // handle user input
   const handleInput = (e) => {
     if (e.key === "Enter") {
       const val = e.target.value;
+      setLines(prev => [...prev, val]); // echo input in terminal
       e.target.value = "";
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(val);
-      } else {
-        appendLine("⚠️ Terminal not connected");
-      }
+      wsRef.current?.send(JSON.stringify({ type: "input", value: val }));
     }
   };
 
   return (
     <div className={styles.terminal}>
       <div ref={outputRef} className={styles.output}>
-        {lines.map((line, i) => (
-          <div key={i}>{line}</div>
-        ))}
+        {lines.map((line, i) => <div key={i}>{line}</div>)}
       </div>
       <input
         ref={inputRef}
         type="text"
-        placeholder="Type here and press Enter"
-        onKeyDown={handleInput}
         className={styles.input}
+        onKeyDown={handleInput}
+        placeholder="Type input here..."
       />
     </div>
   );
