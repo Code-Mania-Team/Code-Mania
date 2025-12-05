@@ -1,52 +1,57 @@
 import Phaser from "phaser";
-import GameScene from "./gameScene.js";
+import GameScene from "./scenes/gameScene.js";
 
 export function initPhaserGame(containerId) {
   const container = document.getElementById(containerId);
-  const config = {
+
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: containerId,
     backgroundColor: "#1d1f27",
     pixelArt: true,
-    roundPixels: true,
     physics: {
       default: "arcade",
-      arcade: {
-        gravity: { y: 0 },
-        debug: false,
-      },
+      arcade: { gravity: { y: 0 }, debug: false },
     },
     scale: {
-      mode: Phaser.Scale.RESIZE, 
+      mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
       width: container.clientWidth,
       height: container.clientHeight,
     },
-    render: {
-      antialias: false,
-      pixelArt: true,
-      roundPixels: true,
-    },
     scene: [GameScene],
-  };
+  });
 
-  const game = new Phaser.Game(config);
+  // -------------------------------
+  // ⭐ ADD THIS CLEANUP METHOD ⭐
+  // -------------------------------
+  game.cleanup = () => {
+    try {
+      console.log("🔥 Cleaning up Phaser...");
+
+      // Stop scenes
+      Object.values(game.scene.keys).forEach(scene => {
+        scene?.scene?.stop?.();
+      });
+
+      // Destroy phaser instance
+      game.destroy(true);
+
+    } catch (err) {
+      console.warn("Cleanup error:", err);
+    }
+  };
+  // -------------------------------
 
   const resizeObserver = new ResizeObserver(() => {
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    game.scale.resize(width, height);
-    if (game.scene.keys["GameScene"]?.updateScale) {
-      game.scene.keys["GameScene"].updateScale(width, height);
-    }
+    game.scale.resize(container.clientWidth, container.clientHeight);
+    game.scene.keys["GameScene"]?.updateScale(
+      container.clientWidth,
+      container.clientHeight
+    );
   });
 
   resizeObserver.observe(container);
-
-  game.cleanup = () => {
-    resizeObserver.disconnect();
-    game.destroy(true);
-  };
 
   return game;
 }
