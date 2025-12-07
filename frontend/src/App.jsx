@@ -15,6 +15,7 @@ import JavaScriptExercise from "./pages/JavaScriptExercise";
 import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
+import { AuthProvider, useAuth } from './context/authProvider.jsx'
 
 
 // Scroll to top on route change
@@ -122,17 +123,19 @@ const Home = () => (
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Initialize from localStorage if available
-    return localStorage.getItem('isAuthenticated') === 'true';
-  });
+  // const [isAuthenticated, setIsAuthenticated] = useState(() => {
+  //   // Initialize from localStorage if available
+  //   return localStorage.getItem('isAuthenticated') === 'true';
+  // });
+  const { isAuthenticated, signOut } = useAuth();
+  console.log("App isAuthenticated:", isAuthenticated);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Update localStorage when isAuthenticated changes
-  useEffect(() => {
-    localStorage.setItem('isAuthenticated', isAuthenticated);
-  }, [isAuthenticated]);
+  // // Update localStorage when isAuthenticated changes
+  // useEffect(() => {
+  //   localStorage.setItem('isAuthenticated', isAuthenticated);
+  // }, [isAuthenticated]);
 
   // hide header/footer on exercise routes and dashboard
   const hideGlobalHeaderFooter = 
@@ -147,7 +150,7 @@ function App() {
         <Header 
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
-          onSignOut={() => setIsAuthenticated(false)}
+          onSignOut={() => signOut}
         />
       )}
       <ScrollToTop />
@@ -163,7 +166,7 @@ function App() {
               <PythonExercise 
                 isAuthenticated={isAuthenticated}
                 onOpenModal={() => setIsModalOpen(true)}
-                onSignOut={() => setIsAuthenticated(false)}
+                onSignOut={() => signOut}
               />
             } 
           />
@@ -185,7 +188,7 @@ function App() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         onSignInSuccess={() => {
-          setIsAuthenticated(true);
+          
           setIsModalOpen(false);
           navigate('/dashboard');
         }}
@@ -198,7 +201,9 @@ function App() {
 export default function AppWithRouter() {
   return (
     <Router>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </Router>
   );
 }

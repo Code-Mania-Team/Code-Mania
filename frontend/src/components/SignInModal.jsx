@@ -95,6 +95,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
             localStorage.setItem("username", res.username); //
             localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");}
             await refreshProfile();  //
+            
             onSignInSuccess(res); // Temporary for testing
       }
     } catch (err) {

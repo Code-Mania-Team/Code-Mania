@@ -11,6 +11,8 @@ const getProfile = async () => {
         withCredentials: true,
       }
     );
+   
+    
     return response.data;
   } catch (error) {
     if (error.response?.status === 401) {
@@ -18,7 +20,7 @@ const getProfile = async () => {
       return null;
     }
     console.error("Error fetching profile:", error);
-    throw error;
+    
   }
 };
 export { getProfile };

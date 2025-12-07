@@ -27,12 +27,8 @@ export const useProfile = () => {
   };
 
   useEffect(() => {
-  if (!localStorage.getItem("token")) {
-    setLoading(false);
-    return;
-  }
-  fetchProfile();
-}, []);
+    fetchProfile();
+  }, []);
 
   return { profile, loading, isAuthenticated, refreshProfile: fetchProfile };
 };

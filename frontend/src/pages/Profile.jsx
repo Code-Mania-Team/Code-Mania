@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import styles from '../styles/Profile.module.css';
 import { Code, FileCode2, Terminal } from 'lucide-react';
-import { useAuth } from '../context/authProvider';
+// import { useAuth } from '../context/authProvider';
+import { useProfile } from "../hooks/useProfile";
+
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
-  const { user, loading } = useAuth();
+  const { profile: user, loading } = useProfile();
+  console.log("User profile data:", user);
+  console.log("Loading state:", loading);
+  console.log("User profile:", user?.data?.username);
+
+
   
   const [learningProgress] = useState({
     python: { progress: 0, total: 100, icon: <Terminal size={20} /> },
@@ -18,15 +25,15 @@ const Profile = () => {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.profileInfo}>
-          <div className={styles.avatar}>{user?.username ? user.username[0].toUpperCase() : ""}</div>
+          <div className={styles.avatar}>{user?.data?.username ? user?.data?.username[0].toUpperCase() : ""}</div>
           <div className={styles.userDetails}>
-            <h1 className={styles.userName}>{user?.fullName || "Loading..."}</h1>
-            <p className={styles.username}>@{user?.username || ""}</p>
+            <h1 className={styles.userName}>{user?.data?.fullName || "Loading..."}</h1>
+            <p className={styles.username}>@{user?.data?.username || ""}</p>
             <div className={styles.stats}>
               <span>0 Following</span>
               <span>0 Followers</span>
-              <span className={styles.joinedDate}>Joined {user?.created_at
-                ? new Date(user.created_at).toLocaleDateString("en-US", {
+              <span className={styles.joinedDate}>Joined {user?.data?.created_at
+                ? new Date(user?.data?.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",

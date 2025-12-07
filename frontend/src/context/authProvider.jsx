@@ -1,70 +1,61 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { useProfile } from "../hooks/useProfile";
-import { SessionOut } from "../services/signOut";
+import { SessionOut as signOutService } from "../services/signOut";
+import { getProfile } from "../services/getProfile";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const { profile, loading, refreshProfile } = useProfile();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // start as true
+
   
 
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    localStorage.getItem("isAuthenticated") === "true"
-  );;
-
-  const login = async (email, password) => {
+  // Restore session on app load
+  const restoreSession = async () => {
+    setLoading(true);
     try {
-      const data = await loginApi(email, password); // Axios call with { withCredentials: true }
-      if (data?.success) {
-        localStorage.setItem("isAuthenticated", "true");
-        setIsAuthenticated(true);
-        // Optional: fetch profile info after login
-        await fetchProfile();
-      }
-      return data;
-    } catch (err) {
+      const profileData = await getProfile(); // returns null if 401
+      setIsAuthenticated(!!profileData);
+      // console.log("Restored profile data:", !!profileData);
+      // console.log("labas User is authenticated", !!profileData, isAuthenticated);
+      // if (!!profileData) {
+      //   setIsAuthenticated(!!profileData);
+      //   console.log("User is authenticated", !!profileData, isAuthenticated);
+      // } else {
+      //   setIsAuthenticated(false);
+      // }
+    } catch {
       setIsAuthenticated(false);
-      localStorage.setItem("isAuthenticated", "false");
-      throw err;
     } finally {
+      setLoading(false);
     }
   };
 
-  // Sync internal state whenever profile changes
   useEffect(() => {
-    console.log("profile:", profile);
-    console.log("loading:", loading);
-    console.log("isAuthenticated:", isAuthenticated);
-    if (!loading) {
-      if (profile) {
-        setUser(profile.data);
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-    }
-  }, [profile, loading]);
+    // if (isAuthenticated === true)
+      restoreSession(); // run once on mount
+
+  }, []);
 
   const signOut = async () => {
+    setLoading(true);
     try {
-      await SessionOut();           // <-- calls your backend properly
-      setUser(null);                   // update auth state instantly
-      setIsAuthenticated(false);           // fetch fresh auth state from server
-    } catch (error) {
-      console.error("Logout failed:", error);
+      await signOutService();
+      setIsAuthenticated(false);
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
         isAuthenticated,
         loading,
         signOut,
-        refreshProfile,
+        refreshProfile: restoreSession
       }}
     >
       {children}

@@ -14,10 +14,7 @@ const login = async (email, password) => {
         withCredentials: true 
       }
     );
-    if (response.data.success === true) {
-      return response.data;
-    }
-    console.log("Sign-in response:", response.data);
+    return response.data;
   
   } catch (error) {
     console.error("Error message:", error.message);

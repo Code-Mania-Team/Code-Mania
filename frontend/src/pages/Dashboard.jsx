@@ -5,7 +5,7 @@ import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import pythonGif from '../assets/python.gif';
 import styles from '../styles/Dashboard.module.css';
-// import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/authProvider';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ const Dashboard = () => {
     rank: 1,
     badges: 1,
   });
+  const { isAuthenticated, signOut } = useAuth();  
 
   const [currentCourse] = useState({
     name: 'Python',
@@ -66,6 +67,7 @@ const Dashboard = () => {
   };
 
   const handleSignOut = () => {
+    signOut();
     localStorage.clear();
     localStorage.removeItem('username');
     navigate('/');

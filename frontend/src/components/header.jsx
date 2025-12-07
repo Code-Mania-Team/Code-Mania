@@ -25,6 +25,7 @@ const Header = ({onOpenModal}) => {
 
   const handleSignOut = async (e) => {
     e.stopPropagation();
+    localStorage.clear();
     await signOut();
     navigate('/');
   };
@@ -51,7 +52,7 @@ const Header = ({onOpenModal}) => {
         <NavLink to="/community" className="nav-link">COMMUNITY</NavLink>
         <NavLink to="/leaderboard" className="nav-link">LEADERBOARD</NavLink>
 
-        {isAuthenticated ? (
+        {isAuthenticated === true? (
           <div className="profile-icon-container" onClick={handleProfileClick}>
             <div className="profile-icon">
               <span role="img" aria-label="Profile">👤</span>
