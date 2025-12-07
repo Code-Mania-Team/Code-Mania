@@ -55,18 +55,13 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
           </div>
         </div>
 
-        <NavLink to="/community" className="nav-link" onClick={() => setIsMenuOpen(false)}>COMMUNITY</NavLink>
+        <NavLink to="/freedomwall" className="nav-link" onClick={() => setIsMenuOpen(false)}>FREEDOM WALL</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>LEADERBOARD</NavLink>
 
         {isAuthenticated ? (
           <div className="profile-icon-container" onClick={handleProfileClick}>
             <div className="profile-icon">
               <span role="img" aria-label="Profile">👤</span>
-            </div>
-            <div className="profile-dropdown">
-              <button className="dropdown-item" onClick={handleSignOut}>
-                Sign Out
-              </button>
             </div>
           </div>
         ) : (

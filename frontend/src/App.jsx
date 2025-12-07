@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link 
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
-import Community from "./pages/Community";
+import FreedomWall from "./pages/FreedomWall";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -171,7 +171,7 @@ function App() {
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
-          <Route path="/community" element={<Community />} />
+          <Route path="/freedomwall" element={<FreedomWall />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
