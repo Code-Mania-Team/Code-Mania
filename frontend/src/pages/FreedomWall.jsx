@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Search, Send } from "lucide-react";
-import "../styles/Community.css";
+import "../styles/FreedomWall.css";
 
-const Community = () => {
+const FreedomWall = () => {
   const [comments, setComments] = useState([
     { 
       id: 1, 
@@ -58,7 +58,7 @@ const Community = () => {
   );
 
   return (
-    <div className="community-page">
+    <div className="freedomwall-page">
       {/* Search Bar */}
       <div className="search-container">
         <Search className="search-icon" />
@@ -80,7 +80,7 @@ const Community = () => {
           />
           <div className="comment-input">
             <textarea
-              placeholder="Share your thoughts with the community..."
+              placeholder="Share your thoughts on the FreedomWall..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -125,4 +125,4 @@ const Community = () => {
   );
 };
 
-export default Community;
+export default FreedomWall;

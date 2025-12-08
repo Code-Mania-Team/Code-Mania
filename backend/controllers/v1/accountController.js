@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../../models/user.js";
+import { generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 
 class AccountController {
     constructor() {
@@ -68,6 +69,7 @@ class AccountController {
 
             const profile = await this.user.getProfile(authUser.user_id);
 
+
             // Issue token immediately, even if username is missing
             const tokenPayload = { user_id: authUser.user_id };
             if (profile?.username) tokenPayload.username = profile.username;
@@ -129,23 +131,26 @@ class AccountController {
                 });
             }
 
-            const token = jwt.sign(
-                { user_id, username },
-                process.env.API_SECRET_KEY,
-                { expiresIn: "1d" }
-            );
+            const accessToken = generateAccessToken({ id: user_id, username });
+            const refreshToken = generateRefreshToken({ id: user_id, username });
+            // const token = jwt.sign(
+            //     { user_id, username },
+            //     process.env.API_SECRET_KEY,
+            //     { expiresIn: "1d" }
+            // );
 
-            res.cookie('token', token, {
+            res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
                 maxAge: 24 * 60 * 60 * 1000, // 1 day
+                path: '/v1/token/refresh' // restrict to refresh endpoint
             });
 
             return res.status(200).json({
                 success: true,
                 message: "Username set successfully",
-                token
+                accessToken,
             });
         } catch (err) {
             console.error("setUsername error:", err);
@@ -237,11 +242,11 @@ class AccountController {
 
     // UPDATE PROFILE
     async updateProfile(req, res) {
-        const { username, bio } = req.body || {};
+        const { username, full_name } = req.body || {};
         const userId = res.locals.user_id;
 
         try {
-            const updated = await this.user.updateProfile(userId, { username, bio });
+            const updated = await this.user.updateProfile(userId, { username, full_name });
             if (!updated) {
                 return res.status(400).json({
                     success: false,
