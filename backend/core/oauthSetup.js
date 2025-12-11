@@ -9,6 +9,5 @@ passport.use(new GoogleStrategy({
     callbackURL: '/v1/login/google/redirect',
     scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
-    passport.session()
     done(null, profile)
 }));

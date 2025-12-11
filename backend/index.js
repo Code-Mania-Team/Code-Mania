@@ -1,6 +1,7 @@
 // server.js (cleaned & fixed)
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import cookieSession from 'cookie-session';
 import cors from 'cors';
 import morgan from 'morgan';
 import 'dotenv/config.js';
@@ -11,11 +12,17 @@ import './core/oauthSetup.js';
 const app = express();
 const port = process.env.PORT || 3000;
 
+// app.set('trust-proxy', 1)
 /* ---------------------------------
    Middleware
 ----------------------------------- */
 app.use(morgan('combined'));
 app.use(cookieParser());
+app.use(cookieSession({
+  name: 'codemania',
+  keys: ['codemaniaAPI'],
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
 app.use(
   cors({
@@ -37,7 +44,10 @@ app.use('/v1', v1);
    Health Check
 ----------------------------------- */
 app.get('/', (req, res) => {
-  res.json({ message: 'Backend is running successfully!' });
+  // res.cookie('cookie', 'codemaniaBackend', {maxAge: 24 * 60 * 60 * 1000});
+  req.session.views = (req.session.views || 0) + 1
+  console.log(req.cookies );
+  res.json({message: 'Backend is running successfully!' });
 });
 
 /* ---------------------------------
