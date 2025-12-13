@@ -5,12 +5,14 @@ import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import pythonGif from '../assets/python.gif';
 import styles from '../styles/Dashboard.module.css';
-import { useAuth } from '../context/authProvider';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(9);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
   const [userStats, setUserStats] = useState({
     name: 'User',
     level: 1,
@@ -18,7 +20,6 @@ const Dashboard = () => {
     rank: 1,
     badges: 1,
   });
-  const { isAuthenticated, signOut } = useAuth();  
 
   const [currentCourse] = useState({
     name: 'Python',
@@ -36,9 +37,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Check if user is new (hasn't seen onboarding)
-    const needsUsername = localStorage.getItem('needsUsername');
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
     
-    if (needsUsername === 'true') {
+    if (!hasSeenOnboarding) {
       setShowOnboarding(true);
     }
 
@@ -67,9 +68,9 @@ const Dashboard = () => {
   };
 
   const handleSignOut = () => {
-    signOut();
-    localStorage.clear();
+    localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
+    setIsAuthenticated(false);
     navigate('/');
   };
 
@@ -77,7 +78,9 @@ const Dashboard = () => {
     <div className={styles.container}>
       {showOnboarding && <WelcomeOnboarding onComplete={handleOnboardingComplete} />}
       <Header 
+        isAuthenticated={isAuthenticated}
         onOpenModal={() => {}}
+        onSignOut={handleSignOut}
       />
       {/* Animated Background Circles */}
       <div className={styles.circles}>

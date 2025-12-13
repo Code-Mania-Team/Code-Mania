@@ -1,5 +1,5 @@
-/* Community Page Styles */
-.community-page {
+/* FreedomWall Page Styles */
+.freedomwall-page {
   width: 100%;
   min-height: 100vh;
   background: #0f172a;
@@ -11,7 +11,7 @@
   padding: 2rem 1rem;
 }
 
-.community-page > * {
+.freedomwall-page > * {
   width: 100%;
   max-width: 768px;
 }

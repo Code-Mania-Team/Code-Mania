@@ -416,11 +416,17 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .python-content {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
   }
 
   .sidebar {
-    position: static;
+    order: 1;
+    width: 100%;
+  }
+
+  .modules-section {
+    order: 2;
   }
 }
 

@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link 
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
-import Community from "./pages/Community";
+import FreedomWall from "./pages/FreedomWall";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -15,8 +15,6 @@ import JavaScriptExercise from "./pages/JavaScriptExercise";
 import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
-import { AuthProvider, useAuth } from './context/authProvider.jsx'
-
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -123,19 +121,17 @@ const Home = () => (
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [isAuthenticated, setIsAuthenticated] = useState(() => {
-  //   // Initialize from localStorage if available
-  //   return localStorage.getItem('isAuthenticated') === 'true';
-  // });
-  const { isAuthenticated, signOut } = useAuth();
-  console.log("App isAuthenticated:", isAuthenticated);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Initialize from localStorage if available
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
   const location = useLocation();
   const navigate = useNavigate();
 
-  // // Update localStorage when isAuthenticated changes
-  // useEffect(() => {
-  //   localStorage.setItem('isAuthenticated', isAuthenticated);
-  // }, [isAuthenticated]);
+  // Update localStorage when isAuthenticated changes
+  useEffect(() => {
+    localStorage.setItem('isAuthenticated', isAuthenticated);
+  }, [isAuthenticated]);
 
   // hide header/footer on exercise routes and dashboard
   const hideGlobalHeaderFooter = 
@@ -150,7 +146,7 @@ function App() {
         <Header 
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
-          onSignOut={() => signOut}
+          onSignOut={() => setIsAuthenticated(false)}
         />
       )}
       <ScrollToTop />
@@ -166,7 +162,7 @@ function App() {
               <PythonExercise 
                 isAuthenticated={isAuthenticated}
                 onOpenModal={() => setIsModalOpen(true)}
-                onSignOut={() => signOut}
+                onSignOut={() => setIsAuthenticated(false)}
               />
             } 
           />
@@ -175,7 +171,7 @@ function App() {
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
-          <Route path="/community" element={<Community />} />
+          <Route path="/freedomwall" element={<FreedomWall />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -188,7 +184,7 @@ function App() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         onSignInSuccess={() => {
-          
+          setIsAuthenticated(true);
           setIsModalOpen(false);
           navigate('/dashboard');
         }}
@@ -201,9 +197,7 @@ function App() {
 export default function AppWithRouter() {
   return (
     <Router>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <App />
     </Router>
   );
 }
