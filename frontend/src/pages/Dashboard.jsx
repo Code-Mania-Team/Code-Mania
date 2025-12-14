@@ -38,9 +38,15 @@ const Dashboard = () => {
   useEffect(() => {
     // Check if user is new (hasn't seen onboarding)
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    console.log('hasSeenOnboarding:', hasSeenOnboarding);
     
-    if (!hasSeenOnboarding) {
+    // Show onboarding if the flag is not set to 'true'
+    if (hasSeenOnboarding !== 'true') {
+      console.log('Showing onboarding');
       setShowOnboarding(true);
+    } else {
+      console.log('Skipping onboarding');
+      setShowOnboarding(false);
     }
 
     // Load username from localStorage
@@ -54,8 +60,9 @@ const Dashboard = () => {
   }, []);
 
   const handleOnboardingComplete = () => {
+    console.log('Onboarding completed');
     setShowOnboarding(false);
-    localStorage.setItem('hasSeenOnboarding', 'false');
+    localStorage.setItem('hasSeenOnboarding', 'true');
     
     // Update username after onboarding
     const savedUsername = localStorage.getItem('username');

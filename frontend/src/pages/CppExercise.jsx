@@ -9,7 +9,7 @@ import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
 import map1 from "../assets/aseprites/map1.png";
-import exercises from "../data/cppExercises.json";
+import exercises from "../utilities/data/cppExercises.json";
 
 const CppExercise = () => {
 const { exerciseId } = useParams();

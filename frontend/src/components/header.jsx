@@ -14,12 +14,6 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
     setIsMenuOpen(false);
   };
 
-  const handleSignOut = (e) => {
-    e.stopPropagation();
-    onSignOut();
-    setIsMenuOpen(false);
-  };
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
