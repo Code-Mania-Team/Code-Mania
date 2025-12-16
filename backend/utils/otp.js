@@ -10,7 +10,7 @@ export function generateOtp(length = 6) {
 }
 
 // Send OTP email with dynamic message
-export async function sendOtpEmail(toEmail, otp, isNewUser = true) {
+export async function sendOtpEmail(toEmail, otp) {
   try {
     const transporter = nodemailer.createTransport({
       host: 'smtp-relay.brevo.com',
@@ -22,15 +22,11 @@ export async function sendOtpEmail(toEmail, otp, isNewUser = true) {
       }
     });
 
-    const subject = isNewUser
-      ? "Confirm Your Sign Up"
-      : "Your Login OTP Code";
-    const text = isNewUser
-      ? `Welcome! Your OTP to confirm your sign up is: ${otp}. It expires in 5 minutes.`
-      : `Your OTP to login is: ${otp}. It expires in 5 minutes.`;
-    const html = isNewUser
-      ? `<p>Welcome! Your OTP to confirm your sign up is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`
-      : `<p>Your OTP to login is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`;
+    const subject = "Confirm Your Sign Up";
+      
+    const text = `Welcome! Your OTP to confirm your sign up is: ${otp}. It expires in 5 minutes.`;
+     
+    const html = `<p>Welcome! Your OTP to confirm your sign up is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`;
 
     const info = await transporter.sendMail({
       from: `"CodeMania" <maniacode08@gmail.com>`,
