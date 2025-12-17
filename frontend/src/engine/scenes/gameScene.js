@@ -1,6 +1,9 @@
+// GameScene.js
 import Phaser from "phaser";
 import MapLoader from "../MapLoader";
 import { MAPS } from "../config/mapConfig";
+import CutsceneManager from "./cutSceneManager";
+import { CUTSCENES } from "../config/cutSceneConfig";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -10,6 +13,7 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.currentMapId = data.mapId || "map1";
     this.mapData = MAPS[this.currentMapId];
+    this.playerCanMove = true; // Flag to block movement during cutscene
   }
 
   preload() {
@@ -23,28 +27,29 @@ export default class GameScene extends Phaser.Scene {
       this.mapData.tilesetImage
     );
 
-    // Load directional player spritesheets
-    this.load.spritesheet("player-down", "/assets/walkdown-Sheet.png", { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet("player-up", "/assets/walkup-Sheet.png", { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet("player-left", "/assets/walkleft-Sheet.png", { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet("player-right", "/assets/walkright-Sheet.png", { frameWidth: 32, frameHeight: 32 });
+    // Load player spritesheets
+    ["down", "up", "left", "right"].forEach(dir =>
+      this.load.spritesheet(`player-${dir}`, `/assets/walk${dir}-Sheet.png`, {
+        frameWidth: 32,
+        frameHeight: 32,
+      })
+    );
   }
 
   create() {
-    // Create map
+    // Map
     this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesetName, this.mapData.tilesetKey);
 
     // Pixel-perfect
-    this.textures.each((t) => t.setFilter(Phaser.Textures.FilterMode.NEAREST));
+    this.textures.each(t => t.setFilter(Phaser.Textures.FilterMode.NEAREST));
     this.cameras.main.roundPixels = true;
 
     // Collision layer
     const foreground = this.mapLoader.layers["Foreground"];
     if (foreground) foreground.setCollisionByProperty({ collision: true });
 
-    // Animations
-    const directions = ["down", "up", "left", "right"];
-    directions.forEach((dir) => {
+    // Player animations
+    ["down", "up", "left", "right"].forEach(dir => {
       this.anims.create({
         key: `walk-${dir}`,
         frames: this.anims.generateFrameNumbers(`player-${dir}`, { start: 0, end: 3 }),
@@ -59,70 +64,68 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // Player spawn
-    this.player = this.physics.add.sprite(this.mapData.start.x, this.mapData.start.y, "player-down", 0);
+    this.player = this.physics.add.sprite(this.mapData.start.x, this.mapData.start.y, "player-down");
     this.player.setCollideWorldBounds(true);
-
-    // Shrink player hitbox for tighter collisions
     this.player.body.setSize(this.player.width * 0.6, this.player.height * 0.6, true);
-
-    // Collider
     this.physics.add.collider(this.player, foreground);
 
-    // Camera follow
+    // Camera
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
     // Track last direction
     this.lastDirection = "down";
 
-    // Initial scale
+    // Cutscene manager
+    this.cutscene = new CutsceneManager(this);
+
+    // Scale
     this.updateScale(this.scale.width, this.scale.height);
 
     // Map switching
     this.events.on("exerciseComplete", () => {
-      if (this.mapData.nextMap) {
-        this.scene.start("GameScene", { mapId: this.mapData.nextMap });
-      }
+      if (this.mapData.nextMap) this.scene.start("GameScene", { mapId: this.mapData.nextMap });
     });
+
+    // Start intro cutscene if exists
+    if (CUTSCENES[`${this.currentMapId}_intro`]) {
+      this.runCutscene(CUTSCENES[`${this.currentMapId}_intro`](this));
+    }
+  }
+
+  async runCutscene(actions) {
+    this.playerCanMove = false; // Disable player movement
+    for (const action of actions) {
+      await action();
+    }
+    this.playerCanMove = true; // Re-enable movement after cutscene
   }
 
   updateScale(w, h) {
     if (!this.mapLoader.map || !this.mapLoader.layers) return;
 
     const layers = Object.values(this.mapLoader.layers);
-    const mapWidth = this.mapLoader.map.widthInPixels;
-    const mapHeight = this.mapLoader.map.heightInPixels;
-    const scale = Math.max(w / mapWidth, h / mapHeight);
+    const scale = Math.max(w / this.mapLoader.map.widthInPixels, h / this.mapLoader.map.heightInPixels);
 
-    // Scale visual layers
-    layers.forEach((layer) => layer.setScale(scale));
+    layers.forEach(layer => layer.setScale(scale));
 
-    // Scale player
     if (this.player) {
       this.player.setScale(scale * 0.8);
-
-      // Adjust hitbox to match sprite
-      this.player.body.setSize(
-        this.player.width * 0.6,
-        this.player.height * 0.6,
-        true
-      );
+      this.player.body.setSize(this.player.width * 0.6, this.player.height * 0.6, true);
     }
 
-    // Update physics bounds
-    this.physics.world.setBounds(0, 0, mapWidth * scale, mapHeight * scale);
-    this.cameras.main.setBounds(0, 0, mapWidth * scale, mapHeight * scale);
+    this.physics.world.setBounds(0, 0, this.mapLoader.map.widthInPixels * scale, this.mapLoader.map.heightInPixels * scale);
+    this.cameras.main.setBounds(0, 0, this.mapLoader.map.widthInPixels * scale, this.mapLoader.map.heightInPixels * scale);
   }
 
   update() {
-    if (!this.player) return;
+    if (!this.player || !this.playerCanMove) return;
 
-    const speed = 100;
     const cursors = this.input.keyboard.createCursorKeys();
+    const speed = 100;
 
     this.player.setVelocity(0);
     let moving = false;
 
-    // Horizontal movement
     if (cursors.left.isDown) {
       this.player.setVelocityX(-speed);
       this.lastDirection = "left";
@@ -133,7 +136,6 @@ export default class GameScene extends Phaser.Scene {
       moving = true;
     }
 
-    // Vertical movement
     if (cursors.up.isDown) {
       this.player.setVelocityY(-speed);
       this.lastDirection = "up";
@@ -144,11 +146,6 @@ export default class GameScene extends Phaser.Scene {
       moving = true;
     }
 
-    // Play proper animation
-    if (moving) {
-      this.player.anims.play(`walk-${this.lastDirection}`, true);
-    } else {
-      this.player.anims.play(`idle-${this.lastDirection}`, true);
-    }
+    this.player.anims.play(moving ? `walk-${this.lastDirection}` : `idle-${this.lastDirection}`, true);
   }
 }
