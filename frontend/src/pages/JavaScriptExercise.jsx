@@ -8,9 +8,7 @@ import ProgressBar from "../components/ProgressBar";
 import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 import map1 from "../assets/aseprites/map1.png";
-import exercises from "../data/javascriptExercises.json";
-import { useProfile } from "../hooks/useProfile";
-
+import exercises from "../utilities/data/javascriptExercises.json";
 
 const JavaScriptExercise = () => {
   const { exerciseId } = useParams();

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from '../styles/Profile.module.css';
 import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2 } from 'lucide-react';
 
-const Profile = () => {
+const Profile = ({ onSignOut }) => {
   const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -23,14 +23,12 @@ const Profile = () => {
   };
 
   const handleConfirmSignOut = () => {
-    // Add sign out logic here
-    console.log('User signed out');
+    if (onSignOut) {
+      onSignOut();
+    }
     setIsSignOutConfirmOpen(false);
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userData');
-    window.location.reload();
-    localStorage.clear();
-    window.location.href = '/'; // Redirect to login
+    // Optionally redirect to home page after sign out
+    window.location.href = '/';
   };
 
   const handleCancelSignOut = () => {

@@ -15,12 +15,13 @@ export default class MapLoader {
     this.map = this.scene.make.tilemap({ key: mapKey });
     this.tileset = this.map.addTilesetImage(tilesetNameInTiled, tilesetKey);
 
-    // Create all layers
-    const layerNames = this.map.layers.map((l) => l.name);
-    layerNames.forEach((name) => {
-      const layer = this.map.createLayer(name, this.tileset, 0, 0);
-      this.layers[name] = layer;
-      layer.setCollisionByProperty({ collides: true });
+    // Create layers dynamically
+    this.map.layers.forEach(layerData => {
+      const layer = this.map.createLayer(layerData.name, this.tileset, 0, 0);
+      this.layers[layerData.name] = layer;
+
+      // If layer has tiles with "collision" property, set collisions
+      layer.setCollisionByProperty({ collision: true });
     });
   }
 }

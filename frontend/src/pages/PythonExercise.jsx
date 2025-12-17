@@ -5,8 +5,7 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 import styles from "../styles/PythonExercise.module.css";
-import { initPhaserGame } from "../engine/main.js";
-import { useProfile } from "../hooks/useProfile";
+import { initPhaserGame } from "../utilities/engine/main.js";
 
 const PythonExercise = ({ onOpenModal, onSignOut }) => {
   const [code, setCode] = useState(`# Write code below ❤️

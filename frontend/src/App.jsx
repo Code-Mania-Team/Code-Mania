@@ -173,7 +173,7 @@ function App() {
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
           <Route path="/freedomwall" element={<FreedomWall />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<Profile onSignOut={() => setIsAuthenticated(false)} />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </main>
