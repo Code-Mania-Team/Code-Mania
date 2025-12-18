@@ -13,31 +13,6 @@
   overflow: hidden;
 }
 
-.leaderboard-page::before,
-.leaderboard-page::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  z-index: 0;
-  opacity: 0.4;
-}
-
-.leaderboard-page::before {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
-  top: -150px;
-  right: -150px;
-}
-
-.leaderboard-page::after {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-  bottom: -100px;
-  left: -100px;
-}
 
 .leaderboard-page > * {
   position: relative;
@@ -58,9 +33,10 @@
 }
 
 .leaderboard-header h1 {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 700;
   margin: 0;
+  font-family: 'Jersey 25', sans-serif;
 }
 
 .trophy-container {
@@ -74,8 +50,8 @@
 }
 
 .trophy-icon {
-  width: 80%;
-  height: 80%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   z-index: 1;
 }
@@ -92,18 +68,20 @@
 }
 
 .leaderboard-container {
-  background: #0f0f0f;
-  border: 1px solid #2d2d2d;
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.5), rgba(30, 30, 30, 0.5));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   padding: 1.5rem;
   margin-top: 1rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .leaderboard-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid #2d2d2d;
+  border-bottom: 1px solid #ffffff;
   padding-bottom: 0.75rem;
 }
 

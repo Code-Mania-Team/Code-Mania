@@ -116,6 +116,13 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         if (!showOtpField) {
           // Step 1: validate password + confirm and request OTP
           if (password !== confirmPassword) {
+            setConfirmPasswordError('Passwords do not match');
+            setIsLoading(false);
+            return;
+          }
+          const passwordError = validatePassword(password);
+          if (passwordError) {
+            setPasswordError(passwordError);
             setIsLoading(false);
             return;
           }
@@ -125,14 +132,14 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         } else {
           // Step 2: verify OTP and finish sign up
           // const user = await api.verifySignupOtp({ email, otp });
-          // onSignInSuccess(user);
-          onSignInSuccess({ email }); // Temporary for testing
+          onSignInSuccess(true);
+          return; // Exit early after successful signup
         }
       } else {
         // LOGIN flow: simple email + password (no OTP)
         // const user = await api.login({ email, password });
-        // onSignInSuccess(user);
-        onSignInSuccess({ email }); // Temporary for testing
+        onSignInSuccess(false);
+        return; // Exit early after successful login
       }
     } catch (error) {
       console.error('Authentication error:', error);

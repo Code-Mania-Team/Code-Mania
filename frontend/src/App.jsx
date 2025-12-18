@@ -15,6 +15,7 @@ import JavaScriptExercise from "./pages/JavaScriptExercise";
 import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
+import WelcomeOnboarding from "./components/WelcomeOnboarding";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -125,6 +126,7 @@ function App() {
     // Initialize from localStorage if available
     return localStorage.getItem('isAuthenticated') === 'true';
   });
+  const [isNewUser, setIsNewUser] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -183,12 +185,34 @@ function App() {
       <SignInModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        onSignInSuccess={() => {
+        onSignInSuccess={(isNew) => {
           setIsAuthenticated(true);
           setIsModalOpen(false);
-          navigate('/dashboard');
+          if (isNew) {
+            setIsNewUser(true);
+            navigate('/welcome');
+          } else {
+            navigate('/dashboard');
+          }
         }}
       />
+      
+      {isAuthenticated && isNewUser && (
+        <Routes>
+          <Route 
+            path="/welcome" 
+            element={
+              <WelcomeOnboarding 
+                onComplete={() => {
+                  setIsNewUser(false);
+                  localStorage.setItem('hasCompletedOnboarding', 'true');
+                  navigate('/dashboard');
+                }} 
+              />
+            } 
+          />
+        </Routes>
+      )}
     </div>
   );
 }

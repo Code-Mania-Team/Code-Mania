@@ -1,8 +1,11 @@
 import React from 'react';
 import trophyIcon from '../assets/trophy.png';
+import leaderboardBg from '../assets/leaderboard.gif';
 import '../styles/Leaderboard.css';
 
 const Leaderboard = () => {
+  const [activeTab, setActiveTab] = React.useState('all');
+  
   // Sample leaderboard data
   const leaderboardData = [
     { rank: 1, name: 'Vince De Castro', score: 9850, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=alex' },
@@ -13,7 +16,16 @@ const Leaderboard = () => {
   ];
 
   return (
-    <div className="leaderboard-page">
+    <div className="leaderboard-page" style={{
+      background: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${leaderboardBg})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+      minHeight: '100vh',
+      padding: '20px 0',
+      color: '#fff'
+    }}>
       <div className="leaderboard-header">
         <div className="trophy-container">
           <img src={trophyIcon} alt="Trophy" className="trophy-icon" />
@@ -23,7 +35,30 @@ const Leaderboard = () => {
 
       <div className="leaderboard-container">
         <div className="leaderboard-tabs">
-          <button className="tab active">All Time</button>
+          <button 
+            className={`tab ${activeTab === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            All Time
+          </button>
+          <button 
+            className={`tab ${activeTab === 'python' ? 'active' : ''}`}
+            onClick={() => setActiveTab('python')}
+          >
+            Python
+          </button>
+          <button 
+            className={`tab ${activeTab === 'cpp' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cpp')}
+          >
+            C++
+          </button>
+          <button 
+            className={`tab ${activeTab === 'javascript' ? 'active' : ''}`}
+            onClick={() => setActiveTab('javascript')}
+          >
+            JavaScript
+          </button>
         </div>
 
         <div className="leaderboard-list">

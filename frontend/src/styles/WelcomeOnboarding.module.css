@@ -44,8 +44,7 @@
   margin-bottom: 1rem;
 }
 
-.backButton,
-.skipButton {
+.backButton {
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.6);
@@ -56,8 +55,7 @@
   min-width: 60px;
 }
 
-.backButton:hover,
-.skipButton:hover {
+.backButton:hover {
   color: rgba(255, 255, 255, 0.9);
 }
 
