@@ -1,6 +1,8 @@
+import FreedomWall from "../../models/freedomWall.js";
 class HomeController {
   constructor() {
     this.__controllerName = 'Home';
+    this.freedomWall = new FreedomWall();
   }
 
   /**
@@ -17,6 +19,23 @@ class HomeController {
     });
     res.end();
   }
+  async getAllPost(req, res){
+        try {
+
+            const result = await this.freedomWall.getPost();
+
+            res.send({
+                success: true,
+                message: "Freedom Wall posts fetched successfully",
+                result,
+            });
+        } catch (err){
+            res.send({
+                success: true,
+                message: err.toString()
+            });
+        }
+    }
 }
 
 export default HomeController;

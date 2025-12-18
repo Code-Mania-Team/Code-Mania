@@ -21,6 +21,7 @@ export default function authentication(req, res, next) {
         // Attach user info to res.locals for downstream handlers
         res.locals.username = decoded?.username || null;
         res.locals.user_id = decoded?.user_id;
+        res.locals.authenticated = true;
         next();
     });
 }

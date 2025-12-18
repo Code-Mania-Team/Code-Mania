@@ -1,30 +1,26 @@
 import { Router } from 'express';
 import accountRouter from './accountRoutes.js';
 import passport from 'passport';
+import freedomWallRouter from './freedomWallRoutes.js';
+import homeRouter from './homeRoutes.js';
 import refreshRouter from './refreshRoute.js';
-
-//import homeRouter from './homeRoutes.js';
 
 const v1 = new Router();
 
 v1.use('/account', accountRouter);
-v1.use('/token', refreshRouter);
+v1.use('/', homeRouter);
+v1.use('/freedom-wall', freedomWallRouter);
+v1.use('/refresh', refreshRouter);
 
-v1.use(passport.initialize())
-v1.use(passport.session())
 v1.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));
 
-v1.get('/login/google/redirect', passport.authenticate('google', { session: false }), (req, res) => {
+v1.get('/login/google/redirect', passport.authenticate('google'), (req, res) => {
     res.send('Redirected.')
-    console.log(req.user)
+    console.log(req.cookies)
+    console.log(req.user.id)
 });
-
-v1.get('/read-cookie', (req, res) => {
-    console.log(req);
-    res.json({cookie: req.cookies})
-})
 
 
 export default v1;

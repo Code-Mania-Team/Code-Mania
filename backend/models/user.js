@@ -38,7 +38,7 @@ class User {
 
         if (error) throw error;
 
-        await sendOtpEmail(email, otp, true);
+        await sendOtpEmail(email, otp);
 
         return data;
     }
