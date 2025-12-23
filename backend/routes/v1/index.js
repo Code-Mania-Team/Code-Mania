@@ -14,10 +14,11 @@ v1.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));
 
-v1.get('/login/google/redirect', passport.authenticate('google'), (req, res) => {
-    res.send('Redirected.')
-    console.log(req.cookies)
-    console.log(req.user.id)
+v1.get('/login/google/redirect', passport.authenticate('google', {session: false}), (req, res) => {
+    res.send('/v1/redirected.')
+    req.sessionId = req.user.id
+    console.log(req.user.emails[0].value)
+    console.log(req.sessionId)
 });
 
 
