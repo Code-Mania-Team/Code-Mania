@@ -5,9 +5,10 @@ import crown from "../assets/crown.png";
 import profileIcon from "../assets/profile-icon.png";
 import burgerIcon from "../assets/burger.png";
 
-const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+const Header = ({ isAuthenticated, onOpenModal }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  isAuthenticated = localStorage.getItem('isAuthenticated') === 'false';
 
   const handleProfileClick = () => {
     navigate('/profile');
