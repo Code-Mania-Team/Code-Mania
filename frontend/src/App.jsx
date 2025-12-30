@@ -120,8 +120,26 @@ const Home = () => (
     </section>
   </>
 );
-
+import axios from 'axios';
 function App() {
+  const setCookie = async() => {
+    try {
+      await axios.get('http://localhost:3000/set-cookies', {
+        withCredentials: true
+      })
+      console.log('Cookies setup successfully.')
+    } catch (error) { console.log('Error setting up cookies. ')}
+  }
+  // setCookie();
+  const getCookies = async () => {
+    try {
+      await axios.get('http://localhost:3000/get-cookies', {
+        withCredentials: true
+      })
+      console.log('Cookies sent to server.')
+    } catch (error) { console.log('Error in sending cookies to server.') }
+  }
+  // getCookies();
   const [isModalOpen, setIsModalOpen] = useState(false);
   // const [isAuthenticated, setIsAuthenticated] = useState(() => {
   //   // Initialize from localStorage if available

@@ -15,11 +15,11 @@ v1.get('/login/google', passport.authenticate('google', {
 }));
 
 v1.get('/login/google/redirect', passport.authenticate('google', {session: false}), (req, res) => {
-    res.send('/v1/redirected.')
-    req.sessionId = req.user.id
-    console.log(req.user.emails[0].value)
-    console.log(req.sessionId)
+    const image = req.user.photos[0].value
+    console.log(req.user);
+    res.send(`<img src=${image}></img>`)
 });
+
 
 
 export default v1;

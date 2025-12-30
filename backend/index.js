@@ -43,6 +43,21 @@ app.get('/', (req, res) => {
 });
 
 /* ---------------------------------
+   Set cookies to client side
+----------------------------------- */
+app.get('/set-cookies', (req, res) => {
+  res.cookie('Set-cookie', 'SweetCookies', {
+    httpOnly: true
+  })
+  res.send('Successfully set cookies')
+})
+
+app.get('/get-cookies', (req, res) => {
+  console.log(req);
+  res.send(req.cookies);
+})
+
+/* ---------------------------------
    Start Server
 ----------------------------------- */
 app.listen(port, () => {
