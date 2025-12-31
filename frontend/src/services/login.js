@@ -1,23 +1,22 @@
-import axios from 'axios';
+import { axiosPublic } from "../api/axios"; // adjust the path if needed
 
 const login = async (email, password) => {
-
   try {
-    const response = await axios.post(
-      "http://localhost:3000/v1/account/login",
+    const response = await axiosPublic.post(
+      "/v1/account/login",
       { email, password },
       {
         headers: {
-          apikey:  import.meta.env.VITE_API_KEY,
+          apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
         },
-        withCredentials: true 
       }
     );
+
+    // returns the accessToken and user info from backend
     return response.data;
-  
   } catch (error) {
-    console.error("Error message:", error.message);
+    console.error("Login error:", error.message);
     throw error;
   }
 };

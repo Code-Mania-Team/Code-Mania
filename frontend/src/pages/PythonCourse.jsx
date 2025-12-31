@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
-import { useProfile } from "../hooks/useProfile";
+// import { useProfile } from "../hooks/useProfile";
 
 const PythonCourse = () => {
   

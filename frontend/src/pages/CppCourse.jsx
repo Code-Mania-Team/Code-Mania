@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
-import { useProfile } from "../hooks/useProfile";
+// import { useProfile } from "../hooks/useProfile";
 
 const CppCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
