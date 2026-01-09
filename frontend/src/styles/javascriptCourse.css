@@ -53,6 +53,12 @@
   margin-bottom: 2rem;
 }
 
+.status-icon.completed {
+  width: 50px;
+  height: 50px;
+  /* remove margin/padding that affects container */
+}
+
 /* Main Content Layout */
 .javascript-content {
   display: grid;
@@ -75,6 +81,21 @@
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
+  color: #FFD700;
+  font-weight: bold;
+}
+
+/* Completed Module Icon - Checked State */
+.javascript-course-page .module-icon.completed {
+  background: rgba(255, 215, 0, 0.3);
+  border: 2px solid #FFD700;
+  position: relative;
+}
+
+.javascript-course-page .module-icon.completed::after {
+  content: '✓';
+  position: absolute;
+  font-size: 1.2rem;
   color: #FFD700;
   font-weight: bold;
 }

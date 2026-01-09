@@ -175,6 +175,13 @@
 }
 
 /* Responsive Design */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .leaderboard-container {
+    width: 500px;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 640px) {
   .leaderboard-page {
     padding: 1rem;

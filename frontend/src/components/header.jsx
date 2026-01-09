@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import crown from "../assets/crown.png";
-import profileIcon from "../assets/profile-icon.png";
+import profileIcon from "../assets/crown.png";
 import burgerIcon from "../assets/burger.png";
 
 const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {

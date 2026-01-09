@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
+import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/JavaScriptCourse.css";
 import SignInModal from "../components/SignInModal";
+import checkmarkIcon from "../assets/checkmark.png";
 
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const JavaScriptCourse = () => {
     exercisesCompleted: 0,
     totalExercises: 16,
     xpEarned: 0,
-    totalXp: 750
+    totalXp: 3600
   };
 
   const modules = [
@@ -75,6 +76,14 @@ const JavaScriptCourse = () => {
         { id: 3, name: "Event Listeners", status: "locked" },
         { id: 4, name: "Dynamic Styling", status: "locked" }
       ]
+    },
+    {
+      id: 5,
+      title: "Examination",
+      description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
+      exercises: [
+        { id: 1, name: "JavaScript Exam", status: "locked" }
+      ]
     }
   ];
 
@@ -83,7 +92,9 @@ const JavaScriptCourse = () => {
   };
 
   const getStatusIcon = (status) => {
-    if (status === "completed") return <CheckCircle className="status-icon completed" />;
+    if (status === "completed") {
+      return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
+    }
     if (status === "locked") return <Lock className="status-icon locked" />;
     return <Circle className="status-icon available" />;
   };
@@ -133,9 +144,12 @@ const JavaScriptCourse = () => {
                     {module.exercises.map((exercise) => (
                       <div key={exercise.id} className={`exercise-item ${exercise.status}`}>
                         <div className="exercise-info">
-                          <span className="exercise-number">Exercise {exercise.id}</span>
+                          {module.id !== 5 && (
+                            <span className="exercise-number">Exercise {exercise.id}</span>
+                          )}
                           <span className="exercise-name">{exercise.name}</span>
                         </div>
+
                         <div className="exercise-status">
                           {exercise.status === "available" ? (
                             <button 
@@ -145,9 +159,7 @@ const JavaScriptCourse = () => {
                               Start
                             </button>
                           ) : (
-                            <button className="locked-btn" disabled>
-                              {getStatusIcon(exercise.status)}
-                            </button>
+                            getStatusIcon(exercise.status)
                           )}
                         </div>
                       </div>

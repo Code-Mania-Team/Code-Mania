@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../styles/Profile.module.css';
-import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2 } from 'lucide-react';
+import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'lucide-react';
 
 const Profile = ({ onSignOut }) => {
   const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
@@ -71,77 +71,83 @@ const Profile = ({ onSignOut }) => {
   return (
     <div className={styles.mainWrapper}>
       <div className={styles.container}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.profileInfo}>
-          <div className={styles.avatar}>J</div>
-          <div className={styles.userDetails}>
-            <div className={styles.userNameContainer}>
+        {/* Profile Header */}
+        <header className={styles.header}>
+          <div className={styles.avatarContainer}>
+            <div className={styles.avatar}>J</div>
+          </div>
+          
+          <div className={styles.profileInfo}>
+            <div className={styles.userInfo}>
               <h1 className={styles.userName}>Jet Padilla</h1>
-              <button className={styles.editIconBtn} onClick={handleEditAccount} title="Edit Account">
-                <Edit2 size={20} />
-              </button>
-            </div>
-            <p className={styles.username}>@Jet.padilla</p>
-            <div className={styles.stats}>
-              <span className={styles.joinedDate}>Joined Oct 2023</span>
-            </div>
-          </div>
-        </div>
-        <div className={styles.rankSection}>
-          <div className={styles.rankItem}>
-            <div className={styles.rankNumber}>#0</div>
-            <div className={styles.rankLabel}>Rank</div>
-          </div>
-          <div className={styles.rankItem}>
-            <div className={styles.rankNumber}>0</div>
-            <div className={styles.rankLabel}>Badges</div>
-          </div>
-          <div className={styles.rankItem}>
-            <div className={styles.rankNumber}>0</div>
-            <div className={styles.rankLabel}>EXP</div>
-          </div>
-        </div>
-      </header>
-
-
-      {/* Tabs */}
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${activeTab === 'achievements' ? styles.active : ''}`}
-          onClick={() => setActiveTab('achievements')}
-        >
-          ACHIEVEMENTS
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'learningProgress' ? styles.active : ''}`}
-          onClick={() => setActiveTab('learningProgress')}
-        >
-          LEARNING PROGRESS
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className={styles.content}>
-        {activeTab === 'achievements' && (
-          <div className={styles.achievementsTable}>
-            <div className={styles.tableHeader}>
-              <span>Badges</span>
-              <span>Achievements</span>
-              <span>Received</span>
-            </div>
-            <div className={styles.tableRow}>
-              <div className={styles.badgeCell}>
-                <img src="/images/divine-warrior.png" alt="Divine Warrior" className={styles.badgeIcon} />
+              <p className={styles.username}>@jetpadilla0795372</p>
+              <div className={styles.joinDate}>
+                <Calendar size={16} />
+                <span>Joined Jan 2026</span>
               </div>
-              <div className={styles.achievementCell}>Divine Warrior</div>
-              <div className={styles.timeCell}>About 1 year</div>
+            </div>
+            
+            <button 
+              className={styles.editProfileBtn}
+              onClick={handleEditAccount}
+            >
+              <Edit2 size={14} />
+              Edit profile
+            </button>
+          </div>
+
+          <div className={styles.rankSection}>
+            <div className={styles.rankItem}>
+              <div className={styles.rankNumber}>#0</div>
+              <div className={styles.rankLabel}>Rank</div>
+            </div>
+            <div className={styles.rankItem}>
+              <div className={styles.rankNumber}>0</div>
+              <div className={styles.rankLabel}>Badges</div>
+            </div>
+            <div className={styles.rankItem}>
+              <div className={styles.rankNumber}>0</div>
+              <div className={styles.rankLabel}>EXP</div>
             </div>
           </div>
-        )}
-        
-        {activeTab === 'learningProgress' && (
-          <div className={styles.tabContent}>
+        </header>
+
+        {/* Tabs */}
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${activeTab === 'achievements' ? styles.active : ''}`}
+            onClick={() => setActiveTab('achievements')}
+          >
+            ACHIEVEMENTS
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'learningProgress' ? styles.active : ''}`}
+            onClick={() => setActiveTab('learningProgress')}
+          >
+            LEARNING PROGRESS
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        <div className={styles.tabContent}>
+          {activeTab === 'achievements' && (
+            <div className={styles.achievementsTable}>
+              <div className={styles.tableHeader}>
+                <span>Badges</span>
+                <span>Achievements</span>
+                <span>Received</span>
+              </div>
+              <div className={styles.tableRow}>
+                <div className={styles.badgeCell}>
+                  <div className={styles.badgePlaceholder}></div>
+                </div>
+                <div className={styles.achievementCell}>Divine Warrior</div>
+                <div className={styles.timeCell}>About 1 year</div>
+              </div>
+            </div>
+          )}
+          
+          {activeTab === 'learningProgress' && (
             <div className={styles.learningProgressContainer}>
               <h3 className={styles.progressTitle}>Your Learning Progress</h3>
               <div className={styles.progressGrid}>
@@ -166,9 +172,8 @@ const Profile = ({ onSignOut }) => {
                 ))}
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
 
       {/* Edit Account Modal */}

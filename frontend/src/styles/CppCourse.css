@@ -79,6 +79,26 @@
   font-weight: bold;
 }
 
+/* Status Icons */
+.status-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.status-icon.completed {
+  width: 50px;
+  height: 50px;
+  color: #5B8FB9;
+}
+
+.status-icon.locked {
+  color: #64748b;
+}
+
+.status-icon.available {
+  color: #3b82f6;
+}
+
 /* Exercise Item - C++ Blue Border */
 .cpp-course-page .exercise-item.available {
   border-left: 3px solid #5B8FB9;

@@ -4,14 +4,19 @@ import Footer from '../components/footer';
 import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import pythonGif from '../assets/python.gif';
+import cppGif from '../assets/c++.gif';
+import javascriptGif from '../assets/javascript.gif';
 import styles from '../styles/Dashboard.module.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [progress] = useState(9);
+  const [progress] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isAuthenticated') === 'true';
+  });
+  const [hasTouchedCourse] = useState(() => {
+    return localStorage.getItem('hasTouchedCourse') === 'true';
   });
   const [userStats, setUserStats] = useState({
     name: 'User',
@@ -21,19 +26,34 @@ const Dashboard = () => {
     badges: 1,
   });
 
-  const [currentCourse] = useState({
-    name: 'Python',
-    nextExercise: 'Data Types',
-    progress: 9
+  const [currentCourse] = useState(() => {
+    const lastCourseTitle = localStorage.getItem('lastCourseTitle');
+    const exerciseTitles = {
+      'Python': 'Setting Up',
+      'C++': 'The Program',
+      'JavaScript': 'Introduction'
+    };
+    return {
+      name: lastCourseTitle,
+      nextExercise: exerciseTitles[lastCourseTitle] || 'Start Learning',
+      progress: 0
+    };
   });
 
-  const [quest] = useState({
-    name: '#30NTestOfCode',
-    current: 2,
-    total: 30,
-    reward: 'Spike',
-    timeLeft: '3 HOURS LEFT'
-  });
+  const lastCourseRoute = localStorage.getItem('lastCourseRoute');
+  const courseRoute = lastCourseRoute || `/learn`;
+  const courseGif =
+    currentCourse.name === 'C++'
+      ? cppGif
+      : currentCourse.name === 'JavaScript'
+        ? javascriptGif
+        : pythonGif;
+  const courseAccentColor =
+    currentCourse.name === 'C++'
+      ? '#5B8FB9'
+      : currentCourse.name === 'JavaScript'
+        ? '#FFD700'
+        : '#3CB371';
 
   useEffect(() => {
     // Check if user is new (hasn't seen onboarding)
@@ -95,7 +115,7 @@ const Dashboard = () => {
         <div className={`${styles.circle} ${styles.circle2}`}></div>
         <div className={`${styles.circle} ${styles.circle3}`}></div>
       </div>
-      {/* Welcome Message */}
+ 
       <div className={styles['welcome-section']}>
         <div className={styles['robot-icon']}>
           <img src="/src/assets/COMPUTER.png" alt="Computer" style={{ width: '60px', height: '60px' }} />
@@ -105,48 +125,69 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className={styles['main-content']}>
-        {/* Left Section - Course Card */}
         <div className={styles['left-section']}>
-          <h2 className={styles['section-title']}>Jump back in</h2>
-          
-          <div className={styles['course-card']}>
-            <div className={styles['course-header']}>
-              <div className={styles['progress-bar']}>
-                <div className={styles['progress-fill']} style={{ width: `${progress}%` }}></div>
+          {!hasTouchedCourse ? (
+            <div className={styles.welcomeFirstCardInline}>
+              <div className={styles.welcomeFirstSprite}>
+                <img src="/src/assets/COMPUTER.png" alt="Computer" className={styles.welcomeFirstSpriteImg} />
               </div>
-              <span className={styles['progress-text']}>{progress}%</span>
+              <h1 className={styles.welcomeFirstTitle}>Welcome to Code Mania!</h1>
+              <p className={styles.welcomeFirstSubtitle}>
+                Your coding journey awaits!, Choose a language to start learning.
+              </p>
+              <button
+                type="button"
+                className={styles.getStartedBtn}
+                onClick={() => navigate('/learn')}
+              >
+                Get Started
+              </button>
             </div>
+          ) : (
+            <>
+              <h2 className={styles['section-title']}>Jump back in</h2>
+              
+              <div className={styles['course-card']} style={{ '--course-accent': courseAccentColor }}>
+                <div className={styles['course-header']}>
+                  <div className={styles['progress-bar']}>
+                    <div className={styles['progress-fill']} style={{ width: `${progress}%` }}></div>
+                  </div>
+                  <span className={styles['progress-text']}>{progress}%</span>
+                </div>
 
-            <div className={styles['course-content']}>
-              <div className={styles['course-image']}>
-                <img 
-                  src={pythonGif} 
-                  alt="Python Programming" 
-                  className={styles['course-gif']}
-                />
-              </div>
+                <div className={styles['course-content']}>
+                  <div className={styles['course-image']}>
+                    <img 
+                      src={courseGif} 
+                      alt={`${currentCourse.name} Programming`} 
+                      className={styles['course-gif']}
+                    />
+                  </div>
 
-              <div className={styles['course-info']}>
-                <span className={styles['course-label']}>COURSE</span>
-                <h1 className={styles['course-name']}>{currentCourse.name}</h1>
-                <p className={styles['next-exercise']}>Next exercise: {currentCourse.nextExercise}</p>
-              </div>
+                  <div className={styles['course-info']}>
+                    <span className={styles['course-label']}>COURSE</span>
+                    <h1 className={styles['course-name']}>{currentCourse.name}</h1>
+                    <p className={styles['next-exercise']}>{currentCourse.nextExercise}</p>
+                  </div>
 
-              <div className={styles['course-actions']}>
-                <button className={styles['continue-btn']}>Continue Learning</button>
-                <Link to={`/learn/${currentCourse.name.toLowerCase()}`} className={styles['view-course-btn']}>
-                  View course
-                </Link>
+                  <div className={styles['course-actions']}>
+                    <button
+                      type="button"
+                      className={styles['continue-btn']}
+                      onClick={() => navigate(courseRoute)}
+                    >
+                      Continue Learning
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
-        {/* Right Section - Profile & Quest */}
         <div className={styles['right-section']}>
-          {/* Profile Card */}
+          {hasTouchedCourse && <div className={styles.courseTitleSpacer} />}
           <div className={styles['profile-card']}>
             <div className={styles['profile-header']}>
               <div className={styles.avatar}>👤</div>

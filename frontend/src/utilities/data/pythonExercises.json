@@ -2,74 +2,188 @@
   {
     "id": 1,
     "title": "Setting Up",
-    "lessonHeader": "🐍 Python — Setting Up",
-    "description": "Welcome to the first chapter of The Legend of Python! Python is a beginner-friendly language created in the early 90s.",
-    "bullets": [
-      "Artificial Intelligence",
-      "Web Development",
-      "Data Analysis",
-      "Machine Learning"
-    ],
-    "lessonExample": "# This is a simple Python function\nprint(\"Hi\")\n\nThis should appear in the Terminal window:\nHi",
-    "startingCode": "print(\"Hello, World!\")",
-    "hints": [
-      "Remember to check the hints if you get stuck.",
-      "For this exercise, just copy the example!"
-    ],
-    "requirements": {
-      "mustInclude": ["print("]
-    },
-    "expectedOutput": "Hi"
+    "lessonHeader": "🌐 Getting Started with Python",
+    "description": "Install Python and set up your coding environment to run Python scripts.",
+    "lessonExample": "print(\"Welcome to Python!\")",
+    "startingCode": "print(\"Hello, Python!\")",
+    "hints": ["Use print() to display output.", "Make sure your code runs without errors."],
+    "requirements": { "mustInclude": ["print"] },
+    "expectedOutput": "Hello, Python!"
   },
-
   {
     "id": 2,
     "title": "Hello World",
-    "lessonHeader": "👋 Hello World",
-    "description": "Your first real Python program. Use the print() function to show text on screen.",
-    "lessonExample": "print(\"Hello, Adventurer!\")",
-    "startingCode": "print(\"Hello, Adventurer!\")",
-    "hints": [
-      "Use print() to display text.",
-      "Make sure your text is inside quotes."
-    ],
-    "requirements": {
-      "mustInclude": ["print("]
-    },
-    "expectedOutput": "Hello, Adventurer!"
+    "lessonHeader": "🖥️ Printing Messages",
+    "description": "Display messages in the terminal using print().",
+    "lessonExample": "print(\"Hello World!\")",
+    "startingCode": "print()",
+    "hints": ["Put your message inside the parentheses.", "Wrap text in quotes."],
+    "requirements": { "mustInclude": ["print"] },
+    "expectedOutput": "Hello World!"
   },
-
   {
     "id": 3,
     "title": "Pattern",
-    "lessonHeader": "🔺 Pattern Printing",
-    "description": "Let's create simple ASCII shapes by printing stars on multiple lines.",
-    "lessonExample": "print(\"*\")\nprint(\"**\")\nprint(\"***\")",
-    "startingCode": "print(\"*\")\nprint(\"**\")",
-    "hints": [
-      "Use multiple print() calls.",
-      "Each print() displays one line."
-    ],
-    "requirements": {
-      "mustInclude": ["print("]
-    },
-    "expectedOutput": "*\n**"
+    "lessonHeader": "🔢 Printing Patterns",
+    "description": "Use print statements to display simple text patterns.",
+    "lessonExample": "print(\"*\\n**\\n***\")",
+    "startingCode": "print()",
+    "hints": ["Use \\n for new lines.", "Type the pattern exactly."],
+    "requirements": { "mustInclude": ["print"] },
+    "expectedOutput": "*\n**\n***"
   },
-
   {
     "id": 4,
     "title": "Initials",
-    "lessonHeader": "✍️ Create Your Initials",
-    "description": "Use ASCII art to print your initials using multiple lines.",
-    "lessonExample": "print(\"\"\"\nJJJJJ\n  J\n  J\n  J\nJ J\nJJJ\n\"\"\")",
-    "startingCode": "print(\"\"\"\nXX\nXX\n\"\"\")",
-    "hints": [
-      "Triple quotes allow multi-line strings.",
-      "Try forming letters using characters."
-    ],
-    "requirements": {
-      "mustInclude": ["print("]
-    },
-    "expectedOutput": "XX\nXX"
+    "lessonHeader": "🆔 Print Your Initials",
+    "description": "Print your initials using multiple print statements.",
+    "lessonExample": "print(\"J\")\nprint(\"P\")",
+    "startingCode": "print()",
+    "hints": ["Use multiple print statements.", "Each initial on a new line."],
+    "requirements": { "mustInclude": ["print"] },
+    "expectedOutput": "J\nP"
+  },
+  {
+    "id": 5,
+    "title": "Variables",
+    "lessonHeader": "📦 Variables in Python",
+    "description": "Store information using variables.",
+    "lessonExample": "name = \"Jet\"\nprint(name)",
+    "startingCode": "heroName = \"\"\nprint(heroName)",
+    "hints": ["Assign values using =.", "Use meaningful variable names."],
+    "requirements": { "mustInclude": ["=", "print"] },
+    "expectedOutput": "Jet"
+  },
+  {
+    "id": 6,
+    "title": "Strings",
+    "lessonHeader": "📝 String Manipulation",
+    "description": "Work with string values and display them using print().",
+    "lessonExample": "greeting = \"Hello\"\nprint(greeting + \" World\")",
+    "startingCode": "greeting = \"\"\nprint(greeting + \" World\")",
+    "hints": ["Use + to concatenate strings.", "Wrap text in quotes."],
+    "requirements": { "mustInclude": ["print", "+"] },
+    "expectedOutput": "Hello World"
+  },
+  {
+    "id": 7,
+    "title": "Numbers",
+    "lessonHeader": "🔢 Numbers",
+    "description": "Use numeric values and arithmetic operations in Python.",
+    "lessonExample": "a = 5\nb = 3\nprint(a + b)",
+    "startingCode": "a = \nb = \nprint(a + b)",
+    "hints": ["Assign numeric values.", "Use +, -, *, / for calculations."],
+    "requirements": { "mustInclude": ["print", "+"] },
+    "expectedOutput": "8"
+  },
+  {
+    "id": 8,
+    "title": "Booleans",
+    "lessonHeader": "✅ Boolean Values",
+    "description": "Learn about True and False values in Python.",
+    "lessonExample": "isStudent = True\nprint(isStudent)",
+    "startingCode": "isStudent = \nprint(isStudent)",
+    "hints": ["Use True or False.", "Boolean values are case-sensitive."],
+    "requirements": { "mustInclude": ["print"] },
+    "expectedOutput": "True"
+  },
+  {
+    "id": 9,
+    "title": "If Statements",
+    "lessonHeader": "🔀 Conditional Statements",
+    "description": "Use if statements to control program flow.",
+    "lessonExample": "age = 18\nif age >= 18:\n    print(\"Adult\")",
+    "startingCode": "age = \nif age >= 18:\n    print()",
+    "hints": ["Use if keyword.", "Indent the code inside if block."],
+    "requirements": { "mustInclude": ["if", "print"] },
+    "expectedOutput": "Adult"
+  },
+  {
+    "id": 10,
+    "title": "Else & Elif",
+    "lessonHeader": "🔀 Conditional Chains",
+    "description": "Use else and elif for multiple conditions.",
+    "lessonExample": "age = 16\nif age >= 18:\n    print(\"Adult\")\nelif age >= 13:\n    print(\"Teen\")\nelse:\n    print(\"Child\")",
+    "startingCode": "age = \nif age >= 18:\n    print()\nelif age >= 13:\n    print()\nelse:\n    print()",
+    "hints": ["Use elif for middle conditions.", "Use else for default case."],
+    "requirements": { "mustInclude": ["if", "elif", "else", "print"] },
+    "expectedOutput": "Teen"
+  },
+  {
+    "id": 11,
+    "title": "Comparison",
+    "lessonHeader": "⚖️ Comparison Operators",
+    "description": "Use ==, !=, >, <, >=, <= to compare values.",
+    "lessonExample": "a = 5\nb = 3\nprint(a > b)",
+    "startingCode": "a = \nb = \nprint(a > b)",
+    "hints": ["Use comparison operators.", "print() the result."],
+    "requirements": { "mustInclude": [">", "print"] },
+    "expectedOutput": "True"
+  },
+  {
+    "id": 12,
+    "title": "Logical Operators",
+    "lessonHeader": "🔀 Logical Operators",
+    "description": "Combine conditions using and, or, not.",
+    "lessonExample": "a = True\nb = False\nprint(a and b)",
+    "startingCode": "a = \nb = \nprint(a and b)",
+    "hints": ["Use and/or/not.", "print() the result."],
+    "requirements": { "mustInclude": ["and", "print"] },
+    "expectedOutput": "False"
+  },
+  {
+    "id": 13,
+    "title": "For Loops",
+    "lessonHeader": "🔁 For Loops",
+    "description": "Repeat actions using for loops.",
+    "lessonExample": "for i in range(3):\n    print(i)",
+    "startingCode": "for i in range():\n    print(i)",
+    "hints": ["Use range() to define loop count.", "Indent the code inside the loop."],
+    "requirements": { "mustInclude": ["for", "print"] },
+    "expectedOutput": "0\n1\n2"
+  },
+  {
+    "id": 14,
+    "title": "While Loops",
+    "lessonHeader": "🔁 While Loops",
+    "description": "Repeat actions while a condition is True.",
+    "lessonExample": "count = 0\nwhile count < 3:\n    print(count)\n    count += 1",
+    "startingCode": "count = \nwhile count < :\n    print(count)\n    count += 1",
+    "hints": ["Initialize the counter.", "Use while with a condition."],
+    "requirements": { "mustInclude": ["while", "print"] },
+    "expectedOutput": "0\n1\n2"
+  },
+  {
+    "id": 15,
+    "title": "Range Function",
+    "lessonHeader": "🔢 Using range()",
+    "description": "Learn to generate sequences of numbers with range().",
+    "lessonExample": "for i in range(1, 5):\n    print(i)",
+    "startingCode": "for i in range():\n    print(i)",
+    "hints": ["Use start and end values in range().", "Loop over the sequence."],
+    "requirements": { "mustInclude": ["range", "print"] },
+    "expectedOutput": "1\n2\n3\n4"
+  },
+  {
+    "id": 16,
+    "title": "Nested Loops",
+    "lessonHeader": "🔁 Nested Loops",
+    "description": "Use loops inside loops for more complex patterns.",
+    "lessonExample": "for i in range(2):\n    for j in range(2):\n        print(i, j)",
+    "startingCode": "for i in range():\n    for j in range():\n        print(i, j)",
+    "hints": ["Use a loop inside another loop.", "print() both counters."],
+    "requirements": { "mustInclude": ["for", "print"] },
+    "expectedOutput": "0 0\n0 1\n1 0\n1 1"
+  },
+  {
+    "id": 17,
+    "title": "Python Exam",
+    "lessonHeader": "📝 Python Final Exam",
+    "description": "Test your Python knowledge with exercises covering all modules.",
+    "lessonExample": "def add(a,b):\n    return a+b\nprint(add(5,7))",
+    "startingCode": "# Solve the exam here",
+    "hints": ["Use variables, functions, loops, and conditionals.", "Test your code carefully."],
+    "requirements": { "mustInclude": ["print"] },
+    "expectedOutput": "12"
   }
 ]

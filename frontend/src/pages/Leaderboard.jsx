@@ -39,7 +39,7 @@ const Leaderboard = () => {
             className={`tab ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            All Time
+            All
           </button>
           <button 
             className={`tab ${activeTab === 'python' ? 'active' : ''}`}

@@ -1,25 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
+import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
 import map1 from "../assets/aseprites/map1.png";
+import cppStage1Badge from "../assets/badges/C++/c++-stage1-Recovered.png";
+import cppStage2Badge from "../assets/badges/C++/c++-stage2-Recovered.png";
+import cppStage3Badge from "../assets/badges/C++/c++-stage3-Recovered.png";
+import cppStage4Badge from "../assets/badges/C++/c++-stage4-Recovered.png";
 import exercises from "../utilities/data/cppExercises.json";
 
 const CppExercise = () => {
 const { exerciseId } = useParams();
 const navigate = useNavigate();
+const location = useLocation();
 const [currentExercise, setCurrentExercise] = useState(null);
 const [code, setCode] = useState("");
 const [output, setOutput] = useState("");
 const [showHelp, setShowHelp] = useState(false);
 const [showScroll, setShowScroll] = useState(false);
 const [showXpPanel, setShowXpPanel] = useState(false);
+const [showStageComplete, setShowStageComplete] = useState(false);
+const [, setXpEarned] = useState(0);
 
 // === Dialogue System ===
 const dialogues = [
@@ -31,6 +39,9 @@ const [isTyping, setIsTyping] = useState(false);
 
 // Load exercise data when route changes
 useEffect(() => {
+  const searchParams = new URLSearchParams(location.search);
+  const forceStageComplete = searchParams.get("stageComplete") === "1";
+
   if (exerciseId) {
     const id = parseInt(exerciseId.split("-")[0], 10);
     if (isNaN(id)) {
@@ -52,8 +63,24 @@ useEffect(() => {
     setOutput("");
     setShowHelp(false);
     setShowXpPanel(false);
+    setShowStageComplete(forceStageComplete);
   }
-}, [exerciseId]);
+}, [exerciseId, location.search]);
+
+const stageNumber = currentExercise ? Math.floor((currentExercise.id - 1) / 4) + 1 : 1;
+const lessonInStage = currentExercise ? ((currentExercise.id - 1) % 4) + 1 : 1;
+const cppStageBadges = [cppStage1Badge, cppStage2Badge, cppStage3Badge, cppStage4Badge];
+const isExam = Boolean(
+  currentExercise &&
+  ((currentExercise.title && currentExercise.title.toLowerCase().includes("exam")) ||
+    (currentExercise.lessonHeader && currentExercise.lessonHeader.toLowerCase().includes("exam")))
+);
+const debugStageNumber = (() => {
+  const searchParams = new URLSearchParams(location.search);
+  const n = parseInt(searchParams.get("stage"), 10);
+  return Number.isFinite(n) ? n : null;
+})();
+const displayStageNumber = debugStageNumber ?? stageNumber;
 
 // Navigation functions
 const goToNextExercise = () => {
@@ -110,8 +137,20 @@ if (!currentExercise) return;
 setTimeout(() => {
   setOutput(currentExercise.expectedOutput || "✔ Code compiled!");
   setXpEarned(100); // Assuming 100 XP is earned for each successful submit
-  setShowXpPanel(true);
+  if (lessonInStage === 4) {
+    setShowStageComplete(true);
+    setShowXpPanel(false);
+  } else {
+    setShowXpPanel(true);
+    setShowStageComplete(false);
+  }
 }, 500);
+};
+
+const handleStageContinue = () => {
+  setShowStageComplete(false);
+  setShowXpPanel(false);
+  goToNextExercise();
 };
 
 // --- Auth modal setup ---
@@ -146,9 +185,10 @@ user={user}
 
   <div className={styles["codex-fullscreen"]}>
     <ProgressBar
-      currentLesson={currentExercise ? currentExercise.id : 1}
-      totalLessons={exercises.length}
+      currentLesson={lessonInStage}
+      totalLessons={4}
       title={currentExercise?.lessonHeader || "⚙️ C++ Basics"}
+      variant={isExam ? "titleOnly" : "full"}
     />
 
     <div className={styles["main-layout"]}>
@@ -284,38 +324,21 @@ user={user}
       </div>
     </div>
 
-    <h3 className={styles["help-title"]}>Help</h3>
-    <div className={styles["help-section"]}>
-      <div
-        className={styles["help-header"]}
-        onClick={() => setShowHelp((prev) => !prev)}
-      >
-        <span>💡 Hint</span>
-        <span className={styles["help-arrow"]}>
-          {showHelp ? "▴" : "▾"}
-        </span>
       </div>
-
-      {showHelp && (
-        <div
-          className={styles["dialogue-terminal"]}
-          onClick={handleNextDialogue}
-        >
-          <div className={styles["terminal-line"]}>
-            <span className={styles["dialogue-text"]}>
-              {displayedText}
-              <span className={styles["cursor"]}></span>
-            </span>
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
 
   <XpNotification
     show={showXpPanel}
     onClose={() => setShowXpPanel(false)}
     onNext={goToNextExercise}
+  />
+
+  <StageCompleteModal
+    show={showStageComplete}
+    stageNumber={displayStageNumber}
+    languageLabel="C++"
+    badgeSrc={cppStageBadges[displayStageNumber - 1]}
+    onContinue={handleStageContinue}
+    onClose={() => setShowStageComplete(false)}
   />
 
   <Footer />

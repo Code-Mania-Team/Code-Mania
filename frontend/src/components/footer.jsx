@@ -51,7 +51,7 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <div className="footer-legal">
-            <span>© {currentYear} Code Mania. All rights reserved.</span>
+            <span>© 2025 Code Mania. All rights reserved.</span>
           </div>
           
           <div className="footer-socials">

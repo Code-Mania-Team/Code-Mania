@@ -81,7 +81,7 @@ print("Hello, World!")`);
       )}
 
       <div className={styles["codex-fullscreen"]}>
-        <ProgressBar currentLesson={1} totalLessons={12} title="🐍 Python Basics" />
+        <ProgressBar currentLesson={1} totalLessons={4} title="🐍 Python Basics" />
 
         <div className={styles["main-layout"]}>
           {/* === LEFT SIDE: Phaser Game === */}

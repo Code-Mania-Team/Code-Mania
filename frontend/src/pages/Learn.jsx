@@ -73,7 +73,13 @@ const Learn = () => {
                 <p className={styles.description}>{course.description}</p>
                 <button 
                   className={styles.button}
-                  onClick={() => course.route && navigate(course.route)}
+                  onClick={() => {
+                    if (!course.route) return;
+                    localStorage.setItem('hasTouchedCourse', 'true');
+                    localStorage.setItem('lastCourseTitle', course.title);
+                    localStorage.setItem('lastCourseRoute', course.route);
+                    navigate(course.route);
+                  }}
                   disabled={!course.route}
                 >
                   Start Learning
