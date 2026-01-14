@@ -1,4 +1,3 @@
-// CutsceneManager.js
 import Phaser from "phaser";
 import EasyStar from "easystarjs";
 
@@ -6,6 +5,7 @@ export default class CutsceneManager {
   constructor(scene) {
     this.scene = scene;
     this.easystar = new EasyStar.js();
+    this.played = new Set(); // prevent replay
     this.setupPathfinding();
   }
 
@@ -15,62 +15,69 @@ export default class CutsceneManager {
     if (!map || !layer) return;
 
     const grid = [];
+
     for (let y = 0; y < map.height; y++) {
       const row = [];
       for (let x = 0; x < map.width; x++) {
         const tile = layer.getTileAt(x, y);
-        row.push(tile?.properties.collision ? 1 : 0); // 1 = blocked
+        row.push(tile?.properties?.collision ? 1 : 0);
       }
       grid.push(row);
     }
 
     this.easystar.setGrid(grid);
-    this.easystar.setAcceptableTiles([0]); // walkable
+    this.easystar.setAcceptableTiles([0]);
     this.easystar.enableDiagonals();
   }
 
-  async moveNPC(npc, targetX, targetY, speed = 100) {
+  // 🎬 TILE-BASED NPC MOVE
+  async moveNPC(npc, targetTileX, targetTileY, speed = 100) {
     const map = this.scene.mapLoader.map;
-    // const layer = this.scene.mapLoader.layers["Foreground"];
     const tileSize = map.tileWidth;
 
-    // Convert world to tile coordinates and clamp inside the map
-    const startX = Phaser.Math.Clamp(Math.floor(npc.x / tileSize), 0, map.width - 1);
-    const startY = Phaser.Math.Clamp(Math.floor(npc.y / tileSize), 0, map.height - 1);
-    const endX = Phaser.Math.Clamp(Math.floor(targetX / tileSize), 0, map.width - 1);
-    const endY = Phaser.Math.Clamp(Math.floor(targetY / tileSize), 0, map.height - 1);
+    const startX = Math.floor(npc.x / tileSize);
+    const startY = Math.floor(npc.y / tileSize);
 
-    return new Promise((resolve) => {
-      this.easystar.findPath(startX, startY, endX, endY, (path) => {
-        if (!path || path.length === 0) return resolve();
+    const endX = Phaser.Math.Clamp(targetTileX, 0, map.width - 1);
+    const endY = Phaser.Math.Clamp(targetTileY, 0, map.height - 1);
 
-        let step = 0;
+    return new Promise(resolve => {
+      this.easystar.findPath(startX, startY, endX, endY, path => {
+        if (!path) return resolve();
 
-        const moveStep = () => {
-          if (step >= path.length) return resolve();
+        let index = 0;
 
-          const next = path[step];
-          const worldX = next.x * tileSize + tileSize / 2;
-          const worldY = next.y * tileSize + tileSize / 2;
+        const moveNext = () => {
+          if (index >= path.length) return resolve();
 
-          // Face NPC toward next tile
+          const p = path[index];
+          const worldX = p.x * tileSize + tileSize / 2;
+          const worldY = p.y * tileSize + tileSize / 2;
+
           this.faceTowards(npc, worldX, worldY);
+
+          const distance = Phaser.Math.Distance.Between(
+            npc.x,
+            npc.y,
+            worldX,
+            worldY
+          );
+
+          const duration = (distance / speed) * 1000; // 👈 speed USED clearly
 
           this.scene.tweens.add({
             targets: npc,
             x: worldX,
             y: worldY,
-            duration:
-              (1000 / speed) *
-              Phaser.Math.Distance.Between(npc.x, npc.y, worldX, worldY),
+            duration,
             onComplete: () => {
-              step++;
-              moveStep();
+              index++;
+              moveNext();
             },
           });
         };
 
-        moveStep();
+        moveNext();
       });
 
       this.easystar.calculate();
@@ -80,35 +87,61 @@ export default class CutsceneManager {
   faceTowards(npc, x, y) {
     const dx = x - npc.x;
     const dy = y - npc.y;
+
     let dir = "down";
     if (Math.abs(dx) > Math.abs(dy)) dir = dx > 0 ? "right" : "left";
     else dir = dy > 0 ? "down" : "up";
+
     npc.anims.play(`walk-${dir}`, true);
   }
 
+  // 📍 CHECK TILE-BASED CUTSCENE TRIGGERS
+  checkTriggers(player) {
+    const map = this.scene.mapLoader.map;
+    const layer = map.getObjectLayer("cutscenes");
+    if (!layer) return;
+
+    layer.objects.forEach(obj => {
+      if (this.played.has(obj.name)) return;
+
+      const rect = new Phaser.Geom.Rectangle(
+        obj.x,
+        obj.y - obj.height,
+        obj.width,
+        obj.height
+      );
+
+      if (rect.contains(player.x, player.y)) {
+        this.played.add(obj.name);
+        this.scene.startCutscene(obj.name);
+      }
+    });
+  }
+
   async showDialogue(text) {
-    return new Promise((resolve) => {
-      const dialog = this.scene.add.text(
-        this.scene.cameras.main.worldView.x + 20,
-        this.scene.cameras.main.worldView.y + this.scene.scale.height - 80,
-        text,
-        {
-          fontSize: "20px",
-          color: "#fff",
-          backgroundColor: "#0008",
-          padding: { x: 10, y: 10 },
-        }
-      ).setScrollFactor(0);
+    return new Promise(resolve => {
+      const dialog = this.scene.add
+        .text(
+          20,
+          this.scene.scale.height - 80,
+          text,
+          {
+            fontSize: "20px",
+            color: "#fff",
+            backgroundColor: "#0008",
+            padding: { x: 10, y: 10 },
+          }
+        )
+        .setScrollFactor(0);
 
       const key = this.scene.input.keyboard.addKey(
         Phaser.Input.Keyboard.KeyCodes.SPACE
       );
-      const finish = () => {
+
+      key.once("down", () => {
         dialog.destroy();
-        key.off("down", finish);
         resolve();
-      };
-      key.on("down", finish);
+      });
     });
   }
 }

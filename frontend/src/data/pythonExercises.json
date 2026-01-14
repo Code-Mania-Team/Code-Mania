@@ -1,6 +1,11 @@
 [
   {
     "id": 1,
+    "dialogue": [
+    "Hey adventurer!",
+    "Before we begin your journey...",
+    "Let me teach you Python 🐍"
+    ],
     "title": "Setting Up",
     "lessonHeader": "🐍 Python — Setting Up",
     "description": "Welcome to the first chapter of The Legend of Python! Python is a beginner-friendly language created in the early 90s.",

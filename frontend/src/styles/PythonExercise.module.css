@@ -315,10 +315,10 @@
   transform: translate(-50%, -50%);
   width: 70%;
   max-width: 850px;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  z-index: 999;
 }
 
 .lesson-button {

@@ -1,52 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="Tileset - Copy" tilewidth="16" tileheight="16" tilecount="625" columns="25">
- <image source="Tileset - Copy.png" width="401" height="401"/>
- <tile id="80">
+<tileset version="1.10" tiledversion="1.11.2" name="C" tilewidth="48" tileheight="48" tilecount="256" columns="16">
+ <image source="C.png" width="768" height="768"/>
+ <tile id="213">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="81">
+ <tile id="214">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="84">
+ <tile id="215">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="85">
+ <tile id="229">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="105">
+ <tile id="230">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="106">
+ <tile id="231">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="126">
+ <tile id="245">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="127">
+ <tile id="246">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="151">
-  <properties>
-   <property name="collision" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="152">
+ <tile id="247">
   <properties>
    <property name="collision" type="bool" value="true"/>
   </properties>
