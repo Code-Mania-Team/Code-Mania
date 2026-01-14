@@ -3,9 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
-import pythonGif from '../assets/python.gif';
-import cppGif from '../assets/c++.gif';
-import javascriptGif from '../assets/javascript.gif';
 import styles from '../styles/Dashboard.module.css';
 
 const Dashboard = () => {
@@ -42,12 +39,12 @@ const Dashboard = () => {
 
   const lastCourseRoute = localStorage.getItem('lastCourseRoute');
   const courseRoute = lastCourseRoute || `/learn`;
-  const courseGif =
-    currentCourse.name === 'C++'
-      ? cppGif
-      : currentCourse.name === 'JavaScript'
-        ? javascriptGif
-        : pythonGif;
+  const courseGifs = {
+    Python: 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif',
+    'C++': 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif',
+    JavaScript: 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif',
+  };
+  const courseGif = courseGifs[currentCourse.name] || courseGifs.Python;
   const courseAccentColor =
     currentCourse.name === 'C++'
       ? '#5B8FB9'
@@ -118,7 +115,7 @@ const Dashboard = () => {
  
       <div className={styles['welcome-section']}>
         <div className={styles['robot-icon']}>
-          <img src="/src/assets/COMPUTER.png" alt="Computer" style={{ width: '60px', height: '60px' }} />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" alt="Computer" style={{ width: '60px', height: '60px' }} />
         </div>
         <div className={styles['speech-bubble']}>
           Hi @{userStats.name}! We've been waiting for you.
@@ -130,7 +127,7 @@ const Dashboard = () => {
           {!hasTouchedCourse ? (
             <div className={styles.welcomeFirstCardInline}>
               <div className={styles.welcomeFirstSprite}>
-                <img src="/src/assets/COMPUTER.png" alt="Computer" className={styles.welcomeFirstSpriteImg} />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" alt="Computer" className={styles.welcomeFirstSpriteImg} />
               </div>
               <h1 className={styles.welcomeFirstTitle}>Welcome to Code Mania!</h1>
               <p className={styles.welcomeFirstSubtitle}>

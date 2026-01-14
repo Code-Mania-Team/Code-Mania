@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Instagram, Twitter, Github, Youtube, Linkedin } from 'lucide-react';
-import crown from "../assets/crown.png";
 import "../App.css";
+
+const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();

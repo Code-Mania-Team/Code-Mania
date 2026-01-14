@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import swordImage from '../assets/sword.png';
-import shieldImage from '../assets/shield.png';
-import showPasswordIcon from '../assets/view.png';
-import hidePasswordIcon from '../assets/hide.png';
 import styles from '../styles/SignInModal.module.css';
+
+const swordImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/sword_cnrdam.png';
+const shieldImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/shield_ykk5ek.png';
+const showPasswordIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/view_yj1elw.png';
+const hidePasswordIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/hide_apyeec.png';
 
 const OAuthButton = ({ isLoading, onClick, icon, text }) => (
   <button 

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
-import crown from "../assets/crown.png";
-import profileIcon from "../assets/crown.png";
-import burgerIcon from "../assets/burger.png";
+
+const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
+const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
 
 const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

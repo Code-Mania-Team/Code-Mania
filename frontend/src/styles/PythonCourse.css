@@ -12,7 +12,7 @@
   position: relative;
   width: 100%;
   min-height: 350px;
-  background: url('/src/assets/python.gif') center/cover no-repeat;
+  background: url('https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -3,7 +3,8 @@ import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
-import checkmarkIcon from "../assets/checkmark.png";
+
+const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const PythonCourse = () => {
   const navigate = useNavigate();

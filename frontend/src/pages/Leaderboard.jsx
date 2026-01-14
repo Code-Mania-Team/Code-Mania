@@ -1,7 +1,8 @@
 import React from 'react';
-import trophyIcon from '../assets/trophy.png';
-import leaderboardBg from '../assets/leaderboard.gif';
 import '../styles/Leaderboard.css';
+
+const leaderboardBg = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/leaderboard_fryema.gif';
+const trophyIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/trophy_tho3vz.png';
 
 const Leaderboard = () => {
   const [activeTab, setActiveTab] = React.useState('all');

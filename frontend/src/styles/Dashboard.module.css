@@ -77,7 +77,7 @@ body, html {
   box-sizing: border-box;
   border-radius: 18px;
   min-height: 170px;
-  background-image: url('../assets/dashboard-banner.png');
+  background-image: url('https://res.cloudinary.com/daegpuoss/image/upload/v1768368770/dashboard-banner_fdq9ja.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
