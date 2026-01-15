@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "build": "parcel build backend/index.html",
+    "build": "parcel build index.html",
     "dev": "nodemon --watch backend backend/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
