@@ -15,7 +15,7 @@ const ProgressBar = ({ currentLesson = 1, totalLessons = 4, title = '⚙️ Sett
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
-          <p className={styles['progress-text']}>Lesson {currentLesson} of {totalLessons}</p>
+          <p className={styles['progress-text']}>Exercise {currentLesson} of {totalLessons}</p>
         </>
       )}
     </div>
