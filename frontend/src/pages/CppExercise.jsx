@@ -243,7 +243,7 @@ user={user}
 
                   <h3>Your Task:</h3>
                   <p>
-                    {currentExercise?.description ||
+                    {currentExercise?.task ||
                       "Complete the C++ code below."}
                   </p>
 
