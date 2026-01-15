@@ -1,0 +1,189 @@
+[
+  {
+    "id": 1,
+    "title": "The Program",
+    "lessonHeader": "🌐 Getting Started with C++",
+    "description": "Set up your C++ environment and write your first program with basic output.",
+    "lessonExample": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Welcome to C++!\" << endl;\n    return 0;\n}",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use cout for output.", "Don't forget #include <iostream>.", "End statements with a semicolon."],
+    "requirements": { "mustInclude": ["cout"] },
+    "expectedOutput": "Hello, C++!"
+  },
+  {
+    "id": 2,
+    "title": "Hello World",
+    "lessonHeader": "🖥️ Printing Messages",
+    "description": "Display messages in the console using cout.",
+    "lessonExample": "cout << \"Hello World!\" << endl;",
+    "startingCode": "cout << ;",
+    "hints": ["Wrap text in quotes.", "Use << endl to end the line."],
+    "requirements": { "mustInclude": ["cout"] },
+    "expectedOutput": "Hello World!"
+  },
+  {
+    "id": 3,
+    "title": "Comments",
+    "lessonHeader": "💬 Writing Comments",
+    "description": "Use comments to explain your code.",
+    "lessonExample": "// This is a comment\ncout << \"Code runs!\" << endl;",
+    "startingCode": "// Write your comment here\ncout << \"\" << endl;",
+    "hints": ["Use // for single-line comments.", "Comments are ignored by the compiler."],
+    "requirements": { "mustInclude": ["//", "cout"] },
+    "expectedOutput": "Code runs!"
+  },
+  {
+    "id": 4,
+    "title": "Basic Output",
+    "lessonHeader": "🖨️ Display Output",
+    "description": "Print numbers and text to the console.",
+    "lessonExample": "int num = 10;\ncout << num << endl;",
+    "startingCode": "int num = ;\ncout << num << endl;",
+    "hints": ["Use int for numbers.", "Use cout to display output."],
+    "requirements": { "mustInclude": ["int", "cout"] },
+    "expectedOutput": "10"
+  },
+  {
+    "id": 5,
+    "title": "Variables",
+    "lessonHeader": "📦 Variables in C++",
+    "description": "Declare and use variables to store data.",
+    "lessonExample": "int age = 18;\ncout << age << endl;",
+    "startingCode": "int age = ;\ncout << age << endl;",
+    "hints": ["Use int for whole numbers.", "Assign values with =."],
+    "requirements": { "mustInclude": ["int", "cout"] },
+    "expectedOutput": "18"
+  },
+  {
+    "id": 6,
+    "title": "Data Types",
+    "lessonHeader": "📊 Data Types",
+    "description": "Understand int, float, double, char, and bool.",
+    "lessonExample": "double price = 9.99;\nbool isStudent = true;\ncout << price << endl << isStudent << endl;",
+    "startingCode": "double price = ;\nbool isStudent = ;\ncout << price << endl << isStudent << endl;",
+    "hints": ["Use bool for true/false.", "Use double for decimal numbers."],
+    "requirements": { "mustInclude": ["cout", "double", "bool"] },
+    "expectedOutput": "9.99\n1"
+  },
+  {
+    "id": 7,
+    "title": "Constants",
+    "lessonHeader": "🔒 Constants",
+    "description": "Use const to create unchangeable variables.",
+    "lessonExample": "const int DAYS_IN_WEEK = 7;\ncout << DAYS_IN_WEEK << endl;",
+    "startingCode": "const int DAYS_IN_WEEK = ;\ncout << DAYS_IN_WEEK << endl;",
+    "hints": ["Use const before the type.", "Constants cannot be reassigned."],
+    "requirements": { "mustInclude": ["const", "cout"] },
+    "expectedOutput": "7"
+  },
+  {
+    "id": 8,
+    "title": "Type Casting",
+    "lessonHeader": "🔄 Type Casting",
+    "description": "Convert values from one type to another.",
+    "lessonExample": "double d = 9.7;\nint x = (int)d;\ncout << x << endl;",
+    "startingCode": "double d = ;\nint x = (int)d;\ncout << x << endl;",
+    "hints": ["Use (type)value to cast.", "Casting truncates decimal values."],
+    "requirements": { "mustInclude": ["int", "cout"] },
+    "expectedOutput": "9"
+  },
+  {
+    "id": 9,
+    "title": "Arithmetic Operators",
+    "lessonHeader": "➕ Arithmetic Operators",
+    "description": "Use +, -, *, / to perform arithmetic.",
+    "lessonExample": "int a = 5, b = 3;\ncout << a + b << endl;",
+    "startingCode": "int a = ;\nint b = ;\ncout << a + b << endl;",
+    "hints": ["Use +, -, *, / operators.", "Print the result with cout."],
+    "requirements": { "mustInclude": ["cout", "+"] },
+    "expectedOutput": "8"
+  },
+  {
+    "id": 10,
+    "title": "Comparison Operators",
+    "lessonHeader": "⚖️ Comparison Operators",
+    "description": "Use ==, !=, >, <, >=, <= to compare values.",
+    "lessonExample": "int a = 5, b = 3;\ncout << (a > b) << endl;",
+    "startingCode": "int a = ;\nint b = ;\ncout << (a > b) << endl;",
+    "hints": ["Use parentheses for comparisons.", "cout prints 1 for true, 0 for false."],
+    "requirements": { "mustInclude": ["cout", ">", "<"] },
+    "expectedOutput": "1"
+  },
+  {
+    "id": 11,
+    "title": "Logical Operators",
+    "lessonHeader": "🔀 Logical Operators",
+    "description": "Use &&, ||, ! to combine conditions.",
+    "lessonExample": "bool a = true, b = false;\ncout << (a && b) << endl;",
+    "startingCode": "bool a = ;\nbool b = ;\ncout << (a && b) << endl;",
+    "hints": ["Use && for AND, || for OR, ! for NOT.", "cout prints 1 for true, 0 for false."],
+    "requirements": { "mustInclude": ["cout", "&&"] },
+    "expectedOutput": "0"
+  },
+  {
+    "id": 12,
+    "title": "Assignment Operators",
+    "lessonHeader": "📝 Assignment Operators",
+    "description": "Use =, +=, -=, *=, /= to assign and update values.",
+    "lessonExample": "int a = 5;\na += 3;\ncout << a << endl;",
+    "startingCode": "int a = ;\na += ;\ncout << a << endl;",
+    "hints": ["Use += to add and assign.", "Other operators work similarly."],
+    "requirements": { "mustInclude": ["cout", "+="] },
+    "expectedOutput": "8"
+  },
+  {
+    "id": 13,
+    "title": "If Statements",
+    "lessonHeader": "🔀 Conditional Statements",
+    "description": "Control program flow using if statements.",
+    "lessonExample": "int age = 18;\nif (age >= 18) cout << \"Adult\" << endl;",
+    "startingCode": "int age = ;\nif (age >= 18) cout << \"\" << endl;",
+    "hints": ["Use if keyword.", "cout prints inside the condition."],
+    "requirements": { "mustInclude": ["if", "cout"] },
+    "expectedOutput": "Adult"
+  },
+  {
+    "id": 14,
+    "title": "Switch Case",
+    "lessonHeader": "🔀 Switch Statements",
+    "description": "Use switch to select one of many code paths.",
+    "lessonExample": "int day = 2;\nswitch(day) {\n    case 1: cout << \"Mon\"; break;\n    case 2: cout << \"Tue\"; break;\n}",
+    "startingCode": "int day = ;\nswitch(day) {\n    case 1: cout << \"\"; break;\n    case 2: cout << \"\"; break;\n}",
+    "hints": ["Use break after each case.", "cout prints inside each case."],
+    "requirements": { "mustInclude": ["switch", "cout"] },
+    "expectedOutput": "Tue"
+  },
+  {
+    "id": 15,
+    "title": "For Loops",
+    "lessonHeader": "🔁 For Loops",
+    "description": "Repeat actions using for loops.",
+    "lessonExample": "for (int i = 0; i < 3; i++) cout << i << endl;",
+    "startingCode": "for (int i = 0; i < ; i++) cout << i << endl;",
+    "hints": ["Set loop limit.", "Increment with i++."],
+    "requirements": { "mustInclude": ["for", "cout"] },
+    "expectedOutput": "0\n1\n2"
+  },
+  {
+    "id": 16,
+    "title": "While Loops",
+    "lessonHeader": "🔁 While Loops",
+    "description": "Repeat actions while a condition is true.",
+    "lessonExample": "int count = 0;\nwhile (count < 3) {\n    cout << count << endl;\n    count++;\n}",
+    "startingCode": "int count = ;\nwhile (count < ) {\n    cout << count << endl;\n    count++;\n}",
+    "hints": ["Initialize the counter.", "Use while with a condition."],
+    "requirements": { "mustInclude": ["while", "cout"] },
+    "expectedOutput": "0\n1\n2"
+  },
+  {
+    "id": 17,
+    "title": "C++ Exam",
+    "lessonHeader": "📝 C++ Final Exam",
+    "description": "Test your C++ knowledge covering all modules.",
+    "lessonExample": "int add(int a, int b) {\n    return a + b;\n}\ncout << add(5, 7) << endl;",
+    "startingCode": "// Solve the exam here",
+    "hints": ["Use variables, loops, conditionals, and functions.", "Test your code thoroughly."],
+    "requirements": { "mustInclude": ["cout"] },
+    "expectedOutput": "12"
+  }
+]

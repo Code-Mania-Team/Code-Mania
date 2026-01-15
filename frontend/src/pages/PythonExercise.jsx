@@ -5,7 +5,7 @@ import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import styles from "../styles/PythonExercise.module.css";
-import { initPhaserGame } from "../engine/main.js";
+import { initPhaserGame } from "../utilities/engine/main";
 import Terminal from "../components/Terminal";
 
 const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {

@@ -1,24 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
+import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 import map1 from "../assets/aseprites/map1.png";
-import exercises from "../data/javascriptExercises.json";
+import jsStage1Badge from "../assets/badges/JavaScript/js-stage1-Recovered.png";
+import jsStage2Badge from "../assets/badges/JavaScript/js-stage2-Recovered.png";
+import jsStage3Badge from "../assets/badges/JavaScript/js-stage3-Recovered.png";
+import jsStage4Badge from "../assets/badges/JavaScript/js-stage4-Recovered.png";
+import exercises from "../utilities/data/javascriptExercises.json";
 
 const JavaScriptExercise = () => {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentExercise, setCurrentExercise] = useState(null);
   const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
   const [showXpPanel, setShowXpPanel] = useState(false);
+  const [showStageComplete, setShowStageComplete] = useState(false);
 
   // === Dialogue System ===
   const dialogues = [
@@ -30,6 +37,9 @@ const JavaScriptExercise = () => {
 
   // Load exercise data and reset state when exerciseId changes
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const forceStageComplete = searchParams.get("stageComplete") === "1";
+
     if (exerciseId) {
       const id = parseInt(exerciseId.split('-')[0], 10);
       const exercise = exercises.find(ex => ex.id === id);
@@ -39,9 +49,25 @@ const JavaScriptExercise = () => {
         setOutput("");
         setShowHelp(false);
         setShowXpPanel(false);
+        setShowStageComplete(forceStageComplete);
       }
     }
-  }, [exerciseId]);
+  }, [exerciseId, location.search]);
+
+  const stageNumber = currentExercise ? Math.floor((currentExercise.id - 1) / 4) + 1 : 1;
+  const lessonInStage = currentExercise ? ((currentExercise.id - 1) % 4) + 1 : 1;
+  const jsStageBadges = [jsStage1Badge, jsStage2Badge, jsStage3Badge, jsStage4Badge];
+  const isExam = Boolean(
+    currentExercise &&
+    ((currentExercise.title && currentExercise.title.toLowerCase().includes("exam")) ||
+      (currentExercise.lessonHeader && currentExercise.lessonHeader.toLowerCase().includes("exam")))
+  );
+  const debugStageNumber = (() => {
+    const searchParams = new URLSearchParams(location.search);
+    const n = parseInt(searchParams.get("stage"), 10);
+    return Number.isFinite(n) ? n : null;
+  })();
+  const displayStageNumber = debugStageNumber ?? stageNumber;
 
   // Navigation functions
   const goToNextExercise = () => {
@@ -108,22 +134,32 @@ const JavaScriptExercise = () => {
         // Restore console.log
         console.log = originalLog;
 
-        if (logs.length > 0) {
-          setOutput(`${logs.join("\n")}\n`);
-          setShowXpPanel(true);
-        } else {
-          setOutput(
-            "No output detected. Did you include a console.log() statement?\n"
-          );
+        const resultText = logs.length > 0
+          ? `${logs.join("\n")}\n`
+          : "Program ran successfully.\n";
+        setOutput(resultText);
+
+        if (lessonInStage === 4) {
+          setShowStageComplete(true);
           setShowXpPanel(false);
+        } else {
+          setShowXpPanel(true);
+          setShowStageComplete(false);
         }
       } catch (error) {
         setOutput(
           `Error: ${error.message}\n>>> Program failed`
         );
         setShowXpPanel(false);
+        setShowStageComplete(false);
       }
     }, 500);
+  };
+
+  const handleStageContinue = () => {
+    setShowStageComplete(false);
+    setShowXpPanel(false);
+    goToNextExercise();
   };
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
@@ -161,9 +197,10 @@ const JavaScriptExercise = () => {
 
       <div className={styles["codex-fullscreen"]}>
         <ProgressBar 
-          currentLesson={currentExercise?.id || 1} 
-          totalLessons={exercises.length} 
+          currentLesson={lessonInStage} 
+          totalLessons={4} 
           title="🌐 JavaScript Basics" 
+          variant={isExam ? "titleOnly" : "full"}
         />
 
         <div className={styles["main-layout"]}>
@@ -289,33 +326,15 @@ const JavaScriptExercise = () => {
               onClose={() => setShowXpPanel(false)}
               onNext={goToNextExercise}
             />
+            <StageCompleteModal
+              show={showStageComplete}
+              stageNumber={displayStageNumber}
+              languageLabel="JavaScript"
+              badgeSrc={jsStageBadges[displayStageNumber - 1]}
+              onContinue={handleStageContinue}
+              onClose={() => setShowStageComplete(false)}
+            />
           </div>
-        </div>
-
-        <h3 className={styles["help-title"]}>Help</h3>
-        <div className={styles["help-section"]}>
-          <div
-            className={styles["help-header"]}
-            onClick={() => setShowHelp((prev) => !prev)}
-          >
-            <span>💡 Hint</span>
-            <span className={styles["help-arrow"]}>{showHelp ? "▴" : "▾"}</span>
-          </div>
-
-          {showHelp && (
-            <div 
-              className={styles["dialogue-terminal"]}
-              onClick={handleNextDialogue}
-            >
-              <div className={styles["terminal-line"]}>
-                <span className={styles["prompt"]}></span>
-                <span className={styles["dialogue-text"]}>
-                  {displayedText}
-                  <span className={styles["cursor"]}></span>
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

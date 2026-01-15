@@ -12,7 +12,7 @@
   position: relative;
   width: 100%;
   min-height: 350px;
-  background: url('/src/assets/python.gif') center/cover no-repeat;
+  background: url('https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,6 +277,8 @@
 }
 
 .status-icon.completed {
+  width: 50px;
+  height: 50px;
   color: #3CB371;
 }
 
@@ -416,11 +418,17 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .python-content {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
   }
 
   .sidebar {
-    position: static;
+    order: 1;
+    width: 100%;
+  }
+
+  .modules-section {
+    order: 2;
   }
 }
 

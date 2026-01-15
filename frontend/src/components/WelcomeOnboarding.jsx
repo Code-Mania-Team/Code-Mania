@@ -73,10 +73,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
     }
   };
 
-  const handleSkip = () => {
-    onComplete();
-  };
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -118,9 +114,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <button className={styles.skipButton} onClick={handleSkip}>
-            Skip
-          </button>
         </div>
 
         {/* Computer Mascot with Speech Bubble */}

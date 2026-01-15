@@ -28,16 +28,6 @@
   border-radius: 50%;
   filter: blur(60px);
   opacity: 0.6;
-  animation: float 15s infinite ease-in-out;
-}
-
-.circle1 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #7928CA 0%, #FF0080 100%);
-  top: 20%;
-  left: 10%;
-  animation-delay: 0s;
 }
 
 .circle2 {
@@ -46,7 +36,6 @@
   background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
   bottom: 20%;
   right: 15%;
-  animation-delay: 5s;
 }
 
 .circle3 {
@@ -55,7 +44,6 @@
   background: linear-gradient(135deg, #43C6AC 0%, #191654 100%);
   top: 50%;
   right: 25%;
-  animation-delay: 10s;
 }
 
 @keyframes float {
@@ -79,18 +67,44 @@ body, html {
 /* Welcome Section */
 .welcome-section {
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px 20px;
+  margin: 24px auto 0;
+  margin-bottom: 20px;
+  padding: 32px 28px;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 20px;
   box-sizing: border-box;
+  border-radius: 18px;
+  min-height: 170px;
+  background-image: url('https://res.cloudinary.com/daegpuoss/image/upload/v1768368770/dashboard-banner_fdq9ja.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.welcome-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(10, 14, 39, 0.15) 0%,
+    rgba(10, 14, 39, 0.35) 40%,
+    rgba(10, 14, 39, 0.55) 100%
+  );
+  pointer-events: none;
 }
 
 .robot-icon {
   position: relative;
   top: 10px;
   font-size: 48px;
+  z-index: 1;
 }
 
 @keyframes float {
@@ -109,6 +123,90 @@ body, html {
   padding: 20px 30px;
   font-size: 18px;
   position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.welcomeFirstWrapper {
+  max-width: 1200px;
+  margin: 24px auto 0;
+  padding: 40px 20px 60px;
+  display: flex;
+  justify-content: center;
+}
+
+.welcomeFirstCard {
+  width: 100%;
+  max-width: 720px;
+  background: rgba(20, 30, 50, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  padding: 48px 28px;
+  text-align: center;
+}
+
+.welcomeFirstSprite {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.welcomeFirstSpriteImg {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+}
+
+.welcomeFirstTitle {
+  margin: 0 0 12px;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.welcomeFirstSubtitle {
+  margin: 0 0 28px;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.getStartedBtn {
+  padding: 14px 28px;
+  background: #2196F3;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.getStartedBtn:hover {
+  background: #1976D2;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(33, 150, 243, 0.35);
+}
+
+.welcomeFirstCardInline {
+  background: rgba(20, 30, 50, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 36px 24px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 475px;
+  position: relative;
+  top: 50px;
+}
+
+.welcomeFirstCardInline .getStartedBtn {
+  min-width: 180px;
 }
 
 /* Main Content */
@@ -175,6 +273,7 @@ body, html {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 20px;
+  margin-top: 10px;
   backdrop-filter: blur(10px);
 }
 
@@ -245,9 +344,12 @@ body, html {
 }
 
 .course-name {
-  font-size: 36px;
-  font-weight: bold;
+  font-size: 26px;
+  font-weight: 400;
   margin: 0;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  color: var(--course-accent, #ffffff);
+  line-height: 1.25;
 }
 
 .next-exercise {
@@ -280,28 +382,11 @@ body, html {
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
-.view-course-btn {
-  padding: 15px 30px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.view-course-btn:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.05);
-}
-
 /* Right Section */
 .right-section {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  padding-top: 20px;
 }
 
 /* Profile Card */

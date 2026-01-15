@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link 
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
-import Community from "./pages/Community";
+import FreedomWall from "./pages/FreedomWall";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -15,6 +15,7 @@ import JavaScriptExercise from "./pages/JavaScriptExercise";
 import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
+import WelcomeOnboarding from "./components/WelcomeOnboarding";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -45,7 +46,7 @@ const Home = () => (
         <Link to="/learn/python" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/python.gif" alt="Python" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif" alt="Python" className="language-img" />
             </div>
             <h4>Python</h4>
             <p className="language-description">Versatile and beginner-friendly</p>
@@ -55,7 +56,7 @@ const Home = () => (
         <Link to="/learn/cpp" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/c++.gif" alt="C++" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif" alt="C++" className="language-img" />
             </div>
             <h4>C++</h4>
             <p className="language-description">High-performance programming</p>
@@ -65,7 +66,7 @@ const Home = () => (
         <Link to="/learn/javascript" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/javascript.gif" alt="JavaScript" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif" alt="JavaScript" className="language-img" />
             </div>
             <h4>JavaScript</h4>
             <p className="language-description">Web development powerhouse</p>
@@ -85,7 +86,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/learntocode.gif" alt="Learn to code" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/learntocode_yhnfkd.gif" alt="Learn to code" />
         </div>
       </div>
 
@@ -99,7 +100,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/chill.gif" alt="Chill coding" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/chill_jnydvb.gif" alt="Chill coding" />
         </div>
       </div>
 
@@ -112,7 +113,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/117.gif" alt="Coding challenge" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/117_jycate.gif" alt="Coding challenge" />
         </div>
       </div>
     </section>
@@ -125,6 +126,7 @@ function App() {
     // Initialize from localStorage if available
     return localStorage.getItem('isAuthenticated') === 'true';
   });
+  const [isNewUser, setIsNewUser] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -171,9 +173,9 @@ function App() {
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
-          <Route path="/community" element={<Community />} />
+          <Route path="/freedomwall" element={<FreedomWall />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<Profile onSignOut={() => setIsAuthenticated(false)} />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </main>
@@ -183,12 +185,34 @@ function App() {
       <SignInModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        onSignInSuccess={() => {
+        onSignInSuccess={(isNew) => {
           setIsAuthenticated(true);
           setIsModalOpen(false);
-          navigate('/dashboard');
+          if (isNew) {
+            setIsNewUser(true);
+            navigate('/welcome');
+          } else {
+            navigate('/dashboard');
+          }
         }}
       />
+      
+      {isAuthenticated && isNewUser && (
+        <Routes>
+          <Route 
+            path="/welcome" 
+            element={
+              <WelcomeOnboarding 
+                onComplete={() => {
+                  setIsNewUser(false);
+                  localStorage.setItem('hasCompletedOnboarding', 'true');
+                  navigate('/dashboard');
+                }} 
+              />
+            } 
+          />
+        </Routes>
+      )}
     </div>
   );
 }
