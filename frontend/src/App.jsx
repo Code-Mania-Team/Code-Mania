@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link, Navigate } from "react-router-dom";
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
@@ -130,6 +130,13 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const handleSignOut = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    setIsAuthenticated(false);
+    navigate('/');
+  };
+
   // Update localStorage when isAuthenticated changes
   useEffect(() => {
     localStorage.setItem('isAuthenticated', isAuthenticated);
@@ -148,14 +155,14 @@ function App() {
         <Header 
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
-          onSignOut={() => setIsAuthenticated(false)}
+          onSignOut={handleSignOut}
         />
       )}
       <ScrollToTop />
 
       <main className="main-content">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Home />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/python" element={<PythonCourse />} />
           <Route 
@@ -175,8 +182,8 @@ function App() {
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
           <Route path="/freedomwall" element={<FreedomWall />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile onSignOut={() => setIsAuthenticated(false)} />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route path="/dashboard" element={<Dashboard isAuthenticated={isAuthenticated} onSignOut={handleSignOut} />} />
         </Routes>
       </main>
 

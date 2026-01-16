@@ -20,6 +20,9 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseName) => {
+    localStorage.setItem('hasTouchedCourse', 'true');
+    localStorage.setItem('lastCourseTitle', 'JavaScript');
+    localStorage.setItem('lastCourseRoute', '/learn/javascript');
     const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
     navigate(`/learn/javascript/exercise/${moduleId}-${exerciseId}`);
   };

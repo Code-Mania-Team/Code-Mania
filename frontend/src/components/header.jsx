@@ -9,6 +9,8 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  const homePath = isAuthenticated ? '/dashboard' : '/';
+
   const handleProfileClick = () => {
     navigate('/profile');
     setIsMenuOpen(false);
@@ -21,8 +23,10 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   return (
     <header className="header">
       <div className="logo">
-        <img src={crown} alt="Code Mania Logo" />
-        <h1 className="logo-text"><NavLink to="/" onClick={() => setIsMenuOpen(false)}>Code Mania</NavLink></h1>
+        <NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>
+          <img src={crown} alt="Code Mania Logo" />
+        </NavLink>
+        <h1 className="logo-text"><NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>Code Mania</NavLink></h1>
       </div>
 
       <button 
@@ -38,7 +42,7 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
       </button>
 
       <nav className={`nav ${isMenuOpen ? 'is-active' : ''}`}>
-        <NavLink to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>HOME</NavLink>
+        <NavLink to={homePath} className="nav-link" onClick={() => setIsMenuOpen(false)}>HOME</NavLink>
 
         <div className="nav-dropdown">
           <NavLink to="/learn" className="nav-link" onClick={() => setIsMenuOpen(false)}>LEARN</NavLink>

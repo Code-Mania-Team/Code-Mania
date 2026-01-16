@@ -89,6 +89,9 @@ const CppCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
+    localStorage.setItem('hasTouchedCourse', 'true');
+    localStorage.setItem('lastCourseTitle', 'C++');
+    localStorage.setItem('lastCourseRoute', '/learn/cpp');
     navigate(`/learn/cpp/exercise/${moduleId}/${exerciseId}`);
   };
 

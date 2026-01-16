@@ -20,6 +20,9 @@ const PythonCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseName) => {
+    localStorage.setItem('hasTouchedCourse', 'true');
+    localStorage.setItem('lastCourseTitle', 'Python');
+    localStorage.setItem('lastCourseRoute', '/learn/python');
     const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
     navigate(`/learn/python/exercise/${moduleId}-${exerciseId}`);
   };

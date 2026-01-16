@@ -12,40 +12,6 @@
   z-index: 1;
 }
 
-/* Animated Background Circles */
-.circles {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1;
-}
-
-.circle {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.6;
-}
-
-.circle2 {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
-  bottom: 20%;
-  right: 15%;
-}
-
-.circle3 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #43C6AC 0%, #191654 100%);
-  top: 50%;
-  right: 25%;
-}
-
 @keyframes float {
   0%, 100% {
     transform: translateY(0) scale(1);
@@ -64,30 +30,22 @@ body, html {
   overflow-x: hidden;
 }
 
-/* Welcome Section */
-.welcome-section {
-  max-width: 1200px;
-  margin: 24px auto 0;
-  margin-bottom: 20px;
-  padding: 32px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 20px;
-  box-sizing: border-box;
-  border-radius: 18px;
-  min-height: 170px;
+.welcomeHero {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
   background-image: url('https://res.cloudinary.com/daegpuoss/image/upload/v1768368770/dashboard-banner_fdq9ja.png');
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
   overflow: hidden;
-  width: 100%;
 }
 
-.welcome-section::before {
+.welcomeHero::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -98,6 +56,88 @@ body, html {
     rgba(10, 14, 39, 0.55) 100%
   );
   pointer-events: none;
+  z-index: 1;
+}
+
+.welcomeHeroInner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* Welcome Section */
+.welcome-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+  box-sizing: border-box;
+  min-height: 170px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.welcomeBannerInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+}
+
+.welcomeComputer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.welcomeComputerImg {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
+}
+
+.welcomeBannerText {
+  flex: 1;
+  min-width: 0;
+  padding: 22px 28px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 88% 45%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 40%),
+    linear-gradient(
+      90deg,
+      rgba(92, 84, 255, 0.42) 0%,
+      rgba(76, 61, 230, 0.38) 55%,
+      rgba(46, 35, 176, 0.32) 100%
+    );
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 32px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+}
+
+.welcomeBannerTitle {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  line-height: 1.15;
+}
+
+.welcomeBannerSubtitle {
+  margin-top: 6px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .robot-icon {
@@ -230,12 +270,21 @@ body, html {
   
   .welcome-section {
     padding: 30px 15px 20px;
-    flex-direction: column;
     text-align: center;
   }
-  
-  .robot-icon {
-    margin-bottom: 10px;
+
+  .welcomeBannerInner {
+    flex-direction: column;
+  }
+
+  .welcomeComputerImg {
+    width: 110px;
+  }
+
+  .welcomeBannerText {
+    border-radius: 22px;
+    width: 100%;
+    max-width: 720px;
   }
 }
 
@@ -258,13 +307,13 @@ body, html {
 .left-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
 .section-title {
   font-size: 28px;
   font-weight: 300;
-  margin-bottom: 10px;
+  margin-top: 30px;
+  font-family: 'Jersey 25';
 }
 
 /* Course Card */

@@ -107,20 +107,36 @@ const Dashboard = () => {
         onSignOut={handleSignOut}
       />
       {/* Animated Background Circles */}
-      <div className={styles.circles}>
-        <div className={`${styles.circle} ${styles.circle1}`}></div>
-        <div className={`${styles.circle} ${styles.circle2}`}></div>
-        <div className={`${styles.circle} ${styles.circle3}`}></div>
-      </div>
+      {styles.circles && (
+        <div className={styles.circles}>
+          <div className={`${styles.circle} ${styles.circle1}`}></div>
+          <div className={`${styles.circle} ${styles.circle2}`}></div>
+          <div className={`${styles.circle} ${styles.circle3}`}></div>
+        </div>
+      )}
  
-      <div className={styles['welcome-section']}>
-        <div className={styles['robot-icon']}>
-          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" alt="Computer" style={{ width: '60px', height: '60px' }} />
+      <section className={styles.welcomeHero}>
+        <div className={styles.welcomeHeroInner}>
+          <div className={styles['welcome-section']}>
+            <div className={styles.welcomeBannerInner}>
+              <div className={styles.welcomeComputer}>
+                <img
+                  src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png"
+                  alt="Computer"
+                  className={styles.welcomeComputerImg}
+                />
+              </div>
+
+              <div className={styles.welcomeBannerText}>
+                <div className={styles.welcomeBannerTitle}>Everything is under CTRL</div>
+                <div className={styles.welcomeBannerSubtitle}>
+                  Hi @{userStats.name}! We've been waiting for you.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className={styles['speech-bubble']}>
-          Hi @{userStats.name}! We've been waiting for you.
-        </div>
-      </div>
+      </section>
 
       <div className={styles['main-content']}>
         <div className={styles['left-section']}>
