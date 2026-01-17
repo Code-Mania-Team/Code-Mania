@@ -64,13 +64,15 @@ print("Hello, World!")`);
   };
 
   const handleSignInSuccess = () => {
+    localStorage.setItem('isAuthenticated', 'true');
+    window.dispatchEvent(new Event('authchange'));
     handleCloseModal();
   };
 
   return (
     <div className={styles["python-exercise-page"]}>
       <div className={styles["scroll-background"]}></div>
-      <Header onOpenModal={isAuthenticated ? null : handleOpenModal} />
+      <Header isAuthenticated={isAuthenticated} onOpenModal={isAuthenticated ? null : handleOpenModal} />
 
       {isSignInModalOpen && (
         <SignInModal
