@@ -2,26 +2,45 @@ export default class MapLoader {
   constructor(scene) {
     this.scene = scene;
     this.map = null;
-    this.tileset = null;
     this.layers = {};
+    this.tilesets = [];
+    this.collisionLayers = [];
   }
 
-  load(mapKey, mapJsonPath, tilesetKey, tilesetPath) {
+  load(mapKey, mapJsonPath, tilesets) {
     this.scene.load.tilemapTiledJSON(mapKey, mapJsonPath);
-    this.scene.load.image(tilesetKey, tilesetPath);
+
+    tilesets.forEach(ts => {
+      this.scene.load.image(ts.key, ts.image);
+    });
   }
 
-  create(mapKey, tilesetNameInTiled, tilesetKey) {
+  create(mapKey, tilesets) {
     this.map = this.scene.make.tilemap({ key: mapKey });
-    this.tileset = this.map.addTilesetImage(tilesetNameInTiled, tilesetKey);
 
-    // Create layers dynamically
+    this.tilesets = tilesets.map(ts =>
+      this.map.addTilesetImage(ts.name, ts.key)
+    );
+
     this.map.layers.forEach(layerData => {
-      const layer = this.map.createLayer(layerData.name, this.tileset, 0, 0);
+      const layer = this.map.createLayer(
+        layerData.name,
+        this.tilesets,
+        0,
+        0
+      );
+
+      // 🔥 AUTO COLLISION BASED ON TILE PROPERTY
+      layer.setCollisionByProperty({ collision: true });
+
       this.layers[layerData.name] = layer;
 
-      // If layer has tiles with "collision" property, set collisions
-      layer.setCollisionByProperty({ collision: true });
+      // Track layers that actually have collision
+      if (layer.layer.data.some(row =>
+        row.some(tile => tile?.properties?.collision)
+      )) {
+        this.collisionLayers.push(layer);
+      }
     });
   }
 }

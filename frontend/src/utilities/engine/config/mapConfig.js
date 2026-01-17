@@ -1,31 +1,16 @@
 export const MAPS = {
   map1: {
     mapKey: "map1",
-    mapJson: "/assets/maps/map1.json",
-    tilesetName: "Tileset - Copy",
-    tilesetKey: "Tileset - Copy",
-    tilesetImage: "/assets/tilesets/Tileset - Copy.png",
-    start: { x: 32, y: 32 },
+    mapJson: "/assets/maps/Python/map1.json",
+
+    tilesets: [
+      { name: "A1", key: "A1", image: "/assets/tilesets/Python/A1.png" },
+      { name: "A2", key: "A2", image: "/assets/tilesets/Python/A2.png" },
+      { name: "B_4", key: "B_4", image: "/assets/tilesets/Python/B_4.png" },
+      { name: "A5_4", key: "A5_4", image: "/assets/tilesets/Python/A5_4.png" },
+      { name: "C", key: "C", image: "/assets/tilesets/Python/C.png" }
+    ],
+
     nextMap: "map2"
-  },
-
-  map2: {
-    mapKey: "map2",
-    mapJson: "/assets/maps/map2.json",
-    tilesetName: "Tileset2",
-    tilesetKey: "Tileset2",
-    tilesetImage: "/assets/tilesets/Tileset2.png",
-    start: { x: 64, y: 64 },
-    nextMap: "map3"
-  },
-
-  map3: {
-    mapKey: "map3",
-    mapJson: "/assets/maps/map3.json",
-    tilesetName: "Tileset3",
-    tilesetKey: "Tileset3",
-    tilesetImage: "/assets/tilesets/Tileset3.png",
-    start: { x: 128, y: 128 },
-    nextMap: null
   }
 };

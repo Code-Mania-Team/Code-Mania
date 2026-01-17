@@ -2,6 +2,11 @@
   {
     "id": 1,
     "title": "Setting Up",
+    "dialogue": [
+    "Hey adventurer!",
+    "Before we begin your journey...",
+    "Let me teach you Python 🐍"
+    ],
     "lessonHeader": "🌐 Getting Started with Python",
     "description": "Install Python and set up your coding environment to run Python scripts.",
     "lessonExample": "print(\"Welcome to Python!\")",
