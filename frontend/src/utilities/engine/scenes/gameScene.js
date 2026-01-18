@@ -212,7 +212,13 @@ export default class GameScene extends Phaser.Scene {
           scroll.style.display = "block"; // or "block" depending on your layout
         }
 
-        this.questManager.triggerQuestFromNPC(questId);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("code-mania:dialogue-complete", {
+              detail: { questId }
+            })
+          );
+        }
       }
     );
   }

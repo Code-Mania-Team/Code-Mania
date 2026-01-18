@@ -311,11 +311,9 @@
 
 .scroll-container {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  max-width: 850px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -372,8 +370,10 @@
 }
 
 .scroll-image {
-  width: 1600px;
-  height: 950px;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
   display: block;
   image-rendering: pixelated; /* keeps the retro look */
 }
