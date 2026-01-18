@@ -5,9 +5,11 @@ import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
+import MobileControls from "../components/MobileControls";
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../utilities/engine/main.js";
 import pythonExercises from "../utilities/data/pythonExercises.json";
+import mobileFrame from "../assets/mobile.png";
 
 const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const { exerciseId } = useParams();
@@ -144,41 +146,55 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
           {/* === LEFT SIDE: Phaser Game === */}
           <div className={styles["game-container"]}>
             <div className={styles["game-preview"]}>
-              {/* Phaser mounts here */}
-              <div
-                id="phaser-container"
-                className={styles["game-scene"]}
-              >
-                {showScroll && (
-                  <div className={styles["scroll-container"]}>
-                    <img
-                      src="/src/assets/aseprites/scroll.png"
-                      alt="Scroll"
-                      className={styles["scroll-image"]}
-                    />
+              <div className={styles["mobile-frame"]}>
+                <img
+                  src={mobileFrame}
+                  alt="Mobile Frame"
+                  className={styles["mobile-frame-image"]}
+                />
 
-                    <div className={styles["scroll-content"]}>
-                      <h2>{activeExercise?.lessonHeader || "🐍 Python"}</h2>
-                      <p>{activeExercise?.description || ""}</p>
+                <div className={styles["mobile-controls"]}>
+                  <MobileControls />
+                </div>
 
-                      {Array.isArray(activeExercise?.hints) && activeExercise.hints.length > 0 && (
-                        <ul>
-                          {activeExercise.hints.map((hint, idx) => (
-                            <li key={idx}>{hint}</li>
-                          ))}
-                        </ul>
-                      )}
+                <div className={styles["mobile-screen"]}>
+                  {/* Phaser mounts here */}
+                  <div
+                    id="phaser-container"
+                    className={styles["game-scene"]}
+                  >
+                    {showScroll && (
+                      <div className={styles["scroll-container"]}>
+                        <img
+                          src="/src/assets/aseprites/scroll.png"
+                          alt="Scroll"
+                          className={styles["scroll-image"]}
+                        />
 
-                      {activeExercise?.lessonExample && (
-                        <div className={styles["code-example"]}>
-                          <pre>
-                            <code>{activeExercise.lessonExample}</code>
-                          </pre>
+                        <div className={styles["scroll-content"]}>
+                          <h2>{activeExercise?.lessonHeader || "🐍 Python"}</h2>
+                          <p>{activeExercise?.description || ""}</p>
+
+                          {Array.isArray(activeExercise?.hints) && activeExercise.hints.length > 0 && (
+                            <ul>
+                              {activeExercise.hints.map((hint, idx) => (
+                                <li key={idx}>{hint}</li>
+                              ))}
+                            </ul>
+                          )}
+
+                          {activeExercise?.lessonExample && (
+                            <div className={styles["code-example"]}>
+                              <pre>
+                                <code>{activeExercise.lessonExample}</code>
+                              </pre>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

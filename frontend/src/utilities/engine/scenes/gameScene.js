@@ -89,9 +89,56 @@ export default class GameScene extends Phaser.Scene {
 
     this.lastDirection = "down";
 
+    this.cursors = this.input.keyboard.createCursorKeys();
     this.interactKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.E
     );
+
+    this.mobileMove = { dx: 0, dy: 0 };
+    this.handleMobileMove = (event) => {
+      const dx = Number(event?.detail?.dx);
+      const dy = Number(event?.detail?.dy);
+
+      this.mobileMove = {
+        dx: Number.isFinite(dx) ? Math.max(-1, Math.min(1, dx)) : 0,
+        dy: Number.isFinite(dy) ? Math.max(-1, Math.min(1, dy)) : 0,
+      };
+    };
+
+    this.handleMobileAction = (event) => {
+      const action = event?.detail?.action;
+      if (action !== "interact") return;
+
+      if (this.dialogueManager?.active) {
+        this.dialogueManager.next();
+        return;
+      }
+
+      if (this.playerCanMove) {
+        this.tryInteractWithNPC();
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("code-mania:mobile-move", this.handleMobileMove);
+      window.addEventListener(
+        "code-mania:mobile-action",
+        this.handleMobileAction
+      );
+    }
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener(
+          "code-mania:mobile-move",
+          this.handleMobileMove
+        );
+        window.removeEventListener(
+          "code-mania:mobile-action",
+          this.handleMobileAction
+        );
+      }
+    });
 
     // 🔥 Managers
     this.dialogueManager = new DialogueManager(this);
@@ -144,31 +191,36 @@ export default class GameScene extends Phaser.Scene {
     this.dialogueManager.update();
     if (!this.playerCanMove) return;
 
-    const cursors = this.input.keyboard.createCursorKeys();
+    const cursors = this.cursors;
     const speed = 120;
-    this.player.setVelocity(0);
+    const dx = this.mobileMove?.dx || 0;
+    const dy = this.mobileMove?.dy || 0;
 
+    let velX = 0;
+    let velY = 0;
     let moving = false;
 
-    if (cursors.left.isDown) {
-      this.player.setVelocityX(-speed);
+    if (cursors.left.isDown || dx < 0) {
+      velX = -speed;
       this.lastDirection = "left";
       moving = true;
-    } else if (cursors.right.isDown) {
-      this.player.setVelocityX(speed);
+    } else if (cursors.right.isDown || dx > 0) {
+      velX = speed;
       this.lastDirection = "right";
       moving = true;
     }
 
-    if (cursors.up.isDown) {
-      this.player.setVelocityY(-speed);
+    if (cursors.up.isDown || dy < 0) {
+      velY = -speed;
       this.lastDirection = "up";
       moving = true;
-    } else if (cursors.down.isDown) {
-      this.player.setVelocityY(speed);
+    } else if (cursors.down.isDown || dy > 0) {
+      velY = speed;
       this.lastDirection = "down";
       moving = true;
     }
+
+    this.player.setVelocity(velX, velY);
 
     this.player.anims.play(
       moving
@@ -205,12 +257,6 @@ export default class GameScene extends Phaser.Scene {
       quest.dialogue,
       () => {
         this.playerCanMove = true;
-
-        // 🔹 Show the scroll with the quest info
-        const scroll = document.querySelector(".scroll-container");
-        if (scroll) {
-          scroll.style.display = "block"; // or "block" depending on your layout
-        }
 
         if (typeof window !== "undefined") {
           window.dispatchEvent(
