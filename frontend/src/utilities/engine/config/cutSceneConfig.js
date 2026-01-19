@@ -1,29 +1,43 @@
 export const CUTSCENES = {
-  map1_intro: (scene) => [
-    async () => {
-      const npc = scene.physics.add.sprite(100, 100, "player-left");
-      npc.setScale(scene.player.scaleX);
+  map1_intro: [
+    { type: "lockPlayer" },
 
-      npc.body.setSize(
-        npc.width * 0.6,
-        npc.height * 0.6,
-        true
-      );
+    { type: "cameraMove", x: 900, y: 250, duration: 3000 },
 
-      // collide with map
-      const foreground = scene.mapLoader.layers["Foreground"];
-      scene.physics.add.collider(npc, foreground);
+    {
+      type: "dialogue",
+      lines: [
+        "This is Codemania.",
+        "A land once shaped by logic, order, and clean syntax.",
+        "Every mountain was an algorithm.",
+        "Every river flowed with data."
+      ]
+    },
 
-      scene.npc = npc;
+    { type: "cameraMove", x: 600, y: 500, duration: 2500 },
+
+    {
+      type: "dialogue",
+      lines: [
+        "But after the Great Runtime Crash...",
+        "The code fractured.",
+        "Bugs crawled into the land, and errors became law."
+      ]
     },
-    async () => {
-      await scene.cutscene.moveNPC(scene.npc, scene.player.x - 40, scene.player.y);
+
+    { type: "cameraMove", x: 400, y: 700, duration: 2000 },
+
+    {
+      type: "dialogue",
+      lines: [
+        "You were once its greatest coder.",
+        "Now, your memory lies scattered across this world.",
+        "To restore Codemania...",
+        "You must first restore yourself."
+      ]
     },
-    async () => {
-      await scene.cutscene.showDialogue("Hey! Welcome to Map 1! Let's get this journey started 😎✨");
-    },
-    async () => {
-      await scene.cutscene.showDialogue("Press SPACE to continue playing!");
-    }
+
+    { type: "cameraFollowPlayer" },
+    { type: "unlockPlayer" }
   ]
 };

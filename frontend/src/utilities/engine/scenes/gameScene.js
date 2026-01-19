@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import MapLoader from "../MapLoader";
 import { MAPS } from "../config/mapConfig";
-import DialogueManager from "../systems/dialogueManager";
 import QuestManager from "../systems/questManager";
+import DialogueManager from "../systems/dialogueManager";
+import CutsceneManager from "../systems/cutSceneManager";
+import { CUTSCENES } from "../config/cutSceneConfig";
 import quests from "../../data/pythonExercises.json";
 
 export default class GameScene extends Phaser.Scene {
@@ -11,8 +13,14 @@ export default class GameScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.currentMapId = data.mapId || "map1";
+    // ⚠️ MUST MATCH cutscene key: map1_intro
+    this.currentMapId = data?.mapId || "map1";
     this.mapData = MAPS[this.currentMapId];
+
+    if (!this.mapData) {
+      console.error("❌ Map not found:", this.currentMapId);
+    }
+
     this.playerCanMove = true;
   }
 
@@ -27,59 +35,58 @@ export default class GameScene extends Phaser.Scene {
     ["down", "up", "left", "right"].forEach(dir => {
       this.load.spritesheet(`player-${dir}`, `/assets/walk${dir}-Sheet.png`, {
         frameWidth: 48,
-        frameHeight: 48
+        frameHeight: 48,
       });
     });
 
     this.load.spritesheet("npc-villager", "/assets/npcs/npc1.png", {
       frameWidth: 48,
-      frameHeight: 48
+      frameHeight: 48,
     });
   }
 
   create() {
+    // 🗺 Map
     this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesets);
-
     this.textures.each(t =>
       t.setFilter(Phaser.Textures.FilterMode.NEAREST)
     );
+
     this.cameras.main.roundPixels = true;
 
+    // 🎞 Player animations
     ["down", "up", "left", "right"].forEach(dir => {
       this.anims.create({
         key: `walk-${dir}`,
-        frames: this.anims.generateFrameNumbers(`player-${dir}`, {
-          start: 0,
-          end: 3
-        }),
+        frames: this.anims.generateFrameNumbers(`player-${dir}`, { start: 0, end: 3 }),
         frameRate: 10,
-        repeat: -1
+        repeat: -1,
       });
 
       this.anims.create({
         key: `idle-${dir}`,
-        frames: [{ key: `player-${dir}`, frame: 0 }]
+        frames: [{ key: `player-${dir}`, frame: 0 }],
       });
     });
 
+    // 🧍 Player spawn
     const spawn = this.getSpawnPoint("player_spawn");
-    this.player = this.physics.add.sprite(
-      spawn.x,
-      spawn.y,
-      "player-down"
-    );
+    this.player = this.physics.add.sprite(spawn.x, spawn.y, "player-down");
     this.player.body.setSize(48, 48);
     this.player.setCollideWorldBounds(true);
 
+    // 🧱 Collisions
     this.mapLoader.collisionLayers.forEach(layer => {
       this.physics.add.collider(this.player, layer);
     });
 
+    // 🧑 NPCs
     this.spawnNPCs();
-    this.npcs.forEach(npc =>
-      this.physics.add.collider(this.player, npc)
-    );
+    this.npcs.forEach(npc => {
+      this.physics.add.collider(this.player, npc);
+    });
 
+    // 🌍 World bounds & camera
     const w = this.mapLoader.map.widthInPixels;
     const h = this.mapLoader.map.heightInPixels;
 
@@ -89,60 +96,41 @@ export default class GameScene extends Phaser.Scene {
 
     this.lastDirection = "down";
 
+    // ⌨ Controls
     this.cursors = this.input.keyboard.createCursorKeys();
     this.interactKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.E
     );
 
-    this.mobileMove = { dx: 0, dy: 0 };
-    this.handleMobileMove = (event) => {
-      const dx = Number(event?.detail?.dx);
-      const dy = Number(event?.detail?.dy);
-
-      this.mobileMove = {
-        dx: Number.isFinite(dx) ? Math.max(-1, Math.min(1, dx)) : 0,
-        dy: Number.isFinite(dy) ? Math.max(-1, Math.min(1, dy)) : 0,
-      };
-    };
-
-    this.handleMobileAction = (event) => {
-      const action = event?.detail?.action;
-      if (action !== "interact") return;
-
-      if (this.dialogueManager?.active) {
-        this.dialogueManager.next();
-        return;
-      }
-
-      if (this.playerCanMove) {
-        this.tryInteractWithNPC();
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("code-mania:mobile-move", this.handleMobileMove);
-      window.addEventListener(
-        "code-mania:mobile-action",
-        this.handleMobileAction
-      );
-    }
-
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener(
-          "code-mania:mobile-move",
-          this.handleMobileMove
-        );
-        window.removeEventListener(
-          "code-mania:mobile-action",
-          this.handleMobileAction
-        );
-      }
-    });
-
-    // 🔥 Managers
-    this.dialogueManager = new DialogueManager(this);
+    // 🧠 Systems
     this.questManager = new QuestManager(this, quests);
+    this.dialogueManager = new DialogueManager(this);
+    this.cutsceneManager = new CutsceneManager(this);
+
+    // 🎬 Intro cutscene
+    this.playIntroCutscene();
+  }
+
+  // 🎬 INTRO CUTSCENE
+  playIntroCutscene() {
+    const key = `${this.currentMapId}_intro`;
+    const cutscene = CUTSCENES[key];
+
+    console.log("🎬 Cutscene key:", key);
+    console.log("🎬 Cutscene data:", cutscene);
+
+    if (!cutscene) return;
+
+    // ❗ Disable while testing
+    // if (localStorage.getItem(`cutscene_${key}`)) return;
+
+    this.time.delayedCall(500, async () => {
+      console.log("▶ Starting cutscene");
+      await this.cutsceneManager.play(cutscene);
+      console.log("▶ Cutscene finished");
+
+      localStorage.setItem(`cutscene_${key}`, "true");
+    });
   }
 
   spawnNPCs() {
@@ -166,8 +154,6 @@ export default class GameScene extends Phaser.Scene {
 
         npc.body.setSize(48, 48);
         npc.body.immovable = true;
-
-        // ✅ FIXED: questId naming
         npc.npcData = {
           questId: Number(props.quest_id)
         };
@@ -179,55 +165,48 @@ export default class GameScene extends Phaser.Scene {
   getSpawnPoint(name) {
     const layer = this.mapLoader.map.getObjectLayer("spawn");
     const obj = layer?.objects.find(o => o.name === name);
-    if (!obj) return { x: 100, y: 100 };
 
-    return {
-      x: obj.x + obj.width / 2,
-      y: obj.y - obj.height / 2
-    };
+    return obj
+      ? { x: obj.x + obj.width / 2, y: obj.y - obj.height / 2 }
+      : { x: 100, y: 100 };
   }
 
   update() {
-    this.dialogueManager.update();
-    if (!this.playerCanMove) return;
+    if (!this.playerCanMove) {
+      this.player.setVelocity(0);
+      return;
+    }
 
-    const cursors = this.cursors;
     const speed = 120;
-    const dx = this.mobileMove?.dx || 0;
-    const dy = this.mobileMove?.dy || 0;
+    this.player.setVelocity(0);
 
-    let velX = 0;
-    let velY = 0;
     let moving = false;
 
-    if (cursors.left.isDown || dx < 0) {
-      velX = -speed;
+    if (this.cursors.left.isDown) {
+      this.player.setVelocityX(-speed);
       this.lastDirection = "left";
       moving = true;
-    } else if (cursors.right.isDown || dx > 0) {
-      velX = speed;
+    } else if (this.cursors.right.isDown) {
+      this.player.setVelocityX(speed);
       this.lastDirection = "right";
       moving = true;
     }
 
-    if (cursors.up.isDown || dy < 0) {
-      velY = -speed;
+    if (this.cursors.up.isDown) {
+      this.player.setVelocityY(-speed);
       this.lastDirection = "up";
       moving = true;
-    } else if (cursors.down.isDown || dy > 0) {
-      velY = speed;
+    } else if (this.cursors.down.isDown) {
+      this.player.setVelocityY(speed);
       this.lastDirection = "down";
       moving = true;
     }
 
-    this.player.setVelocity(velX, velY);
+    const anim = moving
+      ? `walk-${this.lastDirection}`
+      : `idle-${this.lastDirection}`;
 
-    this.player.anims.play(
-      moving
-        ? `walk-${this.lastDirection}`
-        : `idle-${this.lastDirection}`,
-      true
-    );
+    this.player.anims.play(anim, true);
 
     if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
       this.tryInteractWithNPC();
@@ -236,37 +215,28 @@ export default class GameScene extends Phaser.Scene {
 
   tryInteractWithNPC() {
     const npc = this.npcs.find(n =>
-      Phaser.Math.Distance.Between(
-        this.player.x,
-        this.player.y,
-        n.x,
-        n.y
-      ) <= 50
+      Phaser.Math.Distance.Between(this.player.x, this.player.y, n.x, n.y) <= 50
     );
-
     if (!npc) return;
 
     const questId = npc.npcData.questId;
     const quest = this.questManager.getQuestById(questId);
     if (!quest) return;
 
+    // Lock player
     this.playerCanMove = false;
 
-    // 💬 Dialogue FIRST → then quest + show scroll
-    this.dialogueManager.startDialogue(
-      quest.dialogue,
-      () => {
+    // Start quest dialogue via DialogueManager
+    if (quest.dialogue && quest.dialogue.length > 0) {
+      this.dialogueManager.startDialogue(quest.dialogue, () => {
+        // After dialogue ends, start quest
+        this.questManager.startQuest(questId);
         this.playerCanMove = true;
-
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("code-mania:dialogue-complete", {
-              detail: { questId }
-            })
-          );
-        }
-      }
-    );
+      });
+    } else {
+      // No dialogue → start quest immediately
+      this.questManager.startQuest(questId);
+      this.playerCanMove = true;
+    }
   }
-
 }

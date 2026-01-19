@@ -4,16 +4,22 @@ export default class DialogueManager {
     this.index = 0;
     this.active = false;
 
-    this.box = scene.add.rectangle(400, 520, 760, 120, 0x000000, 0.8)
+    const { width, height } = scene.scale;
+
+    // RPG-style text box
+    this.box = scene.add.rectangle(width / 2, height - 120, width * 0.8, 120, 0x000000, 0.85)
       .setScrollFactor(0)
       .setDepth(100)
-      .setVisible(false);
+      .setVisible(false)
+      .setStrokeStyle(3, 0xffffff);
 
-    this.text = scene.add.text(60, 480, "", {
-      fontSize: "16px",
-      color: "#fff",
-      wordWrap: { width: 680 }
+    this.text = scene.add.text(width / 2, height - 120, "", {
+      font: "22px Georgia",
+      fill: "#ffffff",
+      align: "center",
+      wordWrap: { width: width * 0.7 }
     })
+      .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(101)
       .setVisible(false);
@@ -24,6 +30,11 @@ export default class DialogueManager {
   }
 
   startDialogue(lines, onComplete) {
+    if (!lines || lines.length === 0) {
+      onComplete?.();
+      return;
+    }
+
     this.lines = lines;
     this.index = 0;
     this.onComplete = onComplete;
@@ -49,6 +60,4 @@ export default class DialogueManager {
     this.active = false;
     this.onComplete?.();
   }
-
-  update() {}
 }
