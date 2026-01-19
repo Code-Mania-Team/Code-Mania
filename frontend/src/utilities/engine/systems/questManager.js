@@ -2,6 +2,7 @@ export default class QuestManager {
   constructor(scene, quests) {
     this.scene = scene;
     this.quests = quests;
+    this.activeQuest = null;
   }
 
   getQuestById(id) {
@@ -10,7 +11,12 @@ export default class QuestManager {
 
   startQuest(id) {
     const quest = this.getQuestById(id);
+    if (!quest) return;
+
+    this.activeQuest = quest;
     console.log("🚀 QUEST STARTED:", quest.title);
-    // hook UI / editor / terminal here
+
+    // Optional: you can trigger cinematic cutscenes here if needed
+    // e.g., this.scene.cutsceneManager.play(quest.cutscene);
   }
 }

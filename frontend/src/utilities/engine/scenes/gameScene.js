@@ -1,6 +1,11 @@
 import Phaser from "phaser";
 import MapLoader from "../MapLoader";
 import { MAPS } from "../config/mapConfig";
+import QuestManager from "../systems/questManager";
+import DialogueManager from "../systems/dialogueManager";
+import CutsceneManager from "../systems/cutSceneManager";
+import { CUTSCENES } from "../config/cutSceneConfig";
+import quests from "../../data/pythonExercises.json";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -8,147 +13,230 @@ export default class GameScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.currentMapId = data.mapId || "map1";
+    // ⚠️ MUST MATCH cutscene key: map1_intro
+    this.currentMapId = data?.mapId || "map1";
     this.mapData = MAPS[this.currentMapId];
+
+    if (!this.mapData) {
+      console.error("❌ Map not found:", this.currentMapId);
+    }
+
+    this.playerCanMove = true;
   }
 
   preload() {
     this.mapLoader = new MapLoader(this);
-
-    // Load map
     this.mapLoader.load(
       this.mapData.mapKey,
       this.mapData.mapJson,
-      this.mapData.tilesetKey,
-      this.mapData.tilesetImage
+      this.mapData.tilesets
     );
 
-    // Load directional player spritesheets
-    this.load.spritesheet("player-down", "/assets/walkdown-Sheet.png", { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet("player-up", "/assets/walkup-Sheet.png", { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet("player-left", "/assets/walkleft-Sheet.png", { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet("player-right", "/assets/walkright-Sheet.png", { frameWidth: 32, frameHeight: 32 });
+    ["down", "up", "left", "right"].forEach(dir => {
+      this.load.spritesheet(`player-${dir}`, `/assets/walk${dir}-Sheet.png`, {
+        frameWidth: 48,
+        frameHeight: 48,
+      });
+    });
+
+    this.load.spritesheet("npc-villager", "/assets/npcs/npc1.png", {
+      frameWidth: 48,
+      frameHeight: 48,
+    });
   }
 
   create() {
-    // Create map
-    this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesetName, this.mapData.tilesetKey);
+    // 🗺 Map
+    this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesets);
+    this.textures.each(t =>
+      t.setFilter(Phaser.Textures.FilterMode.NEAREST)
+    );
 
-    // Pixel-perfect
-    this.textures.each((t) => t.setFilter(Phaser.Textures.FilterMode.NEAREST));
     this.cameras.main.roundPixels = true;
 
-    // Collision layer
-    const foreground = this.mapLoader.layers["Foreground"];
-    if (foreground) foreground.setCollisionByProperty({ collision: true });
-
-    // Animations
-    const directions = ["down", "up", "left", "right"];
-    directions.forEach((dir) => {
+    // 🎞 Player animations
+    ["down", "up", "left", "right"].forEach(dir => {
       this.anims.create({
         key: `walk-${dir}`,
         frames: this.anims.generateFrameNumbers(`player-${dir}`, { start: 0, end: 3 }),
         frameRate: 10,
         repeat: -1,
       });
+
       this.anims.create({
         key: `idle-${dir}`,
         frames: [{ key: `player-${dir}`, frame: 0 }],
-        frameRate: 1,
       });
     });
 
-    // Player spawn
-    this.player = this.physics.add.sprite(this.mapData.start.x, this.mapData.start.y, "player-down", 0);
+    // 🧍 Player spawn
+    const spawn = this.getSpawnPoint("player_spawn");
+    this.player = this.physics.add.sprite(spawn.x, spawn.y, "player-down");
+    this.player.body.setSize(48, 48);
     this.player.setCollideWorldBounds(true);
 
-    // Shrink player hitbox for tighter collisions
-    this.player.body.setSize(this.player.width * 0.6, this.player.height * 0.6, true);
+    // 🧱 Collisions
+    this.mapLoader.collisionLayers.forEach(layer => {
+      this.physics.add.collider(this.player, layer);
+    });
 
-    // Collider
-    this.physics.add.collider(this.player, foreground);
+    // 🧑 NPCs
+    this.spawnNPCs();
+    this.npcs.forEach(npc => {
+      this.physics.add.collider(this.player, npc);
+    });
 
-    // Camera follow
+    // 🌍 World bounds & camera
+    const w = this.mapLoader.map.widthInPixels;
+    const h = this.mapLoader.map.heightInPixels;
+
+    this.physics.world.setBounds(0, 0, w, h);
+    this.cameras.main.setBounds(0, 0, w, h);
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
-    // Track last direction
     this.lastDirection = "down";
 
-    // Initial scale
-    this.updateScale(this.scale.width, this.scale.height);
+    // ⌨ Controls
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.interactKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.E
+    );
 
-    // Map switching
-    this.events.on("exerciseComplete", () => {
-      if (this.mapData.nextMap) {
-        this.scene.start("GameScene", { mapId: this.mapData.nextMap });
-      }
+    // 🧠 Systems
+    this.questManager = new QuestManager(this, quests);
+    this.dialogueManager = new DialogueManager(this);
+    this.cutsceneManager = new CutsceneManager(this);
+
+    // 🎬 Intro cutscene
+    this.playIntroCutscene();
+  }
+
+  // 🎬 INTRO CUTSCENE
+  playIntroCutscene() {
+    const key = `${this.currentMapId}_intro`;
+    const cutscene = CUTSCENES[key];
+
+    console.log("🎬 Cutscene key:", key);
+    console.log("🎬 Cutscene data:", cutscene);
+
+    if (!cutscene) return;
+
+    // ❗ Disable while testing
+    // if (localStorage.getItem(`cutscene_${key}`)) return;
+
+    this.time.delayedCall(500, async () => {
+      console.log("▶ Starting cutscene");
+      await this.cutsceneManager.play(cutscene);
+      console.log("▶ Cutscene finished");
+
+      localStorage.setItem(`cutscene_${key}`, "true");
     });
   }
 
-  updateScale(w, h) {
-    if (!this.mapLoader.map || !this.mapLoader.layers) return;
+  spawnNPCs() {
+    const layer = this.mapLoader.map.getObjectLayer("spawn");
+    if (!layer) return;
 
-    const layers = Object.values(this.mapLoader.layers);
-    const mapWidth = this.mapLoader.map.widthInPixels;
-    const mapHeight = this.mapLoader.map.heightInPixels;
-    const scale = Math.max(w / mapWidth, h / mapHeight);
+    this.npcs = [];
 
-    // Scale visual layers
-    layers.forEach((layer) => layer.setScale(scale));
+    layer.objects
+      .filter(o => o.name === "npc_spawn")
+      .forEach(obj => {
+        const props = Object.fromEntries(
+          (obj.properties || []).map(p => [p.name, p.value])
+        );
 
-    // Scale player
-    if (this.player) {
-      this.player.setScale(scale * 0.8);
+        const npc = this.physics.add.sprite(
+          obj.x + obj.width / 2,
+          obj.y - obj.height / 2,
+          "npc-villager"
+        );
 
-      // Adjust hitbox to match sprite
-      this.player.body.setSize(
-        this.player.width * 0.6,
-        this.player.height * 0.6,
-        true
-      );
-    }
+        npc.body.setSize(48, 48);
+        npc.body.immovable = true;
+        npc.npcData = {
+          questId: Number(props.quest_id)
+        };
 
-    // Update physics bounds
-    this.physics.world.setBounds(0, 0, mapWidth * scale, mapHeight * scale);
-    this.cameras.main.setBounds(0, 0, mapWidth * scale, mapHeight * scale);
+        this.npcs.push(npc);
+      });
+  }
+
+  getSpawnPoint(name) {
+    const layer = this.mapLoader.map.getObjectLayer("spawn");
+    const obj = layer?.objects.find(o => o.name === name);
+
+    return obj
+      ? { x: obj.x + obj.width / 2, y: obj.y - obj.height / 2 }
+      : { x: 100, y: 100 };
   }
 
   update() {
-    if (!this.player) return;
+    if (!this.playerCanMove) {
+      this.player.setVelocity(0);
+      return;
+    }
 
-    const speed = 100;
-    const cursors = this.input.keyboard.createCursorKeys();
-
+    const speed = 120;
     this.player.setVelocity(0);
+
     let moving = false;
 
-    // Horizontal movement
-    if (cursors.left.isDown) {
+    if (this.cursors.left.isDown) {
       this.player.setVelocityX(-speed);
       this.lastDirection = "left";
       moving = true;
-    } else if (cursors.right.isDown) {
+    } else if (this.cursors.right.isDown) {
       this.player.setVelocityX(speed);
       this.lastDirection = "right";
       moving = true;
     }
 
-    // Vertical movement
-    if (cursors.up.isDown) {
+    if (this.cursors.up.isDown) {
       this.player.setVelocityY(-speed);
       this.lastDirection = "up";
       moving = true;
-    } else if (cursors.down.isDown) {
+    } else if (this.cursors.down.isDown) {
       this.player.setVelocityY(speed);
       this.lastDirection = "down";
       moving = true;
     }
 
-    // Play proper animation
-    if (moving) {
-      this.player.anims.play(`walk-${this.lastDirection}`, true);
+    const anim = moving
+      ? `walk-${this.lastDirection}`
+      : `idle-${this.lastDirection}`;
+
+    this.player.anims.play(anim, true);
+
+    if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
+      this.tryInteractWithNPC();
+    }
+  }
+
+  tryInteractWithNPC() {
+    const npc = this.npcs.find(n =>
+      Phaser.Math.Distance.Between(this.player.x, this.player.y, n.x, n.y) <= 50
+    );
+    if (!npc) return;
+
+    const questId = npc.npcData.questId;
+    const quest = this.questManager.getQuestById(questId);
+    if (!quest) return;
+
+    // Lock player
+    this.playerCanMove = false;
+
+    // Start quest dialogue via DialogueManager
+    if (quest.dialogue && quest.dialogue.length > 0) {
+      this.dialogueManager.startDialogue(quest.dialogue, () => {
+        // After dialogue ends, start quest
+        this.questManager.startQuest(questId);
+        this.playerCanMove = true;
+      });
     } else {
-      this.player.anims.play(`idle-${this.lastDirection}`, true);
+      // No dialogue → start quest immediately
+      this.questManager.startQuest(questId);
+      this.playerCanMove = true;
     }
   }
 }
