@@ -10,10 +10,10 @@ import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
 import map1 from "../assets/aseprites/map1.png";
-import cppStage1Badge from "../assets/badges/C++/c++-stage1-Recovered.png";
-import cppStage2Badge from "../assets/badges/C++/c++-stage2-Recovered.png";
-import cppStage3Badge from "../assets/badges/C++/c++-stage3-Recovered.png";
-import cppStage4Badge from "../assets/badges/C++/c++-stage4-Recovered.png";
+import cppStage1Badge from "../assets/badges/C++/c++-badges1.png";
+import cppStage2Badge from "../assets/badges/C++/c++-badges2.png";
+import cppStage3Badge from "../assets/badges/C++/c++-badge3.png";
+import cppStage4Badge from "../assets/badges/C++/c++-badge4.png";
 import exercises from "../utilities/data/cppExercises.json";
 
 const CppExercise = () => {

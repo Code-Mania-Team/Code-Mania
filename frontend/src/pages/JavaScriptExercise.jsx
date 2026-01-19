@@ -9,10 +9,10 @@ import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 import map1 from "../assets/aseprites/map1.png";
-import jsStage1Badge from "../assets/badges/JavaScript/js-stage1-Recovered.png";
-import jsStage2Badge from "../assets/badges/JavaScript/js-stage2-Recovered.png";
-import jsStage3Badge from "../assets/badges/JavaScript/js-stage3-Recovered.png";
-import jsStage4Badge from "../assets/badges/JavaScript/js-stage4-Recovered.png";
+import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
+import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
+import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
+import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 import exercises from "../utilities/data/javascriptExercises.json";
 
 const JavaScriptExercise = () => {

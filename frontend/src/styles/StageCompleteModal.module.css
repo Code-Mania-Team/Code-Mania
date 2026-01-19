@@ -48,6 +48,7 @@
   width: 120px;
   height: 120px;
   object-fit: contain;
+  image-rendering: pixelated;
 }
 
 .actions {
