@@ -13,4 +13,7 @@ export default class QuestManager {
     console.log("🚀 QUEST STARTED:", quest.title);
     // hook UI / editor / terminal here
   }
+  triggerQuestFromNPC(id) {
+    this.startQuest(id);
+  }
 }

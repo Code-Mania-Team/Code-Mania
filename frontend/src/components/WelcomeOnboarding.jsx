@@ -120,7 +120,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
         <div className={styles.mascotSection}>
           <div className={styles.mascot}>
             <img 
-              src="/src/assets/COMPUTER.png" 
+              src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" 
               alt="Computer Mascot" 
               className={styles.computerImage}
             />

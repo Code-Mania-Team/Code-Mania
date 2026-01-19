@@ -7,9 +7,16 @@ const Profile = ({ onSignOut }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    userName: 'Jet Padilla',
-    username: '@Jet.padilla'
+  const [editFormData, setEditFormData] = useState(() => {
+    const storedUsername = localStorage.getItem('username') || '';
+    const storedFullName = localStorage.getItem('fullName') || '';
+    const displayUsername = storedUsername ? `@${storedUsername}` : '@';
+    const displayFullName = storedFullName || storedUsername || 'Jet Padilla';
+
+    return {
+      userName: displayFullName,
+      username: displayUsername,
+    };
   });
   
   const [learningProgress] = useState({
@@ -40,10 +47,19 @@ const Profile = ({ onSignOut }) => {
   };
 
   const handleConfirmDelete = () => {
-    // Add delete account logic here
-    console.log('Account deleted');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    localStorage.removeItem('fullName');
+    localStorage.removeItem('selectedCharacter');
+    localStorage.removeItem('hasSeenOnboarding');
+    localStorage.removeItem('hasCompletedOnboarding');
+    localStorage.removeItem('hasTouchedCourse');
+    localStorage.removeItem('lastCourseTitle');
+    localStorage.removeItem('lastCourseRoute');
+
+    window.dispatchEvent(new Event('authchange'));
     setIsDeleteConfirmOpen(false);
-    // window.location.href = '/'; // Redirect to home
+    window.location.href = '/';
   };
 
   const handleCancelDelete = () => {
@@ -57,6 +73,16 @@ const Profile = ({ onSignOut }) => {
   const handleSaveEdit = () => {
     // Add save logic here
     console.log('Account updated:', editFormData);
+
+    const normalizedUsername = (editFormData.username || '').trim().replace(/^@+/, '');
+    localStorage.setItem('username', normalizedUsername);
+    localStorage.setItem('fullName', (editFormData.userName || '').trim() || normalizedUsername);
+
+    setEditFormData(prev => ({
+      ...prev,
+      userName: (prev.userName || '').trim() || normalizedUsername,
+      username: normalizedUsername ? `@${normalizedUsername}` : '@',
+    }));
     setIsEditModalOpen(false);
   };
 
@@ -74,13 +100,19 @@ const Profile = ({ onSignOut }) => {
         {/* Profile Header */}
         <header className={styles.header}>
           <div className={styles.avatarContainer}>
-            <div className={styles.avatar}>J</div>
+            <div className={styles.avatar}>
+              {(editFormData.userName || editFormData.username || 'U')
+                .replace(/^@+/, '')
+                .trim()
+                .charAt(0)
+                .toUpperCase()}
+            </div>
           </div>
           
           <div className={styles.profileInfo}>
             <div className={styles.userInfo}>
-              <h1 className={styles.userName}>Jet Padilla</h1>
-              <p className={styles.username}>@jetpadilla0795372</p>
+              <h1 className={styles.userName}>{editFormData.userName}</h1>
+              <p className={styles.username}>{editFormData.username}</p>
               <div className={styles.joinDate}>
                 <Calendar size={16} />
                 <span>Joined Jan 2026</span>
