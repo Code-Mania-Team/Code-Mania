@@ -650,17 +650,6 @@
   letter-spacing: 0.5px;
 }
 
-.editBtn {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.editBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
-}
-
 .signOutBtn {
   color: orange;
   font-family: "Press Start 2P", sans-serif;
@@ -999,7 +988,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  white-space: nowrap;
+  transition: all 0.3s ease;
 }
 
 .coverBanner::before {
