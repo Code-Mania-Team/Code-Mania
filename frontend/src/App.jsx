@@ -142,6 +142,9 @@ function App() {
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard";
 
+  // hide only footer on freedom wall
+  const hideFooterOnly = location.pathname === "/freedomwall";
+
   return (
     <div className="app">
       {!hideGlobalHeaderFooter && (
@@ -180,7 +183,7 @@ function App() {
         </Routes>
       </main>
 
-      {!hideGlobalHeaderFooter && <Footer />}
+      {!hideGlobalHeaderFooter && !hideFooterOnly && <Footer />}
 
       <SignInModal 
         isOpen={isModalOpen} 

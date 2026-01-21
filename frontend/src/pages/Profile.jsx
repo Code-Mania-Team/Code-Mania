@@ -1,6 +1,22 @@
 import React, { useState } from 'react';
 import styles from '../styles/Profile.module.css';
 import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'lucide-react';
+import profileBanner from '../assets/profile-banner.jpg';
+
+import pythonBadge1 from '../assets/badges/Python/python-badge1.png';
+import pythonBadge2 from '../assets/badges/Python/python-badge2.png';
+import pythonBadge3 from '../assets/badges/Python/python-badge3.png';
+import cppBadge1 from '../assets/badges/C++/c++-badges1.png';
+
+const badgeImageById = {
+  divine_warrior: pythonBadge3,
+  python_master: pythonBadge1,
+  bug_hunter: pythonBadge2,
+  speed_coder: cppBadge1,
+  first_steps: pythonBadge1,
+};
+
+const defaultBadgeImage = pythonBadge2;
 
 const Profile = ({ onSignOut }) => {
   const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
@@ -24,6 +40,39 @@ const Profile = ({ onSignOut }) => {
     cpp: { progress: 0, total: 100, icon: <Code size={20} /> },
     javascript: { progress: 0, total: 100, icon: <FileCode2 size={20} /> }
   });
+
+  const [badges] = useState([
+    {
+      id: 'divine_warrior',
+      title: 'Divine Warrior',
+      description: 'Complete 100 coding challenges',
+      received: 'About 1 year ago'
+    },
+    {
+      id: 'python_master',
+      title: 'Python Master',
+      description: 'Complete all Python exercises',
+      received: '6 months ago'
+    },
+    {
+      id: 'bug_hunter',
+      title: 'Bug Hunter',
+      description: 'Fix 50 bugs in exercises',
+      received: '3 months ago'
+    },
+    {
+      id: 'speed_coder',
+      title: 'Speed Coder',
+      description: 'Complete 10 exercises in under 5 minutes each',
+      received: '1 month ago'
+    },
+    {
+      id: 'first_steps',
+      title: 'First Steps',
+      description: 'Complete your first coding exercise',
+      received: '1 year ago'
+    }
+  ]);
 
   const handleSignOut = () => {
     setIsSignOutConfirmOpen(true);
@@ -96,54 +145,38 @@ const Profile = ({ onSignOut }) => {
 
   return (
     <div className={styles.mainWrapper}>
-      <div className={styles.container}>
-        {/* Profile Header */}
-        <header className={styles.header}>
-          <div className={styles.avatarContainer}>
-            <div className={styles.avatar}>
-              {(editFormData.userName || editFormData.username || 'U')
-                .replace(/^@+/, '')
-                .trim()
-                .charAt(0)
-                .toUpperCase()}
+      <div className={styles.coverBanner}>
+        <img className={styles.coverBannerImage} src={profileBanner} alt="" />
+        <div className={styles.coverOverlay}>
+          <div className={styles.coverOverlayInner}>
+            <div className={styles.coverAvatarContainer}>
+              <div className={styles.avatar}>
+                {(editFormData.userName || editFormData.username || 'U')
+                  .replace(/^@+/, '')
+                  .trim()
+                  .charAt(0)
+                  .toUpperCase()}
+              </div>
             </div>
-          </div>
-          
-          <div className={styles.profileInfo}>
-            <div className={styles.userInfo}>
-              <h1 className={styles.userName}>{editFormData.userName}</h1>
-              <p className={styles.username}>{editFormData.username}</p>
+
+            <div className={styles.coverUserInfo}>
               <div className={styles.joinDate}>
                 <Calendar size={16} />
                 <span>Joined Jan 2026</span>
               </div>
+              <h1 className={styles.userName}>{editFormData.userName}</h1>
+              <p className={styles.username}>{editFormData.username}</p>
             </div>
-            
-            <button 
-              className={styles.editProfileBtn}
-              onClick={handleEditAccount}
-            >
+
+            <button className={styles.coverEditProfileBtn} onClick={handleEditAccount}>
               <Edit2 size={14} />
               Edit profile
             </button>
           </div>
-
-          <div className={styles.rankSection}>
-            <div className={styles.rankItem}>
-              <div className={styles.rankNumber}>#0</div>
-              <div className={styles.rankLabel}>Rank</div>
-            </div>
-            <div className={styles.rankItem}>
-              <div className={styles.rankNumber}>0</div>
-              <div className={styles.rankLabel}>Badges</div>
-            </div>
-            <div className={styles.rankItem}>
-              <div className={styles.rankNumber}>0</div>
-              <div className={styles.rankLabel}>EXP</div>
-            </div>
-          </div>
-        </header>
-
+        </div>
+      </div>
+      <div className={styles.layout}>
+      <div className={styles.container}>
         {/* Tabs */}
         <div className={styles.tabs}>
           <button
@@ -169,13 +202,22 @@ const Profile = ({ onSignOut }) => {
                 <span>Achievements</span>
                 <span>Received</span>
               </div>
-              <div className={styles.tableRow}>
-                <div className={styles.badgeCell}>
-                  <div className={styles.badgePlaceholder}></div>
+              {badges.map((badge) => (
+                <div key={badge.id} className={styles.tableRow}>
+                  <div className={styles.badgeCell}>
+                    <img
+                      className={styles.badgeIcon}
+                      src={badgeImageById[badge.id] || defaultBadgeImage}
+                      alt={badge.title}
+                    />
+                  </div>
+                  <div className={styles.achievementCell}>
+                    <div className={styles.achievementTitle}>{badge.title}</div>
+                    <div className={styles.achievementDescription}>{badge.description}</div>
+                  </div>
+                  <div className={styles.timeCell}>{badge.received}</div>
                 </div>
-                <div className={styles.achievementCell}>Divine Warrior</div>
-                <div className={styles.timeCell}>About 1 year</div>
-              </div>
+              ))}
             </div>
           )}
           
@@ -290,17 +332,47 @@ const Profile = ({ onSignOut }) => {
 
       {/* Right Sidebar */}
       <aside className={styles.sidebar}>
-        <div className={styles.sidebarBottom}>
-          <button className={styles.signOutBtn} onClick={handleSignOut} title="Sign Out">
-            <LogOut size={18} />
-            <span>Sign Out</span>
-          </button>
-          <button className={styles.deleteBtn} onClick={handleDeleteAccount} title="Delete Account">
-            <Trash2 size={18} />
-            <span>Delete Account</span>
+        <div className={styles.sidebarCard}>
+          <div className={styles.sidebarCardTitle}>{editFormData.userName}</div>
+          <div className={styles.sidebarCardStatRow}>
+            <div className={styles.sidebarCardStat}>
+              <div className={styles.sidebarCardStatValue}>0</div>
+              <div className={styles.sidebarCardStatLabel}>Total XP</div>
+            </div>
+            <div className={styles.sidebarCardStat}>
+              <div className={styles.sidebarCardStatValue}>0</div>
+              <div className={styles.sidebarCardStatLabel}>Badges</div>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.sidebarCard}>
+          <div className={styles.sidebarCardTitle}>Learning Program</div>
+          <button
+            className={styles.sidebarPrimaryBtn}
+            onClick={() => {
+              window.location.href = '/learn';
+            }}
+          >
+            View Courses
           </button>
         </div>
+
+        <div className={styles.sidebarCard}>
+          <div className={styles.sidebarCardTitle}>Account</div>
+          <div className={styles.sidebarBottom}>
+            <button className={styles.deleteBtn} onClick={handleDeleteAccount} title="Delete Account">
+              <Trash2 size={18} />
+              <span>Delete Account</span>
+            </button>
+            <button className={styles.signOutBtn} onClick={handleSignOut} title="Sign Out">
+              <LogOut size={18} />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
       </aside>
+      </div>
     </div>
   );
 };
