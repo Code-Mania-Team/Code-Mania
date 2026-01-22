@@ -2,7 +2,7 @@
 .mainWrapper {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0b1324 0%, #05070d 100%);
+  background: #0f172a;
   color: #fff;
   font-family: 'Press Start 2P', 'Courier New', monospace;
   display: flex;
@@ -1078,10 +1078,8 @@
 
 .sidebarCard {
   background: rgba(0, 0, 0, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px;
+  border: 1px solid white;
   padding: 1rem;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
 }
 
 .sidebarCardTitle {
@@ -1098,11 +1096,9 @@
 }
 
 .sidebarCardStat {
-  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   padding: 0.75rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.03);
 }
 
 .sidebarCardStatValue {
