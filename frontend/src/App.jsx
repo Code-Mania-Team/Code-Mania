@@ -46,7 +46,7 @@ const Home = () => (
         <Link to="/learn/python" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/python.gif" alt="Python" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif" alt="Python" className="language-img" />
             </div>
             <h4>Python</h4>
             <p className="language-description">Versatile and beginner-friendly</p>
@@ -56,7 +56,7 @@ const Home = () => (
         <Link to="/learn/cpp" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/c++.gif" alt="C++" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif" alt="C++" className="language-img" />
             </div>
             <h4>C++</h4>
             <p className="language-description">High-performance programming</p>
@@ -66,7 +66,7 @@ const Home = () => (
         <Link to="/learn/javascript" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/javascript.gif" alt="JavaScript" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif" alt="JavaScript" className="language-img" />
             </div>
             <h4>JavaScript</h4>
             <p className="language-description">Web development powerhouse</p>
@@ -86,7 +86,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/learntocode.gif" alt="Learn to code" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/learntocode_yhnfkd.gif" alt="Learn to code" />
         </div>
       </div>
 
@@ -100,7 +100,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/chill.gif" alt="Chill coding" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/chill_jnydvb.gif" alt="Chill coding" />
         </div>
       </div>
 
@@ -113,7 +113,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/117.gif" alt="Coding challenge" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/117_jycate.gif" alt="Coding challenge" />
         </div>
       </div>
     </section>
@@ -141,6 +141,9 @@ function App() {
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard";
+
+  // hide only footer on freedom wall
+  const hideFooterOnly = location.pathname === "/freedomwall";
 
   return (
     <div className="app">
@@ -180,7 +183,7 @@ function App() {
         </Routes>
       </main>
 
-      {!hideGlobalHeaderFooter && <Footer />}
+      {!hideGlobalHeaderFooter && !hideFooterOnly && <Footer />}
 
       <SignInModal 
         isOpen={isModalOpen} 

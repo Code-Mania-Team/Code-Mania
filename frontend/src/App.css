@@ -317,7 +317,9 @@ body {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background: url('/src/assets/gif.gif') center/cover no-repeat;
+  background: 
+    url("https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/gif_hv3je1.gif")
+    center / cover no-repeat;
   color: white;
   padding: 8rem 2rem 6rem;
   display: flex;

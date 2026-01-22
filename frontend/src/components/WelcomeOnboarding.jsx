@@ -89,10 +89,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
     }
   };
 
-  const handleSkip = () => {
-    onComplete();
-  };
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -134,16 +130,13 @@ const WelcomeOnboarding = ({ onComplete }) => {
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <button className={styles.skipButton} onClick={handleSkip}>
-            Skip
-          </button>
         </div>
 
         {/* Computer Mascot with Speech Bubble */}
         <div className={styles.mascotSection}>
           <div className={styles.mascot}>
             <img 
-              src="/src/assets/COMPUTER.png" 
+              src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" 
               alt="Computer Mascot" 
               className={styles.computerImage}
             />

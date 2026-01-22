@@ -1,24 +1,77 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
+import MobileControls from "../components/MobileControls";
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../utilities/engine/main.js";
+import pythonExercises from "../utilities/data/pythonExercises.json";
+import mobileFrame from "../assets/mobile.png";
 
-const PythonExercise = ({ onOpenModal, onSignOut }) => {
-  const [code, setCode] = useState(`# Write code below ❤️
-print("Hello, World!")`);
+const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+  const { exerciseId } = useParams();
+  const [activeExerciseId, setActiveExerciseId] = useState(() => {
+    const initialId = Number(exerciseId);
+    return Number.isFinite(initialId) && initialId > 0 ? initialId : 1;
+  });
+
+  const activeExercise = useMemo(() => {
+    const found = pythonExercises.find((e) => e.id === activeExerciseId);
+    return found || pythonExercises[0];
+  }, [activeExerciseId]);
+
+  const [code, setCode] = useState(() => {
+    return (
+      pythonExercises.find((e) => e.id === activeExerciseId)?.startingCode ||
+      `# Write code below ❤️\n\nprint("Hello, World!")`
+    );
+  });
   const [output, setOutput] = useState("");
   const [showScroll, setShowScroll] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
-  const { profile, loading, isAuthenticated } = useProfile();
+
+  useEffect(() => {
+    const newId = Number(exerciseId);
+    if (Number.isFinite(newId) && newId > 0) {
+      setActiveExerciseId(newId);
+    }
+  }, [exerciseId]);
+
+  useEffect(() => {
+    if (activeExercise?.startingCode) {
+      setCode(activeExercise.startingCode);
+      setOutput("");
+    }
+    setShowScroll(false);
+  }, [activeExerciseId]);
 
   useEffect(() => {
     const game = initPhaserGame("phaser-container");
-    setTimeout(() => setShowScroll(true), 1500);
+
+    const handleDialogueComplete = (event) => {
+      const questId =
+        event && typeof event === "object" && "detail" in event
+          ? event.detail?.questId
+          : undefined;
+
+      if (Number.isFinite(Number(questId))) {
+        const nextId = Number(questId);
+        if (pythonExercises.some((e) => e.id === nextId)) {
+          setActiveExerciseId(nextId);
+        }
+      }
+      setShowScroll(true);
+    };
+
+    window.addEventListener("code-mania:dialogue-complete", handleDialogueComplete);
     return () => {
+      window.removeEventListener(
+        "code-mania:dialogue-complete",
+        handleDialogueComplete
+      );
       if (game) game.cleanup();
     };
   }, []);
@@ -64,6 +117,8 @@ print("Hello, World!")`);
   };
 
   const handleSignInSuccess = () => {
+    localStorage.setItem('isAuthenticated', 'true');
+    window.dispatchEvent(new Event('authchange'));
     handleCloseModal();
   };
 
@@ -81,65 +136,66 @@ print("Hello, World!")`);
       )}
 
       <div className={styles["codex-fullscreen"]}>
-        <ProgressBar currentLesson={1} totalLessons={12} title="🐍 Python Basics" />
+        <ProgressBar
+          currentLesson={activeExercise?.id || 1}
+          totalLessons={pythonExercises.length}
+          title="🐍 Python Basics"
+        />
 
         <div className={styles["main-layout"]}>
           {/* === LEFT SIDE: Phaser Game === */}
           <div className={styles["game-container"]}>
             <div className={styles["game-preview"]}>
-              {/* Phaser mounts here */}
-              <div
-                id="phaser-container"
-                className={styles["game-scene"]}
-                
-              />
+              <div className={styles["mobile-frame"]}>
+                <img
+                  src={mobileFrame}
+                  alt="Mobile Frame"
+                  className={styles["mobile-frame-image"]}
+                />
 
-              {showScroll && (
-                <div className={styles["scroll-container"]}>
-                  <img
-                    src="/src/assets/aseprites/scroll.png"
-                    alt="Scroll"
-                    className={styles["scroll-image"]}
-                  />
+                <div className={styles["mobile-controls"]}>
+                  <MobileControls />
+                </div>
 
-                  <div className={styles["scroll-content"]}>
-                    <h2>🐍 Python</h2>
-                    <p>
-                      Welcome to the first chapter of{" "}
-                      <strong>The Legend of Python!</strong>
-                      <br />
-                      Python is a beginner-friendly language created by{" "}
-                      <a
-                        href="https://en.wikipedia.org/wiki/Guido_van_Rossum"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Guido van Rossum
-                      </a>{" "}
-                      in the early 90s.
-                    </p>
-                    <ul>
-                      <li>• Artificial Intelligence</li>
-                      <li>• Web Development</li>
-                      <li>• Data Analysis</li>
-                      <li>• Machine Learning</li>
-                    </ul>
-                    <p>Let's give it a try! Here's a simple Python example:</p>
-                    <div className={styles["code-example"]}>
-                      <pre>
-                        <code>
-                          {`# This is a simple Python function
-print("Hi")
+                <div className={styles["mobile-screen"]}>
+                  {/* Phaser mounts here */}
+                  <div
+                    id="phaser-container"
+                    className={styles["game-scene"]}
+                  >
+                    {showScroll && (
+                      <div className={styles["scroll-container"]}>
+                        <img
+                          src="/src/assets/aseprites/scroll.png"
+                          alt="Scroll"
+                          className={styles["scroll-image"]}
+                        />
 
-This should appear in the Terminal window:
-Hi`}
-                        </code>
-                      </pre>
-                    </div>
-                    <p>Try writing your own code on the right! 👉</p>
+                        <div className={styles["scroll-content"]}>
+                          <h2>{activeExercise?.lessonHeader || "🐍 Python"}</h2>
+                          <p>{activeExercise?.description || ""}</p>
+
+                          {Array.isArray(activeExercise?.hints) && activeExercise.hints.length > 0 && (
+                            <ul>
+                              {activeExercise.hints.map((hint, idx) => (
+                                <li key={idx}>{hint}</li>
+                              ))}
+                            </ul>
+                          )}
+
+                          {activeExercise?.lessonExample && (
+                            <div className={styles["code-example"]}>
+                              <pre>
+                                <code>{activeExercise.lessonExample}</code>
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 

@@ -1,50 +1,51 @@
 import React, { useState } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
-import crown from "../assets/crown.png";
-import burgerIcon from "../assets/burger.png";
 
-const Header = ({ isAuthenticated, onOpenModal }) => {
+const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
+const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
+
+const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  const homePath = isAuthenticated ? '/dashboard' : '/';
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    setIsMenuOpen(false);
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleProfileClick = () => {
-    navigate("/profile");
-    setIsMenuOpen(false);
-  };
-
   return (
     <header className="header">
       <div className="logo">
-        <img src={crown} alt="Code Mania Logo" />
-        <h1 className="logo-text">
-          <NavLink to="/" onClick={() => setIsMenuOpen(false)}>
-            Code Mania
-          </NavLink>
-        </h1>
+        <NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>
+          <img src={crown} alt="Code Mania Logo" />
+        </NavLink>
+        <h1 className="logo-text"><NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>Code Mania</NavLink></h1>
       </div>
 
-      <button className="hamburger" onClick={toggleMenu} aria-label="Menu">
-        <img
-          src={burgerIcon}
-          alt="Menu"
-          className={`hamburger-icon ${isMenuOpen ? "is-active" : ""}`}
+      <button 
+        className="hamburger" 
+        onClick={toggleMenu}
+        aria-label="Menu"
+      >
+        <img 
+          src={burgerIcon} 
+          alt="Menu" 
+          className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`} 
         />
       </button>
 
-      <nav className={`nav ${isMenuOpen ? "is-active" : ""}`}>
-        <NavLink to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-          HOME
-        </NavLink>
+      <nav className={`nav ${isMenuOpen ? 'is-active' : ''}`}>
+        <NavLink to={homePath} className="nav-link" onClick={() => setIsMenuOpen(false)}>HOME</NavLink>
 
         <div className="nav-dropdown">
-          <NavLink to="/learn" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-            LEARN
-          </NavLink>
+          <NavLink to="/learn" className="nav-link" onClick={() => setIsMenuOpen(false)}>LEARN</NavLink>
           <div className="dropdown-menu">
             <Link to="/learn/python" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>Python</Link>
             <Link to="/learn/cpp" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>C++</Link>

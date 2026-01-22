@@ -10,7 +10,7 @@
   position: relative;
   width: 100%;
   height: 400px;
-  background: url('/src/assets/learnpage.gif') center/cover no-repeat;
+  background: url('https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/learnpage_k3afmo.gif') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;

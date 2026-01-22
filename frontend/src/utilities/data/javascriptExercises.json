@@ -1,66 +1,189 @@
 [
-    {
+  {
     "id": 1,
     "title": "Introduction",
     "lessonHeader": "🌐 Introduction to JavaScript",
     "description": "JavaScript is a programming language used to make web pages interactive. It runs in the browser and allows you to respond to user actions.",
-    "lessonExample": "// This code runs in the browser\nconsole.log(\"Welcome to JavaScript!\")",
+    "lessonExample": "console.log(\"Welcome to JavaScript!\")",
     "startingCode": "console.log(\"Hello, JS!\")",
-    "hints": [
-        "Use console.log() to print output.",
-        "Your code should run without errors."
-    ],
-    "requirements": {
-        "mustInclude": ["console.log"]
-    },
+    "hints": ["Use console.log() to print output.", "Your code should run without errors."],
+    "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello, JS!"
-    },
-    {
+  },
+  {
     "id": 2,
     "title": "Console Output",
     "lessonHeader": "🖥️ Console Output",
     "description": "Display messages in the browser's console using console.log().",
     "lessonExample": "console.log(\"Hello World!\")",
     "startingCode": "console.log()",
-    "hints": [
-        "Put your message inside the parentheses.",
-        "Remember to wrap text in quotes."
-    ],
-    "requirements": {
-        "mustInclude": ["console.log"]
-    },
+    "hints": ["Put your message inside the parentheses.", "Remember to wrap text in quotes."],
+    "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello World!"
-    },
-    {
+  },
+  {
     "id": 3,
     "title": "Variables",
     "lessonHeader": "📦 Variables",
     "description": "Variables store information that can be used later. Use let or const to create variables.",
     "lessonExample": "let name = \"Jet\";\nconsole.log(name);",
     "startingCode": "let heroName = \"\";\nconsole.log(heroName);",
-    "hints": [
-        "Use let or const to create a variable.",
-        "Assign a value using =."
-    ],
-    "requirements": {
-        "mustInclude": ["let", "console.log"]
-    },
+    "hints": ["Use let or const to create a variable.", "Assign a value using =."],
+    "requirements": { "mustInclude": ["let", "console.log"] },
     "expectedOutput": "Jet"
-    },
-    {
+  },
+  {
     "id": 4,
     "title": "Data Types",
     "lessonHeader": "📊 Data Types",
     "description": "JavaScript supports different data types such as strings, numbers, and booleans.",
     "lessonExample": "let age = 18;\nlet isStudent = true;\nconsole.log(age);\nconsole.log(isStudent);",
     "startingCode": "let age = ;\nconsole.log(age);",
-    "hints": [
-        "Numbers do not need quotes.",
-        "Booleans are true or false."
-    ],
-    "requirements": {
-        "mustInclude": ["let", "console.log"]
-    },
+    "hints": ["Numbers do not need quotes.", "Booleans are true or false."],
+    "requirements": { "mustInclude": ["let", "console.log"] },
     "expectedOutput": "18"
-    }
+  },
+  {
+    "id": 5,
+    "title": "Function Basics",
+    "lessonHeader": "🔧 Functions",
+    "description": "Learn how to define and call functions in JavaScript.",
+    "lessonExample": "function greet() {\n  console.log(\"Hello!\");\n}\ngreet();",
+    "startingCode": "function myFunction() {\n\n}\nmyFunction();",
+    "hints": ["Use function keyword.", "Call the function after defining it."],
+    "requirements": { "mustInclude": ["function", "console.log"] },
+    "expectedOutput": "Hello!"
+  },
+  {
+    "id": 6,
+    "title": "Parameters & Arguments",
+    "lessonHeader": "📦 Function Parameters",
+    "description": "Pass information into functions using parameters and arguments.",
+    "lessonExample": "function greet(name) {\n  console.log(\"Hello \" + name);\n}\ngreet(\"Jet\");",
+    "startingCode": "function greet(name) {\n\n}\ngreet(\"Jet\");",
+    "hints": ["Define a parameter in the function.", "Use it inside console.log."],
+    "requirements": { "mustInclude": ["function", "console.log"] },
+    "expectedOutput": "Hello Jet"
+  },
+  {
+    "id": 7,
+    "title": "Return Values",
+    "lessonHeader": "🔄 Function Return",
+    "description": "Functions can return values using the return keyword.",
+    "lessonExample": "function add(a, b) {\n  return a + b;\n}\nconsole.log(add(2, 3));",
+    "startingCode": "function add(a, b) {\n\n}\nconsole.log(add(2, 3));",
+    "hints": ["Use return inside the function.", "Call the function with arguments."],
+    "requirements": { "mustInclude": ["return"] },
+    "expectedOutput": "5"
+  },
+  {
+    "id": 8,
+    "title": "Arrow Functions",
+    "lessonHeader": "➡️ Arrow Functions",
+    "description": "A shorter syntax for writing functions using arrow functions.",
+    "lessonExample": "const greet = name => console.log(\"Hello \" + name);\ngreet(\"Jet\");",
+    "startingCode": "const greet = name => ;\ngreet(\"Jet\");",
+    "hints": ["Use => syntax.", "Call the function with a value."],
+    "requirements": { "mustInclude": ["=>", "console.log"] },
+    "expectedOutput": "Hello Jet"
+  },
+  {
+    "id": 9,
+    "title": "Arrays",
+    "lessonHeader": "📚 Arrays",
+    "description": "Store multiple values in an array.",
+    "lessonExample": "let fruits = [\"Apple\", \"Banana\"];\nconsole.log(fruits[0]);",
+    "startingCode": "let arr = [];\nconsole.log(arr[0]);",
+    "hints": ["Use square brackets [] to define an array.", "Access items by index."],
+    "requirements": { "mustInclude": ["[]", "console.log"] },
+    "expectedOutput": "Apple"
+  },
+  {
+    "id": 10,
+    "title": "Array Methods",
+    "lessonHeader": "🛠️ Array Methods",
+    "description": "Learn to manipulate arrays using push(), pop(), and other methods.",
+    "lessonExample": "let arr = [1,2];\narr.push(3);\nconsole.log(arr);",
+    "startingCode": "let arr = [];\n// Add numbers here\nconsole.log(arr);",
+    "hints": ["Use push() to add items.", "Use pop() to remove the last item."],
+    "requirements": { "mustInclude": ["push", "console.log"] },
+    "expectedOutput": "[1,2,3]"
+  },
+  {
+    "id": 11,
+    "title": "Objects",
+    "lessonHeader": "📦 Objects",
+    "description": "Store data using key-value pairs.",
+    "lessonExample": "let person = {name: \"Jet\", age: 18};\nconsole.log(person.name);",
+    "startingCode": "let obj = {};\nconsole.log(obj.name);",
+    "hints": ["Use curly braces {} for objects.", "Access properties with . notation."],
+    "requirements": { "mustInclude": ["{}", "console.log"] },
+    "expectedOutput": "Jet"
+  },
+  {
+    "id": 12,
+    "title": "Object Methods",
+    "lessonHeader": "🔧 Object Methods",
+    "description": "Objects can have methods (functions) as properties.",
+    "lessonExample": "let person = {name: \"Jet\", greet() { console.log(\"Hi\"); }};\nperson.greet();",
+    "startingCode": "let obj = {name: \"Jet\", greet() { }};\nobj.greet();",
+    "hints": ["Define a function inside an object.", "Call it with object.method() syntax."],
+    "requirements": { "mustInclude": ["function", "console.log"] },
+    "expectedOutput": "Hi"
+  },
+  {
+    "id": 13,
+    "title": "Selecting Elements",
+    "lessonHeader": "🔍 DOM: Selecting Elements",
+    "description": "Learn how to select HTML elements using document.querySelector or getElementById.",
+    "lessonExample": "let title = document.querySelector('h1');\nconsole.log(title.textContent);",
+    "startingCode": "let elem = document.querySelector('');\nconsole.log(elem.textContent);",
+    "hints": ["Use document.querySelector or document.getElementById.", "Access textContent property."],
+    "requirements": { "mustInclude": ["document", "console.log"] },
+    "expectedOutput": "Hello World!"
+  },
+  {
+    "id": 14,
+    "title": "Modifying Content",
+    "lessonHeader": "✏️ DOM: Modifying Content",
+    "description": "Change the content of HTML elements using JavaScript.",
+    "lessonExample": "document.querySelector('h1').textContent = 'Hi!';",
+    "startingCode": "document.querySelector('h1').textContent = '';",
+    "hints": ["Select the element first.", "Assign new text using textContent."],
+    "requirements": { "mustInclude": ["document", "textContent"] },
+    "expectedOutput": "Hi!"
+  },
+  {
+    "id": 15,
+    "title": "Event Listeners",
+    "lessonHeader": "🖱️ DOM: Event Listeners",
+    "description": "Respond to user actions by adding event listeners.",
+    "lessonExample": "document.querySelector('button').addEventListener('click', () => console.log('Clicked!'));",
+    "startingCode": "document.querySelector('button').addEventListener('click', () => );",
+    "hints": ["Use addEventListener.", "Use an arrow function to define the callback."],
+    "requirements": { "mustInclude": ["addEventListener", "console.log"] },
+    "expectedOutput": "Clicked!"
+  },
+  {
+    "id": 16,
+    "title": "Dynamic Styling",
+    "lessonHeader": "🎨 DOM: Dynamic Styling",
+    "description": "Change the style of HTML elements dynamically using JavaScript.",
+    "lessonExample": "document.querySelector('h1').style.color = 'red';",
+    "startingCode": "document.querySelector('h1').style.color = '';",
+    "hints": ["Select the element first.", "Change the style property."],
+    "requirements": { "mustInclude": ["style"] },
+    "expectedOutput": "red"
+  },
+  {
+    "id": 17,
+    "title": "JavaScript Exam",
+    "lessonHeader": "📝 JavaScript Final Exam",
+    "description": "Test your JavaScript knowledge by solving exercises covering all previous modules.",
+    "lessonExample": "function sum(a,b){return a+b;}\nconsole.log(sum(5,7));",
+    "startingCode": "// Solve the exam here",
+    "hints": ["Use functions, variables, arrays, objects, and DOM manipulation.", "Test your code carefully."],
+    "requirements": { "mustInclude": ["console.log"] },
+    "expectedOutput": "12"
+  }
 ]
