@@ -266,17 +266,6 @@ const Profile = ({ onSignOut }) => {
                 className={styles.formInput}
               />
             </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="username" className={styles.formLabel}>Username</label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={editFormData.username}
-                onChange={handleEditInputChange}
-                className={styles.formInput}
-              />
-            </div>
             <div className={styles.modalButtons}>
               <button className={styles.cancelBtn} onClick={() => setIsEditModalOpen(false)}>
                 Cancel

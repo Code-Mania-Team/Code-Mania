@@ -57,12 +57,14 @@
 
 /* User name */
 .userName {
-  font-size: 1.5rem; /* Reduced from 1.8rem */
+  font-size: 2rem; /* Reduced from 1.8rem */
   font-weight: bold;
   margin: 0;
+  font-family: 'Jersey 10';
   color: #fff;
   letter-spacing: 0.5px; /* Reduced from 1px */
   line-height: 1.2;
+  margin-bottom: 5px;
 }
 
 /* Username */
@@ -209,21 +211,6 @@
 .editIconBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
-}
-
-.userName {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-  color: #fff;
-  letter-spacing: 0.5px;
-}
-
-.username {
-  color: #a0aec0;
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 400;
 }
 
 .stats {
@@ -651,21 +638,47 @@
 }
 
 .signOutBtn {
-  color: orange;
-  font-family: "Press Start 2P", sans-serif;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  font-family: 'Jersey 10';
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 5px 5px 0 rgb(255, 255, 255);
+  transition: all 0.3s ease;
+  border-radius: 0%;
 }
 
 .signOutBtn:hover {
   transform: translateY(-2px);
+  box-shadow: 7px 7px 0 rgb(255, 255, 255);
 }
 
 .deleteBtn {
-  color: red;
-  font-family: "Press Start 2P", sans-serif;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  font-family: 'Jersey 10';
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 5px 5px 0 rgb(255, 255, 255);
+  transition: all 0.3s ease;
+  border-radius: 0%;
 }
 
 .deleteBtn:hover {
   transform: translateY(-2px);
+  box-shadow: 7px 7px 0 rgb(255, 255, 255);
 }
 
 /* Modal Styles */
@@ -921,10 +934,10 @@
 
 .coverBannerImage {
   width: 100%;
-  height: 250px;
+  height: 400px;
   display: block;
   object-fit: cover;
-  object-position: center;
+  object-position: center -450px;
 }
 
 .coverOverlay {
@@ -980,15 +993,19 @@
   flex: 0 0 auto;
   background: rgba(0, 0, 0, 0.25);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.9);
   padding: 0.5rem 1rem;
-  font-family: 'Press Start 2P', 'Courier New', monospace;
-  font-size: 0.7rem;
+  font-family: 'Jersey 10';
+  font-size: 1.5rem;
+  width: 200px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  box-shadow: 5px 5px 0 rgb(255, 255, 255);
   transition: all 0.3s ease;
+  border-radius: 0%;
 }
 
 .coverBanner::before {
@@ -1068,7 +1085,8 @@
 }
 
 .sidebarCardTitle {
-  font-size: 0.85rem;
+  font-size: 1.8rem;
+  font-family: 'Jersey 10';
   color: #fff;
   margin-bottom: 0.85rem;
 }
@@ -1100,19 +1118,25 @@
 
 .sidebarPrimaryBtn {
   width: 100%;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.25);
   color: #fff;
-  padding: 0.85rem 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  font-family: 'Jersey 10';
+  font-size: 1.5rem;
   cursor: pointer;
-  font-family: 'Press Start 2P', 'Courier New', monospace;
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 5px 5px 0 rgb(255, 255, 255);
+  transition: all 0.3s ease;
+  border-radius: 0%;
 }
 
 .sidebarPrimaryBtn:hover {
-  border-color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 7px 7px 0 rgb(255, 255, 255);
 }
 
 @media (max-width: 960px) {
