@@ -16,6 +16,7 @@ import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
+import About from "./pages/About";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -180,6 +181,8 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={() => setIsAuthenticated(false)} />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/About" element={<About />} />
+
         </Routes>
       </main>
 
