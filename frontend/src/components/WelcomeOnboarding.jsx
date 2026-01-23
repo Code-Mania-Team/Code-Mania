@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/WelcomeOnboarding.module.css';
-import char2Preview from '../assets/aseprites/characters/Char2/Animation/walkdown_ch1.png';
-import char3Preview from '../assets/aseprites/characters/Char3/Animation/walkdown_ch2.png';
-import char4Preview from '../assets/aseprites/characters/Char4/Animation/walkdown_ch3.png';
-import characterIcon from '../assets/aseprites/characters/icons/character.png';
-import characterIcon1 from '../assets/aseprites/characters/icons/character1.png';
-import characterIcon3 from '../assets/aseprites/characters/icons/character3.png';
+import char2Preview from '/assets/characters/Char2/Animation/walkdown_ch1.png';
+import char3Preview from '/assets/characters/Char3/Animation/walkdown_ch2.png';
+import char4Preview from '/assets/characters/Char4/Animation/walkdown_ch3.png';
+import characterIcon from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon3 from '/assets/characters/icons/character3.png';
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);

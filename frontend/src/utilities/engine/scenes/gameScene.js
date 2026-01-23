@@ -6,21 +6,7 @@ import DialogueManager from "../systems/dialogueManager";
 import CutsceneManager from "../systems/cutSceneManager";
 import { CUTSCENES } from "../config/cutSceneConfig";
 import quests from "../../data/pythonExercises.json";
-
-import char2Down from "../../../assets/aseprites/characters/Char2/Animation/walkdown_ch1.png";
-import char2Up from "../../../assets/aseprites/characters/Char2/Animation/walkup_ch1.png";
-import char2Left from "../../../assets/aseprites/characters/Char2/Animation/walkleft_ch1.png";
-import char2Right from "../../../assets/aseprites/characters/Char2/Animation/walkright_ch1.png";
-
-import char3Down from "../../../assets/aseprites/characters/Char3/Animation/walkdown_ch2.png";
-import char3Up from "../../../assets/aseprites/characters/Char3/Animation/walkup_ch2.png";
-import char3Left from "../../../assets/aseprites/characters/Char3/Animation/walkleft_ch2.png";
-import char3Right from "../../../assets/aseprites/characters/Char3/Animation/walkright_ch2.png";
-
-import char4Down from "../../../assets/aseprites/characters/Char4/Animation/walkdown_ch3.png";
-import char4Up from "../../../assets/aseprites/characters/Char4/Animation/walkup_ch3.png";
-import char4Left from "../../../assets/aseprites/characters/Char4/Animation/walkleft_ch3.png";
-import char4Right from "../../../assets/aseprites/characters/Char4/Animation/walkright_ch3.png";
+import { CHARACTERS } from "../config/characterConfig";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -47,20 +33,13 @@ export default class GameScene extends Phaser.Scene {
       this.mapData.tilesets
     );
 
-    const selectedCharacter = Number(localStorage.getItem("selectedCharacter") ?? 0);
+    const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
+    const character = CHARACTERS.find(c => c.id === selectedId) || CHARACTERS[0];
 
-    const characterSprites = [
-      { down: char2Down, up: char2Up, left: char2Left, right: char2Right },
-      { down: char3Down, up: char3Up, left: char3Left, right: char3Right },
-      { down: char4Down, up: char4Up, left: char4Left, right: char4Right },
-    ];
-
-    const sprites = characterSprites[selectedCharacter] || characterSprites[0];
-
-    ["down", "up", "left", "right"].forEach((dir) => {
-      this.load.spritesheet(`player-${dir}`, sprites[dir], {
+    Object.entries(character.sprites).forEach(([dir, path]) => {
+      this.load.spritesheet(`player-${dir}`, path, {
         frameWidth: 48,
-        frameHeight: 48,
+        frameHeight: 48
       });
     });
 
