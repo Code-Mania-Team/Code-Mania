@@ -270,6 +270,14 @@ body {
   background-color: #1d4ed8;
 }
 
+.profile-character-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  image-rendering: pixelated;
+}
+
 .profile-dropdown {
   position: absolute;
   top: 110%;

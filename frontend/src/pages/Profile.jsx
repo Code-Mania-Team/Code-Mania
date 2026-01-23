@@ -26,12 +26,14 @@ const Profile = ({ onSignOut }) => {
   const [editFormData, setEditFormData] = useState(() => {
     const storedUsername = localStorage.getItem('username') || '';
     const storedFullName = localStorage.getItem('fullName') || '';
+    const storedCharacterIcon = localStorage.getItem('selectedCharacterIcon') || '';
     const displayUsername = storedUsername ? `@${storedUsername}` : '@';
     const displayFullName = storedFullName || storedUsername || 'Jet Padilla';
 
     return {
       userName: displayFullName,
       username: displayUsername,
+      characterIcon: storedCharacterIcon,
     };
   });
   
@@ -151,11 +153,19 @@ const Profile = ({ onSignOut }) => {
           <div className={styles.coverOverlayInner}>
             <div className={styles.coverAvatarContainer}>
               <div className={styles.avatar}>
-                {(editFormData.userName || editFormData.username || 'U')
-                  .replace(/^@+/, '')
-                  .trim()
-                  .charAt(0)
-                  .toUpperCase()}
+                {editFormData.characterIcon ? (
+                  <img 
+                    src={editFormData.characterIcon} 
+                    alt="Character Avatar" 
+                    className={styles.avatarImage}
+                  />
+                ) : (
+                  (editFormData.userName || editFormData.username || 'U')
+                    .replace(/^@+/, '')
+                    .trim()
+                    .charAt(0)
+                    .toUpperCase()
+                )}
               </div>
             </div>
 
