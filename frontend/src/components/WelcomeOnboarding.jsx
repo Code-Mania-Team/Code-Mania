@@ -186,11 +186,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.usernameSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>
@@ -222,11 +230,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.welcomeSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>
