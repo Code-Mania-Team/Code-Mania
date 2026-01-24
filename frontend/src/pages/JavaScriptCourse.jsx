@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "../styles/JavaScriptCourse.css";
+import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
