@@ -16,7 +16,9 @@ export default class QuestManager {
     this.activeQuest = quest;
     console.log("🚀 QUEST STARTED:", quest.title);
 
-    // Optional: you can trigger cinematic cutscenes here if needed
-    // e.g., this.scene.cutsceneManager.play(quest.cutscene);
+    // 👇 SHOW QUEST HUD
+    this.scene.questHUD.showQuest(quest);
   }
+
+
 }

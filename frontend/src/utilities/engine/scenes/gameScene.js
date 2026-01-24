@@ -7,6 +7,8 @@ import CutsceneManager from "../systems/cutSceneManager";
 import { CUTSCENES } from "../config/cutSceneConfig";
 import quests from "../../data/pythonExercises.json";
 import { CHARACTERS } from "../config/characterConfig";
+import QuestHUD from "../systems/questHUD";
+
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -105,6 +107,13 @@ export default class GameScene extends Phaser.Scene {
     this.interactKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.E
     );
+    this.questHUD = new QuestHUD(this);
+
+    // Q key to open quest scroll 📜
+    this.questKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.Q
+    );
+
 
     // 🧠 Systems
     this.questManager = new QuestManager(this, quests);
@@ -214,6 +223,9 @@ export default class GameScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
       this.tryInteractWithNPC();
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.questKey)) {
+      this.questHUD.toggle(this.questManager.activeQuest);
     }
   }
 
