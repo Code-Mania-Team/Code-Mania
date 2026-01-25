@@ -1,25 +1,21 @@
 import jwt from "jsonwebtoken";
+import crypto from 'crypto';
 
 // Generate short-lived access token (sent to frontend in JSON)
 export const generateAccessToken = (user) => {
     const payload = {
         user_id: user.user_id || user.id,
-        username: user.username
+        username: user.username || user.email,
     };
 
     // Short-lived token, e.g., 15 minutes
-    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
 };
 
 // Generate long-lived refresh token (stored in HttpOnly cookie)
-export const generateRefreshToken = (user) => {
-    const payload = {
-        user_id: user.user_id || user.id,
-        username: user.username
-    };
+export function generateRefreshToken() {
+    return crypto.randomBytes(32).toString('base64url');
 
-    // Long-lived token, e.g., 7 days
-    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 };
 
 // Verify access token

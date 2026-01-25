@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/WelcomeOnboarding.module.css';
-import idleSheet from '../assets/aseprites/Idle-Sheet.png';
-import {onBoardUsername} from '../services/setUsername';
-
+import char2Preview from '../assets/aseprites/characters/Char2/Animation/walkdown_ch1.png';
+import char3Preview from '../assets/aseprites/characters/Char3/Animation/walkdown_ch2.png';
+import char4Preview from '../assets/aseprites/characters/Char4/Animation/walkdown_ch3.png';
+import characterIcon from '../assets/aseprites/characters/icons/character.png';
+import characterIcon1 from '../assets/aseprites/characters/icons/character1.png';
+import characterIcon3 from '../assets/aseprites/characters/icons/character3.png';
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -13,9 +16,9 @@ const WelcomeOnboarding = ({ onComplete }) => {
 
   // Character options (you can add more character sprites here)
   const characters = [
-    { id: 0, name: 'Character 1', sprite: idleSheet, color: '#ff6b6b' },
-    { id: 1, name: 'Character 2', sprite: idleSheet, color: '#4ecdc4' },
-    { id: 2, name: 'Character 3', sprite: idleSheet, color: '#95e1d3' },
+    { id: 0, name: 'Char 2', sprite: char2Preview, icon: characterIcon, color: '#ff6b6b' },
+    { id: 1, name: 'Char 3', sprite: char3Preview, icon: characterIcon1, color: '#4ecdc4' },
+    { id: 2, name: 'Char 4', sprite: char4Preview, icon: characterIcon3, color: '#95e1d3' },
   ];
 
   const steps = [
@@ -85,6 +88,14 @@ const WelcomeOnboarding = ({ onComplete }) => {
     } else {
       // Save user preferences
       localStorage.setItem('selectedCharacter', selectedCharacter);
+      localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
+      localStorage.setItem('username', username);
+      
+      // Dispatch custom event to notify header component
+      window.dispatchEvent(new CustomEvent('characterUpdated', {
+        detail: { characterIcon: characters[selectedCharacter].icon }
+      }));
+      
       onComplete();
     }
   };
@@ -160,11 +171,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
               </button>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>

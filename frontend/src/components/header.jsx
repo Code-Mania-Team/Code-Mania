@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 
@@ -7,7 +7,39 @@ const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v176692575
 
 const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [characterIcon, setCharacterIcon] = useState(null);
   const navigate = useNavigate();
+
+  // Load character icon from localStorage
+  useEffect(() => {
+    const loadCharacterIcon = () => {
+      const storedIcon = localStorage.getItem('selectedCharacterIcon');
+      setCharacterIcon(storedIcon);
+    };
+
+    // Load immediately
+    loadCharacterIcon();
+
+    // Listen for storage changes (for cross-tab updates)
+    const handleStorageChange = (e) => {
+      if (e.key === 'selectedCharacterIcon') {
+        loadCharacterIcon();
+      }
+    };
+
+    // Also listen for custom events (for same-tab updates)
+    const handleCharacterUpdate = () => {
+      loadCharacterIcon();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('characterUpdated', handleCharacterUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('characterUpdated', handleCharacterUpdate);
+    };
+  }, []);
 
   const homePath = isAuthenticated ? '/dashboard' : '/';
 
@@ -59,7 +91,15 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
         {isAuthenticated ? (
           <div className="profile-icon-container" onClick={handleProfileClick}>
             <div className="profile-icon">
-              <span role="img" aria-label="Profile">👤</span>
+              {characterIcon ? (
+                <img 
+                  src={characterIcon} 
+                  alt="Profile" 
+                  className="profile-character-icon"
+                />
+              ) : (
+                <span role="img" aria-label="Profile">👤</span>
+              )}
             </div>
           </div>
         ) : (

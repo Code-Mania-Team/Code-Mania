@@ -1,10 +1,13 @@
 
 import User from "../../models/user.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/token.js";
+import UserToken from "../../models/userToken.js";
+import crypto from "crypto";
 
 class AccountController {
     constructor() {
         this.user = new User();
+        this.userToken = new UserToken();
     }
 
     // REQUEST OTP (SIGNUP)
@@ -29,51 +32,67 @@ class AccountController {
         }
     }
 
-    // VERIFY OTP
+    // VERIFY OTP (SIGNUP)
+    // =========================
     async verifyOtp(req, res) {
         try {
-            const { email, otp } = req.body || {};
-            if (!email || !otp) {
-                return res.status(400).json({ success: false, message: "Email and OTP code are required" });
-            }
+        const { email, otp } = req.body || {};
+        if (!email || !otp) {
+            return res.status(400).json({ success: false, message: "Email and OTP required" });
+        }
 
-            const authUser = await this.user.verifyOtp(email, otp);
-            if (!authUser) return res.status(401).json({ success: false, message: "Invalid OTP or user not found" });
+        const authUser = await this.user.verifyOtp(email, otp);
+        if (!authUser) {
+            return res.status(401).json({ success: false, message: "Invalid OTP" });
+        }
 
-            const profile = await this.user.getProfile(authUser.user_id);
+        const profile = await this.user.getProfile(authUser.user_id);
 
-            // Generate split tokens
-            const accessToken = generateAccessToken({
-                user_id: authUser.user_id,
-                username: profile?.username,
-            });
+        // 🔑 Access token
+        const accessToken = generateAccessToken({
+            user_id: authUser.user_id,
+            username: profile?.email,
+        });
 
-            const refreshToken = generateRefreshToken({
-                user_id: authUser.user_id,
-                username: profile?.username,
-            });
+        const refreshToken = crypto.randomBytes(40).toString('hex');
+        const hashedRefresh = crypto.createHash('sha256').update(refreshToken).digest('hex');
 
-            // Send refresh token as HttpOnly cookie
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: "production",
-                sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            });
+        const existingUser = await this.userToken.findByUserId(authUser.user_id);
+        if (existingUser) {
+            // Update existing token    
+            await this.userToken.update(authUser.user_id, hashedRefresh);   
+        } else {
+            // Create new token
+            await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
+        }
 
-            return res.status(200).json({
-                success: true,
-                message: "OTP verified successfully",
-                accessToken, // frontend stores in memory
-                requiresUsername: !profile?.username,
-                user_id: authUser.user_id,
-            });
+        // 🍪 HttpOnly cookie
+        // 8. Set cookies
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Strict',
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
+        res.cookie('refreshToken', JSON.stringify({ 
+            refreshToken
+        }), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        });
+
+        return res.status(200).json({
+            success: true,
+            accessToken, //remove if using cookie-only
+            requiresUsername: !profile?.username,
+            user_id: authUser.user_id,
+        });
         } catch (err) {
-            console.error("verifyOtp error:", err);
-            if (["OTP not found", "OTP expired", "OTP already used"].some(e => err.message.includes(e))) {
-                return res.status(401).json({ success: false, message: err.message });
-            }
-            return res.status(500).json({ success: false, message: err.message });
+        console.error("verifyOtp error:", err);
+        return res.status(500).json({ success: false, message: err.message });
         }
     }
 
@@ -101,50 +120,105 @@ class AccountController {
     }
 
     async login(req, res) {
-        const { email, password } = req.body || {};
-        if (!email || !password) return res.status(400).json({ success: false, message: "Email and password are required" });
-
         try {
-            const authUser = await this.user.verify(email, password);
-            if (!authUser) return res.status(401).json({ success: false, message: "Invalid email or password" });
+        const { email, password } = req.body || {};
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Email and password required" });
+        }
 
-            const profile = await this.user.getProfile(authUser.user_id);
+        const authUser = await this.user.verify(email, password);
+        if (!authUser) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
 
-            // Generate split tokens
-            const accessToken = generateAccessToken({
-                user_id: authUser.user_id,
-                username: profile?.username,
-            });
-            const refreshToken = generateRefreshToken({
-                user_id: authUser.user_id,
-                username: profile?.username,
-            });
+        const profile = await this.user.getProfile(authUser.user_id);
 
-            // Send refresh token as HttpOnly cookie
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: "production",
-                sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            });
+        const accessToken = generateAccessToken({
+            user_id: authUser.user_id,
+            username: profile?.email,
+        });
+        const refreshToken = crypto.randomBytes(40).toString('hex');
+        const hashedRefresh = crypto.createHash('sha256').update(refreshToken).digest('hex');
 
-            return res.status(200).json({
-                success: true,
-                message: "Login successful",
-                accessToken,
-                requiresUsername: !profile?.username,
-                username: profile?.username || null,
-                user_id: authUser.user_id,
-            });
+
+        // 🔁 Overwrites previous session (single-session)
+        const existing = await this.userTokenModel.findByUserId(user.user_id);
+            if (existing) {
+                await this.userTokenModel.update(user.user_id, hashedRefresh);
+            } else {
+                await this.userTokenModel.create(user.user_id, hashedRefresh);
+            }
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+
+        return res.status(200).json({
+            success: true,
+            accessToken,
+            username: profile?.username || null,
+            user_id: authUser.user_id,
+        });
         } catch (err) {
-            console.error("login error:", err);
-            return res.status(500).json({ success: false, message: err.message || "Login failed" });
+        console.error("login error:", err);
+        return res.status(500).json({ success: false, message: err.message });
         }
     }
+
+
+        // =========================
+    // REFRESH TOKEN (ROTATION)
+    // =========================
+    async refresh(req, res) {
+        try {
+        const oldRefreshToken = req.cookies.refreshToken;
+        if (!oldRefreshToken) {
+            return res.status(401).json({ success: false, message: "No refresh token" });
+        }
+
+        const userId = res.locals.user_id;
+
+        // 🔁 Rotate token
+        const { refreshToken: newRefreshToken } =
+            await this.userToken.rotate(userId, oldRefreshToken);
+
+        const accessToken = generateAccessToken({
+            user_id: userId,
+            username: res.locals.username,
+        });
+
+        res.cookie("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+
+        return res.status(200).json({
+            success: true,
+            accessToken,
+        });
+        } catch (err) {
+        console.error("refresh error:", err);
+
+        // 🚨 Token reuse / invalid token
+        res.clearCookie("refreshToken");
+        return res.status(401).json({
+            success: false,
+            message: "Invalid refresh token",
+        });
+        }
+    }
+
 
     // PROFILE & other methods remain mostly unchanged
     async profile(req, res) {
         try {
+            const token = req.cookies.accessToken || 
+                    req.headers.authorization?.replace('Bearer ', '');
             const userId = res.locals.user_id;
             const data = await this.user.getProfile(userId);
             if (!data) return res.status(404).json({ success: false, message: "Profile not found" });
@@ -208,12 +282,22 @@ class AccountController {
 
     async logout(req, res) {
         try {
-            res.clearCookie("refreshToken", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" });
-            return res.status(200).json({ success: true, message: "Logged out successfully" });
+        const userId = res.locals.user_id;
+
+        await this.userToken.invalidateByUserId(userId);
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        return res.status(200).json({ success: true, message: "Logged out" });
         } catch (err) {
-            return res.status(500).json({ success: false, message: "Failed to logout" });
+        return res.status(500).json({ success: false, message: "Logout failed" });
         }
     }
 }
+
 
 export default AccountController;
