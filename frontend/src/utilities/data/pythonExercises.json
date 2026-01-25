@@ -3,9 +3,12 @@
     "id": 1,
     "title": "Setting Up",
     "dialogue": [
-    "Hey adventurer!",
-    "Before we begin your journey...",
-    "Let me teach you Python 🐍"
+      "Hey adventurer!",
+      "Before we begin your journey...",
+      "Let me teach you Python 🐍",
+      "You'll need Python, the language that once powered Codemania, to help restore the land.",
+      "Let's start with something simple: printing your first message!",
+      "This code will help you begin rebuilding the system. Ready?"
     ],
     "lessonHeader": "🌐 Getting Started with Python",
     "description": "Install Python and set up your coding environment to run Python scripts.",
@@ -18,6 +21,12 @@
   {
     "id": 2,
     "title": "Hello World",
+    "dialogue": [
+      "Ah, the first step towards mastery!",
+      "In Codemania, every coder begins by printing a simple message: Hello World!",
+      "You must display this message to remind the land of your presence.",
+      "Use `print()` to bring your words to life. Can you do it?"
+    ],
     "lessonHeader": "🖥️ Printing Messages",
     "description": "Display messages in the terminal using print().",
     "lessonExample": "print(\"Hello World!\")",
@@ -29,6 +38,12 @@
   {
     "id": 3,
     "title": "Pattern",
+    "dialogue": [
+      "Patterns are everywhere in Codemania.",
+      "Think of them as the foundation of the mountains, the orderly structure of the world.",
+      "To begin, you'll need to print a simple pattern of stars.",
+      "This is no ordinary shape—it’s the beginning of structure that we’ll rebuild together!"
+    ],
     "lessonHeader": "🔢 Printing Patterns",
     "description": "Use print statements to display simple text patterns.",
     "lessonExample": "print(\"*\\n**\\n***\")",
@@ -40,6 +55,11 @@
   {
     "id": 4,
     "title": "Initials",
+    "dialogue": [
+      "Sometimes, your identity is all you need to start the restoration.",
+      "Print your initials, and let the world remember who you are.",
+      "Your initials are the key to unlocking the first part of your memory."
+    ],
     "lessonHeader": "🆔 Print Your Initials",
     "description": "Print your initials using multiple print statements.",
     "lessonExample": "print(\"J\")\nprint(\"P\")",
@@ -51,6 +71,11 @@
   {
     "id": 5,
     "title": "Variables",
+    "dialogue": [
+      "Variables are like containers for your knowledge.",
+      "You can store information in them and use it when needed. Without them, Codemania cannot function.",
+      "Try storing your name in a variable, then print it to the world!"
+    ],
     "lessonHeader": "📦 Variables in Python",
     "description": "Store information using variables.",
     "lessonExample": "name = \"Jet\"\nprint(name)",
@@ -62,6 +87,11 @@
   {
     "id": 6,
     "title": "Strings",
+    "dialogue": [
+      "Strings are like the words you use to communicate in Codemania.",
+      "They hold the essence of everything—messages, names, and commands.",
+      "Let’s put together a greeting and combine strings to form meaningful messages."
+    ],
     "lessonHeader": "📝 String Manipulation",
     "description": "Work with string values and display them using print().",
     "lessonExample": "greeting = \"Hello\"\nprint(greeting + \" World\")",
@@ -73,6 +103,11 @@
   {
     "id": 7,
     "title": "Numbers",
+    "dialogue": [
+      "Numbers govern the very structure of Codemania.",
+      "Without them, calculations would be impossible, and logic would fall apart.",
+      "You’ll need to use numbers to solve puzzles and challenges as you move forward. Start with a simple calculation."
+    ],
     "lessonHeader": "🔢 Numbers",
     "description": "Use numeric values and arithmetic operations in Python.",
     "lessonExample": "a = 5\nb = 3\nprint(a + b)",
@@ -84,6 +119,11 @@
   {
     "id": 8,
     "title": "Booleans",
+    "dialogue": [
+      "In Codemania, truth is paramount.",
+      "Booleans—True or False—determine the flow of everything.",
+      "You must learn to wield them to decide what happens next. True or False, adventurer, which path will you choose?"
+    ],
     "lessonHeader": "✅ Boolean Values",
     "description": "Learn about True and False values in Python.",
     "lessonExample": "isStudent = True\nprint(isStudent)",
@@ -95,6 +135,11 @@
   {
     "id": 9,
     "title": "If Statements",
+    "dialogue": [
+      "Control flow. It’s how the land reacts to your decisions.",
+      "An if statement will decide the course of events based on conditions you define.",
+      "Use your power wisely, adventurer—if you’re ready, your path will open."
+    ],
     "lessonHeader": "🔀 Conditional Statements",
     "description": "Use if statements to control program flow.",
     "lessonExample": "age = 18\nif age >= 18:\n    print(\"Adult\")",
@@ -106,6 +151,11 @@
   {
     "id": 10,
     "title": "Else & Elif",
+    "dialogue": [
+      "The world is full of alternatives.",
+      "What if the first condition doesn’t hold? That’s where else and elif come in.",
+      "They give you more control over the land, allowing you to handle multiple situations."
+    ],
     "lessonHeader": "🔀 Conditional Chains",
     "description": "Use else and elif for multiple conditions.",
     "lessonExample": "age = 16\nif age >= 18:\n    print(\"Adult\")\nelif age >= 13:\n    print(\"Teen\")\nelse:\n    print(\"Child\")",
@@ -117,6 +167,11 @@
   {
     "id": 11,
     "title": "Comparison",
+    "dialogue": [
+      "Comparison allows you to measure the land, to judge what is larger, smaller, equal, or different.",
+      "The world of Codemania is built on comparison.",
+      "What’s greater? What’s equal? These answers will guide you through the challenges ahead."
+    ],
     "lessonHeader": "⚖️ Comparison Operators",
     "description": "Use ==, !=, >, <, >=, <= to compare values.",
     "lessonExample": "a = 5\nb = 3\nprint(a > b)",
@@ -128,6 +183,11 @@
   {
     "id": 12,
     "title": "Logical Operators",
+    "dialogue": [
+      "Combining conditions is a powerful skill.",
+      "Use logical operators like ‘and’, ‘or’, and ‘not’ to test multiple things at once.",
+      "This will allow you to face more complex situations. Will you combine your conditions wisely?"
+    ],
     "lessonHeader": "🔀 Logical Operators",
     "description": "Combine conditions using and, or, not.",
     "lessonExample": "a = True\nb = False\nprint(a and b)",
@@ -139,6 +199,11 @@
   {
     "id": 13,
     "title": "For Loops",
+    "dialogue": [
+      "Repeating actions is the essence of power in Codemania.",
+      "With a `for` loop, you can repeat tasks as many times as you need. The more you repeat, the stronger you get.",
+      "Use this power to iterate through tasks and regain your strength."
+    ],
     "lessonHeader": "🔁 For Loops",
     "description": "Repeat actions using for loops.",
     "lessonExample": "for i in range(3):\n    print(i)",
@@ -150,6 +215,11 @@
   {
     "id": 14,
     "title": "While Loops",
+    "dialogue": [
+      "What if you need to keep repeating an action, but only as long as a condition is true?",
+      "The while loop will help you do just that.",
+      "This skill will be crucial in your journey, as some challenges won’t be solved with a single step."
+    ],
     "lessonHeader": "🔁 While Loops",
     "description": "Repeat actions while a condition is True.",
     "lessonExample": "count = 0\nwhile count < 3:\n    print(count)\n    count += 1",
@@ -161,6 +231,11 @@
   {
     "id": 15,
     "title": "Range Function",
+    "dialogue": [
+      "Sometimes, the range of possibilities is vast.",
+      "The range function helps you loop through sequences—whether it’s from 0 to 10, or any other span.",
+      "Master this skill, and you can move through Codemania’s challenges with precision."
+    ],
     "lessonHeader": "🔢 Using range()",
     "description": "Learn to generate sequences of numbers with range().",
     "lessonExample": "for i in range(1, 5):\n    print(i)",
@@ -172,6 +247,11 @@
   {
     "id": 16,
     "title": "Nested Loops",
+    "dialogue": [
+      "Sometimes, you’ll need to loop through multiple layers of logic.",
+      "That’s where nested loops come in—loops within loops.",
+      "It’s a powerful technique for solving complex problems that require multiple steps at once."
+    ],
     "lessonHeader": "🔁 Nested Loops",
     "description": "Use loops inside loops for more complex patterns.",
     "lessonExample": "for i in range(2):\n    for j in range(2):\n        print(i, j)",
@@ -183,6 +263,12 @@
   {
     "id": 17,
     "title": "Python Exam",
+    "dialogue": [
+      "The time has come for your final test, adventurer.",
+      "Everything you’ve learned about Codemania is about to be put to the ultimate test.",
+      "Restore the final pieces of your memory, and with it, the land of Codemania.",
+      "You must solve this challenge and prove that you are the coder you once were."
+    ],
     "lessonHeader": "📝 Python Final Exam",
     "description": "Test your Python knowledge with exercises covering all modules.",
     "lessonExample": "def add(a,b):\n    return a+b\nprint(add(5,7))",
