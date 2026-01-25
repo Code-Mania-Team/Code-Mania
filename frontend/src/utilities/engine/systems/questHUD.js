@@ -37,7 +37,7 @@ export default class QuestUI {
     );
 
     // =========================
-    // Quest Title
+    // Lesson Title
     // =========================
     this.titleText = scene.add.text(
       width / 2,
@@ -51,16 +51,16 @@ export default class QuestUI {
     ).setOrigin(0.5);
 
     // =========================
-    // Body Text (Dialogue + Lesson)
+    // Lesson Body (Header + Description)
     // =========================
     this.bodyText = scene.add.text(
       width / 2 - 230,
-      height / 2 - 150,
+      height / 2 - 140,
       "",
       {
         fontSize: "18px",
         color: "#f5f0d6",
-        lineSpacing: 8,
+        lineSpacing: 10,
         wordWrap: { width: 460 }
       }
     );
@@ -70,33 +70,17 @@ export default class QuestUI {
     // =========================
     this.codeText = scene.add.text(
       width / 2 - 230,
-      height / 2 + 60,
+      height / 2 + 40,
       "",
       {
         fontFamily: "monospace",
         fontSize: "16px",
         color: "#a8ff60",
         backgroundColor: "#1e1e1e",
-        padding: { left: 10, right: 10, top: 8, bottom: 8 }
+        padding: { left: 12, right: 12, top: 10, bottom: 10 },
+        wordWrap: { width: 460 }
       }
     );
-
-    // =========================
-    // Continue / Complete Button
-    // =========================
-    this.completeBtn = scene.add.text(
-      width / 2,
-      height / 2 + 170,
-      "Continue",
-      {
-        fontSize: "18px",
-        color: "#ffffff",
-        backgroundColor: "#4caf50",
-        padding: { left: 24, right: 24, top: 10, bottom: 10 }
-      }
-    )
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
 
     // =========================
     // Add to container
@@ -105,29 +89,24 @@ export default class QuestUI {
       this.bg,
       this.titleText,
       this.bodyText,
-      this.codeText,
-      this.completeBtn
+      this.codeText
     ]);
   }
 
   // =========================
-  // Show Quest
+  // Show Quest Lesson
   // =========================
   showQuest(quest) {
     if (!quest) return;
 
-    // Title
-    this.titleText.setText(quest.title);
+    // Lesson title
+    this.titleText.setText(quest.title || "");
 
-    // Build body content
+    // Build lesson body
     let body = "";
 
-    if (quest.dialogue?.length) {
-      body += quest.dialogue.join("\n") + "\n\n";
-    }
-
     if (quest.lessonHeader) {
-      body += quest.lessonHeader + "\n";
+      body += quest.lessonHeader + "\n\n";
     }
 
     if (quest.description) {
@@ -136,7 +115,7 @@ export default class QuestUI {
 
     this.bodyText.setText(body);
 
-    // Code example
+    // Example code
     if (quest.lessonExample) {
       this.codeText
         .setText(quest.lessonExample)
@@ -160,7 +139,7 @@ export default class QuestUI {
   }
 
   // =========================
-  // Hide Quest
+  // Hide Quest Lesson
   // =========================
   hide() {
     if (!this.visible) return;

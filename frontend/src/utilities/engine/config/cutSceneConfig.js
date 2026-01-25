@@ -1,9 +1,7 @@
 export const CUTSCENES = {
-  map1_intro: [
+  Python_map1_intro: [
     { type: "lockPlayer" },
-
     { type: "cameraMove", x: 900, y: 250, duration: 3000 },
-
     {
       type: "dialogue",
       lines: [
@@ -13,9 +11,7 @@ export const CUTSCENES = {
         "Every river flowed with data."
       ]
     },
-
     { type: "cameraMove", x: 600, y: 500, duration: 2500 },
-
     {
       type: "dialogue",
       lines: [
@@ -24,9 +20,7 @@ export const CUTSCENES = {
         "Bugs crawled into the land, and errors became law."
       ]
     },
-
     { type: "cameraMove", x: 400, y: 700, duration: 2000 },
-
     {
       type: "dialogue",
       lines: [
@@ -36,8 +30,15 @@ export const CUTSCENES = {
         "You must first restore yourself."
       ]
     },
-
     { type: "cameraFollowPlayer" },
     { type: "unlockPlayer" }
+  ],
+
+  JavaScript_map1_intro: [
+    // ...JS version of map1 cutscene
+  ],
+
+  Cpp_map1_intro: [
+    // ...C++ version of map1 cutscene
   ]
 };
