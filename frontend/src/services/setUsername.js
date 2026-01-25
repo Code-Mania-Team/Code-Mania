@@ -14,15 +14,15 @@ const onBoardUsername = async (username) => {
         headers: {
           apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
+          // Authorization: `Bearer ${accessToken}` || "",
         },
         withCredentials: true,
       }
     );
     console.log("Username set response:", response.data);
     return response.data;
-    console.log("Username set response:", response.data);
   } catch (error) {
-    console.error("Error during top-up:", error);
+    console.error("Error during set userame:", error);
     throw error;
   }
 };

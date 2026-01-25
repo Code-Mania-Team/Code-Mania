@@ -1,9 +1,9 @@
-import { axiosPublic } from "../api/axios"; // adjust the path if needed
 
+import axios from "axios";
 const login = async (email, password) => {
   try {
-    const response = await axiosPublic.post(
-      "/v1/account/login",
+    const response = await axios.post(
+      "http://localhost:3000/v1/account/login",
       { email, password },
       {
         headers: {
@@ -12,6 +12,7 @@ const login = async (email, password) => {
         },
       }
     );
+    console.log("Login response:", response.data);  
 
     // returns the accessToken and user info from backend
     return response.data;

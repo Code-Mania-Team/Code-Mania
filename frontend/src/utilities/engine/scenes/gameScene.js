@@ -6,6 +6,7 @@ import DialogueManager from "../systems/dialogueManager";
 import CutsceneManager from "../systems/cutSceneManager";
 import { CUTSCENES } from "../config/cutSceneConfig";
 import quests from "../../data/pythonExercises.json";
+import { CHARACTERS } from "../config/characterConfig";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -32,10 +33,13 @@ export default class GameScene extends Phaser.Scene {
       this.mapData.tilesets
     );
 
-    ["down", "up", "left", "right"].forEach(dir => {
-      this.load.spritesheet(`player-${dir}`, `/assets/walk${dir}-Sheet.png`, {
+    const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
+    const character = CHARACTERS.find(c => c.id === selectedId) || CHARACTERS[0];
+
+    Object.entries(character.sprites).forEach(([dir, path]) => {
+      this.load.spritesheet(`player-${dir}`, path, {
         frameWidth: 48,
-        frameHeight: 48,
+        frameHeight: 48
       });
     });
 

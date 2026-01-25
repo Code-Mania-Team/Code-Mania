@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/WelcomeOnboarding.module.css';
-import char2Preview from '../assets/aseprites/characters/Char2/Animation/walkdown_ch1.png';
-import char3Preview from '../assets/aseprites/characters/Char3/Animation/walkdown_ch2.png';
-import char4Preview from '../assets/aseprites/characters/Char4/Animation/walkdown_ch3.png';
-import characterIcon from '../assets/aseprites/characters/icons/character.png';
-import characterIcon1 from '../assets/aseprites/characters/icons/character1.png';
-import characterIcon3 from '../assets/aseprites/characters/icons/character3.png';
+import char2Preview from '/assets/characters/Char2/Animation/walkdown_ch1.png';
+import char3Preview from '/assets/characters/Char3/Animation/walkdown_ch2.png';
+import char4Preview from '/assets/characters/Char4/Animation/walkdown_ch3.png';
+import characterIcon from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon3 from '/assets/characters/icons/character3.png';
+import { onBoardUsername } from '../services/setUsername';
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -201,11 +202,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.usernameSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>
@@ -237,11 +246,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.welcomeSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>

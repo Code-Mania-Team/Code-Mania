@@ -124,7 +124,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     // Initialize from localStorage if available
-    return localStorage.getItem('isAuthenticated') === 'true';
+    return localStorage.getItem('isAuthenticated') === 'false';
   });
   const [isNewUser, setIsNewUser] = useState(false);
   const location = useLocation();

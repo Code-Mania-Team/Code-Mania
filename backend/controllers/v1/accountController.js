@@ -103,7 +103,11 @@ class AccountController {
 
         try {
             const updated = await this.user.setUsername(user_id, username);
-            if (!updated) return res.status(400).json({ success: false, message: "Failed to set username" });
+            if (!updated) 
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Failed to set username" 
+                });
 
             // Generate new access token (split approach)
             const accessToken = generateAccessToken({ user_id, username });
@@ -142,12 +146,20 @@ class AccountController {
 
 
         // 🔁 Overwrites previous session (single-session)
-        const existing = await this.userTokenModel.findByUserId(user.user_id);
+        const existing = await this.userToken.findByUserId(authUser.user_id);
+        console.log("Existing token:", existing);
             if (existing) {
-                await this.userTokenModel.update(user.user_id, hashedRefresh);
+                await this.userToken.update(authUser.user_id, hashedRefresh);
             } else {
-                await this.userTokenModel.create(user.user_id, hashedRefresh);
+                await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
             }
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
+            });
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,

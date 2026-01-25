@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../styles/SignInModal.module.css';
+import { signUp } from '../services/signup';  // Import the signUp service
+import { verifyOtp } from '../services/verifyOtp';
+import { login } from '../services/login';
 
 const swordImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/sword_cnrdam.png';
 const shieldImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/shield_ykk5ek.png';
@@ -108,6 +111,13 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
+    console.log("HANDLE SUBMIT FIRED");
+    console.log({
+  isSignUpMode,
+  showOtpField,
+});
+    console.log("signUp function:", signUp);
+
     e.preventDefault();
     setIsLoading(true);
     
@@ -118,6 +128,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           // Step 1: validate password + confirm and request OTP
           if (password !== confirmPassword) {
             setConfirmPasswordError('Passwords do not match');
+            console.log('Passwords do not match');
             setIsLoading(false);
             return;
           }
@@ -127,19 +138,23 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
             setIsLoading(false);
             return;
           }
-          // TODO: Replace with your actual API call to send OTP
-          // await api.requestSignupOtp({ email, password });
+          const user = await signUp(email, password);
+          console.log('Signup response:', user);
+        
           setShowOtpField(true);
         } else {
-          // Step 2: verify OTP and finish sign up
-          // const user = await api.verifySignupOtp({ email, otp });
+          const user = await verifyOtp(email, otp);
+          console.log('OTP verification response:', user);
           onSignInSuccess(true);
+          onClose();
+
           return; // Exit early after successful signup
         }
       } else {
-        // LOGIN flow: simple email + password (no OTP)
-        // const user = await api.login({ email, password });
+        const user = await login(email, password);
+        console.log('Login response:', user);
         onSignInSuccess(false);
+        onClose();
         return; // Exit early after successful login
       }
     } catch (error) {

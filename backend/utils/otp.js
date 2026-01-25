@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
-
+console.log("BREVO_USER:", process.env.BREVO_USER);
+console.log("BREVO_PASS:", process.env.BREVO_PASS);
 // Generate numeric OTP
 export function generateOtp(length = 6) {
     let otp = "";

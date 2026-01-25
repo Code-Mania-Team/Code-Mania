@@ -4,7 +4,7 @@ const verifyOtp = async (email, otp) => {
 
   try {
     const response = await axios.post(
-      "http://localhost:3000/v1/account/verify-otp",
+      "http://localhost:3000/v1/account/signup/verify-otp",
       { email, otp },
       {
         headers: {

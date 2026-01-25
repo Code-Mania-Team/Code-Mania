@@ -43,8 +43,8 @@ class UserToken {
         const { data, error } = await this.db
         .from("user_tokens")
         .update({
-            refresh_token: hashedRefreshToken,
-            expiry_time: expiresAt.toISOString(),
+            token: hashedRefreshToken,
+            expires_at: expiresAt.toISOString(),
         })
         .eq("user_id", user_id)
         .select("*")
@@ -59,7 +59,7 @@ class UserToken {
         const { data, error } = await this.db
         .from("user_tokens")
         .select("*")
-        .eq("refresh_token", hashedRefreshToken)
+        .eq("token", hashedRefreshToken)
         .limit(1)
         .maybeSingle();
 
@@ -73,8 +73,8 @@ class UserToken {
         const { error } = await this.db
         .from("user_tokens")
         .update({
-            refresh_token: null,
-            expiry_time: new Date().toISOString(),
+            token: null,
+            expires_at: new Date().toISOString(),
         })
         .eq("token_id", token_id);
 
@@ -86,8 +86,8 @@ class UserToken {
         const { error } = await this.db
         .from("user_tokens")
         .update({
-            refresh_token: null,
-            expiry_time: new Date().toISOString(),
+            token: null,
+            expires_at: new Date().toISOString(),
         })
         .eq("user_id", user_id);
 

@@ -168,12 +168,13 @@ class User {
 
     // ONE-TIME USERNAME SETUP
     async setUsername(user_id, username) {
-        const { data } = await this.db
+        const { data, error } = await this.db
             .from("users")
             .update({ username })
             .eq("user_id", user_id)
-            .select()
-            .single();
+            .select();
+        console.log("SET USERNAME DATA:", data);
+        if (error) throw error;
         return data;
     }
 

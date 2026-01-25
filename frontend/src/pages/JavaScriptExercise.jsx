@@ -251,7 +251,7 @@ const JavaScriptExercise = () => {
                       )}
                       
                       <h3>Your Task:</h3>
-                      <p>{currentExercise?.description || 'Complete the JavaScript code below.'}</p>
+                      <p>{currentExercise?.task || 'Complete the JavaScript code below.'}</p>
                       
                       <div className={styles.navigation}>
                         <button 

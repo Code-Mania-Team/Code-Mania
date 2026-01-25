@@ -81,13 +81,22 @@ const Profile = ({ onSignOut }) => {
   };
 
   const handleConfirmSignOut = () => {
+    // Clear auth state
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    localStorage.removeItem('fullName');
+    localStorage.removeItem('selectedCharacterIcon');
+
+    // Notify app
     if (onSignOut) {
       onSignOut();
     }
+
     setIsSignOutConfirmOpen(false);
-    // Optionally redirect to home page after sign out
+    window.dispatchEvent(new Event('authchange'));
     window.location.href = '/';
-  };
+};
+
 
   const handleCancelSignOut = () => {
     setIsSignOutConfirmOpen(false);
