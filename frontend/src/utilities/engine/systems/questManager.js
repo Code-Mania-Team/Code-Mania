@@ -17,8 +17,18 @@ export default class QuestManager {
     console.log("🚀 QUEST STARTED:", quest.title);
 
     // 👇 SHOW QUEST HUD
-    this.scene.questHUD.showQuest(quest);
+    if (this.scene.questHUD) this.scene.questHUD.showQuest(quest);
   }
 
+  completeQuest(id) {
+  const quest = this.getQuestById(id);
+    if (!quest) return;
+
+    quest.completed = true;
+    console.log("✅ QUEST COMPLETED:", quest.title);
+
+    // Remove or comment this line:
+    // if (this.scene.questHUD) this.scene.questHUD.updateQuestStatus(quest);
+  }
 
 }
