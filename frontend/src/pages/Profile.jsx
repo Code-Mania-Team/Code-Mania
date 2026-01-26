@@ -6,7 +6,17 @@ import profileBanner from '../assets/profile-banner.jpg';
 import pythonBadge1 from '../assets/badges/Python/python-badge1.png';
 import pythonBadge2 from '../assets/badges/Python/python-badge2.png';
 import pythonBadge3 from '../assets/badges/Python/python-badge3.png';
+import pythonBadge4 from '../assets/badges/Python/python-badge4.png';
 import cppBadge1 from '../assets/badges/C++/c++-badges1.png';
+import cppBadge2 from '../assets/badges/C++/c++-badges2.png';
+import cppBadge3 from '../assets/badges/C++/c++-badge3.png';
+import cppBadge4 from '../assets/badges/C++/c++-badge4.png';
+import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
+import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
+import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
+import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
+
+import achievementsConfig from "../utilities/data/achievements.json";
 
 const badgeImageById = {
   divine_warrior: pythonBadge3,
@@ -17,6 +27,26 @@ const badgeImageById = {
 };
 
 const defaultBadgeImage = pythonBadge2;
+
+const badgeImageByKey = {
+  // JavaScript badges
+  "js-stage1": jsStage1Badge,
+  "js-stage2": jsStage2Badge,
+  "js-stage3": jsStage3Badge,
+  "js-stage4": jsStage4Badge,
+  
+  // Python badges
+  "python-stage1": pythonBadge1,
+  "python-stage2": pythonBadge2,
+  "python-stage3": pythonBadge3,
+  "python-stage4": pythonBadge4,
+  
+  // C++ badges
+  "cpp-stage1": cppBadge1,
+  "cpp-stage2": cppBadge2,
+  "cpp-stage3": cppBadge3,
+  "cpp-stage4": cppBadge4,
+};
 
 const Profile = ({ onSignOut }) => {
   const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
@@ -43,38 +73,29 @@ const Profile = ({ onSignOut }) => {
     javascript: { progress: 0, total: 100, icon: <FileCode2 size={20} /> }
   });
 
-  const [badges] = useState([
-    {
-      id: 'divine_warrior',
-      title: 'Divine Warrior',
-      description: 'Complete 100 coding challenges',
-      received: 'About 1 year ago'
-    },
-    {
-      id: 'python_master',
-      title: 'Python Master',
-      description: 'Complete all Python exercises',
-      received: '6 months ago'
-    },
-    {
-      id: 'bug_hunter',
-      title: 'Bug Hunter',
-      description: 'Fix 50 bugs in exercises',
-      received: '3 months ago'
-    },
-    {
-      id: 'speed_coder',
-      title: 'Speed Coder',
-      description: 'Complete 10 exercises in under 5 minutes each',
-      received: '1 month ago'
-    },
-    {
-      id: 'first_steps',
-      title: 'First Steps',
-      description: 'Complete your first coding exercise',
-      received: '1 year ago'
+  const [badges] = useState(() => {
+    const earnedRaw = localStorage.getItem('earnedAchievements') || '[]';
+    let earned;
+    try {
+      earned = JSON.parse(earnedRaw);
+    } catch {
+      earned = [];
     }
-  ]);
+
+    const earnedById = new Map(
+      (earned || []).map(e => [e?.id, e?.received])
+    );
+
+    return (achievementsConfig || [])
+      .filter(a => earnedById.has(a.id)) // Only show earned achievements
+      .map(a => ({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        received: earnedById.get(a.id) ? new Date(earnedById.get(a.id)).toLocaleString() : 'Locked',
+        badgeKey: a.badgeKey,
+      }));
+  });
 
   const handleSignOut = () => {
     setIsSignOutConfirmOpen(true);
@@ -102,11 +123,13 @@ const Profile = ({ onSignOut }) => {
     localStorage.removeItem('username');
     localStorage.removeItem('fullName');
     localStorage.removeItem('selectedCharacter');
+    localStorage.removeItem('selectedCharacterIcon');
     localStorage.removeItem('hasSeenOnboarding');
     localStorage.removeItem('hasCompletedOnboarding');
     localStorage.removeItem('hasTouchedCourse');
     localStorage.removeItem('lastCourseTitle');
     localStorage.removeItem('lastCourseRoute');
+    localStorage.removeItem('earnedAchievements'); // Clear badges on account deletion
 
     window.dispatchEvent(new Event('authchange'));
     setIsDeleteConfirmOpen(false);
@@ -207,27 +230,40 @@ const Profile = ({ onSignOut }) => {
         <div className={styles.tabContent}>
           {activeTab === 'achievements' && (
             <div className={styles.achievementsTable}>
-              <div className={styles.tableHeader}>
-                <span>Badges</span>
-                <span>Achievements</span>
-                <span>Received</span>
-              </div>
-              {badges.map((badge) => (
-                <div key={badge.id} className={styles.tableRow}>
-                  <div className={styles.badgeCell}>
-                    <img
-                      className={styles.badgeIcon}
-                      src={badgeImageById[badge.id] || defaultBadgeImage}
-                      alt={badge.title}
-                    />
-                  </div>
-                  <div className={styles.achievementCell}>
-                    <div className={styles.achievementTitle}>{badge.title}</div>
-                    <div className={styles.achievementDescription}>{badge.description}</div>
-                  </div>
-                  <div className={styles.timeCell}>{badge.received}</div>
+              {badges.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  <p>No achievements earned yet.</p>
+                  <p style={{ fontSize: '14px', marginTop: '8px' }}>Complete exercises to unlock badges!</p>
                 </div>
-              ))}
+              ) : (
+                <>
+                  <div className={styles.tableHeader}>
+                    <span>Badges</span>
+                    <span>Achievements</span>
+                    <span>Received</span>
+                  </div>
+                  {badges.map((badge) => (
+                    <div key={badge.id} className={styles.tableRow}>
+                      <div className={styles.badgeCell}>
+                        <img
+                          className={styles.badgeIcon}
+                          src={
+                            (badge.badgeKey && badgeImageByKey[badge.badgeKey]) ||
+                            badgeImageById[badge.id] ||
+                            defaultBadgeImage
+                          }
+                          alt={badge.title}
+                        />
+                      </div>
+                      <div className={styles.achievementCell}>
+                        <div className={styles.achievementTitle}>{badge.title}</div>
+                        <div className={styles.achievementDescription}>{badge.description}</div>
+                      </div>
+                      <div className={styles.timeCell}>{badge.received}</div>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           )}
           

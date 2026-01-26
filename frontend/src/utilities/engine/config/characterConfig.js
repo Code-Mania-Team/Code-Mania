@@ -31,7 +31,7 @@ export const CHARACTERS = [
   },
   {
     id: 3,
-    name: "Echo",
+    name: "Zephyr",
     sprites: {
       down: "/assets/characters/Char4/Animation/walkdown_ch4.png",
       up: "/assets/characters/Char4/Animation/walkup_ch4.png",

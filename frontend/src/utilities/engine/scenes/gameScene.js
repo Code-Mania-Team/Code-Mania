@@ -65,6 +65,17 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.roundPixels = true;
 
     // 🎞 PLAYER ANIMATIONS
+    const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
+    
+    const characterIdleFrames = {
+      0: 1,
+      1: 1,
+      2: 1,
+      3: 1
+    };
+    
+    const idleFrame = characterIdleFrames[selectedId] || 0;
+    
     ["down", "up", "left", "right"].forEach(dir => {
       this.anims.create({
         key: `walk-${dir}`,
@@ -78,7 +89,7 @@ export default class GameScene extends Phaser.Scene {
 
       this.anims.create({
         key: `idle-${dir}`,
-        frames: [{ key: `player-${dir}`, frame: 0 }]
+        frames: [{ key: `player-${dir}`, frame: idleFrame }]
       });
     });
 
