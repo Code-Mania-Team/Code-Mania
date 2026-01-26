@@ -68,15 +68,12 @@ export default class QuestUI {
     this.bodyText = scene.add.text(
       this.contentLeft,
       this.bodyBaseY,
-      width / 2 - 230,
-      height / 2 - 140,
       "",
       {
         fontSize: "18px",
         color: "#f5f0d6",
         lineSpacing: 10,
         wordWrap: { width: this.contentWidth }
-        wordWrap: { width: 460 }
       }
     );
 
@@ -85,7 +82,6 @@ export default class QuestUI {
     // =========================
     this.codeText = scene.add.text(
       this.contentLeft,
-      width / 2 - 230,
       height / 2 + 40,
       "",
       {
@@ -125,10 +121,6 @@ export default class QuestUI {
 
     scene.input.on("wheel", this.onWheel);
 
-        wordWrap: { width: 460 }
-      }
-    );
-
     // =========================
     // Add to container
     // =========================
@@ -138,7 +130,6 @@ export default class QuestUI {
       this.bodyText,
       this.codeText,
       this.bodyMaskGraphics
-      this.codeText
     ]);
   }
 
