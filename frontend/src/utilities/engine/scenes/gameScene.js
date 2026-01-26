@@ -10,6 +10,8 @@ import jsQuests from "../../data/javascriptExercises.json";
 import cppQuests from "../../data/cppExercises.json";
 import { CHARACTERS } from "../config/characterConfig";
 import QuestHUD from "../systems/questHUD";
+import ExitArrowManager from "../systems/exitArrowHUD";
+
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -153,6 +155,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.dialogueManager = new DialogueManager(this);
     this.cutsceneManager = new CutsceneManager(this);
+    this.exitArrowManager = new ExitArrowManager(this);
     this.createMapExits();
     this.lastDirection = "down";
 
@@ -398,10 +401,34 @@ export default class GameScene extends Phaser.Scene {
         zone.body.setAllowGravity(false);
         zone.body.setImmovable(true);
 
+        const targetMap =
+          obj.properties.find(p => p.name === "target_map")?.value;
+
+        const direction =
+          obj.properties.find(p => p.name === "direction")?.value ?? "down";
+
+        const rawQuest =
+          obj.properties.find(p => p.name === "required_quest")?.value;
+
+        let questDone = false;
+
+        if (rawQuest !== undefined) {
+          const quest = this.questManager.getQuestById(Number(rawQuest));
+          questDone = !!quest?.completed;
+        }
+
         zone.exitData = {
-          targetMap: obj.properties.find(p => p.name === "target_map")?.value,
-          requiredQuest: obj.properties.find(p => p.name === "required_quest")?.value
+          targetMap,
+          requiredQuest: rawQuest
         };
+
+        // 🏹 CREATE ARROW (HIDDEN UNTIL QUEST DONE)
+        zone.exitArrow = this.exitArrowManager.createArrow(
+          zone.x,
+          zone.y,
+          direction,
+          questDone
+        );
 
         this.mapExits.add(zone);
       });
@@ -414,6 +441,8 @@ export default class GameScene extends Phaser.Scene {
       this
     );
   }
+
+
 
   handleMapExit(player, zone) {
     const { targetMap, requiredQuest } = zone.exitData;

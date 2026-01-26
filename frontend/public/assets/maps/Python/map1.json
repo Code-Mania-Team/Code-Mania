@@ -277,6 +277,11 @@
                  "point":true,
                  "properties":[
                         {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"right"
+                        }, 
+                        {
                          "name":"name",
                          "type":"string",
                          "value":"exit"
@@ -309,6 +314,11 @@
                  "name":"exit",
                  "point":true,
                  "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"right"
+                        }, 
                         {
                          "name":"name",
                          "type":"string",
@@ -343,6 +353,11 @@
                  "point":true,
                  "properties":[
                         {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"right"
+                        }, 
+                        {
                          "name":"name",
                          "type":"string",
                          "value":"exit"
@@ -375,6 +390,11 @@
                  "name":"exit",
                  "point":true,
                  "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"right"
+                        }, 
                         {
                          "name":"name",
                          "type":"string",
@@ -409,6 +429,11 @@
                  "point":true,
                  "properties":[
                         {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"right"
+                        }, 
+                        {
                          "name":"name",
                          "type":"string",
                          "value":"exit"
@@ -441,6 +466,11 @@
                  "name":"exit",
                  "point":true,
                  "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"right"
+                        }, 
                         {
                          "name":"name",
                          "type":"string",
