@@ -104,11 +104,8 @@ export default class GameScene extends Phaser.Scene {
       this.physics.add.collider(this.player, npc);
     });
 
-<<<<<<< HEAD
     this.createInteractionMarker();
 
-=======
->>>>>>> origin/cppTilesets
     // 🌍 CAMERA
     const w = this.mapLoader.map.widthInPixels;
     const h = this.mapLoader.map.heightInPixels;
