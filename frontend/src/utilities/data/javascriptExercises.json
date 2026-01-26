@@ -3,9 +3,17 @@
     "id": 1,
     "title": "Introduction",
     "lessonHeader": "🌐 Introduction to JavaScript",
-    "description": "JavaScript is a programming language used to make web pages interactive. It runs in the browser and allows you to respond to user actions.",
+    "dialogue": [
+      "A wooden sign creaks at the town gate.",
+      "\"Welcome to JavaScript Town.\"",
+      "JavaScript…",
+      "The name echoes in your memory.",
+      "Something here made the town respond.",
+      "The reason everything here once felt alive."
+    ],
+    "description": "JavaScript is a programming language that runs in the browser and is used to make web pages interactive. It allows developers to respond to user actions, display messages, and change content dynamically. JavaScript works alongside HTML and CSS to create responsive and interactive web experiences.",
     "lessonExample": "console.log(\"Welcome to JavaScript!\")",
-    "startingCode": "console.log(\"Hello, JS!\")",
+    "startingCode": "console.log()",
     "hints": ["Use console.log() to print output.", "Your code should run without errors."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello, JS!"
@@ -14,6 +22,12 @@
     "id": 2,
     "title": "Console Output",
     "lessonHeader": "🖥️ Console Output",
+    "dialogue": [
+      "You notice strange symbols carved into a terminal.",
+      "When you speak through it, the town listens.",
+      "Messages appear… but only to those who know where to look.",
+      "This must be how the town communicates."
+    ],
     "description": "Display messages in the browser's console using console.log().",
     "lessonExample": "console.log(\"Hello World!\")",
     "startingCode": "console.log()",
@@ -25,6 +39,12 @@
     "id": 3,
     "title": "Variables",
     "lessonHeader": "📦 Variables",
+    "dialogue": [
+      "The town asks for a name.",
+      "Not everything here is fixed—some things can be stored, remembered.",
+      "You bind a name to an idea.",
+      "For the first time, the town recognizes you."
+    ],
     "description": "Variables store information that can be used later. Use let or const to create variables.",
     "lessonExample": "let name = \"Jet\";\nconsole.log(name);",
     "startingCode": "let heroName = \"\";\nconsole.log(heroName);",
@@ -36,6 +56,12 @@
     "id": 4,
     "title": "Data Types",
     "lessonHeader": "📊 Data Types",
+    "dialogue": [
+      "You start to see patterns in the town’s thoughts.",
+      "Numbers. Truths. Words.",
+      "Each idea has a different shape.",
+      "Now you understand how the town thinks."
+    ],
     "description": "JavaScript supports different data types such as strings, numbers, and booleans.",
     "lessonExample": "let age = 18;\nlet isStudent = true;\nconsole.log(age);\nconsole.log(isStudent);",
     "startingCode": "let age = ;\nconsole.log(age);",

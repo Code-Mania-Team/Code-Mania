@@ -13,6 +13,7 @@ import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
 import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
 import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 import exercises from "../utilities/data/javascriptExercises.json";
+import { initPhaserGame } from "../utilities/engine/main.js";
 
 const JavaScriptExercise = () => {
   const { exerciseId } = useParams();
@@ -38,6 +39,10 @@ const JavaScriptExercise = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const forceStageComplete = searchParams.get("stageComplete") === "1";
+
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "JavaScript");
+    localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
     if (exerciseId) {
       const id = parseInt(exerciseId.split('-')[0], 10);
@@ -92,6 +97,14 @@ const JavaScriptExercise = () => {
   // Automatically start dialogue on component mount
   useEffect(() => {
     handleNextDialogue();
+  }, []);
+
+  useEffect(() => {
+    const game = initPhaserGame("phaser-container");
+
+    return () => {
+      if (game) game.cleanup();
+    };
   }, []);
 
   const handleNextDialogue = () => {
@@ -210,26 +223,14 @@ const JavaScriptExercise = () => {
             <div className={styles["game-preview"]}>
               <div 
                 className={styles["game-scene"]}
+                id="phaser-container"
                 style={{
-                  backgroundImage: `url(${map1})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  minHeight: '400px',
-                  position: 'relative',
-                  borderRadius: '8px',
-                  overflow: 'hidden'
+                  minHeight: "400px",
+                  position: "relative",
+                  borderRadius: "8px",
+                  overflow: "hidden"
                 }}
               >
-                {!showScroll && (
-                  <button 
-                    onClick={() => setShowScroll(true)}
-                    className={styles["show-scroll-btn"]}
-                  >
-                    View Challenge
-                  </button>
-                )}
-
                 {showScroll && (
                   <div className={styles["scroll-container"]}>
                     <img

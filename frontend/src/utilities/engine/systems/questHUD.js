@@ -7,11 +7,23 @@ export default class QuestUI {
 
     const { width, height } = scene.scale;
 
+    this.panelLeft = width / 2 - 260;
+    this.panelTop = height / 2 - 220;
+    this.panelWidth = 520;
+    this.panelHeight = 440;
+    this.contentLeft = width / 2 - 230;
+    this.bodyBaseY = height / 2 - 140;
+    this.contentWidth = 460;
+    this.padding = 20;
+    this.gap = 16;
+    this.bodyScroll = 0;
+    this.bodyScrollMax = 0;
+
     // =========================
     // Container
     // =========================
     this.container = scene.add.container(0, 0)
-      .setDepth(200)
+      .setDepth(1000)
       .setScrollFactor(0)
       .setVisible(false);
 
@@ -22,22 +34,22 @@ export default class QuestUI {
     this.bg.fillStyle(0x2b1a12, 1);
     this.bg.lineStyle(4, 0x8b5e3c, 1);
     this.bg.fillRoundedRect(
-      width / 2 - 260,
-      height / 2 - 220,
-      520,
-      440,
+      this.panelLeft,
+      this.panelTop,
+      this.panelWidth,
+      this.panelHeight,
       16
     );
     this.bg.strokeRoundedRect(
-      width / 2 - 260,
-      height / 2 - 220,
-      520,
-      440,
+      this.panelLeft,
+      this.panelTop,
+      this.panelWidth,
+      this.panelHeight,
       16
     );
 
     // =========================
-    // Quest Title
+    // Lesson Title
     // =========================
     this.titleText = scene.add.text(
       width / 2,
@@ -51,17 +63,17 @@ export default class QuestUI {
     ).setOrigin(0.5);
 
     // =========================
-    // Body Text (Dialogue + Lesson)
+    // Lesson Body (Header + Description)
     // =========================
     this.bodyText = scene.add.text(
-      width / 2 - 230,
-      height / 2 - 150,
+      this.contentLeft,
+      this.bodyBaseY,
       "",
       {
         fontSize: "18px",
         color: "#f5f0d6",
-        lineSpacing: 8,
-        wordWrap: { width: 460 }
+        lineSpacing: 10,
+        wordWrap: { width: this.contentWidth }
       }
     );
 
@@ -69,34 +81,45 @@ export default class QuestUI {
     // Example Code Block
     // =========================
     this.codeText = scene.add.text(
-      width / 2 - 230,
-      height / 2 + 60,
+      this.contentLeft,
+      height / 2 + 40,
       "",
       {
         fontFamily: "monospace",
         fontSize: "16px",
         color: "#a8ff60",
         backgroundColor: "#1e1e1e",
-        padding: { left: 10, right: 10, top: 8, bottom: 8 }
+        padding: { left: 12, right: 12, top: 10, bottom: 10 },
+        wordWrap: { width: this.contentWidth }
       }
     );
 
-    // =========================
-    // Continue / Complete Button
-    // =========================
-    this.completeBtn = scene.add.text(
-      width / 2,
-      height / 2 + 170,
-      "Continue",
-      {
-        fontSize: "18px",
-        color: "#ffffff",
-        backgroundColor: "#4caf50",
-        padding: { left: 24, right: 24, top: 10, bottom: 10 }
-      }
-    )
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
+    this.bodyMaskGraphics = scene.add.graphics();
+    this.bodyMaskGraphics.fillStyle(0xffffff, 1);
+    this.bodyMaskGraphics.fillRect(this.contentLeft, this.bodyBaseY, this.contentWidth, 1);
+    this.bodyMaskGraphics.setAlpha(0);
+    this.bodyMaskGraphics.setScrollFactor(0);
+
+    this.bodyMask = this.bodyMaskGraphics.createGeometryMask();
+    this.bodyText.setMask(this.bodyMask);
+
+    this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
+      if (!this.visible) return;
+      if (this.bodyScrollMax <= 0) return;
+
+      const insidePanel =
+        pointer.x >= this.panelLeft &&
+        pointer.x <= this.panelLeft + this.panelWidth &&
+        pointer.y >= this.panelTop &&
+        pointer.y <= this.panelTop + this.panelHeight;
+
+      if (!insidePanel) return;
+
+      this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
+      this.bodyText.y = this.bodyBaseY - this.bodyScroll;
+    };
+
+    scene.input.on("wheel", this.onWheel);
 
     // =========================
     // Add to container
@@ -106,28 +129,24 @@ export default class QuestUI {
       this.titleText,
       this.bodyText,
       this.codeText,
-      this.completeBtn
+      this.bodyMaskGraphics
     ]);
   }
 
   // =========================
-  // Show Quest
+  // Show Quest Lesson
   // =========================
   showQuest(quest) {
     if (!quest) return;
 
-    // Title
-    this.titleText.setText(quest.title);
+    // Lesson title
+    this.titleText.setText(quest.title || "");
 
-    // Build body content
+    // Build lesson body
     let body = "";
 
-    if (quest.dialogue?.length) {
-      body += quest.dialogue.join("\n") + "\n\n";
-    }
-
     if (quest.lessonHeader) {
-      body += quest.lessonHeader + "\n";
+      body += quest.lessonHeader + "\n\n";
     }
 
     if (quest.description) {
@@ -136,7 +155,9 @@ export default class QuestUI {
 
     this.bodyText.setText(body);
 
-    // Code example
+    const panelBottom = this.panelTop + this.panelHeight;
+
+    // Example code
     if (quest.lessonExample) {
       this.codeText
         .setText(quest.lessonExample)
@@ -144,6 +165,32 @@ export default class QuestUI {
     } else {
       this.codeText.setVisible(false);
     }
+
+    this.bodyScroll = 0;
+    this.bodyText.x = this.contentLeft;
+    this.bodyText.y = this.bodyBaseY;
+
+    let codeTop = panelBottom - this.padding;
+    if (this.codeText.visible) {
+      const bodyHeight = this.bodyText.getBounds().height;
+      const desiredCodeY = this.bodyBaseY + bodyHeight + this.gap;
+
+      const codeHeight = this.codeText.getBounds().height;
+      const maxCodeY = panelBottom - this.padding - codeHeight;
+
+      this.codeText.x = this.contentLeft;
+      this.codeText.y = Math.min(desiredCodeY, maxCodeY);
+      codeTop = this.codeText.y;
+    }
+
+    const bodyMaskHeight = Math.max(1, codeTop - this.gap - this.bodyBaseY);
+
+    this.bodyMaskGraphics.clear();
+    this.bodyMaskGraphics.fillStyle(0xffffff, 1);
+    this.bodyMaskGraphics.fillRect(this.contentLeft, this.bodyBaseY, this.contentWidth, bodyMaskHeight);
+    this.bodyMaskGraphics.setAlpha(0);
+
+    this.bodyScrollMax = Math.max(0, this.bodyText.getBounds().height - bodyMaskHeight);
 
     // Animate in
     this.container.setVisible(true);
@@ -160,7 +207,7 @@ export default class QuestUI {
   }
 
   // =========================
-  // Hide Quest
+  // Hide Quest Lesson
   // =========================
   hide() {
     if (!this.visible) return;
@@ -173,6 +220,7 @@ export default class QuestUI {
       onComplete: () => {
         this.container.setVisible(false);
         this.visible = false;
+        this.bodyScroll = 0;
       }
     });
   }
