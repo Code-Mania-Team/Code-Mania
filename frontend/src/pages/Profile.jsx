@@ -119,6 +119,9 @@ const Profile = ({ onSignOut }) => {
   };
 
   const handleConfirmDelete = () => {
+    // Get username before removing it
+    const username = localStorage.getItem('username');
+    
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
     localStorage.removeItem('fullName');
@@ -130,6 +133,17 @@ const Profile = ({ onSignOut }) => {
     localStorage.removeItem('lastCourseTitle');
     localStorage.removeItem('lastCourseRoute');
     localStorage.removeItem('earnedAchievements'); // Clear badges on account deletion
+    
+    // Clear completed exercises for this user
+    if (username) {
+      localStorage.removeItem(`${username}_javascript_completed_exercises`);
+      localStorage.removeItem(`${username}_cpp_completed_exercises`);
+      localStorage.removeItem(`${username}_python_completed_exercises`);
+    }
+    // Also clear the general completed exercises
+    localStorage.removeItem('javascript_completed_exercises');
+    localStorage.removeItem('cpp_completed_exercises');
+    localStorage.removeItem('python_completed_exercises');
 
     window.dispatchEvent(new Event('authchange'));
     setIsDeleteConfirmOpen(false);

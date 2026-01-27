@@ -6,6 +6,7 @@
   flex-direction: column;
   gap: 0.5rem;
   z-index: 999;
+  animation: slideIn 0.3s ease-out;
 }
 
 .xp-card-primary,
@@ -47,26 +48,17 @@
 }
 
 .xp-title {
-  flex: 1;
   font-weight: 600;
+  color: #22c55e;
+  font-family: 'Press Start 2P';
 }
 
 .xp-text {
   margin: 0;
   color: #e5e7eb;
-  font-size: 0.8rem;
-}
-
-.xp-close {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.xp-close:hover {
-  color: #e5e7eb;
+  font-size: 1.5rem;
+  line-height: 1.4;
+  font-family: 'Jersey 10';
 }
 
 .xp-footer-row {
@@ -97,4 +89,15 @@
 .xp-next-btn:active {
   transform: translateY(1px);
   box-shadow: 1px 1px 0 #78350f;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }

@@ -7,6 +7,7 @@ import char4Preview from '/assets/characters/Char4/Animation/walkdown_ch4.png';
 import characterIcon from '/assets/characters/icons/character.png';
 import characterIcon1 from '/assets/characters/icons/character1.png';
 import characterIcon3 from '/assets/characters/icons/character3.png';
+import characterIcon4 from '/assets/characters/icons/character4.png'
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -20,7 +21,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
     { id: 0, name: 'Nova', sprite: char1Preview, icon: characterIcon1, color: '#ff6b6b' },
     { id: 1, name: 'Echo', sprite: char2Preview, icon: characterIcon, color: '#4ecdc4' },
     { id: 2, name: 'Flux', sprite: char3Preview, icon: characterIcon3, color: '#95e1d3' },
-    { id: 3, name: 'Zephyr', sprite: char4Preview, icon: characterIcon1, color: '#8aa6ff' },
+    { id: 3, name: 'Zephyr', sprite: char4Preview, icon: characterIcon4, color: '#8aa6ff' },
   ];
 
   const steps = [

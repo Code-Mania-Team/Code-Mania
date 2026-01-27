@@ -237,6 +237,27 @@ const JavaScriptExercise = () => {
     const currentId = currentExercise?.id;
     const achievement = awardAchievementForExercise(currentId);
 
+    // Mark exercise as completed
+    if (currentId) {
+      const completedKey = `javascript_completed_exercises`;
+      const completedRaw = localStorage.getItem(completedKey) || "[]";
+      let completed;
+      try {
+        completed = JSON.parse(completedRaw);
+      } catch {
+        completed = [];
+      }
+      
+      if (!completed.includes(currentId)) {
+        completed.push(currentId);
+        localStorage.setItem(completedKey, JSON.stringify(completed));
+        // Dispatch event to notify course page of completion
+        window.dispatchEvent(new CustomEvent('exerciseCompleted', {
+          detail: { exerciseId: currentId, course: 'javascript' }
+        }));
+      }
+    }
+
     if (achievement) {
       setAchievementToShow(achievement);
       setShowAchievementModal(true);

@@ -16,12 +16,14 @@ const Dashboard = () => {
     return localStorage.getItem('hasTouchedCourse') === 'true';
   });
   const [userStats, setUserStats] = useState({
-    name: 'User',
+    name: localStorage.getItem('username') || 'User',
     level: 1,
     totalXP: 68,
     rank: 1,
     badges: 1,
   });
+
+  const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
 
   const [currentCourse] = useState(() => {
     const lastCourseTitle = localStorage.getItem('lastCourseTitle');
@@ -68,6 +70,7 @@ const Dashboard = () => {
 
     // Load username from localStorage
     const savedUsername = localStorage.getItem('username');
+    
     if (savedUsername) {
       setUserStats(prev => ({
         ...prev,
@@ -203,7 +206,9 @@ const Dashboard = () => {
           {hasTouchedCourse && <div className={styles.courseTitleSpacer} />}
           <div className={styles['profile-card']}>
             <div className={styles['profile-header']}>
-              <div className={styles.avatar}>👤</div>
+              <div className={styles.avatar}>
+                <img src={characterIcon} alt="Profile" className={styles['avatar-img']} />
+              </div>
               <div className={styles['profile-info']}>
                 <h3 className={styles['user-name']}>{userStats.name}</h3>
                 <p className={styles['user-level']}>Level {userStats.level}</p>

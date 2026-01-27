@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/JavaScriptCourse.css";
 import SignInModal from "../components/SignInModal";
+import ProfileCard from "../components/ProfileCard";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -10,6 +11,39 @@ const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [completedExercises, setCompletedExercises] = useState([]);
+
+  // Load completed exercises from localStorage
+  useEffect(() => {
+    const completedRaw = localStorage.getItem('javascript_completed_exercises') || '[]';
+    try {
+      const completed = JSON.parse(completedRaw);
+      setCompletedExercises(completed);
+    } catch {
+      setCompletedExercises([]);
+    }
+  }, []);
+
+  // Listen for exercise completion events
+  useEffect(() => {
+    const handleExerciseCompleted = (event) => {
+      const { exerciseId, course } = event.detail;
+      if (course === 'javascript') {
+        setCompletedExercises(prev => {
+          if (!prev.includes(exerciseId)) {
+            const updated = [...prev, exerciseId];
+            // Save to localStorage
+            localStorage.setItem('javascript_completed_exercises', JSON.stringify(updated));
+            return updated;
+          }
+          return prev;
+        });
+      }
+    };
+
+    window.addEventListener('exerciseCompleted', handleExerciseCompleted);
+    return () => window.removeEventListener('exerciseCompleted', handleExerciseCompleted);
+  }, []);
 
   const onOpenModal = () => {
     setIsModalOpen(true);
@@ -23,16 +57,51 @@ const JavaScriptCourse = () => {
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'JavaScript');
     localStorage.setItem('lastCourseRoute', '/learn/javascript');
-    const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
-    navigate(`/learn/javascript/exercise/${moduleId}-${exerciseId}`);
+    const exercise = modules[moduleId - 1].exercises.find(e => e.name === exerciseName);
+    const globalExerciseId = (moduleId - 1) * 4 + exercise.id;
+    navigate(`/learn/javascript/exercise/${globalExerciseId}`);
   };
 
-  const userProgress = {
-    name: "Your Name",
-    level: 1,
-    exercisesCompleted: 0,
+  const toggleModule = (moduleId) => {
+    setExpandedModule(expandedModule === moduleId ? null : moduleId);
+  };
+
+  const getStatusIcon = (status) => {
+    if (status === "completed") {
+      return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
+    }
+    if (status === "locked") return <Lock className="status-icon locked" />;
+    return <Circle className="status-icon available" />;
+  };
+
+  // Calculate exercise status based on completed exercises
+  const getExerciseStatus = (moduleIndex, exercise) => {
+    // Calculate global exercise ID: (moduleIndex * 4) + exercise.id
+    const exerciseId = (moduleIndex * 4) + exercise.id;
+    
+    if (completedExercises.includes(exerciseId)) {
+      return "completed";
+    }
+    
+    // First exercise is always available
+    if (exerciseId === 1) {
+      return "available";
+    }
+    
+    // Check if previous exercise is completed
+    const previousExerciseId = exerciseId - 1;
+    if (completedExercises.includes(previousExerciseId)) {
+      return "available";
+    }
+    
+    return "locked";
+  };
+
+  // Update user progress based on completed exercises
+  const updatedUserProgress = {
+    exercisesCompleted: completedExercises.length,
     totalExercises: 16,
-    xpEarned: 0,
+    xpEarned: completedExercises.length * 225, // 225 XP per exercise
     totalXp: 3600
   };
 
@@ -91,18 +160,6 @@ const JavaScriptCourse = () => {
     }
   ];
 
-  const toggleModule = (moduleId) => {
-    setExpandedModule(expandedModule === moduleId ? null : moduleId);
-  };
-
-  const getStatusIcon = (status) => {
-    if (status === "completed") {
-      return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
-    }
-    if (status === "locked") return <Lock className="status-icon locked" />;
-    return <Circle className="status-icon available" />;
-  };
-
   return (
     <div className="javascript-course-page">
       {/* Hero Section */}
@@ -145,29 +202,32 @@ const JavaScriptCourse = () => {
                 <div className="module-content">
                   <p className="module-description">{module.description}</p>
                   <div className="exercises-list">
-                    {module.exercises.map((exercise) => (
-                      <div key={exercise.id} className={`exercise-item ${exercise.status}`}>
-                        <div className="exercise-info">
-                          {module.id !== 5 && (
-                            <span className="exercise-number">Exercise {exercise.id}</span>
-                          )}
-                          <span className="exercise-name">{exercise.name}</span>
-                        </div>
+                    {module.exercises.map((exercise, exerciseIndex) => {
+                      const status = getExerciseStatus(module.id - 1, exercise);
+                      return (
+                        <div key={exercise.id} className={`exercise-item ${status}`}>
+                          <div className="exercise-info">
+                            {module.id !== 5 && (
+                              <span className="exercise-number">Exercise {exercise.id}</span>
+                            )}
+                            <span className="exercise-name">{exercise.name}</span>
+                          </div>
 
-                        <div className="exercise-status">
-                          {exercise.status === "available" ? (
-                            <button 
-                              className="start-btn"
-                              onClick={() => handleStartExercise(module.id, exercise.name)}
-                            >
-                              Start
-                            </button>
-                          ) : (
-                            getStatusIcon(exercise.status)
-                          )}
+                          <div className="exercise-status">
+                            {status === "available" ? (
+                              <button 
+                                className="start-btn"
+                                onClick={() => handleStartExercise(module.id, exercise.name)}
+                              >
+                                Start
+                              </button>
+                            ) : (
+                              getStatusIcon(status)
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -177,16 +237,7 @@ const JavaScriptCourse = () => {
 
         {/* Sidebar */}
         <div className="sidebar">
-          <div className="profile-card">
-            <div className="profile-avatar">
-              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=user" alt="Profile" />
-            </div>
-            <div className="profile-info">
-              <h4>{userProgress.name}</h4>
-              <p>Level {userProgress.level}</p>
-            </div>
-            <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
-          </div>
+          <ProfileCard onSignInRequired={onOpenModal} />
 
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
@@ -197,7 +248,7 @@ const JavaScriptCourse = () => {
                 <span>Exercises</span>
               </div>
               <span className="progress-value">
-                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
+                {updatedUserProgress.exercisesCompleted} / {updatedUserProgress.totalExercises}
               </span>
             </div>
 
@@ -207,7 +258,7 @@ const JavaScriptCourse = () => {
                 <span>XP Earned</span>
               </div>
               <span className="progress-value">
-                {userProgress.xpEarned} / {userProgress.totalXp}
+                {updatedUserProgress.xpEarned} / {updatedUserProgress.totalXp}
               </span>
             </div>
           </div>
