@@ -17,10 +17,10 @@ const Dashboard = () => {
   });
   const [userStats, setUserStats] = useState({
     name: 'User',
-    level: 1,
-    totalXP: 68,
-    rank: 1,
-    badges: 1,
+    level: 0,
+    totalXP: 0,
+    rank: 0,
+    badges: 0,
   });
 
   const [currentCourse] = useState(() => {

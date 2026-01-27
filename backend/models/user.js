@@ -15,7 +15,9 @@ class User {
 
         // Check if user already exists
         const existingUser = await this.findByEmail(email);
-        if (existingUser.email) throw new Error("email") // return existingUser;  // for signup OTP, user already exists
+        console.log("may laman ba",existingUser)
+        if (existingUser) 
+            throw new Error("email") // return existingUser;  // for signup OTP, user already exists
 
         console.log("OTP for", email, "is", otp);
         
@@ -86,7 +88,7 @@ class User {
             .select("user_id, email, password, username")
             .eq("email", email)
             .maybeSingle();
-        return data ?? {};
+        return data;
     }
 
     //new login function na walang otp
@@ -167,16 +169,17 @@ class User {
     
 
     // ONE-TIME USERNAME SETUP
-    async setUsername(user_id, username) {
+    async setUsernameandCharacter(user_id, username, character_id) {
         const { data, error } = await this.db
             .from("users")
-            .update({ username })
+            .update({ username, character_id })
             .eq("user_id", user_id)
             .select();
-        console.log("SET USERNAME DATA:", data);
+        console.log("SET USERNAME AND CHARACTER DATA:", data);
         if (error) throw error;
         return data;
     }
+
 
     // PROFILE
     async getProfile(user_id) {

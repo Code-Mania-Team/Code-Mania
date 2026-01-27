@@ -145,6 +145,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         } else {
           const user = await verifyOtp(email, otp);
           console.log('OTP verification response:', user);
+          localStorage.setItem('needsUsername', 'true');
           onSignInSuccess(true);
           onClose();
 
@@ -153,7 +154,27 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
       } else {
         const user = await login(email, password);
         console.log('Login response:', user);
-        onSignInSuccess(false);
+
+        const normalizedUsername = (user?.username || '').trim();
+        const needsOnboarding = !normalizedUsername;
+
+        const characterId = user?.character_id;
+        if (characterId !== undefined && characterId !== null && characterId !== '') {
+          localStorage.setItem('selectedCharacter', String(characterId));
+          localStorage.removeItem('selectedCharacterIcon');
+          window.dispatchEvent(new CustomEvent('characterUpdated'));
+        }
+
+        if (normalizedUsername) {
+          localStorage.setItem('username', normalizedUsername);
+          localStorage.setItem('needsUsername', 'false');
+          localStorage.setItem('hasSeenOnboarding', 'true');
+          localStorage.setItem('hasCompletedOnboarding', 'true');
+        } else {
+          localStorage.setItem('needsUsername', 'true');
+        }
+
+        onSignInSuccess(needsOnboarding);
         onClose();
         return; // Exit early after successful login
       }

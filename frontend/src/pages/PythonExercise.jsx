@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import Header from "../components/header";
-import Footer from "../components/footer";
-import SignInModal from "../components/SignInModal";
-import ProgressBar from "../components/ProgressBar";
-import CodeTerminal from "../components/CodeTerminal";
-import MobileControls from "../components/MobileControls";
+import Header from "../components/header.jsx";
+import Footer from "../components/footer.jsx";
+import SignInModal from "../components/SignInModal.jsx";
+import ProgressBar from "../components/ProgressBar.jsx";
+import CodeTerminal from "../components/CodeTerminal.jsx";
+import MobileControls from "../components/MobileControls.jsx";
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../utilities/engine/main.js";
 import pythonExercises from "../utilities/data/pythonExercises.json";

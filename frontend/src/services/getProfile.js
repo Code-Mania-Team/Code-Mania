@@ -1,17 +1,31 @@
-import useAxiosPrivate from "../hooks/axiosIntercept.js";
+import axios from "axios";
 
 const useGetProfile = () => {
-  const axiosPrivate = useAxiosPrivate();
-
   const getProfile = async () => {
     try {
-      const response = await axiosPrivate.get("/v1/account");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        return null;
+      }
+
+      const response = await axios.get(
+        "http://localhost:3000/v1/account",
+        {
+          // withCredentials: true, // sends accessToken cookie
+          headers: {
+            apikey: import.meta.env.VITE_API_KEY,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
-        // Not logged in or token expired and refresh failed
         return null;
       }
+
       console.error("Error fetching profile:", error);
       throw error;
     }

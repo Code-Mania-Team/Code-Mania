@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 
+import characterIcon0 from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon2 from '/assets/characters/icons/character3.png';
+
 const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
 const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
 
@@ -12,9 +16,31 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
 
   // Load character icon from localStorage
   useEffect(() => {
+    const iconByCharacterId = {
+      0: characterIcon0,
+      1: characterIcon1,
+      2: characterIcon2,
+    };
+
     const loadCharacterIcon = () => {
       const storedIcon = localStorage.getItem('selectedCharacterIcon');
-      setCharacterIcon(storedIcon);
+      if (storedIcon) {
+        setCharacterIcon(storedIcon);
+        return;
+      }
+
+      const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
+      const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
+      if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
+        setCharacterIcon(null);
+        return;
+      }
+
+      const fallbackIcon = iconByCharacterId[storedCharacterId] || null;
+      if (fallbackIcon) {
+        localStorage.setItem('selectedCharacterIcon', fallbackIcon);
+      }
+      setCharacterIcon(fallbackIcon);
     };
 
     // Load immediately
@@ -22,7 +48,7 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
 
     // Listen for storage changes (for cross-tab updates)
     const handleStorageChange = (e) => {
-      if (e.key === 'selectedCharacterIcon') {
+      if (e.key === 'selectedCharacterIcon' || e.key === 'selectedCharacter') {
         loadCharacterIcon();
       }
     };

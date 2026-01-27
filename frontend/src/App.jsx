@@ -124,7 +124,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     // Initialize from localStorage if available
-    return localStorage.getItem('isAuthenticated') === 'false';
+    return localStorage.getItem('isAuthenticated') === 'true';
   });
   const [isNewUser, setIsNewUser] = useState(false);
   const location = useLocation();
@@ -191,12 +191,12 @@ function App() {
         onSignInSuccess={(isNew) => {
           setIsAuthenticated(true);
           setIsModalOpen(false);
+          setIsNewUser(!!isNew);
           if (isNew) {
-            setIsNewUser(true);
             navigate('/welcome');
-          } else {
-            navigate('/dashboard');
+            return;
           }
+          navigate('/dashboard');
         }}
       />
       
@@ -208,6 +208,7 @@ function App() {
               <WelcomeOnboarding 
                 onComplete={() => {
                   setIsNewUser(false);
+                  localStorage.setItem('hasSeenOnboarding', 'true');
                   localStorage.setItem('hasCompletedOnboarding', 'true');
                   navigate('/dashboard');
                 }} 

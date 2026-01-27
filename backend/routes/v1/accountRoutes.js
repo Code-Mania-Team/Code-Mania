@@ -17,7 +17,7 @@ accountRouter.post('/signup/request-otp', account.requestOtp.bind(account));
 accountRouter.post('/signup/verify-otp', account.verifyOtp.bind(account));
 
 // Set username (requires authentication)
-accountRouter.post('/username', authentication, account.setUsername.bind(account));
+accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
 
 accountRouter.post('/login', account.login.bind(account));
 

@@ -69,11 +69,17 @@ const WelcomeOnboarding = ({ onComplete }) => {
       // }
       try {
         // Save to backend
-        const res = await onBoardUsername(username);
+        const res = await onBoardUsername(username, characters[selectedCharacter].id);
         console.log("onBoardUsername response:", res);
         if (res.success) {
           localStorage.setItem("username", username);
           localStorage.setItem("needsUsername", "false");
+          localStorage.setItem('selectedCharacter', characters[selectedCharacter].id);
+          localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
+
+          window.dispatchEvent(new CustomEvent('characterUpdated', {
+            detail: { characterIcon: characters[selectedCharacter].icon }
+          }));
             
         }
 
@@ -88,7 +94,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
       setCurrentStep(currentStep + 1);
     } else {
       // Save user preferences
-      localStorage.setItem('selectedCharacter', selectedCharacter);
+      localStorage.setItem('selectedCharacter', characters[selectedCharacter].id);
       localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
       localStorage.setItem('username', username);
       

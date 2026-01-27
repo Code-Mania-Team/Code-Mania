@@ -96,17 +96,17 @@ class AccountController {
         }
     }
 
-    async setUsername(req, res) {
-        const { username } = req.body || {};
+    async setUsernameAndCharacter(req, res) {
+        const { username, character_id } = req.body || {};
         const user_id = res.locals.user_id;
         if (!user_id || !username) return res.status(400).json({ success: false, message: "User ID and username are required" });
 
         try {
-            const updated = await this.user.setUsername(user_id, username);
+            const updated = await this.user.setUsernameandCharacter(user_id, username, character_id);
             if (!updated) 
                 return res.status(400).json({ 
                     success: false, 
-                    message: "Failed to set username" 
+                    message: "Failed to set username and character" 
                 });
 
             // Generate new access token (split approach)
@@ -172,6 +172,7 @@ class AccountController {
             success: true,
             accessToken,
             username: profile?.username || null,
+            character_id: profile?.character_id || null,
             user_id: authUser.user_id,
         });
         } catch (err) {
