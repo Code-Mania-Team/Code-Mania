@@ -73,6 +73,8 @@
                  "x":792,
                  "y":348
                 }],
+         "offsetx":1.33333333333337,
+         "offsety":4,
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -86,80 +88,40 @@
          "objects":[
                 {
                  "height":0,
-                 "id":18,
-                 "name":"",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":741,
-                 "y":952
-                }, 
-                {
-                 "height":0,
-                 "id":21,
-                 "name":"",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":741,
-                 "y":952
-                }, 
-                {
-                 "height":0,
-                 "id":19,
-                 "name":"",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":715,
-                 "y":947
-                }, 
-                {
-                 "height":0,
-                 "id":20,
-                 "name":"",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":741,
-                 "y":947
-                }, 
-                {
-                 "height":0,
-                 "id":26,
-                 "name":"",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":742.666666666667,
-                 "y":949.333333333333
-                }, 
-                {
-                 "height":0,
-                 "id":28,
-                 "name":"next_stage",
+                 "id":30,
+                 "name":"exit",
                  "point":true,
                  "properties":[
                         {
-                         "name":"quest_id",
+                         "name":"direction",
+                         "type":"string",
+                         "value":"down"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"exit"
+                        }, 
+                        {
+                         "name":"required_quest",
                          "type":"int",
-                         "value":2
+                         "value":1
+                        }, 
+                        {
+                         "name":"target_map",
+                         "type":"string",
+                         "value":"js_map2"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_exit"
                         }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":745.333333333333,
+                 "x":746.666666666667,
                  "y":946.666666666667
                 }],
          "opacity":1,
@@ -541,7 +503,7 @@
          "y":0
         }],
  "nextlayerid":17,
- "nextobjectid":29,
+ "nextobjectid":31,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

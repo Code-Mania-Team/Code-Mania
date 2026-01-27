@@ -28,6 +28,22 @@ export const MAPS = {
         { name: "bu_Outside2.rpgmvp", key: "bu_Outside2.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside2.rpgmvp.png" }
       ],
       nextMap: "map2"
+    },
+    map2: {
+      mapKey: "js_map2",
+      mapJson: "/assets/maps/JavaScript/js_map2.json",
+      tilesets: [
+        { name: "Outside_A2.rpgmvp", key: "Outside_A2.rpgmvp", image: "/assets/tilesets/Javascript/Outside_A2.rpgmvp.png" },
+        { name: "touhu_02.rpgmvp", key: "touhu_02.rpgmvp", image: "/assets/tilesets/Javascript/touhu_02.rpgmvp.png" },
+        { name: "Outside_C.rpgmvp", key: "Outside_C.rpgmvp", image: "/assets/tilesets/Javascript/Outside_C.rpgmvp.png" },
+        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
+        { name: "bu_Outside.rpgmvp", key: "bu_Outside.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside.rpgmvp.png" },
+        { name: "D.rpgmvp", key: "D.rpgmvp", image: "/assets/tilesets/Javascript/D.rpgmvp.png" },
+        { name: "bu_Outside2.rpgmvp", key: "bu_Outside2.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside2.rpgmvp.png" },
+        { name: "c.rpgmvp", key: "c.rpgmvp", image: "/assets/tilesets/Javascript/c.rpgmvp.png" },
+        { name: "bu_shrine1.rpgmvp", key: "bu_shrine1.rpgmvp", image: "/assets/tilesets/Javascript/bu_shrine1.rpgmvp.png" }
+      ],
+      nextMap: null
     }
   },
   Cpp: {

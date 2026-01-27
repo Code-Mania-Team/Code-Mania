@@ -20,8 +20,8 @@ export default class GameScene extends Phaser.Scene {
     // Use the last course title from localStorage if available
     this.language = localStorage.getItem("lastCourseTitle") || "Python";
 
-    // Map ID passed from previous scene, or default to map1
-    this.currentMapId = data?.mapId || "map1";
+    // Map ID passed from previous scene, or from localStorage, or default to map1
+    this.currentMapId = data?.mapId || localStorage.getItem("currentMapId") || "map1";
 
     // Access mapData based on language
     this.mapData = MAPS[this.language][this.currentMapId];

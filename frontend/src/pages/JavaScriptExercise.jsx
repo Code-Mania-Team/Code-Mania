@@ -49,6 +49,10 @@ const JavaScriptExercise = () => {
       const id = parseInt(exerciseId.split('-')[0], 10);
       const exercise = exercises.find(ex => ex.id === id);
       if (exercise) {
+        // Set mapId based on current exercise number
+        const mapId = id === 1 ? "map1" : "map2";
+        localStorage.setItem("currentMapId", mapId);
+        
         setCurrentExercise(exercise);
         setCode(exercise.startingCode || `// ${exercise.title}\n\n${exercise.startingCode || ''}`);
         setOutput("");
@@ -90,6 +94,10 @@ const JavaScriptExercise = () => {
     if (!currentExercise) return;
     const nextId = currentExercise.id + 1;
     if (nextId <= exercises.length) {
+      // Set mapId based on exercise number
+      const mapId = nextId === 1 ? "map1" : "map2";
+      localStorage.setItem("currentMapId", mapId);
+      
       const nextExercise = exercises[nextId - 1];
       const exerciseSlug = nextExercise.title.toLowerCase().replace(/\s+/g, '-');
       navigate(`/learn/javascript/exercise/${nextId}-${exerciseSlug}`);
@@ -117,7 +125,7 @@ const JavaScriptExercise = () => {
     return () => {
       if (game) game.cleanup();
     };
-  }, []);
+  }, [exerciseId]); // Restart game when exerciseId changes
 
   const handleNextDialogue = () => {
     if (isTyping) return;
