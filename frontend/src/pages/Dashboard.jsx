@@ -5,13 +5,19 @@ import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import styles from '../styles/Dashboard.module.css';
 
+import characterIcon0 from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon2 from '/assets/characters/icons/character3.png';
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(0);
+  const [characterIcon, setCharacterIcon] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isAuthenticated') === 'true';
   });
+
   const [hasTouchedCourse] = useState(() => {
     return localStorage.getItem('hasTouchedCourse') === 'true';
   });
@@ -53,6 +59,48 @@ const Dashboard = () => {
         : '#3CB371';
 
   useEffect(() => {
+    const iconByCharacterId = {
+      0: characterIcon0,
+      1: characterIcon1,
+      2: characterIcon2,
+    };
+
+    const loadCharacterIcon = () => {
+      const storedIcon = localStorage.getItem('selectedCharacterIcon');
+      if (storedIcon) {
+        setCharacterIcon(storedIcon);
+        return;
+      }
+
+      const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
+      const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
+      if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
+        setCharacterIcon(null);
+        return;
+      }
+
+      const fallbackIcon = iconByCharacterId[storedCharacterId] || null;
+      if (fallbackIcon) {
+        localStorage.setItem('selectedCharacterIcon', fallbackIcon);
+      }
+      setCharacterIcon(fallbackIcon);
+    };
+
+    loadCharacterIcon();
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'selectedCharacterIcon' || e.key === 'selectedCharacter') {
+        loadCharacterIcon();
+      }
+    };
+
+    const handleCharacterUpdate = () => {
+      loadCharacterIcon();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('characterUpdated', handleCharacterUpdate);
+
     // Check if user is new (hasn't seen onboarding)
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
     console.log('hasSeenOnboarding:', hasSeenOnboarding);
@@ -74,6 +122,11 @@ const Dashboard = () => {
         name: savedUsername
       }));
     }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('characterUpdated', handleCharacterUpdate);
+    };
   }, []);
 
   const handleOnboardingComplete = () => {
@@ -203,7 +256,17 @@ const Dashboard = () => {
           {hasTouchedCourse && <div className={styles.courseTitleSpacer} />}
           <div className={styles['profile-card']}>
             <div className={styles['profile-header']}>
-              <div className={styles.avatar}>👤</div>
+              <div className={styles.avatar}>
+                {characterIcon ? (
+                  <img
+                    src={characterIcon}
+                    alt="Avatar"
+                    style={{ width: '70%', height: '70%', objectFit: 'contain', imageRendering: 'pixelated' }}
+                  />
+                ) : (
+                  '👤'
+                )}
+              </div>
               <div className={styles['profile-info']}>
                 <h3 className={styles['user-name']}>{userStats.name}</h3>
                 <p className={styles['user-level']}>Level {userStats.level}</p>
