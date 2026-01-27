@@ -16,9 +16,21 @@ export default class QuestManager {
     this.activeQuest = quest;
     console.log("🚀 QUEST STARTED:", quest.title);
 
-    // 👇 SHOW QUEST HUD
-    this.scene.questHUD.showQuest(quest);
+    if (this.scene.questHUD) {
+      this.scene.questHUD.showQuest(quest);
+    }
   }
 
+  completeQuest(id) {
+    const quest = this.getQuestById(id);
+    if (!quest) return;
 
+    quest.completed = true;
+    console.log("✅ QUEST COMPLETED:", quest.title);
+
+    // 🏹 UNLOCK MAP EXITS (RPG Maker behavior)
+    if (this.scene.exitArrowManager) {
+      this.scene.exitArrowManager.showAll();
+    }
+  }
 }

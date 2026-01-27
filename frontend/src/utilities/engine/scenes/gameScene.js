@@ -10,6 +10,8 @@ import jsQuests from "../../data/javascriptExercises.json";
 import cppQuests from "../../data/cppExercises.json";
 import { CHARACTERS } from "../config/characterConfig";
 import QuestHUD from "../systems/questHUD";
+import ExitArrowManager from "../systems/exitArrowHUD";
+
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -20,8 +22,8 @@ export default class GameScene extends Phaser.Scene {
     // Use the last course title from localStorage if available
     this.language = localStorage.getItem("lastCourseTitle") || "Python";
 
-    // Map ID passed from previous scene, or from localStorage, or default to map1
-    this.currentMapId = data?.mapId || localStorage.getItem("currentMapId") || "map1";
+    // Map ID passed from previous scene, or default to map1
+    this.currentMapId = data?.mapId || "map1";
 
     // Access mapData based on language
     this.mapData = MAPS[this.language][this.currentMapId];
@@ -133,6 +135,10 @@ export default class GameScene extends Phaser.Scene {
     this.questKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.Q
     );
+    this.testCompleteKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.T
+    );
+    
 
     const QUESTS_BY_LANGUAGE = {
       Python: pythonQuests,
@@ -149,7 +155,8 @@ export default class GameScene extends Phaser.Scene {
 
     this.dialogueManager = new DialogueManager(this);
     this.cutsceneManager = new CutsceneManager(this);
-
+    this.exitArrowManager = new ExitArrowManager(this);
+    this.createMapExits();
     this.lastDirection = "down";
 
     // 🎬 INTRO
@@ -205,6 +212,10 @@ export default class GameScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.questKey)) {
       this.questHUD.toggle(this.questManager.activeQuest);
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.testCompleteKey)) {
+      this.questManager.completeQuest(1);
+      console.log("🧪 TEST MODE: Quest 1 completed");
     }
   }
 
@@ -368,5 +379,98 @@ export default class GameScene extends Phaser.Scene {
       localStorage.setItem(`cutscene_${key}`, "true");
     });
   }
+  createMapExits() {
+    const layer = this.mapLoader.map.getObjectLayer("triggers");
+    if (!layer) return;
+
+    this.mapExits = this.physics.add.group();
+
+    layer.objects
+      .filter(o =>
+        o.properties?.some(p => p.name === "type" && p.value === "map_exit")
+      )
+      .forEach(obj => {
+        const zone = this.add.zone(
+          obj.x + obj.width / 2,
+          obj.y + obj.height / 2,
+          obj.width,
+          obj.height
+        );
+
+        this.physics.world.enable(zone);
+        zone.body.setAllowGravity(false);
+        zone.body.setImmovable(true);
+
+        const targetMap =
+          obj.properties.find(p => p.name === "target_map")?.value;
+
+        const direction =
+          obj.properties.find(p => p.name === "direction")?.value ?? "down";
+
+        const rawQuest =
+          obj.properties.find(p => p.name === "required_quest")?.value;
+
+        let questDone = false;
+
+        if (rawQuest !== undefined) {
+          const quest = this.questManager.getQuestById(Number(rawQuest));
+          questDone = !!quest?.completed;
+        }
+
+        zone.exitData = {
+          targetMap,
+          requiredQuest: rawQuest
+        };
+
+        // 🏹 CREATE ARROW (HIDDEN UNTIL QUEST DONE)
+        zone.exitArrow = this.exitArrowManager.createArrow(
+          zone.x,
+          zone.y,
+          direction,
+          questDone
+        );
+
+        this.mapExits.add(zone);
+      });
+
+    this.physics.add.overlap(
+      this.player,
+      this.mapExits,
+      this.handleMapExit,
+      null,
+      this
+    );
+  }
+
+
+
+  handleMapExit(player, zone) {
+    const { targetMap, requiredQuest } = zone.exitData;
+
+    // Quest not finished → do nothing
+    if (requiredQuest) {
+      const quest = this.questManager.getQuestById(requiredQuest);
+      if (!quest || !quest.completed) return;
+    }
+
+    // Prevent multiple triggers
+    this.physics.world.disable(zone);
+    this.playerCanMove = false;
+
+    // Fade out
+    this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
+
+    this.cameras.main.once("camerafadeoutcomplete", () => {
+      // Start next map scene
+      this.scene.start("GameScene", {
+        mapId: targetMap
+      });
+
+      // Optional: you can fade in the next scene after a short delay
+      // But better to do it in the new scene's create()
+    });
+  }
+
+
 
 }

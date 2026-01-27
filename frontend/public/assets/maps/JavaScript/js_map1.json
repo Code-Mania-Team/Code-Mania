@@ -110,7 +110,7 @@
                         {
                          "name":"target_map",
                          "type":"string",
-                         "value":"js_map2"
+                         "value":"map2"
                         }, 
                         {
                          "name":"type",
