@@ -179,7 +179,7 @@
          "name":"spawn",
          "objects":[
                 {
-                 "height":48.3333333333333,
+                 "height":32.3333333333333,
                  "id":7,
                  "name":"npc_spawn",
                  "properties":[
@@ -206,12 +206,12 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":48,
-                 "x":1296,
-                 "y":240
+                 "width":29,
+                 "x":1306,
+                 "y":251
                 }, 
                 {
-                 "height":47,
+                 "height":35,
                  "id":12,
                  "name":"player_spawn",
                  "properties":[
@@ -228,9 +228,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":49.5,
-                 "x":47.5,
-                 "y":624.5
+                 "width":33.5,
+                 "x":56.5,
+                 "y":631.5
                 }],
          "opacity":1,
          "type":"objectgroup",

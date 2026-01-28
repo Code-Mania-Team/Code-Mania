@@ -13,17 +13,13 @@ export const MAPS = {
       nextMap: "map2"
     },
     map2: {
-      mapKey: "js_map1",
-      mapJson: "/assets/maps/JavaScript/js_map1.json",
+      mapKey: "map2",
+      mapJson: "/assets/maps/Python/map2.json",
       tilesets: [
-        { name: "Outside_A2.rpgmvp", key: "Outside_A2.rpgmvp", image: "/assets/tilesets/Javascript/Outside_A2.rpgmvp.png" },
-        { name: "Outside_A1.rpgmvp", key: "Outside_A1.rpgmvp", image: "/assets/tilesets/Javascript/Outside_A1.rpgmvp.png" },
-        { name: "c.rpgmvp", key: "c.rpgmvp", image: "/assets/tilesets/Javascript/c.rpgmvp.png" },
-        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
-        { name: "bu_shrine2.rpgmvp", key: "bu_shrine2.rpgmvp", image: "/assets/tilesets/Javascript/bu_shrine2.rpgmvp.png" },
-        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
-        { name: "fsm_Forest01_A1.rpgmvp", key: "fsm_Forest01_A1.rpgmvp", image: "/assets/tilesets/Javascript/fsm_Forest01_A1.rpgmvp.png" },
-        { name: "bu_Outside2.rpgmvp", key: "bu_Outside2.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside2.rpgmvp.png" }
+        { name: "ADBTileA2_exterior", key: "A2", image: "/assets/tilesets/Python/ADBTileA2_exterior.png" },
+        { name: "ADBTileB_exterior4", key: "B4", image: "/assets/tilesets/Python/ADBTileB_exterior4.png" },
+        { name: "Dungeon_hc_B", key: "Dungeon", image: "/assets/tilesets/Python/Dungeon_hc_B.png" },
+        { name: "!fsm_chest01", key: "Chest", image: "/assets/tilesets/Python/!fsm_chest01.png" }
       ],
       nextMap: "map3"
     }
