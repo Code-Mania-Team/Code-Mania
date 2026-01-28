@@ -16,6 +16,7 @@ import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
+import { clearUserSession } from "./services/signOut";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -130,6 +131,15 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const handleSignOut = () => {
+    clearUserSession();
+    setIsAuthenticated(false);
+    setIsNewUser(false);
+    window.dispatchEvent(new Event('authchange'));
+    window.dispatchEvent(new CustomEvent('characterUpdated'));
+    navigate('/');
+  };
+
   // Update localStorage when isAuthenticated changes
   useEffect(() => {
     localStorage.setItem('isAuthenticated', isAuthenticated);
@@ -151,7 +161,7 @@ function App() {
         <Header 
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
-          onSignOut={() => setIsAuthenticated(false)}
+          onSignOut={handleSignOut}
         />
       )}
       <ScrollToTop />
@@ -167,7 +177,7 @@ function App() {
               <PythonExercise 
                 isAuthenticated={isAuthenticated}
                 onOpenModal={() => setIsModalOpen(true)}
-                onSignOut={() => setIsAuthenticated(false)}
+                onSignOut={handleSignOut}
               />
             } 
           />
@@ -178,8 +188,8 @@ function App() {
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
           <Route path="/freedomwall" element={<FreedomWall />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile onSignOut={() => setIsAuthenticated(false)} />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
         </Routes>
       </main>
 

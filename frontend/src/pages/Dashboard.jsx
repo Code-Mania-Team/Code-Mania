@@ -10,7 +10,7 @@ import characterIcon1 from '/assets/characters/icons/character1.png';
 import characterIcon2 from '/assets/characters/icons/character3.png';
 import characterIcon3 from '/assets/characters/icons/character4.png';
 
-const Dashboard = () => {
+const Dashboard = ({ onSignOut }) => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(0);
@@ -144,6 +144,10 @@ const Dashboard = () => {
   };
 
   const handleSignOut = () => {
+    if (onSignOut) {
+      onSignOut();
+      return;
+    }
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
     localStorage.removeItem('selectedCharacter');
