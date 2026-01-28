@@ -23,10 +23,10 @@
     "id": 2,
     "title": "Hello World",
     "dialogue": [
-      "Ah, the first step towards mastery!",
-      "In Codemania, every coder begins by printing a simple message: Hello World!",
-      "You must display this message to remind the land of your presence.",
-      "Use `print()` to bring your words to life. Can you do it?"
+      "The chest remains sealed.",
+      "Ancient markings glow faintly, as if waiting for recognition.",
+      "In Codemania, every coder must first announce their presence to the world.",
+      "Use `print()` to speak the words: Hello World."
     ],
     "lessonHeader": "🖥️ Printing Messages",
     "description": "Printing output is one of the first skills in programming. In Python, the print() function is used to display text or information in the terminal so you can see what your program is doing.",
@@ -35,7 +35,8 @@
     "startingCode": "print()",
     "hints": ["Put your message inside the parentheses.", "Wrap text in quotes."],
     "requirements": { "mustInclude": ["print"] },
-    "expectedOutput": "Hello World!"
+    "expectedOutput": "Hello World!",
+    "grants": "pickaxe"
   },
   {
     "id": 3,

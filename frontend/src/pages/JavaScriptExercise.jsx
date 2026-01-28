@@ -50,7 +50,16 @@ const JavaScriptExercise = () => {
       const exercise = exercises.find(ex => ex.id === id);
       if (exercise) {
         // Set mapId based on current exercise number
-        const mapId = id === 1 ? "map1" : "map2";
+        let mapId;
+        if (id === 1) {
+          mapId = "map1";
+        } else if (id === 2) {
+          mapId = "map2";
+        } else if (id === 3) {
+          mapId = "map3";
+        } else {
+          mapId = "map2"; // Default to map2 for exercises 4+
+        }
         localStorage.setItem("currentMapId", mapId);
         
         setCurrentExercise(exercise);
@@ -95,7 +104,16 @@ const JavaScriptExercise = () => {
     const nextId = currentExercise.id + 1;
     if (nextId <= exercises.length) {
       // Set mapId based on exercise number
-      const mapId = nextId === 1 ? "map1" : "map2";
+      let mapId;
+      if (nextId === 1) {
+        mapId = "map1";
+      } else if (nextId === 2) {
+        mapId = "map2";
+      } else if (nextId === 3) {
+        mapId = "map3";
+      } else {
+        mapId = "map2"; // Default to map2 for exercises 4+
+      }
       localStorage.setItem("currentMapId", mapId);
       
       const nextExercise = exercises[nextId - 1];
