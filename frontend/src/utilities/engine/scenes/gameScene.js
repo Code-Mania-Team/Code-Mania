@@ -409,17 +409,7 @@ export default class GameScene extends Phaser.Scene {
 
   createInteractionMarker() {
     this.interactionMarker = this.add.container(0, 0).setDepth(999);
-
-    const arrow = this.add.triangle(0, 0, 0, 0, 18, 0, 9, 16, 0xffd200, 1);
-    const label = this.add.text(0, -16, "GO", {
-      font: "16px Arial",
-      fill: "#ffd200",
-      stroke: "#000000",
-      strokeThickness: 3
-    }).setOrigin(0.5);
-
-    this.interactionMarker.add([label, arrow]);
-    this.interactionMarker.setVisible(false);
+    
 
     this.tweens.add({
       targets: this.interactionMarker,
