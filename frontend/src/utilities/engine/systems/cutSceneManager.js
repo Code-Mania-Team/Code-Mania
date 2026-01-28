@@ -65,6 +65,10 @@ export default class CutsceneManager {
           this.playDialogue(action.lines).then(resolve);
           break;
 
+        case "fadeIn":
+          this.playFadeIn(action.duration).then(resolve);
+          break;
+
         default:
           resolve();
       }
@@ -145,6 +149,39 @@ export default class CutsceneManager {
     // Cleanup last text
     if (this.text) this.text.destroy();
     if (this.textBox) this.textBox.destroy();
+  }
+
+  async playFadeIn(duration) {
+    const { width, height } = this.scene.scale;
+    
+    // Create black overlay covering entire screen
+    const blackOverlay = this.scene.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      0x000000,
+      1.0
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0)
+    .setDepth(9999);
+
+    // Fade from black to transparent
+    this.scene.tweens.add({
+      targets: blackOverlay,
+      alpha: 0,
+      duration: duration,
+      ease: 'Power2.easeOut',
+      onComplete: () => {
+        blackOverlay.destroy();
+      }
+    });
+
+    // Wait for fade to complete
+    return new Promise(resolve => {
+      this.scene.time.delayedCall(duration, resolve);
+    });
   }
 
 }

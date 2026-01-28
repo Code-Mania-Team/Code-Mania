@@ -22,13 +22,7 @@ const XpNotification = ({ show, onClose, onNext }) => {
           <span className={styles["xp-title"]}>You got it!</span>
         </div>
         <div className={styles["xp-footer-row"]}>
-          <p className={styles["xp-text"]}>Press "Next" to continue.</p>
-          <button
-            className={styles["xp-next-btn"]}
-            onClick={onNext}
-          >
-            Next
-          </button>
+          <p className={styles["xp-text"]}>Great job completing this exercise!</p>
         </div>
       </div>
     </div>

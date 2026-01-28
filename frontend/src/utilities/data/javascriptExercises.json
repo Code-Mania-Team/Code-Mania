@@ -5,8 +5,16 @@
     "lessonHeader": "🌐 Introduction to JavaScript",
     "description": "JavaScript is a programming language used to make web pages interactive. It runs in the browser and allows you to respond to user actions.",
     "task": "Print 'Hello, JS!' to show the output using console.log().",
+    "dialogue": [
+      "A wooden sign creaks at the town gate.",
+      "\"Welcome to JavaScript Town.\"",
+      "JavaScript…",
+      "The name echoes in your memory.",
+      "Something here made the town respond.",
+      "The reason everything here once felt alive."
+    ],
     "lessonExample": "console.log(\"Welcome to JavaScript!\")",
-    "startingCode": "console.log(\"Hello, JS!\")",
+    "startingCode": "console.log()",
     "hints": ["Use console.log() to print output.", "Your code should run without errors."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello, JS!"
@@ -18,6 +26,12 @@
     "description": "When you are working with a programming language, you want to execute some logic and then see the output, or display the final output. Right?, In JavaScript, to display output,  The console.log()function can be used multiple times to print different outputs to the console in sequence.",
     "task": "Print 'Hello' on the first line and 'World!' on the second line using console.log().",
     "lessonExample": "console.log(\"Hello World!\")\nconsole.log(\"Welcome to JavaScript!\")",
+    "dialogue": [
+      "You notice strange symbols carved into a terminal.",
+      "When you speak through it, the town listens.",
+      "Messages appear… but only to those who know where to look.",
+      "This must be how the town communicates."
+    ],
     "startingCode": "console.log()",
     "hints": ["Put your message inside the parentheses.", "Remember to wrap text in quotes."],
     "requirements": { "mustInclude": ["console.log"] },
@@ -39,7 +53,14 @@
     "requirements": {
       "mustInclude": ["let", "console.log"]
     },
-    "expectedOutput": "Nova\n120\ntrue"
+    "expectedOutput": "Nova\n120\ntrue",
+    "dialogue": [
+      "The town asks for a name.",
+      "Not everything here is fixed—some things can be stored, remembered.",
+      "You bind a name to an idea.",
+      "For the first time, the town recognizes you."
+    ]
+
   },
   {
     "id": 4,
@@ -57,7 +78,13 @@
     "requirements": {
       "mustInclude": ["let", "console.log"]
     },
-    "expectedOutput": "Aria\n3\nfalse"
+    "expectedOutput": "Aria\n3\nfalse",
+    "dialogue": [
+      "You start to see patterns in the town’s thoughts.",
+      "Numbers. Truths. Words.",
+      "Each idea has a different shape.",
+      "Now you understand how the town thinks."
+    ]
   },
   {
     "id": 5,

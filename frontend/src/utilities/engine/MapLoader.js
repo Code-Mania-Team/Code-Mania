@@ -30,15 +30,25 @@ export default class MapLoader {
         0
       );
 
-      // 🔥 AUTO COLLISION BASED ON TILE PROPERTY
+      // 🔥 COLLISION BY TILE PROPERTY
       layer.setCollisionByProperty({ collision: true });
+
+      // 🧠 DEPTH RULES
+      const name = layerData.name.toLowerCase();
+
+      if (name.includes("foreground") || name.includes("deco_up")) {
+        layer.setDepth(200); // ALWAYS ABOVE PLAYER
+      } else {
+        layer.setDepth(0); // BELOW PLAYER
+      }
 
       this.layers[layerData.name] = layer;
 
-      // Track layers that actually have collision
-      if (layer.layer.data.some(row =>
-        row.some(tile => tile?.properties?.collision)
-      )) {
+      if (
+        layer.layer.data.some(row =>
+          row.some(tile => tile?.properties?.collision)
+        )
+      ) {
         this.collisionLayers.push(layer);
       }
     });

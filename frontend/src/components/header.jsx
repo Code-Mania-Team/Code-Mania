@@ -5,6 +5,7 @@ import "../App.css";
 import characterIcon0 from '/assets/characters/icons/character.png';
 import characterIcon1 from '/assets/characters/icons/character1.png';
 import characterIcon2 from '/assets/characters/icons/character3.png';
+import characterIcon3 from '/assets/characters/icons/character4.png';
 
 const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
 const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
@@ -17,30 +18,28 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   // Load character icon from localStorage
   useEffect(() => {
     const iconByCharacterId = {
-      0: characterIcon0,
-      1: characterIcon1,
+      0: characterIcon1,
+      1: characterIcon0,
       2: characterIcon2,
+      3: characterIcon3,
     };
 
     const loadCharacterIcon = () => {
-      const storedIcon = localStorage.getItem('selectedCharacterIcon');
-      if (storedIcon) {
-        setCharacterIcon(storedIcon);
-        return;
-      }
-
       const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
       const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
       if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
-        setCharacterIcon(null);
+        const storedIcon = localStorage.getItem('selectedCharacterIcon');
+        setCharacterIcon(storedIcon || null);
         return;
       }
 
-      const fallbackIcon = iconByCharacterId[storedCharacterId] || null;
-      if (fallbackIcon) {
-        localStorage.setItem('selectedCharacterIcon', fallbackIcon);
+      const expectedIcon = iconByCharacterId[storedCharacterId] || null;
+      if (expectedIcon) {
+        localStorage.setItem('selectedCharacterIcon', expectedIcon);
+      } else {
+        localStorage.removeItem('selectedCharacterIcon');
       }
-      setCharacterIcon(fallbackIcon);
+      setCharacterIcon(expectedIcon);
     };
 
     // Load immediately

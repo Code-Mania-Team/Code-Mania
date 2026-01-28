@@ -3,9 +3,12 @@
     "id": 1,
     "title": "Setting Up",
     "dialogue": [
-    "Hey adventurer!",
-    "Before we begin your journey...",
-    "Let me teach you Python 🐍"
+      "Hey adventurer!",
+      "Before we begin your journey...",
+      "Let me teach you Python 🐍",
+      "You'll need Python, the language that once powered Codemania, to help restore the land.",
+      "Let's start with something simple: printing your first message!",
+      "This code will help you begin rebuilding the system. Ready?"
     ],
     "lessonHeader": "🌐 Getting Started with Python",
     "description": "Welcome to the first chapter of The Legend of Python! Python is a beginner-friendly programming language created by Guido van Rossum in the early 1990s. It is widely used in many fields, including Artificial Intelligence, Web Development, Data Analysis, and Machine Learning. Install Python and set up your coding environment to run Python scripts.",
@@ -19,6 +22,12 @@
   {
     "id": 2,
     "title": "Hello World",
+    "dialogue": [
+      "Ah, the first step towards mastery!",
+      "In Codemania, every coder begins by printing a simple message: Hello World!",
+      "You must display this message to remind the land of your presence.",
+      "Use `print()` to bring your words to life. Can you do it?"
+    ],
     "lessonHeader": "🖥️ Printing Messages",
     "description": "Printing output is one of the first skills in programming. In Python, the print() function is used to display text or information in the terminal so you can see what your program is doing.",
     "task": "Print 'Hello World!' to the terminal.",
@@ -31,6 +40,12 @@
   {
     "id": 3,
     "title": "Pattern",
+    "dialogue": [
+      "Patterns are everywhere in Codemania.",
+      "Think of them as the foundation of the mountains, the orderly structure of the world.",
+      "To begin, you'll need to print a simple pattern of stars.",
+      "This is no ordinary shape—it’s the beginning of structure that we’ll rebuild together!"
+    ],
     "lessonHeader": "🔢 Printing Patterns",
     "description": "Programs can print text across multiple lines to create patterns and shapes. By using the print() function with special characters, you can control how output appears line by line in the terminal.",
     "task": "Print the following pattern:\n*\n**\n***",
@@ -43,6 +58,11 @@
   {
     "id": 4,
     "title": "Initials",
+    "dialogue": [
+      "Sometimes, your identity is all you need to start the restoration.",
+      "Print your initials, and let the world remember who you are.",
+      "Your initials are the key to unlocking the first part of your memory."
+    ],
     "lessonHeader": "🆔 Print Your Initials",
     "description": "Programs often need to display information line by line. By using multiple print() statements, you can control exactly how text appears in the terminal. This exercise helps you practice printing output on separate lines.",
     "task": "Print your initials, each on a new line.",
@@ -55,6 +75,11 @@
   {
     "id": 5,
     "title": "Variables",
+    "dialogue": [
+      "Variables are like containers for your knowledge.",
+      "You can store information in them and use it when needed. Without them, Codemania cannot function.",
+      "Try storing your name in a variable, then print it to the world!"
+    ],
     "lessonHeader": "📦 Variables in Python",
     "description": "Store information using variables.Variables are containers for storing data values. In Python, no command for declaring a variable is needed. A variable is formed when you first assign a value to it.",
     "task": "Create a variable to store your hero's name and print it.",
@@ -67,6 +92,11 @@
   {
     "id": 6,
     "title": "Strings",
+    "dialogue": [
+      "Strings are like the words you use to communicate in Codemania.",
+      "They hold the essence of everything—messages, names, and commands.",
+      "Let’s put together a greeting and combine strings to form meaningful messages."
+    ],
     "lessonHeader": "📝 String Manipulation",
     "description": "Strings are used to store and work with text in Python. You can combine multiple strings together using the + operator to create longer messages. This lesson introduces basic string concatenation and printing text to the terminal.",
     "task": "Create a string variable with a greeting and print it with ' World' appended.",
@@ -79,6 +109,11 @@
   {
     "id": 7,
     "title": "Numbers",
+    "dialogue": [
+      "Numbers govern the very structure of Codemania.",
+      "Without them, calculations would be impossible, and logic would fall apart.",
+      "You’ll need to use numbers to solve puzzles and challenges as you move forward. Start with a simple calculation."
+    ],
     "lessonHeader": "🔢 Numbers",
     "description": "Variables of numeric types are created when you assign a value to them. Use numeric values and arithmetic operations in Python.",
     "task": "Create two numeric variables, add them, and print the result.",
@@ -91,6 +126,11 @@
   {
     "id": 8,
     "title": "Booleans",
+    "dialogue": [
+      "In Codemania, truth is paramount.",
+      "Booleans—True or False—determine the flow of everything.",
+      "You must learn to wield them to decide what happens next. True or False, adventurer, which path will you choose?"
+    ],
     "lessonHeader": "✅ Boolean Values",
     "description": "Booleans represent logical values in Python and can only be either True or False. They are commonly used to describe conditions or states, such as whether something is on or off, or yes or no. This lesson introduces how to create and print boolean values.",
     "task": "Create a boolean variable indicating if you are a student and print it.",
@@ -103,6 +143,11 @@
   {
     "id": 9,
     "title": "If Statements",
+    "dialogue": [
+      "Control flow. It’s how the land reacts to your decisions.",
+      "An if statement will decide the course of events based on conditions you define.",
+      "Use your power wisely, adventurer—if you’re ready, your path will open."
+    ],
     "lessonHeader": "🔀 Conditional Statements",
     "description": "If statements allow a program to make decisions based on conditions. When a condition evaluates to True, the code inside the if block runs. This helps control the flow of a program so it can respond differently depending on the data.",
     "task": "Create an if statement that checks if age is 18 or older and prints 'Adult' if true.",
@@ -115,6 +160,11 @@
   {
     "id": 10,
     "title": "Else & Elif",
+    "dialogue": [
+      "The world is full of alternatives.",
+      "What if the first condition doesn’t hold? That’s where else and elif come in.",
+      "They give you more control over the land, allowing you to handle multiple situations."
+    ],
     "lessonHeader": "🔀 Conditional Chains",
     "description": "Sometimes a program needs to check more than one condition. The elif and else keywords allow you to create a chain of conditions so different code runs depending on which condition is true. This lesson teaches how to handle multiple possible outcomes using if, elif, and else.",
     "task": "Create an if-elif-else statement to categorize age into 'Adult', 'Teen', or 'Child'.",
@@ -127,6 +177,11 @@
   {
     "id": 11,
     "title": "Comparison",
+    "dialogue": [
+      "Comparison allows you to measure the land, to judge what is larger, smaller, equal, or different.",
+      "The world of Codemania is built on comparison.",
+      "What’s greater? What’s equal? These answers will guide you through the challenges ahead."
+    ],
     "lessonHeader": "⚖️ Comparison Operators",
     "description": "Comparison operators are used to compare two values in Python. These operators check relationships such as greater than, less than, or equal to, and they return a Boolean value of True or False. Comparisons are commonly used in decision-making and conditional statements.",
     "task": "Compare two numbers and print whether the first is greater than the second.",
@@ -139,6 +194,11 @@
   {
     "id": 12,
     "title": "Logical Operators",
+    "dialogue": [
+      "Combining conditions is a powerful skill.",
+      "Use logical operators like ‘and’, ‘or’, and ‘not’ to test multiple things at once.",
+      "This will allow you to face more complex situations. Will you combine your conditions wisely?"
+    ],
     "lessonHeader": "🔀 Logical Operators",
     "description": "Logical operators allow you to combine multiple Boolean conditions into a single expression. Using and, or, and not, you can check more complex logic and make decisions based on more than one condition at the same time.",
     "task": "Use logical operators to evaluate two boolean variables and print the result.",
@@ -151,6 +211,11 @@
   {
     "id": 13,
     "title": "For Loops",
+    "dialogue": [
+      "Repeating actions is the essence of power in Codemania.",
+      "With a `for` loop, you can repeat tasks as many times as you need. The more you repeat, the stronger you get.",
+      "Use this power to iterate through tasks and regain your strength."
+    ],
     "lessonHeader": "🔁 For Loops",
     "description": "For loops are used to repeat a block of code a specific number of times. They are commonly used when you know in advance how many times an action should run, such as iterating through a range of numbers.",
     "task": "Use a for loop to print numbers from 0 to 2.",
@@ -163,6 +228,11 @@
   {
     "id": 14,
     "title": "While Loops",
+    "dialogue": [
+      "What if you need to keep repeating an action, but only as long as a condition is true?",
+      "The while loop will help you do just that.",
+      "This skill will be crucial in your journey, as some challenges won’t be solved with a single step."
+    ],
     "lessonHeader": "🔁 While Loops",
     "description": "While loops repeat a block of code as long as a condition remains True. They are useful when you do not know in advance how many times the loop should run and want the loop to stop based on a condition.",
     "task": "Use a while loop to print numbers from 0 to 2.",
@@ -175,6 +245,11 @@
   {
     "id": 15,
     "title": "Range Function",
+    "dialogue": [
+      "Sometimes, the range of possibilities is vast.",
+      "The range function helps you loop through sequences—whether it’s from 0 to 10, or any other span.",
+      "Master this skill, and you can move through Codemania’s challenges with precision."
+    ],
     "lessonHeader": "🔢 Using range()",
     "description": "The range() function is used to generate a sequence of numbers, often in combination with for loops. It allows you to control where a loop starts and stops, making it easy to repeat actions a specific number of times.",
     "task": "Use range() to print numbers from 1 to 4.",
@@ -187,6 +262,11 @@
   {
     "id": 16,
     "title": "Nested Loops",
+    "dialogue": [
+      "Sometimes, you’ll need to loop through multiple layers of logic.",
+      "That’s where nested loops come in—loops within loops.",
+      "It’s a powerful technique for solving complex problems that require multiple steps at once."
+    ],
     "lessonHeader": "🔁 Nested Loops",
     "description": "Nested loops occur when one loop runs inside another loop. The inner loop completes all of its iterations for each iteration of the outer loop. Nested loops are useful for working with combinations, grids, and patterns.",
     "task": "Use nested loops to print all pairs of numbers from 0 to 1.",
@@ -199,6 +279,12 @@
   {
     "id": 17,
     "title": "Python Exam",
+    "dialogue": [
+      "The time has come for your final test, adventurer.",
+      "Everything you’ve learned about Codemania is about to be put to the ultimate test.",
+      "Restore the final pieces of your memory, and with it, the land of Codemania.",
+      "You must solve this challenge and prove that you are the coder you once were."
+    ],
     "lessonHeader": "📝 Python Final Exam",
     "description": "Test your Python knowledge with exercises covering all modules.",
     "task": "Create a function that takes two numbers as input, adds them together, and prints the result.",

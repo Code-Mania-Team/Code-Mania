@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/WelcomeOnboarding.module.css';
-import char2Preview from '/assets/characters/Char2/Animation/walkdown_ch1.png';
-import char3Preview from '/assets/characters/Char3/Animation/walkdown_ch2.png';
-import char4Preview from '/assets/characters/Char4/Animation/walkdown_ch3.png';
+import char1Preview from '/assets/characters/Char1/Animation/walkdown_ch1.png';
+import char2Preview from '/assets/characters/Char2/Animation/walkdown_ch2.png';
+import char3Preview from '/assets/characters/Char3/Animation/walkdown_ch3.png';
+import char4Preview from '/assets/characters/Char4/Animation/walkdown_ch4.png';
 import characterIcon from '/assets/characters/icons/character.png';
 import characterIcon1 from '/assets/characters/icons/character1.png';
 import characterIcon3 from '/assets/characters/icons/character3.png';
+import characterIcon4 from '/assets/characters/icons/character4.png'
 import { onBoardUsername } from '../services/setUsername';
 
 const WelcomeOnboarding = ({ onComplete }) => {
@@ -17,9 +19,10 @@ const WelcomeOnboarding = ({ onComplete }) => {
 
   // Character options (you can add more character sprites here)
   const characters = [
-    { id: 0, name: 'Char 2', sprite: char2Preview, icon: characterIcon, color: '#ff6b6b' },
-    { id: 1, name: 'Char 3', sprite: char3Preview, icon: characterIcon1, color: '#4ecdc4' },
-    { id: 2, name: 'Char 4', sprite: char4Preview, icon: characterIcon3, color: '#95e1d3' },
+    { id: 0, name: 'Nova', sprite: char1Preview, icon: characterIcon1, color: '#ff6b6b' },
+    { id: 1, name: 'Echo', sprite: char2Preview, icon: characterIcon, color: '#4ecdc4' },
+    { id: 2, name: 'Flux', sprite: char3Preview, icon: characterIcon3, color: '#95e1d3' },
+    { id: 3, name: 'Zephyr', sprite: char4Preview, icon: characterIcon4, color: '#8aa6ff' },
   ];
 
   const steps = [

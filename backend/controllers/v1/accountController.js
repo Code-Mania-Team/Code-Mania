@@ -167,12 +167,13 @@ class AccountController {
             sameSite: "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
+        console.log("character_id", profile?.character_id)
 
         return res.status(200).json({
             success: true,
             accessToken,
             username: profile?.username || null,
-            character_id: profile?.character_id || null,
+            character_id: profile?.character_id,
             user_id: authUser.user_id,
         });
         } catch (err) {

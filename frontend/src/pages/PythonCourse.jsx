@@ -19,6 +19,15 @@ const PythonCourse = () => {
     setIsModalOpen(false);
   };
 
+  const handleViewProfile = () => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else {
+      onOpenModal();
+    }
+  };
+
   const handleStartExercise = (moduleId, exerciseName) => {
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'Python');
@@ -28,7 +37,7 @@ const PythonCourse = () => {
   };
 
   const userProgress = {
-    name: "Your Name",
+    name: localStorage.getItem('username') || 'Your Name',
     level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,
@@ -37,6 +46,8 @@ const PythonCourse = () => {
     xpEarned: 0,
     totalXp: 3600
   };
+
+  const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
 
   const modules = [
     {
@@ -182,13 +193,13 @@ const PythonCourse = () => {
         <div className="sidebar">
           <div className="profile-card">
             <div className="profile-avatar">
-              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=user" alt="Profile" />
+              <img src={characterIcon} alt="Profile" />
             </div>
             <div className="profile-info">
               <h4>{userProgress.name}</h4>
               <p>Level {userProgress.level}</p>
             </div>
-            <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
+            <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
           </div>
 
           <div className="progress-card">

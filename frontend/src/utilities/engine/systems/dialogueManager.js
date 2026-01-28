@@ -9,7 +9,7 @@ export default class DialogueManager {
     // RPG-style text box
     this.box = scene.add.rectangle(width / 2, height - 120, width * 0.8, 120, 0x000000, 0.85)
       .setScrollFactor(0)
-      .setDepth(100)
+      .setDepth(10000)
       .setVisible(false)
       .setStrokeStyle(3, 0xffffff);
 
@@ -21,7 +21,7 @@ export default class DialogueManager {
     })
       .setOrigin(0.5)
       .setScrollFactor(0)
-      .setDepth(101)
+      .setDepth(10001)
       .setVisible(false);
 
     scene.input.keyboard.on("keydown-SPACE", () => {

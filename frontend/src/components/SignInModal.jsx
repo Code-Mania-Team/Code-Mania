@@ -155,13 +155,18 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         const user = await login(email, password);
         console.log('Login response:', user);
 
+        // Prevent stale avatar from previous account when switching users
+        localStorage.removeItem('selectedCharacter');
+        localStorage.removeItem('selectedCharacterIcon');
+
         const normalizedUsername = (user?.username || '').trim();
         const needsOnboarding = !normalizedUsername;
 
         const characterId = user?.character_id;
-        if (characterId !== undefined && characterId !== null && characterId !== '') {
+        if (characterId !== undefined && characterId !== null) {
           localStorage.setItem('selectedCharacter', String(characterId));
-          localStorage.removeItem('selectedCharacterIcon');
+          window.dispatchEvent(new CustomEvent('characterUpdated'));
+        } else {
           window.dispatchEvent(new CustomEvent('characterUpdated'));
         }
 

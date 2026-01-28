@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
+import ProfileCard from "../components/ProfileCard";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -19,8 +20,6 @@ const CppCourse = () => {
   };
 
   const userProgress = {
-    name: "Your Name",
-    level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,
     xpEarned: 0,
@@ -178,16 +177,7 @@ const CppCourse = () => {
 
         {/* Sidebar */}
         <div className="sidebar">
-          <div className="profile-card">
-            <div className="profile-avatar">
-              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=user" alt="Profile" />
-            </div>
-            <div className="profile-info">
-              <h4>{userProgress.name}</h4>
-              <p>Level {userProgress.level}</p>
-            </div>
-            <button className="view-profile-btn" onClick={onOpenModal}>View Profile</button>
-          </div>
+          <ProfileCard onSignInRequired={onOpenModal} />
 
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
