@@ -13,6 +13,7 @@ import QuestHUD from "../systems/questHUD";
 import ExitArrowManager from "../systems/exitArrowHUD";
 import QuestIconManager from "../systems/questIconManager";
 // import { worldState } from "../systems/worldState";
+import ChestQuestManager from "../systems/chestQuestManager";
 
 
 export default class GameScene extends Phaser.Scene {
@@ -31,10 +32,13 @@ export default class GameScene extends Phaser.Scene {
     this.mapData = MAPS[this.language][this.currentMapId];
 
     this.playerCanMove = true;
+    this.openedChests = new Set(
+      JSON.parse(localStorage.getItem("openedChests") || "[]")
+    );
+
     const savedAbilities = JSON.parse(
       localStorage.getItem("abilities") || "[]"
     );
-
     this.worldState = {
       abilities: new Set(savedAbilities)
     };
@@ -88,7 +92,10 @@ export default class GameScene extends Phaser.Scene {
       frameWidth: 48,
       frameHeight: 48 
     });
-
+    this.load.spritesheet("exclamation", "/assets/ui/exclamation.png", {
+      frameWidth: 48,
+      frameHeight: 48
+    });
 
   }
 
@@ -157,7 +164,15 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
-
+    this.anims.create({
+      key: "exclamation",
+      frames: this.anims.generateFrameNumbers("exclamation", {
+        start: 0,
+        end: 2
+      }),
+      frameRate: 4,
+      repeat: -1
+    });
 
     // 🧍 PLAYER
     const spawn = this.getSpawnPoint("player_spawn");
@@ -192,10 +207,27 @@ export default class GameScene extends Phaser.Scene {
     if (this.smallRockLayer) {
       this.smallRockLayer.setVisible(false);
     }
+    // 🧰 CHEST LAYERS
+    this.chestLayer =
+      this.mapLoader.map.getLayer("chest")?.tilemapLayer;
+
+    this.chestOpenLayer =
+      this.mapLoader.map.getLayer("chest_open")?.tilemapLayer;
+
+    // 🔒 FORCE INITIAL STATE (DO NOT TRUST TILED VISIBILITY)
+    if (this.chestLayer) {
+      this.chestLayer.setVisible(true);
+      this.chestLayer.setCollisionByProperty({ collision: true });
+    }
+
+    if (this.chestOpenLayer) {
+      this.chestOpenLayer.setVisible(false);
+    }
+
 
     
 
-    this.createInteractionMarker();
+    // this.createInteractionMarker();
 
     // 🌍 CAMERA
     const w = this.mapLoader.map.widthInPixels;
@@ -235,6 +267,8 @@ export default class GameScene extends Phaser.Scene {
     this.cutsceneManager = new CutsceneManager(this);
     this.exitArrowManager = new ExitArrowManager(this);
     this.questIconManager = new QuestIconManager(this);
+    this.chestQuestManager = new ChestQuestManager(this);
+
     this.createMapExits();
     this.lastDirection = "down";
     // 🧑 NPCs
@@ -245,6 +279,7 @@ export default class GameScene extends Phaser.Scene {
 
     // 🎬 INTRO
     this.playIntroCutscene();
+    this.spawnChestQuestIcons();
   }
 
   update() {
@@ -310,6 +345,28 @@ export default class GameScene extends Phaser.Scene {
 
   }
 
+  spawnChestQuestIcons() {
+    const chestLayer = this.mapLoader.map.getLayer("chest")?.tilemapLayer;
+    if (!chestLayer) return;
+
+    chestLayer.forEachTile(tile => {
+      if (!tile.properties) return;
+      if (tile.properties.type !== "chest") return;
+
+      const questId = tile.properties.quest_id;
+      if (!questId) return;
+
+      const quest = this.questManager.getQuestById(questId);
+      if (!quest || quest.completed) return;
+
+      const worldX = chestLayer.tileToWorldX(tile.x) + tile.width / 2;
+      const worldY = chestLayer.tileToWorldY(tile.y);
+
+      this.chestQuestManager.createIcon(worldX, worldY, questId);
+    });
+  }
+
+
   spawnNPCs() {
     const layer = this.mapLoader.map.getObjectLayer("spawn");
     if (!layer) return;
@@ -342,11 +399,6 @@ export default class GameScene extends Phaser.Scene {
         this.npcs.push(npc);
         this.physics.add.collider(this.player, npc);
 
-        // Hide NPC sprite for JavaScript mode
-        if (this.language === "JavaScript") {
-          npc.setVisible(false);
-        }
-
         const quest = this.questManager.getQuestById(npc.npcData.questId);
         if (quest && !quest.completed) {
           npc.questIcon = this.questIconManager.createIcon(npc, true);
@@ -355,29 +407,40 @@ export default class GameScene extends Phaser.Scene {
   }
 
 
-  createInteractionMarker() {
-    this.interactionMarker = this.add.container(0, 0).setDepth(999);
+  // createInteractionMarker() {
+  //   this.interactionMarker = this.add.container(0, 0).setDepth(999);
 
-    this.tweens.add({
-      targets: this.interactionMarker,
-      y: "-=10",
-      duration: 600,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut"
-    });
+  //   const arrow = this.add.triangle(0, 0, 0, 0, 18, 0, 9, 16, 0xffd200, 1);
+  //   const label = this.add.text(0, -16, "GO", {
+  //     font: "16px Arial",
+  //     fill: "#ffd200",
+  //     stroke: "#000000",
+  //     strokeThickness: 3
+  //   }).setOrigin(0.5);
 
-    this.interactPrompt = this.add.text(0, 0, "Press E", {
-      font: "16px Arial",
-      fill: "#ffffff",
-      stroke: "#000000",
-      strokeThickness: 3
-    })
-      .setOrigin(0.5, 1)
-      .setDepth(999);
+  //   this.interactionMarker.add([label, arrow]);
+  //   this.interactionMarker.setVisible(false);
 
-    this.interactPrompt.setVisible(false);
-  }
+  //   this.tweens.add({
+  //     targets: this.interactionMarker,
+  //     y: "-=10",
+  //     duration: 600,
+  //     yoyo: true,
+  //     repeat: -1,
+  //     ease: "Sine.easeInOut"
+  //   });
+
+  //   this.interactPrompt = this.add.text(0, 0, "Press E", {
+  //     font: "16px Arial",
+  //     fill: "#ffffff",
+  //     stroke: "#000000",
+  //     strokeThickness: 3
+  //   })
+  //     .setOrigin(0.5, 1)
+  //     .setDepth(999);
+
+  //   this.interactPrompt.setVisible(false);
+  // }
 
   updateInteractionMarker() {
     if (!this.npcs || this.npcs.length === 0) {
@@ -501,48 +564,92 @@ export default class GameScene extends Phaser.Scene {
 
 
   tryInteractWithChest() {
-    const chestLayer = this.mapLoader.map.getLayer("chest")?.tilemapLayer;
-    if (!chestLayer) return;
+    if (!this.chestLayer || !this.chestOpenLayer) return;
 
-    // 🔍 Check tiles around player (not just feet)
-    const checkOffsets = [
+    const offsets = [
       { x: 0, y: -24 },
       { x: -24, y: 0 },
       { x: 24, y: 0 },
       { x: 0, y: 24 }
     ];
 
-    for (const offset of checkOffsets) {
-      const worldX = this.player.x + offset.x;
-      const worldY = this.player.y + offset.y;
+    for (const offset of offsets) {
+      const wx = this.player.x + offset.x;
+      const wy = this.player.y + offset.y;
 
-      const tileX = chestLayer.worldToTileX(worldX);
-      const tileY = chestLayer.worldToTileY(worldY);
+      const tx = this.chestLayer.worldToTileX(wx);
+      const ty = this.chestLayer.worldToTileY(wy);
 
-      const tile = chestLayer.getTileAt(tileX, tileY);
-      if (!tile || !tile.properties) continue;
-
-      // ✅ Found chest tile
-      if (tile.properties.type !== "chest") continue;
+      const tile = this.chestLayer.getTileAt(tx, ty);
+      if (!tile || tile.properties?.type !== "chest") continue;
 
       const questId = tile.properties.quest_id;
-      if (!questId) return;
+      const chestKey = `${this.currentMapId}_${tx}_${ty}`;
+
+      // Already opened
+      if (this.openedChests.has(chestKey)) return;
 
       const quest = this.questManager.getQuestById(questId);
-      if (!quest || quest.completed) return;
+      if (!quest) return;
 
-      // 🔒 Lock player
+      // 1️⃣ Quest not started → give quest
+      if (!quest.completed && this.questManager.activeQuest?.id !== questId) {
+        this.playerCanMove = false;
+        this.dialogueManager.startDialogue(quest.dialogue || [], () => {
+          this.questManager.startQuest(questId);
+          this.playerCanMove = true;
+        });
+        return;
+      }
+
+      // 2️⃣ Quest active but not completed
+      if (!quest.completed) {
+        this.playerCanMove = false;
+        this.dialogueManager.startDialogue(
+          ["The chest is sealed by ancient code..."],
+          () => (this.playerCanMove = true)
+        );
+        return;
+      }
+
+      // 3️⃣ Quest completed → OPEN CHEST
       this.playerCanMove = false;
 
-      this.dialogueManager.startDialogue(quest.dialogue || [], () => {
-        this.questManager.startQuest(quest.id);
-        this.playerCanMove = true;
-      });
+      // 🔁 Toggle layers
+      this.chestLayer.setVisible(false);
+      this.chestLayer.forEachTile(t => t.setCollision(false));
 
-      return; // stop after first chest
+      this.chestOpenLayer.setVisible(true);
+
+      this.dialogueManager.startDialogue(
+        [
+          "The chest clicks open.",
+          "Inside, you find a sturdy Pickaxe.",
+          "🪓 You can now break rocks!"
+        ],
+        () => {
+          // Grant ability
+          this.worldState.abilities.add(quest.grants);
+          localStorage.setItem(
+            "abilities",
+            JSON.stringify([...this.worldState.abilities])
+          );
+
+          // Save opened chest
+          this.openedChests.add(chestKey);
+          localStorage.setItem(
+            "openedChests",
+            JSON.stringify([...this.openedChests])
+          );
+
+          this.playerCanMove = true;
+          console.log("🧰 Pickaxe obtained!");
+        }
+      );
+
+      return;
     }
   }
-
 
 
 
@@ -628,7 +735,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Quest not finished → do nothing
     if (requiredQuest) {
-      const quest = this.questManager.getQuestById(Number(requiredQuest));
+      const quest = this.questManager.getQuestById(requiredQuest);
       if (!quest || !quest.completed) return;
     }
 

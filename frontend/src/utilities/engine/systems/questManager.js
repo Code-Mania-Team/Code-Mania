@@ -16,17 +16,21 @@ export default class QuestManager {
     this.activeQuest = quest;
     console.log("🚀 QUEST STARTED:", quest.title);
 
-    // 🧹 Hide quest icon above NPC
+    // Hide NPC quest icons
     this.scene.npcs?.forEach(npc => {
       if (npc.npcData?.questId === id) {
         this.scene.questIconManager?.hideForNPC(npc);
       }
     });
 
+    // Hide chest quest icon (independent)
+    this.scene.chestQuestManager?.hideIconForQuest(id);
+
     if (this.scene.questHUD) {
       this.scene.questHUD.showQuest(quest);
     }
   }
+
 
   completeQuest(id) {
     const quest = this.getQuestById(id);
@@ -34,18 +38,6 @@ export default class QuestManager {
 
     quest.completed = true;
     console.log("✅ QUEST COMPLETED:", quest.title);
-
-    if (quest.grants) {
-      this.scene.worldState.abilities.add(quest.grants);
-
-      // 💾 SAVE TO LOCALSTORAGE
-      localStorage.setItem(
-        "abilities",
-        JSON.stringify([...this.scene.worldState.abilities])
-      );
-
-      console.log("🧰 Ability unlocked & saved:", quest.grants);
-    }
 
 
     // 🔓 Unlock exits that depend on this quest
