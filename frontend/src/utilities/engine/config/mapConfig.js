@@ -11,6 +11,17 @@ export const MAPS = {
         { name: "C", key: "C", image: "/assets/tilesets/Python/C.png" }
       ],
       nextMap: "map2"
+    },
+    map2: {
+      mapKey: "map2",
+      mapJson: "/assets/maps/Python/map2.json",
+      tilesets: [
+        { name: "ADBTileA2_exterior", key: "A2", image: "/assets/tilesets/Python/ADBTileA2_exterior.png" },
+        { name: "ADBTileB_exterior4", key: "B4", image: "/assets/tilesets/Python/ADBTileB_exterior4.png" },
+        { name: "Dungeon_hc_B", key: "Dungeon", image: "/assets/tilesets/Python/Dungeon_hc_B.png" },
+        { name: "!fsm_chest01", key: "Chest", image: "/assets/tilesets/Python/!fsm_chest01.png" }
+      ],
+      nextMap: "map3"
     }
   },
   JavaScript: {
