@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styles from '../styles/Profile.module.css';
 import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'lucide-react';
 import profileBanner from '../assets/profile-banner.jpg';
-
+import { DeleteAccount } from '../services/deleteAccount';
+import { EditAccount } from '../services/editAccount';
 import characterIcon0 from '/assets/characters/icons/character.png';
 import characterIcon1 from '/assets/characters/icons/character1.png';
 import characterIcon2 from '/assets/characters/icons/character3.png';
@@ -178,11 +179,18 @@ const Profile = ({ onSignOut }) => {
     setIsDeleteConfirmOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
+    try {
+      await DeleteAccount();
+    } catch (error) {
+      console.error('Delete account failed:', error);
+      return;
+    }
     // Get username before removing it
     const username = localStorage.getItem('username');
     
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('username');
     localStorage.removeItem('fullName');
     localStorage.removeItem('selectedCharacter');
@@ -218,20 +226,27 @@ const Profile = ({ onSignOut }) => {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = () => {
-    // Add save logic here
-    console.log('Account updated:', editFormData);
+  const handleSaveEdit = async () => {
+    try {
+      const response = await EditAccount(editFormData.userName);
 
-    const normalizedUsername = (editFormData.username || '').trim().replace(/^@+/, '');
-    localStorage.setItem('username', normalizedUsername);
-    localStorage.setItem('fullName', (editFormData.userName || '').trim() || normalizedUsername);
+      if (response?.accessToken) {
+        localStorage.setItem('accessToken', response.accessToken);
+      }
 
-    setEditFormData(prev => ({
-      ...prev,
-      userName: (prev.userName || '').trim() || normalizedUsername,
-      username: normalizedUsername ? `@${normalizedUsername}` : '@',
-    }));
-    setIsEditModalOpen(false);
+      if (response?.full_name) {
+        localStorage.setItem('fullName', response.full_name);
+      }
+
+      setEditFormData(prev => ({
+        ...prev,
+        userName: response?.full_name || prev.userName,
+      }));
+
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Edit account failed:', error);
+    }
   };
 
   const handleEditInputChange = (e) => {

@@ -245,29 +245,43 @@ class AccountController {
     }
 
     async updateProfile(req, res) {
-        const { username, bio } = req.body || {};
+        const { username, full_name } = req.body || {};
+        console.log("UPDATE PROFILE", username, full_name);
         const userId = res.locals.user_id;
+        const currentUsername = res.locals.username;
 
         if (!userId) {
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
 
         try {
-            const updated = await this.user.updateProfile(userId, { username, bio });
+            const updated = await this.user.updateProfile(userId, { username, full_name });
             if (!updated) {
                 return res.status(400).json({ success: false, message: "Failed to update profile" });
             }
 
             // Generate new access token only if username changed
-            let accessToken = null;
-            if (username) {
-                accessToken = generateAccessToken({ user_id: userId, username });
-            }
+           
+            const tokenUsername = username ?? currentUsername;
+
+            const accessToken = generateAccessToken({
+                user_id: userId,
+                username: tokenUsername,
+                });
+
+            
+            res.cookie("accessToken", accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 15 * 60 * 1000,
+                });
 
             return res.status(200).json({
                 success: true,
                 message: "Profile updated successfully",
-                accessToken, // frontend updates memory if present
+                full_name: updated?.full_name,
+                accessToken // frontend updates memory if present
             });
         } catch (err) {
             console.error("updateProfile error:", err);

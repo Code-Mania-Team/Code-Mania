@@ -27,7 +27,7 @@ accountRouter.post('/logout', authentication, account.logout.bind(account));
 // Get current user's profile
 accountRouter.get('/', authentication, account.profile.bind(account));
 
-// Update profile (username/bio)
+// Update profile (username/full_name)
 accountRouter.patch('/', authentication, account.updateProfile.bind(account));
 
 // Delete account
