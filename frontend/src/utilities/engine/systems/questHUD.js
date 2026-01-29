@@ -139,6 +139,9 @@ export default class QuestUI {
   showQuest(quest) {
     if (!quest) return;
 
+    // 🛑 Pause game when quest HUD appears
+    window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
+
     // Lesson title
     this.titleText.setText(quest.title || "");
 
@@ -211,6 +214,9 @@ export default class QuestUI {
   // =========================
   hide() {
     if (!this.visible) return;
+
+    // ▶ Resume game when quest HUD hides
+    window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
 
     this.scene.tweens.add({
       targets: this.container,

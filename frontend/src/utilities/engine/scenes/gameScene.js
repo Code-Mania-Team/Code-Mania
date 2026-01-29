@@ -237,11 +237,15 @@ export default class GameScene extends Phaser.Scene {
       this.gamePausedByTerminal = true;
       this.playerCanMove = false;
       this.player.setVelocity(0);
+      // 🛑 Disable keyboard input when quest HUD appears
+      this.input.keyboard.disableGlobalCapture();
     });
 
     window.addEventListener("code-mania:terminal-inactive", () => {
       this.gamePausedByTerminal = false;
       this.playerCanMove = true;
+      // ▶ Re-enable keyboard input when quest HUD hides
+      this.input.keyboard.enableGlobalCapture();
     });
 
     // normal input setup
@@ -371,9 +375,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update() {
-    if (!this.playerCanMove) {
-    this.player.setVelocity(0);
-    return;
+    // 🛑 Stop all game input when quest HUD is active
+    if (this.gamePausedByTerminal || !this.playerCanMove) {
+      this.player.setVelocity(0);
+      return;
     }
 
     this.updateInteractionMarker();
@@ -750,11 +755,7 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(500, async () => {
       await this.cutsceneManager.play(cutscene);
 
-      // ✅ SHOW HELP ONLY ONCE PER SESSION
-      if (!this.helpShownThisSession) {
-        this.helpShownThisSession = true;
-        this.helpManager.openHelp();
-      }
+      // Help removed - don't auto-show when quest HUD appears
     });
   }
 

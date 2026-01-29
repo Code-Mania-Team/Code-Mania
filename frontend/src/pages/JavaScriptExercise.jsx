@@ -24,7 +24,7 @@ const JavaScriptExercise = () => {
   const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
-  const [showScroll, setShowScroll] = useState(false);
+  const [showScroll, setShowScroll] = useState(true);
   const [showXpPanel, setShowXpPanel] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
 
@@ -352,48 +352,6 @@ const JavaScriptExercise = () => {
                   overflow: "hidden"
                 }}
               >
-                {showScroll && (
-                  <div className={styles["scroll-container"]}>
-                    <img
-                      src="/src/assets/aseprites/scroll.png"
-                      alt="Scroll"
-                      className={styles["scroll-image"]}
-                    />
-
-                    <div className={styles["scroll-content"]}>
-                      <h2>{currentExercise?.lessonHeader || '🌐 JavaScript'}</h2>
-                      <p>{currentExercise?.description || 'Welcome to JavaScript exercises!'}</p>
-                      
-                      {currentExercise?.lessonExample && (
-                        <div className={styles["code-example"]}>
-                          <h3>Example:</h3>
-                          <pre>{currentExercise.lessonExample}</pre>
-                        </div>
-                      )}
-                      
-                      <h3>Your Task:</h3>
-                      <p>{currentExercise?.task || 'Complete the JavaScript code below.'}</p>
-                      
-                      <div className={styles.navigation}>
-                        <button 
-                          onClick={goToPrevExercise}
-                          disabled={!currentExercise || currentExercise.id <= 1}
-                          className={styles.navButton}
-                        >
-                          <ChevronLeft size={20} /> Previous
-                        </button>
-                        <span>Exercise {currentExercise?.id || 1} of {exercises.length}</span>
-                        <button 
-                          onClick={goToNextExercise}
-                          disabled={!currentExercise || currentExercise.id >= exercises.length}
-                          className={styles.navButton}
-                        >
-                          Next <ChevronRight size={20} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
             </div>
@@ -405,10 +363,9 @@ const JavaScriptExercise = () => {
               <div className={styles["editor-header"]}>
                 <span>script.js</span>
                 <button 
-                  className={`${styles["run-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`} 
+                  className={styles["run-btn"]} 
                   onClick={handleRunCode}
-                  disabled={!showScroll}
-                  title={!showScroll ? "View the lesson first" : "Run code"}
+                  title="Run code"
                 >
                   <Play size={16} /> Run
                 </button>
@@ -424,10 +381,9 @@ const JavaScriptExercise = () => {
               <div className={styles["terminal-header"]}>
                 Console
                 <button 
-                  className={`${styles["submit-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`}
+                  className={styles["submit-btn"]}
                   onClick={handleRunCode}
-                  disabled={!showScroll}
-                  title={!showScroll ? "View the lesson first" : "Submit code"}
+                  title="Submit code"
                 >
                   Submit
                 </button>
@@ -443,15 +399,6 @@ const JavaScriptExercise = () => {
                   <span className={styles["cursor"]}></span>
                 </div>
               </div>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
-              <button
-                className={styles["submit-btn"]}
-                onClick={handleDebugSkip}
-                title="Next (earn badge)"
-              >
-                Next (Earn Badge)
-              </button>
             </div>
 
             <XpNotification

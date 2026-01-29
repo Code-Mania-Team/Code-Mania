@@ -2,13 +2,16 @@
   {
     "id": 1,
     "title": "The Program",
-    "lessonHeader": "🧙‍♂️ Getting Started with C++",
-    "description": " To begin your journey as a C++ adventurer, you must prepare your environment and cast your very first spell — a simple message that echoes through the console realm.",
+    "lessonHeader": "🌆 Arrival at C++ City",
+    "description": "You arrive at the city gates as lights turn on one by one. Screens glow, systems hum quietly.\n",
     "task": "Write a C++ program that prints 'Hello, C++!' to the console.",
-    "lessonExample": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Welcome to C++!\" << endl;\n    return 0;\n}",
+    "lessonExample": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Welcome to C++ City!\" << endl;\n    return 0;\n}",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
-    "hints": ["🔮 Use cout for output.", "📜 Don't forget #include <iostream>.", "⚔️ End statements with a semicolon."],
-    "requirements": { "mustInclude": ["cout"] },
+    "hints": [
+      "📡 cout sends messages across the city network.",
+      "📜 iostream opens communication channels.",
+      "✔️ Each line ends cleanly with a semicolon."
+    ],
     "expectedOutput": "Hello, C++!"
   },
   {

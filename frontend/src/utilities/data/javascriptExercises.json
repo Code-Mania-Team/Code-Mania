@@ -14,7 +14,7 @@
       "The reason everything here once felt alive."
     ],
     "lessonExample": "console.log(\"Welcome to JavaScript!\")",
-    "startingCode": "console.log()",
+    "startingCode": "console.log(\"Hello, JS!\")",
     "hints": ["Use console.log() to print output.", "Your code should run without errors."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello, JS!"
@@ -32,7 +32,7 @@
       "Messages appear… but only to those who know where to look.",
       "This must be how the town communicates."
     ],
-    "startingCode": "console.log()",
+    "startingCode": "console.log(\"Hello\");\nconsole.log(\"World!\");",
     "hints": ["Put your message inside the parentheses.", "Remember to wrap text in quotes."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello World!"
@@ -44,7 +44,7 @@
     "description": "A variable in JavaScript is a named memory space that is used to store a value. A variable is like a container in which you can store any data or value. Use var, let, or const to create variables.",
     "task": "Create three variables named playerName, score, and isOnline. Assign them the values 'Nova', 120, and false. Then change isOnline to true and print all three variables to the console on separate lines.",
     "lessonExample": "let heroName = \"Jet\";\nlet heroLevel = 5;\n\nheroLevel = 6;\n\nconsole.log(heroName);\nconsole.log(heroLevel);",
-    "startingCode": "let playerName = \"\";\nlet score = 0;\nlet isOnline = false;\n\n// update isOnline\n\n// print all variables",
+    "startingCode": "let playerName = \"Nova\";\nlet score = 120;\nlet isOnline = false;\n\n// update isOnline\nisOnline = true;\n\n// print all variables\nconsole.log(playerName);\nconsole.log(score);\nconsole.log(isOnline);",
     "hints": [
       "Variables can be reassigned after declaration",
       "Boolean values are true or false (without quotes)",
@@ -69,7 +69,7 @@
     "description": "In a programmer’s adventure, a variable is like a chest, and the data type is the magic that controls it. It decides what kind of treasure can be stored inside and how much space the chest has. Choosing the right data type keeps your journey safe and your program strong. JavaScript supports different data types such as strings, numbers, and booleans.",
     "task": "Create three variables named userName, lives, and hasKey. Assign them the values 'Aria', 3, and false. Print all three values to the console on separate lines.",
     "lessonExample": "//string data type\n let name = \"jet\"\n\n// number data type\nlet score = 100;\n\n// boolean data type\nlet isGameOver = false;\n\nconsole.log(score);\nconsole.log(isGameOver);",
-    "startingCode": "let userName = \"\";\nlet lives = 0;\nlet hasKey = false;\n\n// print all variables",
+    "startingCode": "let userName = \"Aria\";\nlet lives = 3;\nlet hasKey = false;\n\n// print all variables\nconsole.log(userName);\nconsole.log(lives);\nconsole.log(hasKey);",
     "hints": [
       "Strings must be wrapped in quotes",
       "Numbers are written without quotes",
@@ -93,7 +93,7 @@
     "description": "Functions are reusable code blocks designed to perform a particular task. At its core, a function is simply a way for the creator (you), to package a set of instructions that can be called at-will to do a task. Learn how to define and call functions in JavaScript.",
     "task": "Create a function named showMessage that prints 'Welcome!' to the console. Call the function twice.",
     "lessonExample": "// defining a function\nfunction greet() {\n  console.log(\"Hello!\");\n}\n\n// calling the function\ngreet();",
-    "startingCode": "function showMessage() {\n  \n}\n\n// call the function twice",    
+    "startingCode": "function showMessage() {\n  console.log(\"Welcome!\");\n}\n\n// call the function twice\nshowMessage();\nshowMessage();",    
     "hints": ["Use function keyword.", "Call the function after defining it."],
     "requirements": { "mustInclude": ["function", "console.log"] },
     "expectedOutput": "Hello!"
@@ -105,7 +105,7 @@
     "description": "Parameters and arguments are used when working with functions. Parameters act like placeholders in a function definition, while arguments are the actual values passed to the function when it is called. They allow functions to receive data, making code more flexible and reusable.",
     "task": "Create a function named greet that takes a parameter name and prints 'Hello ' followed by the name. Call the function with the argument 'Jet'.",
     "lessonExample": "// function with a parameter\nfunction greet(name) {\n  console.log(\"Hello \" + name);\n}\n\n// calling the function with an argument\ngreet(\"Alex\");",
-     "startingCode": "function welcomeUser(username) {\n  \n}\n\n// call the function here",
+    "startingCode": "function greet(name) {\n  console.log(\"Hello \" + name);\n}\n\n// call the function here\ngreet(\"Jet\");",
     "hints": ["Define a parameter in the function.", "Use it inside console.log."],
     "requirements": { "mustInclude": ["function", "console.log"] },
     "expectedOutput": "Hello Jet"
