@@ -14,6 +14,10 @@ const login = async (email, password) => {
     );
     console.log("Login response:", response.data);
     console.log("access token:", response.data.accessToken)
+    if (response.data.success === false) {
+      console.log(response.data.message);
+      throw new Error(response.data.message || "Login failed");
+    }
     if (response.data?.accessToken) {
       localStorage.setItem("accessToken", response.data.accessToken);
     }

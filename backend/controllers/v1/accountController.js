@@ -132,6 +132,7 @@ class AccountController {
 
         const authUser = await this.user.verify(email, password);
         if (!authUser) {
+            res.send({ success: false, message: "Invalid credentials" })
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
