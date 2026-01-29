@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import GameScene from "./scenes/gameScene.js";
+import HelpScene from "./scenes/helpScene.js";
 
 export function initPhaserGame(containerId) {
   const container = document.getElementById(containerId);
@@ -19,7 +20,7 @@ export function initPhaserGame(containerId) {
       width: container.clientWidth,
       height: container.clientHeight,
     },
-    scene: [GameScene],
+    scene: [GameScene,HelpScene],
   });
 
   // -------------------------------
