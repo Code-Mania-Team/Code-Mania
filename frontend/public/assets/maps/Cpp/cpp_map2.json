@@ -9,7 +9,7 @@
          "objects":[
                 {
                  "height":0,
-                 "id":1,
+                 "id":15,
                  "name":"player_spawn",
                  "point":true,
                  "properties":[
@@ -27,12 +27,12 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":480,
-                 "y":946
+                 "x":501,
+                 "y":945
                 }, 
                 {
                  "height":0,
-                 "id":2,
+                 "id":16,
                  "name":"npc_spawn",
                  "point":true,
                  "properties":[
@@ -44,12 +44,12 @@
                         {
                          "name":"name",
                          "type":"string",
-                         "value":"npc_spawn"
+                         "value":"npc _spawn"
                         }, 
                         {
                          "name":"quest_id",
-                         "type":"string",
-                         "value":"2"
+                         "type":"int",
+                         "value":2
                         }, 
                         {
                          "name":"type",
@@ -60,8 +60,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":783,
-                 "y":590
+                 "x":789,
+                 "y":603
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -76,7 +76,7 @@
          "objects":[
                 {
                  "height":0,
-                 "id":10,
+                 "id":17,
                  "name":"exit",
                  "point":true,
                  "properties":[
@@ -92,8 +92,8 @@
                         }, 
                         {
                          "name":"required_quest",
-                         "type":"string",
-                         "value":"1"
+                         "type":"int",
+                         "value":1
                         }, 
                         {
                          "name":"target_map",
@@ -109,8 +109,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":880,
-                 "y":516
+                 "x":854,
+                 "y":519
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -398,7 +398,7 @@
          "y":0
         }],
  "nextlayerid":14,
- "nextobjectid":11,
+ "nextobjectid":18,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

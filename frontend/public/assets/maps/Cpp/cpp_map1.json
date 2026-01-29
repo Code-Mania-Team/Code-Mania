@@ -8,17 +8,6 @@
          "name":"spawn",
          "objects":[
                 {
-                 "height":0,
-                 "id":7,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":188,
-                 "y":906.666666666667
-                }, 
-                {
                  "height":49.3333333333334,
                  "id":8,
                  "name":"player_spawn",

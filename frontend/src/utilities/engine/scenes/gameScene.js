@@ -24,7 +24,10 @@ export default class GameScene extends Phaser.Scene {
 
   init(data) {
     // Use the last course title from localStorage if available
-    this.language = localStorage.getItem("lastCourseTitle") || "Python";
+    const storedLanguage = localStorage.getItem("lastCourseTitle") || "Python";
+    
+    // Map language names to MAPS keys
+    this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
 
     // Map ID passed from previous scene, or default to map1
     this.currentMapId = data?.mapId || "map1";
@@ -110,7 +113,9 @@ export default class GameScene extends Phaser.Scene {
 
     this.cameras.main.roundPixels = true;
 
-    // 🎞 PLAYER ANIMATIONS
+    // 🎵 Background music removed
+
+    // 🎮 PLAYER ANIMATIONS
     const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
     
     const characterIdleFrames = {

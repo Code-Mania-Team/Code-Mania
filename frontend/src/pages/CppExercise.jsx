@@ -49,7 +49,7 @@ useEffect(() => {
     }
     
     // Set language for game scene
-    localStorage.setItem("lastCourseTitle", "Cpp");
+    localStorage.setItem("lastCourseTitle", "C++");
     
     // Set mapId based on current exercise number
     let mapId;

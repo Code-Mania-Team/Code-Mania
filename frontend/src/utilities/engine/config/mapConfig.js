@@ -135,6 +135,32 @@ export const MAPS = {
         { name: "FutsuCity_C", key: "FutsuCity_C", image: "/assets/tilesets/Cpp/FutsuCity_C.png" },
         { name: "ModernCity_B", key: "ModernCity_B", image: "/assets/tilesets/Cpp/ModernCity_B.png" }
       ],
+      nextMap: "map3"
+    },
+    map3: {
+      mapKey: "cpp_map3",
+      mapJson: "/assets/maps/Cpp/cpp_map3.json",
+      tilesets: [
+        { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" },
+        { name: "pika_nos_tiles02_B", key: "pika_nos_tiles02_B", image: "/assets/tilesets/Cpp/pika_nos_tiles02_B.png" },
+        { name: "MordernOuter_Outdoor", key: "MordernOuter_Outdoor", image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png" },
+        { name: "NightClub_A2", key: "NightClub_A2", image: "/assets/tilesets/Cpp/NightClub_A2.png" },
+        { name: "Commu-ditie3", key: "Commu-ditie3", image: "/assets/tilesets/Python/Commu-ditie3.png" }
+      ],
+      nextMap: "map4"
+    },
+    map4: {
+      mapKey: "cpp_map4",
+      mapJson: "/assets/maps/Cpp/cpp_map4.json",
+      tilesets: [
+        { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" },
+        { name: "Commu-ditie1", key: "Commu-ditie1", image: "/assets/tilesets/Python/Commu-ditie1.png" },
+        { name: "pika_nos_tiles02_B", key: "pika_nos_tiles02_B", image: "/assets/tilesets/Cpp/pika_nos_tiles02_B.png" },
+        { name: "MordernOuter_TileA4", key: "MordernOuter_TileA4", image: "/assets/tilesets/Cpp/MordernOuter_TileA4.png" },
+        { name: "univ_wall", key: "univ_wall", image: "/assets/tilesets/Cpp/univ_wall.png" },
+        { name: "MordernOuter_Outdoor", key: "MordernOuter_Outdoor", image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png" },
+        { name: "BlackCom_Inside_B", key: "BlackCom_Inside_B", image: "/assets/tilesets/Cpp/BlackCom_Inside_B.png" }
+      ],
       nextMap: null
     }
   }
