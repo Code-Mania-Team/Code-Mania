@@ -1,48 +1,131 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, Send } from "lucide-react";
 import "../styles/FreedomWall.css";
 
-const FreedomWall = () => {
-  const [comments, setComments] = useState([
-    { 
-      id: 1, 
-      user: "Vince De Castro", 
-      avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=vince",
-      text: "Nice game I absolutely like it, since I love programming while playing games.", 
-      time: "2 min ago" 
-    },
-    { 
-      id: 2, 
-      user: "Diether Pano", 
-      avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=diether",
-      text: "I am glad that CodeMania created a game with programming methods, it was stunning!", 
-      time: "5 min ago" 
-    },
-    { 
-      id: 3, 
-      user: "Nathaniel Faborada", 
-      avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=nathaniel",
-      text: "I have been through a lot of levels just to understand on how this programming works. Well done!", 
-      time: "10 min ago" 
-    },
-  ]);
+import useGetAllPosts from "../services/home";
+import { userPost } from "../services/postFreedomwall";
+
+import characterIcon0 from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon2 from '/assets/characters/icons/character3.png';
+import characterIcon3 from '/assets/characters/icons/character4.png';
+
+const FreedomWall = ({ onOpenModal }) => {
+  const getAllPosts = useGetAllPosts();
+  const [comments, setComments] = useState([]);
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchError, setFetchError] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
+  const [postError, setPostError] = useState('');
 
   const [newComment, setNewComment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-
-    const newEntry = {
-      id: Date.now(),
-      user: "You",
-      avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=you",
-      text: newComment,
-      time: "Just now",
+  const iconByCharacterId = useMemo(() => {
+    return {
+      0: characterIcon1,
+      1: characterIcon0,
+      2: characterIcon2,
+      3: characterIcon3,
     };
+  }, []);
 
-    setComments([newEntry, ...comments]);
-    setNewComment("");
+  const formatTimeAgo = (dateInput) => {
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    if (!date || Number.isNaN(date.getTime())) return '';
+
+    const diffMs = Date.now() - date.getTime();
+    const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+    if (diffSec < 10) return 'Just now';
+    if (diffSec < 60) return `${diffSec} sec ago`;
+
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin === 1) return '1 min ago';
+    if (diffMin < 60) return `${diffMin} mins ago`;
+
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr === 1) return '1 hr ago';
+    if (diffHr < 24) return `${diffHr} hrs ago`;
+
+    const diffDay = Math.floor(diffHr / 24);
+    if (diffDay === 1) return '1 day ago';
+    if (diffDay < 7) return `${diffDay} days ago`;
+
+    const diffWeek = Math.floor(diffDay / 7);
+    if (diffWeek === 1) return '1 week ago';
+    return `${diffWeek} weeks ago`;
+  };
+
+  const mapApiPostToComment = (post) => {
+    const rawUsername = post?.users?.username ?? post?.username;
+    const username = rawUsername ? String(rawUsername) : 'Anonymous';
+    const characterIdRaw = post?.users?.character_id ?? post?.character_id;
+    const characterId = characterIdRaw === null || characterIdRaw === undefined ? null : Number(characterIdRaw);
+    const avatar = characterId !== null && !Number.isNaN(characterId) ? (iconByCharacterId[characterId] || null) : null;
+
+    const createdAtLabel = post?.created_at ? formatTimeAgo(post.created_at) : '';
+
+    return {
+      id: post?.fd_wall_id ?? post?.id ?? Date.now(),
+      user: username,
+      avatar,
+      text: post?.content ?? '',
+      time: createdAtLabel,
+    };
+  };
+
+  const fetchPosts = async () => {
+    setIsFetching(true);
+    setFetchError('');
+    try {
+      const res = await getAllPosts();
+      const items = Array.isArray(res?.result) ? res.result : [];
+      setComments(items.map(mapApiPostToComment));
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch posts.';
+      setFetchError(String(msg));
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAddComment = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      setPostError('Please sign in to post on the Freedom Wall.');
+      if (typeof onOpenModal === 'function') {
+        onOpenModal();
+      }
+      return;
+    }
+
+    const content = (newComment || '').trim();
+    if (!content) return;
+
+    setIsPosting(true);
+    setPostError('');
+    try {
+      const res = await userPost(content);
+      if (res?.success) {
+        const created = res?.data ? mapApiPostToComment(res.data) : null;
+        if (created) {
+          setComments((prev) => [created, ...prev]);
+        } else {
+          await fetchPosts();
+        }
+        setNewComment('');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to create post.';
+      setPostError(String(msg));
+    } finally {
+      setIsPosting(false);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -74,7 +157,7 @@ const FreedomWall = () => {
       <div className="comment-input-section">
         <div className="comment-input-wrapper">
           <img
-            src="https://api.dicebear.com/7.x/pixel-art/svg?seed=you"
+            src={localStorage.getItem('selectedCharacterIcon') || "https://api.dicebear.com/7.x/pixel-art/svg?seed=you"}
             alt="Your avatar"
             className="avatar"
           />
@@ -82,27 +165,38 @@ const FreedomWall = () => {
             <textarea
               placeholder="Share your thoughts on the FreedomWall..."
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={(e) => {
+                setNewComment(e.target.value);
+                setPostError('');
+              }}
               onKeyPress={handleKeyPress}
             />
             <button
               onClick={handleAddComment}
               className="post-button"
+              disabled={isPosting}
             >
               <Send className="send-icon" />
-              Post
+              {isPosting ? 'Posting...' : 'Post'}
             </button>
           </div>
         </div>
+        {postError ? (
+          <div className="no-results">{postError}</div>
+        ) : null}
       </div>
 
         {/* Comments List */}
         <div className="comments-section">
-          {filteredComments.length > 0 ? (
+          {isFetching ? (
+            <div className="no-results">Loading posts...</div>
+          ) : fetchError ? (
+            <div className="no-results">{fetchError}</div>
+          ) : filteredComments.length > 0 ? (
             filteredComments.map((comment) => (
               <div key={comment.id} className="comment-card">
                 <img
-                  src={comment.avatar}
+                  src={comment.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(comment.user)}`}
                   alt={`${comment.user}'s avatar`}
                   className="comment-avatar"
                 />
@@ -121,6 +215,7 @@ const FreedomWall = () => {
             </div>
           )}
         </div>
+
     </div>
   );
 };

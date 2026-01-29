@@ -171,6 +171,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/python" element={<PythonCourse />} />
+
           <Route 
             path="/learn/python/exercise/:exerciseId" 
             element={
@@ -186,7 +187,7 @@ function App() {
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
-          <Route path="/freedomwall" element={<FreedomWall />} />
+          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />

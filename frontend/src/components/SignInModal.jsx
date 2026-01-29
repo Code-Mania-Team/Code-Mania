@@ -59,6 +59,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   const validatePassword = (pass) => {
     const minLength = 8;
@@ -111,15 +112,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
-    console.log("HANDLE SUBMIT FIRED");
-    console.log({
-  isSignUpMode,
-  showOtpField,
-});
-    console.log("signUp function:", signUp);
-
     e.preventDefault();
     setIsLoading(true);
+    setLoginError(''); // Clear previous login errors
     
     try {
       if (isSignUpMode) {
@@ -128,7 +123,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           // Step 1: validate password + confirm and request OTP
           if (password !== confirmPassword) {
             setConfirmPasswordError('Passwords do not match');
-            console.log('Passwords do not match');
             setIsLoading(false);
             return;
           }
@@ -139,21 +133,34 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
             return;
           }
           const user = await signUp(email, password);
-          console.log('Signup response:', user);
-        
           setShowOtpField(true);
         } else {
           const user = await verifyOtp(email, otp);
-          console.log('OTP verification response:', user);
           localStorage.setItem('needsUsername', 'true');
           onSignInSuccess(true);
           onClose();
-
           return; // Exit early after successful signup
         }
       } else {
-        const user = await login(email, password);
-        console.log('Login response:', user);
+        const normalizedEmail = (email || '').trim();
+        const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+        if (!normalizedEmail) {
+          setLoginError('Please enter your email.');
+          setIsLoading(false);
+          return;
+        }
+        if (!emailIsValid) {
+          setLoginError('Please enter a valid email address.');
+          setIsLoading(false);
+          return;
+        }
+        if (!password) {
+          setLoginError('Please enter your password.');
+          setIsLoading(false);
+          return;
+        }
+
+        const user = await login(normalizedEmail, password);
 
         // Prevent stale avatar from previous account when switching users
         localStorage.removeItem('selectedCharacter');
@@ -185,7 +192,16 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      // Handle error (show error message to user)
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message;
+
+      if (backendMessage) {
+        setLoginError(String(backendMessage));
+      } else {
+        setLoginError('An error occurred during sign in. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -238,7 +254,10 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   type="email"
                   id="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setLoginError(''); // Clear error when user types
+                  }}
                   placeholder="you@example.com"
                   required
                   disabled={showOtpField}
@@ -252,7 +271,10 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     type={showPassword ? "text" : "password"}
                     id="password"
                     value={password}
-                    onChange={handlePasswordChange}
+                    onChange={(e) => {
+                      handlePasswordChange(e);
+                      setLoginError(''); // Clear error when user types
+                    }}
                     placeholder="Enter your password"
                     required
                     className={styles.passwordInput}
@@ -299,6 +321,10 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 {isLoading ? 'Processing...' : 'Continue'}
               </button>
 
+              {loginError && (
+                <p className={styles.errorText}>{loginError}</p>
+              )}
+
 
               <p className={styles.signupHint}>
                 Don't have an account yet?{' '}
@@ -309,6 +335,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     setIsSignUpMode(true);
                     setShowOtpField(false);
                     setOtp('');
+                    setLoginError(''); // Clear error when switching modes
                   }}
                 >
                   Create one
@@ -447,6 +474,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     setIsSignUpMode(false);
                     setShowOtpField(false);
                     setOtp('');
+                    setLoginError(''); // Clear error when switching modes
                   }}
                 >
                   Sign in

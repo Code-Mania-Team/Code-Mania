@@ -9,12 +9,12 @@ import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
-import map1 from "../assets/aseprites/map1.png";
 import cppStage1Badge from "../assets/badges/C++/c++-badges1.png";
 import cppStage2Badge from "../assets/badges/C++/c++-badges2.png";
 import cppStage3Badge from "../assets/badges/C++/c++-badge3.png";
 import cppStage4Badge from "../assets/badges/C++/c++-badge4.png";
 import exercises from "../utilities/data/cppExercises.json";
+import { initPhaserGame } from "../utilities/engine/main.js";
 
 const CppExercise = () => {
 const { exerciseId } = useParams();
@@ -24,7 +24,6 @@ const [currentExercise, setCurrentExercise] = useState(null);
 const [code, setCode] = useState("");
 const [output, setOutput] = useState("");
 const [showHelp, setShowHelp] = useState(false);
-const [showScroll, setShowScroll] = useState(false);
 const [showXpPanel, setShowXpPanel] = useState(false);
 const [showStageComplete, setShowStageComplete] = useState(false);
 const [, setXpEarned] = useState(0);
@@ -48,6 +47,22 @@ useEffect(() => {
       console.error('Invalid exercise ID');
       return;
     }
+    
+    // Set language for game scene
+    localStorage.setItem("lastCourseTitle", "Cpp");
+    
+    // Set mapId based on current exercise number
+    let mapId;
+    if (id === 1) {
+      mapId = "map1";
+    } else if (id === 2) {
+      mapId = "map2";
+    } else if (id === 3) {
+      mapId = "map3";
+    } else {
+      mapId = "map2"; // Default to map2 for exercises 4+
+    }
+    localStorage.setItem("currentMapId", mapId);
     
     const exercise = exercises.find((ex) => ex.id === id);
     if (!exercise) {
@@ -107,6 +122,14 @@ navigate(`/learn/cpp/exercise/${prevId}-${exerciseSlug}`);
 useEffect(() => {
 handleNextDialogue();
 }, []);
+
+useEffect(() => {
+  const game = initPhaserGame("phaser-container");
+
+  return () => {
+    if (game) game.cleanup();
+  };
+}, [exerciseId]); // Restart game when exerciseId changes
 
 const handleNextDialogue = () => {
   if (isTyping) return;
@@ -221,59 +244,15 @@ user={user}
       <div className={styles["game-container"]}>
         <div className={styles["game-preview"]}>
           <div
+            id="phaser-container"
             className={styles["game-scene"]}
             style={{
-              backgroundImage: `url(${map1})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
               minHeight: "400px",
               position: "relative",
               borderRadius: "8px",
               overflow: "hidden",
             }}
           >
-            {!showScroll && (
-              <button
-                onClick={() => setShowScroll(true)}
-                className={styles["show-scroll-btn"]}
-              >
-                View Challenge
-              </button>
-            )}
-
-            {showScroll && (
-              <div className={styles["scroll-container"]}>
-                <img
-                  src="/src/assets/aseprites/scroll.png"
-                  alt="Scroll"
-                  className={styles["scroll-image"]}
-                />
-
-                <div className={styles["scroll-content"]}>
-                  <h2>
-                    {currentExercise?.lessonHeader || "⚙️ C++ Exercise"}
-                  </h2>
-                  <p>
-                    {currentExercise?.description ||
-                      "Complete the C++ challenge below."}
-                  </p>
-
-                  {currentExercise?.lessonExample && (
-                    <div className={styles["code-example"]}>
-                      <h3>Example:</h3>
-                      <pre>{currentExercise.lessonExample}</pre>
-                    </div>
-                  )}
-
-                  <h3>Your Task:</h3>
-                  <p>
-                    {currentExercise?.task ||
-                      "Complete the C++ code below."}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -284,10 +263,9 @@ user={user}
           <div className={styles["editor-header"]}>
             <span>main.cpp</span>
             <button 
-              className={`${styles["run-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`} 
+              className={styles["run-btn"]} 
               onClick={handleRunCode}
-              disabled={!showScroll}
-              title={!showScroll ? "View the lesson first" : "Run code"}
+              title="Run code"
             >
               <Play size={16} /> Run
             </button>
@@ -303,10 +281,9 @@ user={user}
           <div className={styles["terminal-header"]}>
             Console
             <button 
-              className={`${styles["submit-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`}
+              className={styles["submit-btn"]}
               onClick={handleRunCode}
-              disabled={!showScroll}
-              title={!showScroll ? "View the lesson first" : "Submit code"}
+              title="Submit code"
             >
               Submit
             </button>

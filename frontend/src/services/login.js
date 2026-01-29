@@ -25,6 +25,13 @@ const login = async (email, password) => {
     // returns the accessToken and user info from backend
     return response.data;
   } catch (error) {
+    const backendMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error;
+
+    if (backendMessage) {
+      throw new Error(backendMessage);
+    }
     console.error("Login error:", error.message);
     throw error;
   }

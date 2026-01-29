@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
@@ -10,6 +10,12 @@ const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v176793
 const CppCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Set course info when component loads
+  useEffect(() => {
+    localStorage.setItem('lastCourseTitle', 'C++');
+    localStorage.setItem('lastCourseRoute', '/learn/cpp');
+  }, []);
 
   const onOpenModal = () => {
     setIsModalOpen(true);
