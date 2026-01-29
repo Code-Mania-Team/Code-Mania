@@ -22,7 +22,46 @@ export const MAPS = {
         { name: "!fsm_chest01", key: "Chest", image: "/assets/tilesets/Python/!fsm_chest01.png" }
       ],
       nextMap: "map3"
-    }
+    },
+    map3: {
+    mapKey: "map3",
+    mapJson: "/assets/maps/Python/map3.json",
+    tilesets: [
+      {
+        name: "ADBTileB_exterior4",
+        key: "ADBTileB_exterior4",
+        image: "/assets/tilesets/Python/ADBTileB_exterior4.png"
+      },
+      {
+        name: "A2",
+        key: "A2",
+        image: "/assets/tilesets/Python/A2.png"
+      },
+      {
+        name: "D_2",
+        key: "D_2",
+        image: "/assets/tilesets/Python/D_2.png"
+      },
+      {
+        name: "Inside_A2",
+        key: "Inside_A2",
+        image: "/assets/tilesets/Python/Inside_A2.png"
+      },
+      {
+        name: "pika_nos_tiles01_C",
+        key: "pika_nos_tiles01_C",
+        image: "/assets/tilesets/Python/pika_nos_tiles01_C.png"
+      },
+      {
+        name: "ADBTileD_exterior2",
+        key: "ADBTileD_exterior2",
+        image: "/assets/tilesets/Python/ADBTileD_exterior2.png"
+      }
+    ],
+    nextMap: "map4" // matches your trigger target_map
+  }
+
+
   },
   JavaScript: {
     map1: {

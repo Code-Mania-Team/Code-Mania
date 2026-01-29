@@ -16,6 +16,9 @@ import QuestIconManager from "../systems/questIconManager";
 import ChestQuestManager from "../systems/chestQuestManager";
 import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
+import QuestCompleteToast from "../ui/QuestCompleteToast";
+import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
+import { BADGES } from "../config/badgeConfig";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -36,16 +39,22 @@ export default class GameScene extends Phaser.Scene {
     this.mapData = MAPS[this.language][this.currentMapId];
 
     this.playerCanMove = true;
-    this.openedChests = new Set(
-      JSON.parse(localStorage.getItem("openedChests") || "[]")
-    );
+    this.helpShownThisSession = false;
+    // this.openedChests = new Set(
+    //   JSON.parse(localStorage.getItem("openedChests") || "[]")
+    // );
 
-    const savedAbilities = JSON.parse(
-      localStorage.getItem("abilities") || "[]"
-    );
+    // const savedAbilities = JSON.parse(
+    //   localStorage.getItem("abilities") || "[]"
+    // );
+    // this.worldState = {
+    //   abilities: new Set(savedAbilities)
+    // };
     this.worldState = {
-      abilities: new Set(savedAbilities)
+      abilities: new Set()
     };
+
+    this.openedChests = new Set();
 
   }
 
@@ -66,6 +75,10 @@ export default class GameScene extends Phaser.Scene {
         frameWidth: 48,
         frameHeight: 48
       });
+    });
+
+    Object.values(BADGES).forEach(badge => {
+      this.load.image(badge.key, badge.path);
     });
 
     this.load.spritesheet("npc-villager", "/assets/npcs/npc1.png", {
@@ -102,6 +115,26 @@ export default class GameScene extends Phaser.Scene {
     });
 
   }
+  onQuestComplete = (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      const quest = this.questManager.getQuestById(questId);
+      if (!quest || !quest.badgeKey) return;
+
+      const badge = BADGES[quest.badgeKey];
+      if (!badge) return;
+
+      this.questCompleteToast.show({
+        title: quest.title,
+        badgeKey: badge.key
+      });
+
+      this.badgeUnlockPopup.show({
+        badgeKey: badge.key,
+        label: quest.title
+      });
+    };
 
   create() {
     // 🗺 MAP
@@ -196,6 +229,27 @@ export default class GameScene extends Phaser.Scene {
       this.physics.add.collider(this.player, layer);
     });
 
+    this.input.keyboard.clearCaptures();
+
+    this.gamePausedByTerminal = false;
+
+    window.addEventListener("code-mania:terminal-active", () => {
+      this.gamePausedByTerminal = true;
+      this.playerCanMove = false;
+      this.player.setVelocity(0);
+    });
+
+    window.addEventListener("code-mania:terminal-inactive", () => {
+      this.gamePausedByTerminal = false;
+      this.playerCanMove = true;
+    });
+
+    // normal input setup
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.interactKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.E
+    );
+
     // 🪨 ROCK LAYERS
     this.interactableRockLayer =
       this.mapLoader.map.getLayer("interactable_rock")?.tilemapLayer;
@@ -230,8 +284,6 @@ export default class GameScene extends Phaser.Scene {
       this.chestOpenLayer.setVisible(false);
     }
 
-
-    
 
     this.createInteractionMarker();
 
@@ -275,6 +327,25 @@ export default class GameScene extends Phaser.Scene {
     this.questIconManager = new QuestIconManager(this);
     this.chestQuestManager = new ChestQuestManager(this);
     this.helpManager = new HelpManager(this);
+    this.questCompleteToast = new QuestCompleteToast(this);
+    this.badgeUnlockPopup = new BadgeUnlockPopup(this);
+
+    
+
+    // ✅ QUEST COMPLETE EVENT (AFTER SYSTEMS EXIST)
+    window.addEventListener(
+      "code-mania:quest-complete",
+      this.onQuestComplete
+    );
+
+    this.events.once("shutdown", () => {
+      window.removeEventListener(
+        "code-mania:quest-complete",
+        this.onQuestComplete
+      );
+    });
+
+
 
     // Help button (always available)
     this.helpButton = new HelpButton(this, () => {
@@ -296,12 +367,13 @@ export default class GameScene extends Phaser.Scene {
     // 🎬 INTRO
     this.playIntroCutscene();
     this.spawnChestQuestIcons();
+
   }
 
   update() {
     if (!this.playerCanMove) {
-      this.player.setVelocity(0);
-      return;
+    this.player.setVelocity(0);
+    return;
     }
 
     this.updateInteractionMarker();
@@ -536,6 +608,7 @@ export default class GameScene extends Phaser.Scene {
   }
   tryBreakRock() {
     if (!this.interactableRockLayer) return;
+    if (!this.worldState || !this.worldState.abilities) return;
 
     const requiredProp =
       this.interactableRockLayer.layer.properties?.find(
@@ -579,6 +652,7 @@ export default class GameScene extends Phaser.Scene {
 
 
   tryInteractWithChest() {
+    if (!this.openedChests) return;
     if (!this.chestLayer || !this.chestOpenLayer) return;
 
     const offsets = [
@@ -645,17 +719,17 @@ export default class GameScene extends Phaser.Scene {
         () => {
           // Grant ability
           this.worldState.abilities.add(quest.grants);
-          localStorage.setItem(
-            "abilities",
-            JSON.stringify([...this.worldState.abilities])
-          );
+          // localStorage.setItem(
+          //   "abilities",
+          //   JSON.stringify([...this.worldState.abilities])
+          // );
 
           // Save opened chest
           this.openedChests.add(chestKey);
-          localStorage.setItem(
-            "openedChests",
-            JSON.stringify([...this.openedChests])
-          );
+          // localStorage.setItem(
+          //   "openedChests",
+          //   JSON.stringify([...this.openedChests])
+          // );
 
           this.playerCanMove = true;
           console.log("🧰 Pickaxe obtained!");
@@ -675,14 +749,15 @@ export default class GameScene extends Phaser.Scene {
 
     this.time.delayedCall(500, async () => {
       await this.cutsceneManager.play(cutscene);
-      localStorage.setItem(`cutscene_${key}`, "true");
-      this.time.delayedCall(0, () => {
-        this.helpManager.showOnceAfterIntro();
-      });
 
+      // ✅ SHOW HELP ONLY ONCE PER SESSION
+      if (!this.helpShownThisSession) {
+        this.helpShownThisSession = true;
+        this.helpManager.openHelp();
+      }
     });
-    
   }
+
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
     if (!layer) return;

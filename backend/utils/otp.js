@@ -49,10 +49,10 @@ export async function sendOtpEmail(toEmail, otp) {
               
               <!-- Header -->
               <tr>
-                <td style="background: linear-gradient(135deg, #1e3a5f 0%, #0f1f3d 100%); padding: 30px; text-align: center;">
-                  <div style="display: inline-block; background-color: rgba(255, 255, 255, 0.1); padding: 12px 24px; border-radius: 6px; margin-bottom: 10px;">
+                <td style="background-color: #0f1f3d; padding: 30px; text-align: center;">
+                  <div style="display: inline-block;">
                     <img src="cid:crown" alt="Crown" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 12px;" />
-                    <span style="color: #ffd700; font-size: 28px; font-weight: bold; letter-spacing: 4px; vertical-align: middle;">CODE MANIA</span>
+                    <span style="color: #e6e3d5ff; font-size: 28px; font-weight: bold; letter-spacing: 4px; vertical-align: middle;">CODE MANIA</span>
                   </div>
                 </td>
               </tr>
