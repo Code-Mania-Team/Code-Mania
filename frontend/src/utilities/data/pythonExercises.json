@@ -54,7 +54,8 @@
     "startingCode": "print()",
     "hints": ["Use \\n for new lines.", "Type the pattern exactly."],
     "requirements": { "mustInclude": ["print"] },
-    "expectedOutput": "*\n**\n***"
+    "expectedOutput": "*\n**\n***",
+    "grants": "key"
   },
   {
     "id": 4,

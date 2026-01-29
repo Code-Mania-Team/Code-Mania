@@ -119,6 +119,11 @@ export default class GameScene extends Phaser.Scene {
       const quest = this.questManager.getQuestById(questId);
       if (!quest || !quest.badgeKey) return;
 
+      if (quest.grants) {
+        this.worldState.abilities.add(quest.grants);
+        console.log("🎒 Obtained:", quest.grants);
+      }
+
       const badge = BADGES[quest.badgeKey];
       if (!badge) return;
 
@@ -279,6 +284,29 @@ export default class GameScene extends Phaser.Scene {
       this.chestOpenLayer.setVisible(false);
     }
 
+    this.gateCloseLayer =
+    this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
+
+    this.gateOpenLayer =
+      this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
+
+    if (this.gateCloseLayer) {
+      this.gateCloseLayer.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, this.gateCloseLayer);
+    }
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(false);
+    }
+
+    this.events.once("shutdown", () => {
+      if (this.helpButton) {
+        this.helpButton.destroy();
+        this.helpButton = null;
+      }
+    });
+
+
 
     this.createInteractionMarker();
 
@@ -366,6 +394,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update() {
+    this.playerSpeed = 140;
     if (!this.playerCanMove) {
     this.player.setVelocity(0);
     return;
@@ -409,10 +438,15 @@ export default class GameScene extends Phaser.Scene {
     // this.npcs.forEach(npc => npc.setDepth(npc.y));
 
     if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
-      this.tryInteractWithNPC();
+      // NPC has priority
+      const npcHandled = this.tryInteractWithNPC();
+      if (npcHandled) return;
+
       this.tryInteractWithChest();
       this.tryBreakRock();
+      this.tryOpenGate();
     }
+
 
 
     if (Phaser.Input.Keyboard.JustDown(this.questKey)) {
@@ -573,6 +607,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   tryInteractWithNPC() {
+    this.helpManager.forceCloseHelp();
+
     const npc = this.npcs.find(n =>
       Phaser.Math.Distance.Between(
         this.player.x,
@@ -581,21 +617,102 @@ export default class GameScene extends Phaser.Scene {
         n.y
       ) <= 50
     );
-    if (!npc) return;
+
+    if (!npc) return false; // 👈 IMPORTANT
 
     this.interactionMarker?.setVisible(false);
     this.interactPrompt?.setVisible(false);
 
     const quest = this.questManager.getQuestById(npc.npcData.questId);
-    if (!quest) return;
+    if (!quest) return false;
 
     this.playerCanMove = false;
 
-    this.dialogueManager.startDialogue(quest.dialogue || [], () => {
-      this.questManager.startQuest(quest.id);
-      this.playerCanMove = true;
-    });
+    // 1️⃣ QUEST NOT STARTED
+    if (
+      !quest.completed &&
+      this.questManager.activeQuest?.id !== quest.id
+    ) {
+      this.dialogueManager.startDialogue(
+        quest.dialogue || [],
+        () => {
+          this.questManager.startQuest(quest.id);
+          this.playerCanMove = true;
+        }
+      );
+      return true; // ✅ INPUT CONSUMED
+    }
+
+    // 2️⃣ QUEST ACTIVE BUT NOT DONE
+    if (!quest.completed) {
+      this.dialogueManager.startDialogue(
+        ["Solve the challenge to earn the key."],
+        () => (this.playerCanMove = true)
+      );
+      return true;
+    }
+
+    // 3️⃣ QUEST COMPLETED → GIVE KEY
+    if (quest.completed && quest.grants) {
+      if (!this.worldState.abilities.has(quest.grants)) {
+        this.worldState.abilities.add(quest.grants);
+
+        this.dialogueManager.startDialogue(
+          [
+            "Excellent work.",
+            "Take this key — it opens the gate."
+          ],
+          () => (this.playerCanMove = true)
+        );
+      } else {
+        this.dialogueManager.startDialogue(
+          ["You already have the key."],
+          () => (this.playerCanMove = true)
+        );
+      }
+      return true;
+    }
+
+    this.playerCanMove = true;
+    return true;
   }
+
+  tryOpenGate() {
+    if (!this.gateCloseLayer) return;
+
+    const requiredProp =
+      this.gateCloseLayer.layer.properties?.find(
+        p => p.name === "requires"
+      );
+
+    const requiredKey = requiredProp?.value;
+    if (!requiredKey) return;
+
+    // ❌ No key
+    if (!this.worldState.abilities.has(requiredKey)) {
+      this.dialogueManager.startDialogue(
+        ["The gate is locked. You need a key."],
+        () => {}
+      );
+      return;
+    }
+
+    // ✅ HAS KEY → OPEN GATE
+    this.gateCloseLayer.setVisible(false);
+    this.gateCloseLayer.forEachTile(t => t.setCollision(false));
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(true);
+    }
+
+    this.dialogueManager.startDialogue(
+      ["You unlock the gate.", "The path is now open."],
+      () => {}
+    );
+
+    console.log("🚪 Gate opened!");
+  }
+
   tryBreakRock() {
     if (!this.interactableRockLayer) return;
     if (!this.worldState || !this.worldState.abilities) return;
@@ -740,13 +857,9 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(500, async () => {
       await this.cutsceneManager.play(cutscene);
 
-      // ✅ SHOW HELP ONLY ONCE PER SESSION
-      if (!this.helpShownThisSession) {
-        this.helpShownThisSession = true;
-        this.helpManager.openHelp();
-      }
     });
   }
+
 
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
@@ -816,6 +929,7 @@ export default class GameScene extends Phaser.Scene {
 
 
   handleMapExit(player, zone) {
+    this.helpManager.forceCloseHelp();
     const { targetMap, requiredQuest } = zone.exitData;
 
     // Quest not finished → do nothing

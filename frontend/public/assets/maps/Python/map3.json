@@ -213,6 +213,12 @@
          "id":9,
          "name":"gate_close",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"requires",
+                 "type":"string",
+                 "value":"key"
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":20,
