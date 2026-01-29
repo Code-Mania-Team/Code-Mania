@@ -96,7 +96,7 @@ class User {
         try {
             
             const user = await this.findByEmail(email);
-            if (!user.email) throw new Error("Email not registered");
+            if (!user || !user.email) throw new Error("Email not registered yet");
 
             
             const hashedPassword = encryptPassword(password);

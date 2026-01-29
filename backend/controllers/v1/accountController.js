@@ -132,7 +132,6 @@ class AccountController {
 
         const authUser = await this.user.verify(email, password);
         if (!authUser) {
-            res.send({ success: false, message: "Invalid credentials" })
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
@@ -179,6 +178,9 @@ class AccountController {
         });
         } catch (err) {
         console.error("login error:", err);
+        if (err?.message === 'Email not registered yet') {
+            return res.status(404).json({ success: false, message: 'Email not registered yet' });
+        }
         return res.status(500).json({ success: false, message: err.message });
         }
     }
