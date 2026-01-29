@@ -2,6 +2,7 @@
   {
     "id": 1,
     "title": "Setting Up",
+    "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "Hey adventurer!",
       "Before we begin your journey...",
@@ -21,6 +22,7 @@
   {
     "id": 2,
     "title": "Hello World",
+    "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "The chest remains sealed.",
       "Ancient markings glow faintly, as if waiting for recognition.",
@@ -39,6 +41,7 @@
   {
     "id": 3,
     "title": "Pattern",
+    "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "Patterns are everywhere in Codemania.",
       "Think of them as the foundation of the mountains, the orderly structure of the world.",
@@ -56,6 +59,7 @@
   {
     "id": 4,
     "title": "Initials",
+    "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "Sometimes, your identity is all you need to start the restoration.",
       "Print your initials, and let the world remember who you are.",

@@ -1,21 +1,34 @@
 export default class HelpManager {
   constructor(scene) {
     this.scene = scene;
-    this.STORAGE_KEY = "help_seen";
+    this.hasShown = false; // 👈 session-only guard
+    this.isOpening = false;
   }
 
   showOnceAfterIntro() {
-    const seen = localStorage.getItem(this.STORAGE_KEY);
-    if (seen) return;
+    if (this.hasShown) return;
 
-    localStorage.setItem(this.STORAGE_KEY, "true");
+    this.hasShown = true; // mark immediately
     this.openHelp();
   }
 
   openHelp() {
-    if (this.scene.scene.isActive("HelpScene")) return;
+    if (this.isOpening) return;
 
-    this.scene.scene.pause();
+    const helpScene = this.scene.scene.get("HelpScene");
+    if (helpScene && helpScene.scene.isActive()) return;
+
+    this.isOpening = true;
+
+    if (!this.scene.scene.isPaused()) {
+      this.scene.scene.pause();
+    }
+
     this.scene.scene.launch("HelpScene");
+
+    // unlock when HelpScene closes
+    this.scene.scene.get("HelpScene")?.events.once("shutdown", () => {
+      this.isOpening = false;
+    });
   }
 }
