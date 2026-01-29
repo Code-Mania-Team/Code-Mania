@@ -14,7 +14,8 @@ import ExitArrowManager from "../systems/exitArrowHUD";
 import QuestIconManager from "../systems/questIconManager";
 // import { worldState } from "../systems/worldState";
 import ChestQuestManager from "../systems/chestQuestManager";
-
+import HelpManager from "../systems/helpManager";
+import HelpButton from "../ui/helpButton";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -268,7 +269,17 @@ export default class GameScene extends Phaser.Scene {
     this.exitArrowManager = new ExitArrowManager(this);
     this.questIconManager = new QuestIconManager(this);
     this.chestQuestManager = new ChestQuestManager(this);
+    this.helpManager = new HelpManager(this);
 
+    // Help button (always available)
+    this.helpButton = new HelpButton(this, () => {
+      this.helpManager.openHelp();
+    });
+
+    // Keyboard shortcut
+    this.helpKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.H
+    );
     this.createMapExits();
     this.lastDirection = "down";
     // 🧑 NPCs
@@ -342,6 +353,10 @@ export default class GameScene extends Phaser.Scene {
         console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
       }
     }
+    if (Phaser.Input.Keyboard.JustDown(this.helpKey)) {
+      this.helpManager.openHelp();
+    }
+
 
   }
 
@@ -651,7 +666,12 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(500, async () => {
       await this.cutsceneManager.play(cutscene);
       localStorage.setItem(`cutscene_${key}`, "true");
+      this.time.delayedCall(0, () => {
+        this.helpManager.showOnceAfterIntro();
+      });
+
     });
+    
   }
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
