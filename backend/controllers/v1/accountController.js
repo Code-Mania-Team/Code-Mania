@@ -1,123 +1,104 @@
+import { supabase } from '../../core/supabaseClient.js';
 import jwt from 'jsonwebtoken';
-import User from '../../models/user.js';
+import UserController from '../../models/user.js';
 
-class AccountController{
-    constructor() {
-        this.user = new User();
-    }
+const userController = new UserController();
 
-    async create(req, res) {
-        const { username, email, password, gender } = req.body || {};
-    
-        try {
-            const response = await this.user.create(username, email, password, gender, null);
-    
-            res.send({
-                success: true,
-                data: {
-                    recordIndex: response?.insertId,
-                },
-            });
-        } catch (err) {
-            
-            res.send({
-                success: false,
-                message: err.message === 'username' || err.message === 'email' ? err.message : 'Failed to create account',
-            });
+class AccountController {
+  async sendMagicLink(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: 'http://localhost:5173/dashboard',
+        },
+      });
+
+      if (error) {
+        if (error.status === 429) {
+          return res.status(429).json({ success: false, message: 'Too many magic link requests. Please try again later.' });
         }
+        throw error;
+      }
+
+      res.json({ success: true, message: 'Magic link sent! Check your email.' });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
+  }
 
-    async login(req, res){
-        try{
-            const { username, password } = req.body || {}
+  async verifyMagicLink(req, res) {
+    try {
+      const token = req.body?.token || req.query?.token;
+      if (!token) return res.status(400).json({ success: false, message: 'Missing access token' });
 
-            const result = await this.user.verify(username,  password);
+      const { data, error } = await supabase.auth.getUser(token);
+      if (error || !data?.user) return res.status(401).json({ success: false, message: 'Invalid or expired token' });
 
-            console.log(result)
+      const user = data.user;
 
-            if(!result?.user_id){
-                return res.send({
-                    success: false,
-                    message: 'Invalid username or password',
-                })
-            } else {
-                res.send({
-                    success: true,
-                    data: {
-                        token: jwt.sign({ 'username': username, 'user_id': result?.user_id }, process.env.API_SECRET_KEY, {
-                            expiresIn: '1d',
-                        })
-                    }
-                })
-            }
-        } catch (err){
-            res.send({
-                success: false,
-                message: err.toString(),
-            })
-        }
+      // ✅ Ensure user exists in users table
+      await userController.createIfNotExists(user);
+
+      // Create backend JWT
+      const jwtToken = jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.API_SECRET_KEY,
+        { expiresIn: '1h' }
+      );
+
+      if (req.method === 'POST') {
+        return res.json({ success: true, message: 'Verified', token: jwtToken });
+      }
+
+      const redirectTo = process.env.FRONTEND_URL || 'http://localhost:5173';
+      return res.redirect(`${redirectTo}/dashboard?token=${encodeURIComponent(jwtToken)}`);
+    } catch (err) {
+      console.error('verifyMagicLink error:', err);
+      return res.status(500).json({ success: false, message: 'Server error' });
     }
+  }
 
-    async profile(req, res){
-        try{
-            const userInfo = await this.user.getUser(res.locals.username);
+  async deleteUser(req, res) {
+    try {
+      const userId = req.user.id;
+      await userController.delete(userId);
+      await supabase.auth.admin.deleteUser(userId);
 
-            res.send({
-                success: true,
-                data: {
-                    id: res.locals.user_id,
-                    username: res.locals.username,
-                    email: userInfo?.email,
-                    profile_img: userInfo?.profile_image,
-                }
-            })
-        } catch (err){
-            res.send({
-                success: false,
-                message: err.toString(),
-            });
-        }
+      res.json({ success: true, message: 'Account deleted successfully' });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
+  }
 
-    async getUsersProfile(req, res){
-        try{
-            const { userId } = req.params;
-            const loginUser = res.locals.user_id;
-
-            if (parseInt(userId, 10) === parseInt(loginUser, 10)){
-                return res.send({
-                    success: true,
-                    redirectToProfile: true,
-                })
-            }
-
-            const userInfo = await this.user.getSpecificUserAccount(userId,loginUser);
-
-            res.send({
-                success: true,
-                data: {
-                    id: userInfo?.user_id,
-                    username: userInfo?.username,
-                    bio: userInfo?.bio,
-                    email: userInfo?.email,
-                    fullname: userInfo?.fullname,
-                    is_following: userInfo?.is_following,
-                    profile_img: userInfo?.profile_image,
-                    created_at: userInfo?.created_at
-                }
-            })
-        } catch (err){
-            res.send({
-                success: false,
-                message: err.toString(),
-            });
-        }
+  async setUsername(req, res) {
+    try {
+      const userId = req.user.id;
+      const { username } = req.body;
+      const data = await userController.setUsername(userId, username);
+      res.json({ success: true, user: data });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
+  }
 
-    
-    
+  async getProfile(req, res) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+      const data = await userController.getById(userId);
+      if (!data) return res.status(404).json({ success: false, message: 'User not found' });
+
+      return res.json({ success: true, user: data });
+    } catch (err) {
+      console.error('getProfile error', err);
+      return res.status(500).json({ success: false, message: 'Server error' });
+    }
+  }
 }
-
-
 
 export default AccountController;

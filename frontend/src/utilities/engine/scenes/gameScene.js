@@ -16,6 +16,8 @@ import QuestIconManager from "../systems/questIconManager";
 import ChestQuestManager from "../systems/chestQuestManager";
 import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
+import QuestCompleteToast from "../ui/QuestCompleteToast";
+
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -191,6 +193,38 @@ export default class GameScene extends Phaser.Scene {
       this.physics.add.collider(this.player, layer);
     });
 
+    this.input.keyboard.clearCaptures();
+
+    this.gamePausedByTerminal = false;
+
+    window.addEventListener("code-mania:terminal-active", () => {
+      this.gamePausedByTerminal = true;
+      this.playerCanMove = false;
+      this.player.setVelocity(0);
+    });
+
+    window.addEventListener("code-mania:terminal-inactive", () => {
+      this.gamePausedByTerminal = false;
+      this.playerCanMove = true;
+    });
+
+    // normal input setup
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.interactKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.E
+    );
+
+    window.addEventListener("code-mania:quest-complete", (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      const quest = this.questManager.getQuestById(questId);
+      if (!quest) return;
+
+      this.questCompleteToast.show(quest.title || "Quest Complete");
+    });
+
+
     // 🪨 ROCK LAYERS
     this.interactableRockLayer =
       this.mapLoader.map.getLayer("interactable_rock")?.tilemapLayer;
@@ -225,8 +259,6 @@ export default class GameScene extends Phaser.Scene {
       this.chestOpenLayer.setVisible(false);
     }
 
-
-    
 
     this.createInteractionMarker();
 
@@ -270,6 +302,7 @@ export default class GameScene extends Phaser.Scene {
     this.questIconManager = new QuestIconManager(this);
     this.chestQuestManager = new ChestQuestManager(this);
     this.helpManager = new HelpManager(this);
+    this.questCompleteToast = new QuestCompleteToast(this);
 
     // Help button (always available)
     this.helpButton = new HelpButton(this, () => {
@@ -291,12 +324,13 @@ export default class GameScene extends Phaser.Scene {
     // 🎬 INTRO
     this.playIntroCutscene();
     this.spawnChestQuestIcons();
+
   }
 
   update() {
     if (!this.playerCanMove) {
-      this.player.setVelocity(0);
-      return;
+    this.player.setVelocity(0);
+    return;
     }
 
     this.updateInteractionMarker();

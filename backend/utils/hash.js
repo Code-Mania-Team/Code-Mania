@@ -5,3 +5,7 @@ export function encryptPassword(password) {
     .update(password)
     .digest('hex');
 };
+
+
+
+// not use since walang pasword only email lang
