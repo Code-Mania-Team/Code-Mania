@@ -163,36 +163,6 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
                     id="phaser-container"
                     className={styles["game-scene"]}
                   >
-                    {showScroll && (
-                      <div className={styles["scroll-container"]}>
-                        <img
-                          src="/src/assets/aseprites/scroll.png"
-                          alt="Scroll"
-                          className={styles["scroll-image"]}
-                        />
-
-                        <div className={styles["scroll-content"]}>
-                          <h2>{activeExercise?.lessonHeader || "🐍 Python"}</h2>
-                          <p>{activeExercise?.description || ""}</p>
-
-                          {Array.isArray(activeExercise?.hints) && activeExercise.hints.length > 0 && (
-                            <ul>
-                              {activeExercise.hints.map((hint, idx) => (
-                                <li key={idx}>{hint}</li>
-                              ))}
-                            </ul>
-                          )}
-
-                          {activeExercise?.lessonExample && (
-                            <div className={styles["code-example"]}>
-                              <pre>
-                                <code>{activeExercise.lessonExample}</code>
-                              </pre>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
