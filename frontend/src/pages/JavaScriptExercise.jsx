@@ -27,6 +27,7 @@ const JavaScriptExercise = () => {
   const [showScroll, setShowScroll] = useState(true);
   const [showXpPanel, setShowXpPanel] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
+  const [runUnlocked, setRunUnlocked] = useState(false);
 
   // === Dialogue System ===
   const dialogues = [
@@ -68,9 +69,21 @@ const JavaScriptExercise = () => {
         setShowHelp(false);
         setShowXpPanel(false);
         setShowStageComplete(forceStageComplete);
+        setRunUnlocked(false);
       }
     }
   }, [exerciseId, location.search]);
+
+  useEffect(() => {
+    const onTerminalActive = () => {
+      setRunUnlocked(true);
+    };
+
+    window.addEventListener("code-mania:terminal-active", onTerminalActive);
+    return () => {
+      window.removeEventListener("code-mania:terminal-active", onTerminalActive);
+    };
+  }, []);
 
   const stageNumber = currentExercise ? Math.floor((currentExercise.id - 1) / 4) + 1 : 1;
   const lessonInStage = currentExercise ? ((currentExercise.id - 1) % 4) + 1 : 1;
@@ -362,13 +375,15 @@ const JavaScriptExercise = () => {
             <div className={styles["code-editor"]}>
               <div className={styles["editor-header"]}>
                 <span>script.js</span>
-                <button 
-                  className={styles["run-btn"]} 
-                  onClick={handleRunCode}
-                  title="Run code"
-                >
-                  <Play size={16} /> Run
-                </button>
+                {runUnlocked && (
+                  <button 
+                    className={styles["run-btn"]} 
+                    onClick={handleRunCode}
+                    title="Run code"
+                  >
+                    <Play size={16} /> Run
+                  </button>
+                )}
               </div>
               <textarea
                 className={styles["code-box"]}
@@ -380,13 +395,6 @@ const JavaScriptExercise = () => {
             <div className={styles["terminal"]}>
               <div className={styles["terminal-header"]}>
                 Console
-                <button 
-                  className={styles["submit-btn"]}
-                  onClick={handleRunCode}
-                  title="Submit code"
-                >
-                  Submit
-                </button>
               </div>
               <div className={styles["terminal-body"]}>
                 <div className={styles["terminal-line"]}>

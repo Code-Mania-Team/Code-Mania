@@ -32,8 +32,9 @@ export default class GameScene extends Phaser.Scene {
     // Map language names to MAPS keys
     this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
 
-    // Map ID passed from previous scene, or default to map1
-    this.currentMapId = data?.mapId || "map1";
+    // Map ID passed from previous scene, or fall back to localStorage, or default to map1
+    const storedMapId = localStorage.getItem("currentMapId");
+    this.currentMapId = data?.mapId || storedMapId || "map1";
 
     // Access mapData based on language
     this.mapData = MAPS[this.language][this.currentMapId];
@@ -770,12 +771,14 @@ export default class GameScene extends Phaser.Scene {
         o.properties?.some(p => p.name === "type" && p.value === "map_exit")
       )
       .forEach(obj => {
-        const zone = this.add.zone(
-          obj.x + obj.width / 2,
-          obj.y + obj.height / 2,
-          obj.width,
-          obj.height
-        );
+        const isJavaScript = this.language === "JavaScript";
+        const isPoint = Boolean(obj.point) || obj.width === 0 || obj.height === 0;
+        const zoneWidth = isJavaScript && isPoint ? 48 : obj.width;
+        const zoneHeight = isJavaScript && isPoint ? 48 : obj.height;
+        const zoneX = isJavaScript && isPoint ? obj.x : obj.x + obj.width / 2;
+        const zoneY = isJavaScript && isPoint ? obj.y : obj.y + obj.height / 2;
+
+        const zone = this.add.zone(zoneX, zoneY, zoneWidth, zoneHeight);
 
         this.physics.world.enable(zone);
         zone.body.setAllowGravity(false);

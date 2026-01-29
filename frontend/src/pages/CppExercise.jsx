@@ -280,13 +280,6 @@ user={user}
         <div className={styles["terminal"]}>
           <div className={styles["terminal-header"]}>
             Console
-            <button 
-              className={styles["submit-btn"]}
-              onClick={handleRunCode}
-              title="Submit code"
-            >
-              Submit
-            </button>
           </div>
           <div className={styles["terminal-body"]}>
             <div className={styles["terminal-line"]}>
