@@ -30,14 +30,7 @@ class AccountController {
                 message: err.message === "email" ? "Email already exists" : err.message || "Failed to process OTP request",
             });
         }
-        throw error;
-      }
-
-      res.json({ success: true, message: 'Magic link sent! Check your email.' });
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
     }
-  }
 
     // VERIFY OTP (SIGNUP)
     // =========================
@@ -189,7 +182,6 @@ class AccountController {
         return res.status(500).json({ success: false, message: err.message });
         }
     }
-  }
 
 
         // =========================
