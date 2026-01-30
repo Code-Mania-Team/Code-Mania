@@ -14,7 +14,7 @@
       "The reason everything here once felt alive."
     ],
     "lessonExample": "console.log(\"Welcome to JavaScript!\")",
-    "startingCode": "console.log(\"Hello, JS!\")",
+    "startingCode": "",
     "hints": ["Use console.log() to print output.", "Your code should run without errors."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello, JS!"
@@ -32,7 +32,7 @@
       "Messages appear… but only to those who know where to look.",
       "This must be how the town communicates."
     ],
-    "startingCode": "console.log(\"Hello\");\nconsole.log(\"World!\");",
+    "startingCode": "",
     "hints": ["Put your message inside the parentheses.", "Remember to wrap text in quotes."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello World!"
@@ -44,7 +44,7 @@
     "description": "A variable in JavaScript is a named memory space that is used to store a value. A variable is like a container in which you can store any data or value. Use var, let, or const to create variables.",
     "task": "Create three variables named playerName, score, and isOnline. Assign them the values 'Nova', 120, and false. Then change isOnline to true and print all three variables to the console on separate lines.",
     "lessonExample": "let heroName = \"Jet\";\nlet heroLevel = 5;\n\nheroLevel = 6;\n\nconsole.log(heroName);\nconsole.log(heroLevel);",
-    "startingCode": "let playerName = \"Nova\";\nlet score = 120;\nlet isOnline = false;\n\n// update isOnline\nisOnline = true;\n\n// print all variables\nconsole.log(playerName);\nconsole.log(score);\nconsole.log(isOnline);",
+    "startingCode": "",
     "hints": [
       "Variables can be reassigned after declaration",
       "Boolean values are true or false (without quotes)",
