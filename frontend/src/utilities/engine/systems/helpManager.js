@@ -1,34 +1,29 @@
 export default class HelpManager {
   constructor(scene) {
     this.scene = scene;
-    this.hasShown = false; // 👈 session-only guard
-    this.isOpening = false;
-  }
-
-  showOnceAfterIntro() {
-    if (this.hasShown) return;
-
-    this.hasShown = true; // mark immediately
-    this.openHelp();
+    this.isOpen = false;
   }
 
   openHelp() {
-    if (this.isOpening) return;
+    if (this.isOpen) return;
+    if (this.scene.scene.isActive("HelpScene")) return;
 
-    const helpScene = this.scene.scene.get("HelpScene");
-    if (helpScene && helpScene.scene.isActive()) return;
+    this.isOpen = true;
 
-    this.isOpening = true;
-
-    if (!this.scene.scene.isPaused()) {
-      this.scene.scene.pause();
-    }
-
+    this.scene.scene.pause();
     this.scene.scene.launch("HelpScene");
 
-    // unlock when HelpScene closes
-    this.scene.scene.get("HelpScene")?.events.once("shutdown", () => {
-      this.isOpening = false;
+    const helpScene = this.scene.scene.get("HelpScene");
+    helpScene.events.once("shutdown", () => {
+      this.isOpen = false;
     });
+  }
+
+  forceCloseHelp() {
+    if (!this.scene.scene.isActive("HelpScene")) return;
+
+    this.scene.scene.stop("HelpScene");
+    this.scene.scene.resume("GameScene");
+    this.isOpen = false;
   }
 }

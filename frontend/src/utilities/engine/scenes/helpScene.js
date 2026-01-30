@@ -4,11 +4,16 @@ export default class HelpScene extends Phaser.Scene {
   constructor() {
     super("HelpScene");
   }
+  init(data) {
+    this.currentPage = data.page || 0;
+  }
 
   create() {
+    console.log("🚨 HelpScene CREATE fired");
+
     const { width, height } = this.scale;
 
-    this.currentPage = 0;
+    
 
     // 📖 BOOK PAGES
     this.pages = [
@@ -18,7 +23,7 @@ export default class HelpScene extends Phaser.Scene {
 Arrow Keys   —   Move
 E            —   Interact
 Q            —   Quest Log
-H / ESC      —   Close Help
+ESC          —   Close Help
         `
       },
       {
@@ -49,7 +54,8 @@ NPCs guide you through the world.
     ];
 
     // 🌑 Dark overlay
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.65)
+    this.add
+      .rectangle(0, 0, width, height, 0x000000, 0.65)
       .setOrigin(0)
       .setScrollFactor(0);
 
@@ -60,124 +66,124 @@ NPCs guide you through the world.
     this.panelX = width / 2 - this.panelWidth / 2;
     this.panelY = height / 2 - this.panelHeight / 2;
 
-    this.add.rectangle(
-      this.panelX,
-      this.panelY,
-      this.panelWidth,
-      this.panelHeight,
-      0xf5e6c8
-    )
+    this.add
+      .rectangle(
+        this.panelX,
+        this.panelY,
+        this.panelWidth,
+        this.panelHeight,
+        0xf5e6c8
+      )
       .setOrigin(0)
       .setStrokeStyle(6, 0x5a3e2b);
 
-    // 📘 Title (top)
-    this.add.text(
-      width / 2,
-      this.panelY + 24,
-      "📖  How to Play",
-      {
+    // 📘 Title
+    this.add
+      .text(width / 2, this.panelY + 24, "📖  How to Play", {
         fontFamily: "Georgia, serif",
         fontSize: "34px",
         color: "#3b2a1a",
         fontStyle: "bold"
-      }
-    ).setOrigin(0.5, 0);
+      })
+      .setOrigin(0.5, 0);
 
-    // 📄 Page title (CENTERED)
-    this.pageTitle = this.add.text(
-      width / 2,
-      this.panelY + 90,
-      "",
-      {
+    // 📄 Page title
+    this.pageTitle = this.add
+      .text(width / 2, this.panelY + 90, "", {
         fontFamily: "Georgia, serif",
         fontSize: "26px",
         color: "#3b2a1a",
         fontStyle: "bold"
-      }
-    ).setOrigin(0.5, 0);
+      })
+      .setOrigin(0.5, 0);
 
-    // 📃 Page content (TRUE CENTER)
-    this.pageText = this.add.text(
-      width / 2,
-      this.panelY + 145,
-      "",
-      {
+    // 📃 Page content
+    this.pageText = this.add
+      .text(width / 2, this.panelY + 145, "", {
         fontFamily: "Georgia, serif",
         fontSize: "18px",
         color: "#2e1f14",
         lineSpacing: 12,
         align: "center",
         wordWrap: { width: 420 }
-      }
-    ).setOrigin(0.5, 0);
+      })
+      .setOrigin(0.5, 0);
 
     // ◀ Prev
-    this.prevBtn = this.add.text(
-      this.panelX + 40,
-      this.panelY + this.panelHeight - 44,
-      "◀ Prev",
-      {
+    this.prevBtn = this.add
+      .text(this.panelX + 40, this.panelY + this.panelHeight - 44, "◀ Prev", {
         fontFamily: "Georgia, serif",
         fontSize: "18px",
         color: "#3b2a1a"
-      }
-    )
+      })
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => this.changePage(-1));
 
     // ▶ Next
-    this.nextBtn = this.add.text(
-      this.panelX + this.panelWidth - 40,
-      this.panelY + this.panelHeight - 44,
-      "Next ▶",
-      {
-        fontFamily: "Georgia, serif",
-        fontSize: "18px",
-        color: "#3b2a1a"
-      }
-    )
+    this.nextBtn = this.add
+      .text(
+        this.panelX + this.panelWidth - 40,
+        this.panelY + this.panelHeight - 44,
+        "Next ▶",
+        {
+          fontFamily: "Georgia, serif",
+          fontSize: "18px",
+          color: "#3b2a1a"
+        }
+      )
       .setOrigin(1, 0)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => this.changePage(1));
 
     // 📑 Page indicator
-    this.pageIndicator = this.add.text(
-      width / 2,
-      this.panelY + this.panelHeight - 44,
-      "",
-      {
+    this.pageIndicator = this.add
+      .text(width / 2, this.panelY + this.panelHeight - 44, "", {
         fontFamily: "Georgia, serif",
         fontSize: "16px",
         color: "#3b2a1a"
-      }
-    ).setOrigin(0.5, 0);
+      })
+      .setOrigin(0.5, 0);
 
     // ❌ Close button
-    this.add.text(
-      this.panelX + this.panelWidth - 20,
-      this.panelY + 16,
-      "✕",
-      {
+    this.add
+      .text(this.panelX + this.panelWidth - 20, this.panelY + 16, "✕", {
         fontSize: "24px",
         color: "#3b2a1a",
         fontStyle: "bold"
-      }
-    )
+      })
       .setOrigin(1, 0)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => this.close());
 
-    // ⌨ Keyboard navigation
-    this.input.keyboard.on("keydown-LEFT", () => this.changePage(-1));
-    this.input.keyboard.on("keydown-RIGHT", () => this.changePage(1));
+    // 🔑 STORE HANDLERS (IMPORTANT)
+    this.onLeft = () => this.changePage(-1);
+    this.onRight = () => this.changePage(1);
+    this.onResize = () => this.scene.restart();
+
+    this.input.keyboard.on("keydown-LEFT", this.onLeft);
+    this.input.keyboard.on("keydown-RIGHT", this.onRight);
     this.input.keyboard.once("keydown-ESC", () => this.close());
     this.input.keyboard.once("keydown-H", () => this.close());
 
+    // this.scale.on("resize", () => {
+    //   const page = this.currentPage;
+    //   this.scene.restart({ page });
+    // });
+
+
+    // 🧹 CLEANUP
+    this.events.once("shutdown", this.cleanup, this);
+
     // Initial render
     this.renderPage();
+  }
 
-    // 📐 Handle resize
-    this.scale.on("resize", () => this.scene.restart());
+  cleanup() {
+    console.log("🧹 HelpScene cleanup");
+
+    this.input.keyboard.off("keydown-LEFT", this.onLeft);
+    this.input.keyboard.off("keydown-RIGHT", this.onRight);
+    this.scale.off("resize", this.onResize);
   }
 
   changePage(dir) {
