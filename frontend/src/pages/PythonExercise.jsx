@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -171,20 +172,23 @@ const PythonExercise = ({ isAuthenticated }) => {
     setIsRunning(true);
     setOutput("Running...");
 
+
     try {
-      const res = await fetch("http://localhost:3000/v1/run", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: "hotdog"
-        },
-        body: JSON.stringify({
+      const res = await axios.post(
+        "http://localhost:3000/v1/run",
+        {
           language: "python",
           code
-        })
-      });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            apikey: "hotdog"
+          }
+        }
+      );
 
-      const data = await res.json();
+      const data = res.data;
 
       if (data.error) {
         setOutput(data.error);
@@ -208,12 +212,14 @@ const PythonExercise = ({ isAuthenticated }) => {
           })
         );
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       setOutput("❌ Error connecting to server");
     } finally {
       setIsRunning(false);
     }
   };
+
 
   /* ===============================
      AUTH MODAL
