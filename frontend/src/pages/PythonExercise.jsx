@@ -44,9 +44,10 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  
 
   /* =====================================================
-     🔑 GLOBAL KEYBOARD INTERCEPT (PHASER SAFE)
+     🔑 GLOBAL KEYBOARD INTERCEPT (THIS FIXES SPACE / ENTER)
   ===================================================== */
   useEffect(() => {
     let terminalActive = false;
@@ -61,12 +62,15 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     const blockKeys = (e) => {
       if (!terminalActive) return;
+
+      // 🚫 Stop Phaser BEFORE it sees the key
       e.stopImmediatePropagation();
     };
 
     window.addEventListener("code-mania:terminal-active", onTerminalActive);
     window.addEventListener("code-mania:terminal-inactive", onTerminalInactive);
 
+    // ⚠️ CAPTURE PHASE — REQUIRED
     window.addEventListener("keydown", blockKeys, true);
     window.addEventListener("keyup", blockKeys, true);
 
@@ -78,20 +82,16 @@ const PythonExercise = ({ isAuthenticated }) => {
     };
   }, []);
 
-  /* ===============================
-     PHASER INIT + EVENTS
+  /* =====================a==========
+     PHASER INIT
   =============================== */
   useEffect(() => {
     const game = initPhaserGame("phaser-container");
     window.game = game;
 
     const onQuestStarted = (e) => {
-      const questId = e.detail?.questId;
-      if (!questId) return;
-
       setTerminalEnabled(true);
-      setActiveQuestId(questId);
-      setActiveExerciseId(questId);
+      setActiveQuestId(e.detail?.questId ?? null);
     };
 
     const onQuestComplete = (e) => {
@@ -101,6 +101,7 @@ const PythonExercise = ({ isAuthenticated }) => {
       const scene = window.game?.scene?.keys?.GameScene;
       scene?.questManager?.completeQuest(questId);
 
+      // ✅ resume game cleanly
       if (scene) {
         scene.playerCanMove = true;
         scene.gamePausedByTerminal = false;
@@ -111,7 +112,6 @@ const PythonExercise = ({ isAuthenticated }) => {
     window.addEventListener("code-mania:quest-complete", onQuestComplete);
 
     return () => {
-      window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
       game?.cleanup?.();
     };
@@ -130,9 +130,12 @@ const PythonExercise = ({ isAuthenticated }) => {
   /* ===============================
      TERMINAL EXECUTION
   =============================== */
+  
+
   const validateRequirements = (code, requirements) => {
     if (!requirements) return { ok: true };
 
+    // mustInclude
     if (requirements.mustInclude) {
       for (const keyword of requirements.mustInclude) {
         if (!code.includes(keyword)) {
@@ -147,17 +150,12 @@ const PythonExercise = ({ isAuthenticated }) => {
     return { ok: true };
   };
 
-  const normalize = (text = "") =>
-    text
-      .replace(/\r\n/g, "\n")
-      .split("\n")
-      .map(line => line.trim())
-      .join("\n")
-      .trim();
-
   const handleRunCode = async () => {
     if (!terminalEnabled || isRunning) return;
 
+    // ===============================
+    // ✅ VALIDATE BEFORE EXECUTION
+    // ===============================
     const validation = validateRequirements(
       code,
       activeExercise.requirements
@@ -168,6 +166,9 @@ const PythonExercise = ({ isAuthenticated }) => {
       return;
     }
 
+    // ===============================
+    // ▶ RUN CODE IN DOCKER
+    // ===============================
     setIsRunning(true);
     setOutput("Running...");
 
@@ -185,17 +186,25 @@ const PythonExercise = ({ isAuthenticated }) => {
       });
 
       const data = await res.json();
-
-      if (data.error) {
-        setOutput(data.error);
-        return;
-      }
-
-      const rawOutput = data.output ?? "";
+      const rawOutput = data.output || data.error || "";
       setOutput(rawOutput);
+
+      // ===============================
+      // ✅ OUTPUT VALIDATION
+      // ===============================
+      const normalize = (text = "") =>
+        text
+          .replace(/\r\n/g, "\n")
+          .split("\n")
+          .map(line => line.trim())
+          .join("\n")
+          .trim();
 
       const expected = normalize(activeExercise.expectedOutput);
       const actual = normalize(rawOutput);
+
+      console.log("EXPECTED:", JSON.stringify(expected));
+      console.log("ACTUAL:", JSON.stringify(actual));
 
       if (
         expected &&
@@ -214,6 +223,8 @@ const PythonExercise = ({ isAuthenticated }) => {
       setIsRunning(false);
     }
   };
+
+
 
   /* ===============================
      AUTH MODAL
@@ -271,6 +282,7 @@ const PythonExercise = ({ isAuthenticated }) => {
               </div>
             </div>
           </div>
+
 
           {/* ===== TERMINAL ===== */}
           <CodeTerminal
