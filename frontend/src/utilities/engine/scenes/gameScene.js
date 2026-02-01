@@ -16,7 +16,7 @@ import QuestIconManager from "../systems/questIconManager";
 import ChestQuestManager from "../systems/chestQuestManager";
 import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
-import QuestCompleteToast from "../ui/QuestCompleteToast";
+import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import { BADGES } from "../config/badgeConfig";
 
