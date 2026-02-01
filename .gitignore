@@ -1,2 +1,4 @@
 node_modules
 .env
+RAILWAY_DEPLOYMENT.md
+.env.example
