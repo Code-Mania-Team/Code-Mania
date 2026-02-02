@@ -3,19 +3,13 @@ import axios from "axios";
 const useGetProfile = () => {
   const getProfile = async () => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) {
-        return null;
-      }
-
       const response = await axios.get(
         "http://localhost:3000/v1/account",
         {
-          // withCredentials: true, // sends accessToken cookie
+          withCredentials: true,
           headers: {
             apikey: import.meta.env.VITE_API_KEY,
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
           },
         }
       );

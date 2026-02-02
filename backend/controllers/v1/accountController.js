@@ -75,9 +75,7 @@ class AccountController {
             maxAge: 15 * 60 * 1000, // 15 minutes
         });
 
-        res.cookie('refreshToken', JSON.stringify({ 
-            refreshToken
-        }), {
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'Strict',
@@ -191,20 +189,40 @@ class AccountController {
     // =========================
     async refresh(req, res) {
         try {
-        const oldRefreshToken = req.cookies.refreshToken;
-        if (!oldRefreshToken) {
+        const rawRefreshToken = req.cookies.refreshToken;
+        if (!rawRefreshToken) {
             return res.status(401).json({ success: false, message: "No refresh token" });
         }
 
-        const userId = res.locals.user_id;
+        // Backward compatible: previous versions stored JSON in cookie
+        let oldRefreshToken = rawRefreshToken;
+        if (typeof rawRefreshToken === 'string' && rawRefreshToken.trim().startsWith('{')) {
+            try {
+                const parsed = JSON.parse(rawRefreshToken);
+                if (parsed?.refreshToken) {
+                    oldRefreshToken = parsed.refreshToken;
+                }
+            } catch (e) {
+                oldRefreshToken = rawRefreshToken;
+            }
+        }
 
-        // 🔁 Rotate token
-        const { refreshToken: newRefreshToken } =
-            await this.userToken.rotate(userId, oldRefreshToken);
+        // 🔁 Rotate token (opaque refresh token)
+        const { user_id, refreshToken: newRefreshToken } =
+            await this.userToken.rotate(oldRefreshToken);
+
+        const profile = await this.user.getProfile(user_id);
 
         const accessToken = generateAccessToken({
-            user_id: userId,
-            username: res.locals.username,
+            user_id,
+            username: profile?.email,
+        });
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
         });
 
         res.cookie("refreshToken", newRefreshToken, {

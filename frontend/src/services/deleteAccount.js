@@ -2,11 +2,6 @@ import axios from 'axios';
 
 const DeleteAccount = async () => {
 
-  const accessToken = localStorage.getItem('accessToken');
-  if (!accessToken) {
-    throw new Error('No access token found. Please log in again.');
-  }
-
   try {
     const response = await axios.delete(
       "http://localhost:3000/v1/account",
@@ -14,8 +9,8 @@ const DeleteAccount = async () => {
         headers: {
           apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
         },
+        withCredentials: true,
       }
     );
     

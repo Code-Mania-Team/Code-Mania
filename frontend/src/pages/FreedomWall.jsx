@@ -95,15 +95,6 @@ const FreedomWall = ({ onOpenModal }) => {
   }, []);
 
   const handleAddComment = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-      setPostError('Please sign in to post on the Freedom Wall.');
-      if (typeof onOpenModal === 'function') {
-        onOpenModal();
-      }
-      return;
-    }
-
     const content = (newComment || '').trim();
     if (!content) return;
 
@@ -121,6 +112,13 @@ const FreedomWall = ({ onOpenModal }) => {
         setNewComment('');
       }
     } catch (err) {
+      if (err?.response?.status === 401) {
+        setPostError('Please sign in to post on the Freedom Wall.');
+        if (typeof onOpenModal === 'function') {
+          onOpenModal();
+        }
+        return;
+      }
       const msg = err?.response?.data?.message || err?.message || 'Failed to create post.';
       setPostError(String(msg));
     } finally {

@@ -12,6 +12,7 @@ v1.use('/', homeRouter);
 v1.use('/freedom-wall', freedomWallRouter);
 v1.use('/refresh', refreshRouter);
 
+
 v1.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));

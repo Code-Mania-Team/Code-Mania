@@ -1,10 +1,6 @@
 import axios from "axios";
 const userPost = async (content) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-      throw new Error('No access token found. Please log in again.');
-    }
     const response = await axios.post(
       "http://localhost:3000/v1/freedom-wall/",
       { content },
@@ -12,9 +8,8 @@ const userPost = async (content) => {
         headers: {
           apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`
-          
         },
+        withCredentials: true,
       }
     );
     console.log("Post response:", response.data);
@@ -23,7 +18,7 @@ const userPost = async (content) => {
       console.log(response.data.message);
       throw new Error(response.data.message || "Post failed");
     }
-    
+ 
  
     // returns the accessToken and user info from backend
     return response.data;
