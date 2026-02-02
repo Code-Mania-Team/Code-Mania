@@ -7,6 +7,7 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
+import CodeTerminal from "../components/CodeTerminal";
 import styles from "../styles/JavaScriptExercise.module.css";
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
@@ -371,75 +372,43 @@ const JavaScriptExercise = () => {
           </div>
 
           {/* Right Side - Code Editor and Terminal */}
-          <div className={styles["code-container"]}>
-            <div className={styles["code-editor"]}>
-              <div className={styles["editor-header"]}>
-                <span>script.js</span>
-                {runUnlocked && (
-                  <button 
-                    className={styles["run-btn"]} 
-                    onClick={handleRunCode}
-                    title="Run code"
-                  >
-                    <Play size={16} /> Run
-                  </button>
-                )}
-              </div>
-              <textarea
-                className={styles["code-box"]}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              ></textarea>
-            </div>
+          <CodeTerminal
+            language="javascript"
+            code={code}
+            onRunCode={handleRunCode}
+            runUnlocked={runUnlocked}
+          />
 
-            <div className={styles["terminal"]}>
-              <div className={styles["terminal-header"]}>
-                Console
-              </div>
-              <div className={styles["terminal-body"]}>
-                <div className={styles["terminal-line"]}>
-                </div>
-                {output && (
-                  <div className={styles["terminal-output"]}>{output}</div>
-                )}
-                <div className={styles["terminal-line"]}>
-                  <span className={styles["prompt"]}>›</span>
-                  <span className={styles["cursor"]}></span>
-                </div>
-              </div>
-            </div>
+          <XpNotification
+            show={showXpPanel}
+            onClose={() => setShowXpPanel(false)}
+            onNext={goToNextExercise}
+          />
 
-            <XpNotification
-              show={showXpPanel}
-              onClose={() => setShowXpPanel(false)}
-              onNext={goToNextExercise}
-            />
+          <StageCompleteModal
+            show={showAchievementModal}
+            languageLabel="JavaScript"
+            titleText={achievementToShow?.title}
+            subtitleText={achievementToShow?.description}
+            badgeSrc={achievementToShow ? badgeByKey[achievementToShow.badgeKey] : undefined}
+            onContinue={handleAchievementContinue}
+            onClose={handleAchievementClose}
+          />
 
-            <StageCompleteModal
-              show={showAchievementModal}
-              languageLabel="JavaScript"
-              titleText={achievementToShow?.title}
-              subtitleText={achievementToShow?.description}
-              badgeSrc={achievementToShow ? badgeByKey[achievementToShow.badgeKey] : undefined}
-              onContinue={handleAchievementContinue}
-              onClose={handleAchievementClose}
-            />
-
-            <StageCompleteModal
-              show={showStageComplete}
-              stageNumber={displayStageNumber}
-              languageLabel="JavaScript"
-              badgeSrc={jsStageBadges[displayStageNumber - 1]}
-              onContinue={handleStageContinue}
-              onClose={() => setShowStageComplete(false)}
-            />
-          </div>
+          <StageCompleteModal
+            show={showStageComplete}
+            stageNumber={displayStageNumber}
+            languageLabel="JavaScript"
+            badgeSrc={jsStageBadges[displayStageNumber - 1]}
+            onContinue={handleStageContinue}
+            onClose={() => setShowStageComplete(false)}
+          />
         </div>
       </div>
 
       <Footer />
     </div>
-  );
+);
 };
 
 export default JavaScriptExercise;
