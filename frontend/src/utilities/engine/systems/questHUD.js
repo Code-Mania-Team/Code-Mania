@@ -145,6 +145,10 @@ export default class QuestUI {
 
     // 🛑 Pause game when quest HUD appears
     window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
+    
+    // 🚫 Prevent page scrolling when quest HUD is active
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     // Lesson title
     this.titleText.setText(quest.title || "");

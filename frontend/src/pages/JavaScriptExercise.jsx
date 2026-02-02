@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
-import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
@@ -78,6 +77,10 @@ const JavaScriptExercise = () => {
     const onTerminalActive = () => {
       setRunUnlocked(true);
     };
+
+    // 🚫 Prevent scrolling from the very beginning
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     window.addEventListener("code-mania:terminal-active", onTerminalActive);
     return () => {
@@ -229,13 +232,11 @@ const JavaScriptExercise = () => {
           : "Program ran successfully.\n";
         setOutput(resultText);
 
-        const currentId = currentExercise?.id;
-        const achievement = awardAchievementForExercise(currentId);
+        // 🎯 Close quest HUD and allow character movement when program runs successfully
+        window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
 
-        if (achievement && lessonInStage !== 4) {
-          setAchievementToShow(achievement);
-          setShowAchievementModal(true);
-        }
+        const currentId = currentExercise?.id;
+        // 🚫 NO MORE REACT BADGE MODAL - USING PHASER BADGE SYSTEM INSTEAD
 
         if (lessonInStage === 4) {
           setShowStageComplete(true);
@@ -297,14 +298,7 @@ const JavaScriptExercise = () => {
       }
     }
 
-    if (achievement) {
-      setAchievementToShow(achievement);
-      setShowAchievementModal(true);
-      setShowXpPanel(false);
-      setShowStageComplete(false);
-      return;
-    }
-
+    // 🚫 NO MORE REACT BADGE MODAL - USING PHASER BADGE SYSTEM INSTEAD
     goToNextExercise();
   };
 
@@ -436,8 +430,6 @@ const JavaScriptExercise = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

@@ -79,6 +79,7 @@
       "mustInclude": ["let", "console.log"]
     },
     "expectedOutput": "Aria\n3\nfalse",
+    "badgeKey": "JS_STAGE_1",
     "dialogue": [
       "You start to see patterns in the town’s thoughts.",
       "Numbers. Truths. Words.",
@@ -281,5 +282,53 @@
     "hints": ["Use functions, variables, arrays, objects, and DOM manipulation.", "Test your code carefully."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "12"
+  },
+  {
+    "id": 18,
+    "title": "Async/Await Basics",
+    "lessonHeader": "⏱️ Async/Await",
+    "description": "Async/await is a modern JavaScript feature that makes working with promises easier and more readable. Learn how to handle asynchronous operations using async/await syntax.",
+    "task": "Create an async function named getData that waits for 1 second using setTimeout, then returns 'Data loaded!'. Call the function and print the result.",
+    "lessonExample": "async function wait() {\n  await new Promise(resolve => setTimeout(resolve, 1000));\n  return 'Done!';\n}\nconsole.log(await wait());",
+    "startingCode": "async function getData() {\n  // wait 1 second here\n  return 'Data loaded!';\n}\n\n// call and print the result",
+    "hints": ["Use async keyword before function.", "Use await with Promise-based setTimeout.", "Call the async function and handle the result."],
+    "requirements": { "mustInclude": ["async", "await"] },
+    "expectedOutput": "Data loaded!"
+  },
+  {
+    "id": 19,
+    "title": "Array Manipulation",
+    "lessonHeader": "🔄 Advanced Arrays",
+    "description": "Learn advanced array methods like map, filter, and reduce to transform and manipulate arrays efficiently.",
+    "task": "Create an array of numbers [1, 2, 3, 4, 5]. Use map() to create a new array where each number is doubled, then print the new array.",
+    "lessonExample": "let numbers = [1, 2, 3];\nlet doubled = numbers.map(n => n * 2);\nconsole.log(doubled);",
+    "startingCode": "let numbers = [1, 2, 3, 4, 5];\n\n// use map to double each number\n\nconsole.log(doubled);",
+    "hints": ["Use map() method on the array.", "Provide an arrow function as callback.", "The callback should return the doubled value."],
+    "requirements": { "mustInclude": ["map", "console.log"] },
+    "expectedOutput": "[2,4,6,8,10]"
+  },
+  {
+    "id": 20,
+    "title": "Error Handling",
+    "lessonHeader": "⚠️ Try/Catch Blocks",
+    "description": "Error handling is crucial for robust applications. Learn how to use try/catch blocks to handle runtime errors gracefully.",
+    "task": "Create a function that divides two numbers. Use try/catch to handle division by zero errors. Test it with 10/0 and print 'Cannot divide by zero' when an error occurs.",
+    "lessonExample": "try {\n  let result = 10 / 0;\n  console.log(result);\n} catch (error) {\n  console.log('Error occurred');\n}",
+    "startingCode": "function divide(a, b) {\n  try {\n    let result = a / b;\n    console.log(result);\n  } catch (error) {\n    console.log('Cannot divide by zero');\n  }\n}\n\n// test with 10/0",
+    "hints": ["Wrap division in try block.", "Catch the error in catch block.", "Test with division by zero."],
+    "requirements": { "mustInclude": ["try", "catch"] },
+    "expectedOutput": "Cannot divide by zero"
+  },
+  {
+    "id": 21,
+    "title": "Local Storage",
+    "lessonHeader": "💾 Browser Storage",
+    "description": "LocalStorage allows you to store data in the browser that persists even after the page is refreshed. Learn how to save and retrieve data using localStorage.",
+    "task": "Save the string 'Hello World' to localStorage with key 'message', then retrieve it and print it to the console.",
+    "lessonExample": "localStorage.setItem('name', 'John');\nlet name = localStorage.getItem('name');\nconsole.log(name);",
+    "startingCode": "// save to localStorage\n\n// retrieve from localStorage\n\nconsole.log(message);",
+    "hints": ["Use localStorage.setItem() to save.", "Use localStorage.getItem() to retrieve.", "Use the same key for both operations."],
+    "requirements": { "mustInclude": ["localStorage", "console.log"] },
+    "expectedOutput": "Hello World"
   }
 ]

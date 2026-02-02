@@ -135,6 +135,27 @@ export default class GameScene extends Phaser.Scene {
         badgeKey: badge.key,
         label: quest.title
       });
+
+      // 🚫 OPEN BLOCKS FOR MAP7 (QUEST ID 7)
+      if (questId === 7) {
+        this.openBlocks();
+      }
+    };
+
+    openBlocks = () => {
+      // Hide the blocking layer
+      if (this.blockCloseLayer) {
+        this.blockCloseLayer.setVisible(false);
+        // Remove collision
+        this.physics.world.removeCollider(this.player, this.blockCloseLayer);
+      }
+
+      // Show the open layer
+      if (this.blockOpenLayer) {
+        this.blockOpenLayer.setVisible(true);
+      }
+
+      console.log("🚫 Blocks opened! Path is now clear.");
     };
 
   create() {
@@ -237,7 +258,9 @@ export default class GameScene extends Phaser.Scene {
     window.addEventListener("code-mania:terminal-active", () => {
       this.gamePausedByTerminal = true;
       this.playerCanMove = false;
-      this.player.setVelocity(0);
+      if (this.player) {
+        this.player.setVelocity(0);
+      }
       // 🛑 Disable keyboard input when quest HUD appears
       this.input.keyboard.disableGlobalCapture();
     });
@@ -287,6 +310,24 @@ export default class GameScene extends Phaser.Scene {
 
     if (this.chestOpenLayer) {
       this.chestOpenLayer.setVisible(false);
+    }
+
+    // 🚫 BLOCK LAYERS (FOR MAP7 JS)
+    this.blockCloseLayer =
+      this.mapLoader.map.getLayer("block_close")?.tilemapLayer;
+
+    this.blockOpenLayer =
+      this.mapLoader.map.getLayer("block_open")?.tilemapLayer;
+
+    // 🔒 FORCE INITIAL BLOCK STATE
+    if (this.blockCloseLayer) {
+      this.blockCloseLayer.setVisible(true);
+      this.blockCloseLayer.setCollisionByProperty({ collision: true });
+      this.physics.add.collider(this.player, this.blockCloseLayer);
+    }
+
+    if (this.blockOpenLayer) {
+      this.blockOpenLayer.setVisible(false);
     }
 
 
@@ -384,7 +425,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.updateInteractionMarker();
 
-    const speed = 120;
+    const speed = 200;
     this.player.setVelocity(0);
 
     let moving = false;
