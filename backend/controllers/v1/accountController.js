@@ -11,6 +11,8 @@ class AccountController {
     // REQUEST OTP (SIGNUP)
     async requestOtp(req, res) {
         const { email, password } = req.body || {};
+        const existingUser = await this.user.findByEmail(email); // Check if user already exists
+        if (existingUser.email) throw new Error("email") // return existingUser;  // for signup OTP, user already exists
 
         if (!email || !password) {
             return res.status(400).json({
@@ -57,7 +59,7 @@ class AccountController {
         }
 
         try {
-            const authUser = await this.user.verifyOtp(email, otp);
+            const authUser = await this.user.updateTempUser(email, otp);
 
             if (!authUser) {
                 return res.status(401).json({
@@ -166,6 +168,9 @@ class AccountController {
             });
         }
 
+        const user = await this.user.findByEmail(email);
+        if (!user.email) throw new Error("Email not registered");
+
         try {
             // Verify user credentials
             const authUser = await this.user.verify(email, password);
@@ -208,6 +213,27 @@ class AccountController {
                 success: false,
                 message: err.message || "Login failed",
             });
+        }
+    }
+
+    // GOOGLE LOGIN/SIGNUP
+    async googleLogin(req, res) {
+        const email = req.user.emails[0].value
+        const userEmail = await this.user.findByEmail(email)
+        
+        try {
+            if (!userEmail) {
+                //Proceed to creating user
+                const { id, emails, provider } = req.user
+                res.send({
+                    data: req.user
+                })
+            }
+        } catch (err) {
+            return res.status(500).json({
+                success: false,
+                message: err.message
+            })
         }
     }
 

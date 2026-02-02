@@ -9,6 +9,5 @@ passport.use(new GoogleStrategy({
     callbackURL: '/v1/account/login/google/redirect',
     scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
-    console.log(`GOOGLE OAUTH \n\nACCESS  TOKEN: ${accessToken} \nREFRESH TOKEN: ${refreshToken}`)
     return done(null, profile);
 }));

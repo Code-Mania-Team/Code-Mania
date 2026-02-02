@@ -14,8 +14,8 @@ class User {
         const expiresAt = new Date(Date.now() + 1000 * 60 * 1000); // 1 mins
 
         // Check if user already exists
-        const existingUser = await this.findByEmail(email);
-        if (existingUser.email) throw new Error("email") // return existingUser;  // for signup OTP, user already exists
+        // const existingUser = await this.findByEmail(email);
+        // if (existingUser.email) throw new Error("email") // return existingUser;  // for signup OTP, user already exists
 
         console.log("OTP for", email, "is", otp);
         
@@ -44,32 +44,32 @@ class User {
     }
 
     // VERIFY OTP
-    async verifyOtp(email, otp) {
-        const { data: otpEntry, error } = await this.db
+    async updateTempUser(email, otp) {
+        const { data: tempUser, error } = await this.db
             .from("temp_user")
             .select("*")
             .eq("email", email)
             .eq("otp", otp)
             .maybeSingle();
         
-            console.log("OTP Entry:", otpEntry);
+            console.log("OTP Entry:", tempUser);
         if (error) throw error;                 // handle Supabase error
-        if (!otpEntry) throw new Error("OTP not found");
-        if (otpEntry.is_verified) throw new Error("OTP already used");
-        if (new Date(otpEntry.expiry_time) < new Date()) throw new Error("OTP expired");
+        if (!tempUser) throw new Error("OTP not found");
+        if (tempUser.is_verified) throw new Error("OTP already used");
+        if (new Date(tempUser.expiry_time) < new Date()) throw new Error("OTP expired");
 
-        // Mark OTP as verified
+        // Mark temporary user as verified
         await this.db
             .from("temp_user")
             .update({ is_verified: true })
-            .eq("temp_user_id", otpEntry.temp_user_id);
+            .eq("temp_user_id", tempUser.temp_user_id);
 
         // Create new user if not exists
         const { data: newUser, error: createError } = await this.db
             .from("users")
             .insert({
-                email: otpEntry.email,
-                password: otpEntry.password
+                email: tempUser.email,
+                password: tempUser.password
             })
             .select("*")
             .maybeSingle();
@@ -82,19 +82,19 @@ class User {
     // Helper: find user by email
     async findByEmail(email) {
         const { data } = await this.db
-            .from("users")
-            .select("user_id, email, password, username")
+            .from("users") // can be users table or temp_user (this should be temp_users with "s")
+            .select("email") // just select what column is needed, user_id, password, username are not necessary
             .eq("email", email)
             .maybeSingle();
-        return data ?? {};
+        return data;
     }
 
     //new login function na walang otp
     async verify(email, password) {
         try {
             
-            const user = await this.findByEmail(email);
-            if (!user.email) throw new Error("Email not registered");
+            // const user = await this.findByEmail(email);
+            // if (!user.email) throw new Error("Email not registered");
 
             
             const hashedPassword = encryptPassword(password);
