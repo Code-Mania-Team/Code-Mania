@@ -173,7 +173,7 @@ class AccountController {
 
         try {
             // Verify user credentials
-            const authUser = await this.user.verify(email, password);
+            const authUser = await this.user.getUserCredential(email, password);
             console.log(`AUTHENTICATE USER: ${authUser}`)
             if (!authUser) {
                 return res.json({
@@ -223,12 +223,22 @@ class AccountController {
         
         try {
             if (!userEmail) {
-                //Proceed to creating user
+                //Signup
+                console.log("EMAIL: Doesn't exist!")
                 const { id, emails, provider } = req.user
                 res.send({
-                    data: req.user
+                    data: id, emails, provider
                 })
             }
+
+            if (userEmail) {
+                //Login. Provider must check if it has a value of google (optional)
+                console.log("EMAIL: Already exist!")
+                res.send({
+                    data: userEmail
+                })
+            }
+
         } catch (err) {
             return res.status(500).json({
                 success: false,

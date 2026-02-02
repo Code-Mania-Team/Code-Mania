@@ -90,7 +90,7 @@ class User {
     }
 
     //new login function na walang otp
-    async verify(email, password) {
+    async getUserCredential(email, password) {
         try {
             
             // const user = await this.findByEmail(email);
@@ -104,7 +104,7 @@ class User {
 
             const { data, error } = await this.db
                 .from("users")
-                .select("user_id, username, email, full_name, profile_image, created_at")
+                .select("user_id, username, email, password, provider")
                 .eq("email", email)
                 .eq("password", hashedPassword); 
 
