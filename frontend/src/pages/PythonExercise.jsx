@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import Header from "../components/header";
-import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
@@ -285,7 +284,6 @@ const PythonExercise = ({ isAuthenticated }) => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

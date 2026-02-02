@@ -19,6 +19,7 @@ import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/QuestCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import { BADGES } from "../config/badgeConfig";
+import CinematicBars from "../systems/cinematicBars";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -293,11 +294,14 @@ export default class GameScene extends Phaser.Scene {
     this.createInteractionMarker();
 
     // 🌍 CAMERA
-    const w = this.mapLoader.map.widthInPixels;
-    const h = this.mapLoader.map.heightInPixels;
+    // 🌍 CAMERA (🔥 FIXED)
+    const map = this.mapLoader.map;
+    const w = map.widthInPixels;
+    const h = map.heightInPixels;
 
     this.physics.world.setBounds(0, 0, w, h);
     this.cameras.main.setBounds(0, 0, w, h);
+    this.cameras.main.roundPixels = true;
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
     // ⌨ INPUT
@@ -334,7 +338,11 @@ export default class GameScene extends Phaser.Scene {
     this.helpManager = new HelpManager(this);
     this.questCompleteToast = new QuestCompleteToast(this);
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
+    this.cinematicBars = new CinematicBars(this);
 
+    this.scale.on("resize", () => {
+      this.cinematicBars.resize();
+    });
     
 
     // ✅ QUEST COMPLETE EVENT (AFTER SYSTEMS EXIST)
@@ -748,17 +756,24 @@ export default class GameScene extends Phaser.Scene {
 
 
 
-  playIntroCutscene() {
+  async playIntroCutscene() {
     const key = `${this.language}_${this.currentMapId}_intro`;
     const cutscene = CUTSCENES[key];
     if (!cutscene) return;
 
     this.time.delayedCall(500, async () => {
+      // 🔒 Lock player + show cinematic bars
+      this.playerCanMove = false;
+      this.cinematicBars.show(500);
+
       await this.cutsceneManager.play(cutscene);
 
-      // Help removed - don't auto-show when quest HUD appears
+      // 🎬 Restore gameplay view
+      this.cinematicBars.hide(500);
+      this.playerCanMove = true;
     });
   }
+
 
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
