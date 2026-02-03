@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
 import User from "../../models/user.js";
+import GoogleAccount from "../../services/googleAccount.js";
 
 class AccountController {
     constructor() {
         this.user = new User();
+        this.googleAccount = new GoogleAccount();
     }
 
 
@@ -218,33 +220,12 @@ class AccountController {
 
     // GOOGLE LOGIN/SIGNUP
     async googleLogin(req, res) {
-        const email = req.user.emails[0].value
-        const userEmail = await this.user.findByEmail(email)
-        
-        try {
-            if (!userEmail) {
-                //Signup
-                console.log("EMAIL: Doesn't exist!")
-                const { id, emails, provider } = req.user
-                res.send({
-                    data: id, emails, provider
-                })
-            }
-
-            if (userEmail) {
-                //Login. Provider must check if it has a value of google (optional)
-                console.log("EMAIL: Already exist!")
-                res.send({
-                    data: userEmail
-                })
-            }
-
-        } catch (err) {
-            return res.status(500).json({
-                success: false,
-                message: err.message
-            })
-        }
+        const { id, emails, provider } = req.user
+        const userData = await this.googleAccount.loginIfExist(id, emails[0].value, provider)
+        console.log(userData)
+        res.send({
+            message: userData
+        })
     }
 
     // GET PROFILE
