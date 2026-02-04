@@ -425,7 +425,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.updateInteractionMarker();
 
-    const speed = 200;
+    const speed = 500;
     this.player.setVelocity(0);
 
     let moving = false;

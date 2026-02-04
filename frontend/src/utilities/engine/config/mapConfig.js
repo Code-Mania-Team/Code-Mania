@@ -180,6 +180,29 @@ export const MAPS = {
         { name: "Outside_B.rpgmvp", key: "Outside_B.rpgmvp", image: "/assets/tilesets/Javascript/Outside_B.rpgmvp.png" },
         { name: "D.rpgmvp", key: "D.rpgmvp", image: "/assets/tilesets/Javascript/D.rpgmvp.png" }
       ],
+      nextMap: "map9"
+    },
+    map9: {
+      mapKey: "js_map9",
+      mapJson: "/assets/maps/JavaScript/js_map9.json",
+      tilesets: [
+        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
+        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
+        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
+        { name: "touhu_02.rpgmvp", key: "touhu_02.rpgmvp", image: "/assets/tilesets/Javascript/touhu_02.rpgmvp.png" },
+        { name: "bu_Outside_a.rpgmvp", key: "bu_Outside_a.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside_a.rpgmvp.png" },
+        { name: "komyu_01.rpgmvp", key: "komyu_01.rpgmvp", image: "/assets/tilesets/Javascript/komyu_01.rpgmvp.png" },
+        { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" }
+      ],
+      nextMap: "map10"
+    },
+    map10: {
+      mapKey: "js_map10",
+      mapJson: "/assets/maps/JavaScript/js_map10.json",
+      tilesets: [
+        { name: "A2_02.rpgmvp", key: "A2_02.rpgmvp", image: "/assets/tilesets/Javascript/A2_02.rpgmvp.png" },
+        { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" }
+      ],
       nextMap: null
     }
   },
