@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import Header from "../components/header";
-import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
@@ -59,22 +58,22 @@ const PythonExercise = ({ isAuthenticated }) => {
       terminalActive = false;
     };
 
-    const blockKeys = (e) => {
-      if (!terminalActive) return;
-      e.stopImmediatePropagation();
-    };
+    // const blockKeys = (e) => {
+    //   if (!terminalActive) return;
+    //   e.stopImmediatePropagation();
+    // };
 
     window.addEventListener("code-mania:terminal-active", onTerminalActive);
     window.addEventListener("code-mania:terminal-inactive", onTerminalInactive);
 
-    window.addEventListener("keydown", blockKeys, true);
-    window.addEventListener("keyup", blockKeys, true);
+    // window.addEventListener("keydown", blockKeys, true);
+    // window.addEventListener("keyup", blockKeys, true);
 
     return () => {
       window.removeEventListener("code-mania:terminal-active", onTerminalActive);
       window.removeEventListener("code-mania:terminal-inactive", onTerminalInactive);
-      window.removeEventListener("keydown", blockKeys, true);
-      window.removeEventListener("keyup", blockKeys, true);
+      // window.removeEventListener("keydown", blockKeys, true);
+      // window.removeEventListener("keyup", blockKeys, true);
     };
   }, []);
 
@@ -285,7 +284,6 @@ const PythonExercise = ({ isAuthenticated }) => {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 };

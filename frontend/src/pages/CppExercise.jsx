@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
-import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
+import CodeTerminal from "../components/CodeTerminal";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
 import cppStage1Badge from "../assets/badges/C++/c++-badges1.png";
@@ -257,60 +257,30 @@ user={user}
         </div>
       </div>
 
-      {/* Right Side - Code Editor and Terminal */}
-      <div className={styles["code-container"]}>
-        <div className={styles["code-editor"]}>
-          <div className={styles["editor-header"]}>
-            <span>main.cpp</span>
-            <button 
-              className={styles["run-btn"]} 
-              onClick={handleRunCode}
-              title="Run code"
-            >
-              <Play size={16} /> Run
-            </button>
-          </div>
-          <textarea
-            className={styles["code-box"]}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          ></textarea>
-        </div>
+      {/* Right Side */}
+      <CodeTerminal
+        language="cpp"
+        code={code}
+        onRunCode={handleRunCode}
+        runUnlocked={true}
+      />
 
-        <div className={styles["terminal"]}>
-          <div className={styles["terminal-header"]}>
-            Console
-          </div>
-          <div className={styles["terminal-body"]}>
-            <div className={styles["terminal-line"]}>
-            </div>
-            {output && (
-              <div className={styles["terminal-output"]}>{output}</div>
-            )}
-            <div className={styles["terminal-line"]}>
-              <span className={styles["prompt"]}>›</span>
-              <span className={styles["cursor"]}></span>
-            </div>
-          </div>
-        </div>
-        <XpNotification
-          show={showXpPanel}
-          onClose={() => setShowXpPanel(false)}
-          onNext={goToNextExercise}
-        />
-        <StageCompleteModal
-          show={showStageComplete}
-          stageNumber={displayStageNumber}
-          languageLabel="C++"
-          badgeSrc={cppStageBadges[displayStageNumber - 1]}
-          onContinue={handleStageContinue}
-          onClose={() => setShowStageComplete(false)}
-        />
-      </div>
+      <XpNotification
+        show={showXpPanel}
+        onClose={() => setShowXpPanel(false)}
+        onNext={goToNextExercise}
+      />
+      <StageCompleteModal
+        show={showStageComplete}
+        stageNumber={displayStageNumber}
+        languageLabel="C++"
+        badgeSrc={cppStageBadges[displayStageNumber - 1]}
+        onContinue={handleStageContinue}
+        onClose={() => setShowStageComplete(false)}
+      />
     </div>
   </div>
 
-  <Footer />
 </div>
 );
 };
