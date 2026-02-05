@@ -6,6 +6,8 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
+import CodeTerminal from "../components/CodeTerminal";
+import TutorialPopup from "../components/TutorialPopup";
 import styles from "../styles/JavaScriptExercise.module.css";
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
@@ -27,6 +29,7 @@ const JavaScriptExercise = () => {
   const [showXpPanel, setShowXpPanel] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
   const [runUnlocked, setRunUnlocked] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // === Dialogue System ===
   const dialogues = [
@@ -84,6 +87,9 @@ const JavaScriptExercise = () => {
 
     window.addEventListener("code-mania:terminal-active", onTerminalActive);
     return () => {
+      // ✅ IMPORTANT: Restore scrolling when leaving this page
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
       window.removeEventListener("code-mania:terminal-active", onTerminalActive);
     };
   }, []);
@@ -329,6 +335,32 @@ const JavaScriptExercise = () => {
       <div className={styles["scroll-background"]}></div>
       <Header isAuthenticated={isAuthenticated} onOpenModal={handleOpenModal} user={user} />
       
+      {/* Tutorial Test Button - More Visible */}
+      <div style={{ 
+        position: "fixed", 
+        top: "80px", 
+        right: "20px", 
+        zIndex: 1000,
+        background: "#3b82f6",
+        padding: "12px 20px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)"
+      }}>
+        <button 
+          onClick={() => setShowTutorial(true)}
+          style={{
+            background: "transparent",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontWeight: "600"
+          }}
+        >
+          🎮 Show Tutorial
+        </button>
+      </div>
+      
       {isSignInModalOpen && (
         <SignInModal 
           isOpen={isSignInModalOpen}
@@ -365,71 +397,44 @@ const JavaScriptExercise = () => {
           </div>
 
           {/* Right Side - Code Editor and Terminal */}
-          <div className={styles["code-container"]}>
-            <div className={styles["code-editor"]}>
-              <div className={styles["editor-header"]}>
-                <span>script.js</span>
-                {runUnlocked && (
-                  <button 
-                    className={styles["run-btn"]} 
-                    onClick={handleRunCode}
-                    title="Run code"
-                  >
-                    <Play size={16} /> Run
-                  </button>
-                )}
-              </div>
-              <textarea
-                className={styles["code-box"]}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              ></textarea>
-            </div>
+          <CodeTerminal
+            language="javascript"
+            code={code}
+            onRunCode={handleRunCode}
+            runUnlocked={runUnlocked}
+          />
 
-            <div className={styles["terminal"]}>
-              <div className={styles["terminal-header"]}>
-                Console
-              </div>
-              <div className={styles["terminal-body"]}>
-                <div className={styles["terminal-line"]}>
-                </div>
-                {output && (
-                  <div className={styles["terminal-output"]}>{output}</div>
-                )}
-                <div className={styles["terminal-line"]}>
-                  <span className={styles["prompt"]}>›</span>
-                  <span className={styles["cursor"]}></span>
-                </div>
-              </div>
-            </div>
+          <XpNotification
+            show={showXpPanel}
+            onClose={() => setShowXpPanel(false)}
+            onNext={goToNextExercise}
+          />
 
-            <XpNotification
-              show={showXpPanel}
-              onClose={() => setShowXpPanel(false)}
-              onNext={goToNextExercise}
-            />
+          <StageCompleteModal
+            show={showAchievementModal}
+            languageLabel="JavaScript"
+            titleText={achievementToShow?.title}
+            subtitleText={achievementToShow?.description}
+            badgeSrc={achievementToShow ? badgeByKey[achievementToShow.badgeKey] : undefined}
+            onContinue={handleAchievementContinue}
+            onClose={handleAchievementClose}
+          />
 
-            <StageCompleteModal
-              show={showAchievementModal}
-              languageLabel="JavaScript"
-              titleText={achievementToShow?.title}
-              subtitleText={achievementToShow?.description}
-              badgeSrc={achievementToShow ? badgeByKey[achievementToShow.badgeKey] : undefined}
-              onContinue={handleAchievementContinue}
-              onClose={handleAchievementClose}
-            />
-
-            <StageCompleteModal
-              show={showStageComplete}
-              stageNumber={displayStageNumber}
-              languageLabel="JavaScript"
-              badgeSrc={jsStageBadges[displayStageNumber - 1]}
-              onContinue={handleStageContinue}
-              onClose={() => setShowStageComplete(false)}
-            />
-          </div>
+          <StageCompleteModal
+            show={showStageComplete}
+            stageNumber={displayStageNumber}
+            languageLabel="JavaScript"
+            badgeSrc={jsStageBadges[displayStageNumber - 1]}
+            onContinue={handleStageContinue}
+            onClose={() => setShowStageComplete(false)}
+          />
         </div>
       </div>
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup open={showTutorial} onClose={() => setShowTutorial(false)} />
+      )}
     </div>
   );
 };
