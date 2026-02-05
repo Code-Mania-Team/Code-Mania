@@ -7,6 +7,7 @@ import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
 import CodeTerminal from "../components/CodeTerminal";
+import TutorialPopup from "../components/TutorialPopup";
 import styles from "../styles/JavaScriptExercise.module.css";
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
@@ -28,6 +29,7 @@ const JavaScriptExercise = () => {
   const [showXpPanel, setShowXpPanel] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
   const [runUnlocked, setRunUnlocked] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // === Dialogue System ===
   const dialogues = [
@@ -85,6 +87,9 @@ const JavaScriptExercise = () => {
 
     window.addEventListener("code-mania:terminal-active", onTerminalActive);
     return () => {
+      // ✅ IMPORTANT: Restore scrolling when leaving this page
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
       window.removeEventListener("code-mania:terminal-active", onTerminalActive);
     };
   }, []);
@@ -330,6 +335,32 @@ const JavaScriptExercise = () => {
       <div className={styles["scroll-background"]}></div>
       <Header isAuthenticated={isAuthenticated} onOpenModal={handleOpenModal} user={user} />
       
+      {/* Tutorial Test Button - More Visible */}
+      <div style={{ 
+        position: "fixed", 
+        top: "80px", 
+        right: "20px", 
+        zIndex: 1000,
+        background: "#3b82f6",
+        padding: "12px 20px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)"
+      }}>
+        <button 
+          onClick={() => setShowTutorial(true)}
+          style={{
+            background: "transparent",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontWeight: "600"
+          }}
+        >
+          🎮 Show Tutorial
+        </button>
+      </div>
+      
       {isSignInModalOpen && (
         <SignInModal 
           isOpen={isSignInModalOpen}
@@ -399,8 +430,13 @@ const JavaScriptExercise = () => {
           />
         </div>
       </div>
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup open={showTutorial} onClose={() => setShowTutorial(false)} />
+      )}
     </div>
-);
+  );
 };
 
 export default JavaScriptExercise;

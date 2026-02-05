@@ -8,6 +8,7 @@
   background-color: #0f172a;
   color: #e2e8f0;
   font-family: "Fira Code", monospace;
+  overflow-x: hidden;
 }
 
 .codex-fullscreen {
@@ -16,6 +17,7 @@
   flex-direction: column;
   width: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem 0;
 }
 

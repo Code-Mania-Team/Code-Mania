@@ -9,11 +9,11 @@ const Leaderboard = () => {
   
   // Sample leaderboard data
   const leaderboardData = [
-    { rank: 1, name: 'Vince De Castro', score: 9850, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=alex' },
-    { rank: 2, name: 'Diether Pano', score: 8765, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=maria' },
-    { rank: 3, name: 'Wilson Esmabe', score: 7654, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=james' },
-    { rank: 4, name: 'Jet Padilla', score: 7432, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=sarah' },
-    { rank: 5, name: 'John Paul Bodino', score: 7210, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=david' },
+    { rank: 1, name: 'Jet Padilla', score: 9850, avatar: '/assets/characters/icons/character.png' },
+    { rank: 2, name: 'Diether Pano', score: 8765, avatar: '/assets/characters/icons/character1.png' },
+    { rank: 3, name: 'John Paul Bodino', score: 7654, avatar: '/assets/characters/icons/character.png' },
+    { rank: 4, name: 'Wilster Dela Cruz', score: 7432, avatar: '/assets/characters/icons/character1.png' },
+    { rank: 5, name: 'Genniesys Bracia', score: 7210, avatar: '/assets/characters/icons/character4.png' },
   ];
 
   return (
