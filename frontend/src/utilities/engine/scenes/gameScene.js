@@ -20,6 +20,8 @@ import QuestCompleteToast from "../ui/QuestCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import { BADGES } from "../config/badgeConfig";
 import CinematicBars from "../systems/cinematicBars";
+import OrientationManager from "../systems/orientationManager";
+import MobileControls from "../systems/mobileControls";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -124,6 +126,11 @@ export default class GameScene extends Phaser.Scene {
 
       const quest = this.questManager.getQuestById(questId);
       if (!quest || !quest.badgeKey) return;
+
+      if (quest.grants) {
+        this.worldState.abilities.add(quest.grants);
+        console.log("🎒 Obtained:", quest.grants);
+      }
 
       const badge = BADGES[quest.badgeKey];
       if (!badge) return;
@@ -240,10 +247,14 @@ export default class GameScene extends Phaser.Scene {
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
     this.input.keyboard.on("keydown-E", () => {
-      if (this.gamePausedByTerminal) return;
-      this.tryInteractWithNPC();
-      this.tryInteractWithChest();
-      this.tryBreakRock();
+      this.handleInteract();
+    });
+
+    this.input.on("pointerdown", (pointer) => {
+      // left click or tap
+      if (pointer.button !== 0) return;
+
+      this.handleInteract();
     });
 
     this.input.keyboard.on("keydown-Q", () => {
@@ -309,20 +320,39 @@ export default class GameScene extends Phaser.Scene {
       this.chestOpenLayer.setVisible(false);
     }
 
+    this.gateCloseLayer =
+    this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
+
+    this.gateOpenLayer =
+      this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
+
+    if (this.gateCloseLayer) {
+      this.gateCloseLayer.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, this.gateCloseLayer);
+    }
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(false);
+    }
+
+    this.events.once("shutdown", () => {
+      if (this.helpButton) {
+        this.helpButton.destroy();
+        this.helpButton = null;
+      }
+    });
+
+
 
     this.createInteractionMarker();
 
-    // 🌍 CAMERA
-    // 🌍 CAMERA (🔥 FIXED)
-    const map = this.mapLoader.map;
-    const w = map.widthInPixels;
-    const h = map.heightInPixels;
+    const w = this.mapLoader.map.widthInPixels;
+    const h = this.mapLoader.map.heightInPixels;
 
     this.physics.world.setBounds(0, 0, w, h);
     this.cameras.main.setBounds(0, 0, w, h);
-    this.cameras.main.roundPixels = true;
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-
+    
     const QUESTS_BY_LANGUAGE = {
       Python: pythonQuests,
       JavaScript: jsQuests,
@@ -346,6 +376,18 @@ export default class GameScene extends Phaser.Scene {
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
     this.cinematicBars = new CinematicBars(this);
 
+    this.isMobile =
+      this.sys.game.device.os.android ||
+      this.sys.game.device.os.iOS;
+
+    if (this.isMobile) {
+      this.mobileControls = new MobileControls(this, {
+      onInteract: () => this.handleInteract()
+    });
+
+    }
+
+    this.orientationManager = new OrientationManager(this);
     this.scale.on("resize", () => {
       this.cinematicBars.resize();
     });
@@ -385,6 +427,38 @@ export default class GameScene extends Phaser.Scene {
 
   }
 
+  resizeCamera(gameSize) {
+    const cam = this.cameras.main;
+    const map = this.mapLoader.map;
+
+    const viewWidth = gameSize.width;
+    const viewHeight = gameSize.height;
+
+    const mapWidth = map.widthInPixels;
+    const mapHeight = map.heightInPixels;
+
+    // Fit map to screen
+    const zoomX = viewWidth / mapWidth;
+    const zoomY = viewHeight / mapHeight;
+    const zoom = Math.min(zoomX, zoomY);
+
+    cam.setZoom(Math.min(zoom, 3)); // cap zoom
+    cam.setViewport(0, 0, viewWidth, viewHeight);
+    cam.setBounds(0, 0, mapWidth, mapHeight);
+
+    // Small map → center
+    if (
+      mapWidth * cam.zoom <= viewWidth &&
+      mapHeight * cam.zoom <= viewHeight
+    ) {
+      cam.stopFollow();
+      cam.centerOn(mapWidth / 2, mapHeight / 2);
+    } else {
+      cam.startFollow(this.player, true, 0.1, 0.1);
+    }
+  }
+
+
   update() {
     if (this.gamePausedByTerminal) {
       this.player.setVelocity(0);
@@ -392,30 +466,49 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    const speed = 120;
+    const speed = 200;
     this.player.setVelocity(0);
 
     let moving = false;
 
-    if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-speed);
-      this.lastDirection = "left";
-      moving = true;
-    } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(speed);
-      this.lastDirection = "right";
-      moving = true;
+    if (this.isMobile && this.mobileControls) {
+      const vx = this.mobileControls.vector.x * speed;
+      const vy = this.mobileControls.vector.y * speed;
+
+      this.player.setVelocity(vx, vy);
+
+      moving = Math.abs(vx) > 1 || Math.abs(vy) > 1;
+
+      if (moving) {
+        if (Math.abs(vx) > Math.abs(vy)) {
+          this.lastDirection = vx > 0 ? "right" : "left";
+        } else {
+          this.lastDirection = vy > 0 ? "down" : "up";
+        }
+      }
+    } else {
+        if (this.cursors.left.isDown) {
+          this.player.setVelocityX(-speed);
+          this.lastDirection = "left";
+          moving = true;
+        } else if (this.cursors.right.isDown) {
+            this.player.setVelocityX(speed);
+            this.lastDirection = "right";
+            moving = true;
+        }
+
+        if (this.cursors.up.isDown) {
+          this.player.setVelocityY(-speed);
+          this.lastDirection = "up";
+          moving = true;
+        } else if (this.cursors.down.isDown) {
+            this.player.setVelocityY(speed);
+            this.lastDirection = "down";
+            moving = true;
+      }
     }
 
-    if (this.cursors.up.isDown) {
-      this.player.setVelocityY(-speed);
-      this.lastDirection = "up";
-      moving = true;
-    } else if (this.cursors.down.isDown) {
-      this.player.setVelocityY(speed);
-      this.lastDirection = "down";
-      moving = true;
-    }
+    
 
     const anim = moving
       ? `walk-${this.lastDirection}`
@@ -578,21 +671,75 @@ export default class GameScene extends Phaser.Scene {
         n.y
       ) <= 50
     );
-    if (!npc) return;
+
+    if (!npc) return false; // 👈 IMPORTANT
 
     this.interactionMarker?.setVisible(false);
     this.interactPrompt?.setVisible(false);
 
     const quest = this.questManager.getQuestById(npc.npcData.questId);
-    if (!quest) return;
+    if (!quest) return false;
 
     this.playerCanMove = false;
 
-    this.dialogueManager.startDialogue(quest.dialogue || [], () => {
-      this.questManager.startQuest(quest.id);
-      this.playerCanMove = true;
-    });
+    // 1️⃣ QUEST NOT STARTED
+    if (
+      !quest.completed &&
+      this.questManager.activeQuest?.id !== quest.id
+    ) {
+      this.dialogueManager.startDialogue(
+        quest.dialogue || [],
+        () => {
+          this.questManager.startQuest(quest.id);
+          this.playerCanMove = true;
+        }
+      );
+      return true; // ✅ INPUT CONSUMED
+    }
+
+    // 2️⃣ QUEST ACTIVE BUT NOT DONE
+    if (!quest.completed) {
+      this.dialogueManager.startDialogue(
+        ["Solve the challenge to earn the key."],
+        () => (this.playerCanMove = true)
+      );
+      return true;
+    }
+
+    // 3️⃣ QUEST COMPLETED → GIVE KEY
+    if (quest.completed && quest.grants) {
+      if (!this.worldState.abilities.has(quest.grants)) {
+        this.worldState.abilities.add(quest.grants);
+
+        this.dialogueManager.startDialogue(
+          [
+            "Excellent work.",
+            "Take this key — it opens the gate."
+          ],
+          () => (this.playerCanMove = true)
+        );
+      } else {
+        this.dialogueManager.startDialogue(
+          ["You already have the key."],
+          () => (this.playerCanMove = true)
+        );
+      }
+      return true;
+    }
+
+    this.playerCanMove = true;
+    return true;
   }
+
+  handleInteract() {
+    if (this.gamePausedByTerminal) return;
+
+    if (this.tryInteractWithNPC()) return;
+    if (this.tryInteractWithChest()) return;
+    if (this.tryOpenGate()) return;
+    this.tryBreakRock();
+  }
+
   tryBreakRock() {
     if (!this.interactableRockLayer) return;
     if (!this.worldState || !this.worldState.abilities) return;
@@ -745,6 +892,42 @@ export default class GameScene extends Phaser.Scene {
       this.cinematicBars.hide(500);
       this.playerCanMove = true;
     });
+  }
+
+  tryOpenGate() {
+    if (!this.gateCloseLayer) return;
+
+    const requiredProp =
+      this.gateCloseLayer.layer.properties?.find(
+        p => p.name === "requires"
+      );
+
+    const requiredKey = requiredProp?.value;
+    if (!requiredKey) return;
+
+    // ❌ No key
+    if (!this.worldState.abilities.has(requiredKey)) {
+      this.dialogueManager.startDialogue(
+        ["The gate is locked. You need a key."],
+        () => {}
+      );
+      return;
+    }
+
+    // ✅ HAS KEY → OPEN GATE
+    this.gateCloseLayer.setVisible(false);
+    this.gateCloseLayer.forEachTile(t => t.setCollision(false));
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(true);
+    }
+
+    this.dialogueManager.startDialogue(
+      ["You unlock the gate.", "The path is now open."],
+      () => {}
+    );
+
+    console.log("🚪 Gate opened!");
   }
 
 

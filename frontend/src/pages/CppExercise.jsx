@@ -247,10 +247,9 @@ user={user}
             id="phaser-container"
             className={styles["game-scene"]}
             style={{
-              minHeight: "400px",
-              position: "relative",
-              borderRadius: "8px",
-              overflow: "hidden",
+              width: "100%",
+              height: "100%",
+              imageRendering: "pixelated"
             }}
           >
           </div>
