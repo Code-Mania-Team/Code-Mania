@@ -136,7 +136,7 @@ class AccountController {
         }
 
         const profile = await this.user.getProfile(authUser.user_id);
-
+        
         const accessToken = generateAccessToken({
             user_id: authUser.user_id,
             username: profile?.email,
