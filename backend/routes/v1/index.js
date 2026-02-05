@@ -4,11 +4,13 @@ import passport from 'passport';
 import freedomWallRouter from './freedomWallRoutes.js';
 import homeRouter from './homeRoutes.js';
 import refreshRouter from './refreshRoute.js';
+import userGameDataRouter from './userGameDataRoutes.js';
 
 const v1 = new Router();
 
 v1.use('/account', accountRouter);
 v1.use('/', homeRouter);
+v1.use('/', userGameDataRouter);
 v1.use('/freedom-wall', freedomWallRouter);
 v1.use('/refresh', refreshRouter);
 
