@@ -24,9 +24,18 @@ export default class DialogueManager {
       .setDepth(10001)
       .setVisible(false);
 
-    scene.input.keyboard.on("keydown-SPACE", () => {
-      if (this.active) this.next();
+    scene.input.on("pointerdown", (pointer) => {
+      // Only left click
+      if (pointer.button !== 0) return;
+
+      // If terminal is active, do nothing
+      if (window.__CODE_MANIA_TERMINAL_ACTIVE__) return;
+
+      if (this.active) {
+        this.next();
+      }
     });
+
   }
 
   startDialogue(lines, onComplete) {

@@ -131,19 +131,23 @@ export default class CutsceneManager {
 
       // Wait for SPACE or auto-advance
       await new Promise(resolve => {
-        const space = this.scene.input.keyboard.addKey("SPACE");
+        const onClick = (pointer) => {
+          if (pointer.button !== 0) return;
+          cleanup();
+        };
 
         const cleanup = () => {
-          space.off("down", onPress);
+          this.scene.input.off("pointerdown", onClick);
           arrow.destroy();
           resolve();
         };
 
-        const onPress = () => cleanup();
+        this.scene.input.on("pointerdown", onClick);
 
-        space.once("down", onPress);
-        this.scene.time.delayedCall(3000, cleanup); // auto advance after 3s
+        // auto advance fallback
+        this.scene.time.delayedCall(3000, cleanup);
       });
+
     }
 
     // Cleanup last text

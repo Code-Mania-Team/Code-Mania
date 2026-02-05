@@ -19,6 +19,7 @@ import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/QuestCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import { BADGES } from "../config/badgeConfig";
+import CinematicBars from "../systems/cinematicBars";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -41,6 +42,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.playerCanMove = true;
     this.helpShownThisSession = false;
+    this.gamePausedByTerminal = false;
     // this.openedChests = new Set(
     //   JSON.parse(localStorage.getItem("openedChests") || "[]")
     // );
@@ -230,30 +232,48 @@ export default class GameScene extends Phaser.Scene {
       this.physics.add.collider(this.player, layer);
     });
 
-    this.input.keyboard.clearCaptures();
+    // ⌨ INPUT — ONLY ONCE
+    this.cursors = this.input.keyboard.createCursorKeys();
+    // 🔓 FREE SPACEBAR FOR THE BROWSER / TERMINAL
+    this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-    this.gamePausedByTerminal = false;
 
+    // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
+    this.input.keyboard.on("keydown-E", () => {
+      if (this.gamePausedByTerminal) return;
+      this.tryInteractWithNPC();
+      this.tryInteractWithChest();
+      this.tryBreakRock();
+    });
+
+    this.input.keyboard.on("keydown-Q", () => {
+      if (this.gamePausedByTerminal) return;
+      this.questHUD.toggle(this.questManager.activeQuest);
+    });
+
+    this.input.keyboard.on("keydown-H", () => {
+      if (this.gamePausedByTerminal) return;
+      this.helpManager.openHelp();
+    });
+    
+    this.input.keyboard.on("keydown-T", () => {
+      if (this.gamePausedByTerminal) return;
+      const activeQuest = this.questManager.activeQuest;
+      if (activeQuest) {
+        this.questManager.completeQuest(activeQuest.id);
+        console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
+      }
+    });
+
+    // 🔒 TERMINAL EVENTS
     window.addEventListener("code-mania:terminal-active", () => {
       this.gamePausedByTerminal = true;
-      this.playerCanMove = false;
       this.player.setVelocity(0);
-      // 🛑 Disable keyboard input when quest HUD appears
-      this.input.keyboard.disableGlobalCapture();
     });
 
     window.addEventListener("code-mania:terminal-inactive", () => {
       this.gamePausedByTerminal = false;
-      this.playerCanMove = true;
-      // ▶ Re-enable keyboard input when quest HUD hides
-      this.input.keyboard.enableGlobalCapture();
     });
-
-    // normal input setup
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.interactKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.E
-    );
 
     // 🪨 ROCK LAYERS
     this.interactableRockLayer =
@@ -293,25 +313,15 @@ export default class GameScene extends Phaser.Scene {
     this.createInteractionMarker();
 
     // 🌍 CAMERA
-    const w = this.mapLoader.map.widthInPixels;
-    const h = this.mapLoader.map.heightInPixels;
+    // 🌍 CAMERA (🔥 FIXED)
+    const map = this.mapLoader.map;
+    const w = map.widthInPixels;
+    const h = map.heightInPixels;
 
     this.physics.world.setBounds(0, 0, w, h);
     this.cameras.main.setBounds(0, 0, w, h);
+    this.cameras.main.roundPixels = true;
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-
-    // ⌨ INPUT
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.interactKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.E
-    );
-    this.questKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.Q
-    );
-    this.testCompleteKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.T
-    );
-    
 
     const QUESTS_BY_LANGUAGE = {
       Python: pythonQuests,
@@ -334,7 +344,11 @@ export default class GameScene extends Phaser.Scene {
     this.helpManager = new HelpManager(this);
     this.questCompleteToast = new QuestCompleteToast(this);
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
+    this.cinematicBars = new CinematicBars(this);
 
+    this.scale.on("resize", () => {
+      this.cinematicBars.resize();
+    });
     
 
     // ✅ QUEST COMPLETE EVENT (AFTER SYSTEMS EXIST)
@@ -356,11 +370,7 @@ export default class GameScene extends Phaser.Scene {
     this.helpButton = new HelpButton(this, () => {
       this.helpManager.openHelp();
     });
-
-    // Keyboard shortcut
-    this.helpKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.H
-    );
+  
     this.createMapExits();
     this.lastDirection = "down";
     // 🧑 NPCs
@@ -376,13 +386,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update() {
-    // 🛑 Stop all game input when quest HUD is active
-    if (this.gamePausedByTerminal || !this.playerCanMove) {
+    if (this.gamePausedByTerminal) {
       this.player.setVelocity(0);
+      this.player.anims.stop();
       return;
     }
-
-    this.updateInteractionMarker();
 
     const speed = 120;
     this.player.setVelocity(0);
@@ -413,35 +421,8 @@ export default class GameScene extends Phaser.Scene {
       ? `walk-${this.lastDirection}`
       : `idle-${this.lastDirection}`;
     this.player.anims.play(anim, true);
-
-    // 🧠 DEPTH SORT (MAGIC LINE)
-    // this.player.setDepth(this.player.y);
-
-    // this.npcs.forEach(npc => npc.setDepth(npc.y));
-
-    if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
-      this.tryInteractWithNPC();
-      this.tryInteractWithChest();
-      this.tryBreakRock();
-    }
-
-
-    if (Phaser.Input.Keyboard.JustDown(this.questKey)) {
-      this.questHUD.toggle(this.questManager.activeQuest);
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.testCompleteKey)) {
-      const activeQuest = this.questManager.activeQuest;
-      if (activeQuest) {
-        this.questManager.completeQuest(activeQuest.id);
-        console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
-      }
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.helpKey)) {
-      this.helpManager.openHelp();
-    }
-
-
   }
+
 
   spawnChestQuestIcons() {
     const chestLayer = this.mapLoader.map.getLayer("chest")?.tilemapLayer;
@@ -748,17 +729,24 @@ export default class GameScene extends Phaser.Scene {
 
 
 
-  playIntroCutscene() {
+  async playIntroCutscene() {
     const key = `${this.language}_${this.currentMapId}_intro`;
     const cutscene = CUTSCENES[key];
     if (!cutscene) return;
 
     this.time.delayedCall(500, async () => {
+      // 🔒 Lock player + show cinematic bars
+      this.playerCanMove = false;
+      this.cinematicBars.show(500);
+
       await this.cutsceneManager.play(cutscene);
 
-      // Help removed - don't auto-show when quest HUD appears
+      // 🎬 Restore gameplay view
+      this.cinematicBars.hide(500);
+      this.playerCanMove = true;
     });
   }
+
 
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
