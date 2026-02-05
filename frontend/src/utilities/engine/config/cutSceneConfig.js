@@ -90,64 +90,64 @@ export const CUTSCENES = {
     { type: "unlockPlayer" }
   ],
 
-  Cpp_map1_intro: [
-    { type: "lockPlayer" },
+  // Cpp_map1_intro: [
+  //   { type: "lockPlayer" },
 
-    { type: "cameraMove", x: 760, y: 380, duration: 3000 },
-    {
-      type: "dialogue",
-      lines: [
-        "This city feels... solid.",
-        "Like everything here was built to last."
-      ]
-    },
+  //   { type: "cameraMove", x: 760, y: 380, duration: 3000 },
+  //   {
+  //     type: "dialogue",
+  //     lines: [
+  //       "This city feels... solid.",
+  //       "Like everything here was built to last."
+  //     ]
+  //   },
 
-    { type: "cameraMove", x: 600, y: 420, duration: 2800 },
-    {
-      type: "dialogue",
-      lines: [
-        "Tall structures.",
-        "Clear paths.",
-        "Every block has a purpose."
-      ]
-    },
+  //   { type: "cameraMove", x: 600, y: 420, duration: 2800 },
+  //   {
+  //     type: "dialogue",
+  //     lines: [
+  //       "Tall structures.",
+  //       "Clear paths.",
+  //       "Every block has a purpose."
+  //     ]
+  //   },
 
-    {
-      type: "dialogue",
-      lines: [
-        "Nothing moves unless it's told to.",
-        "Nothing exists unless it's defined."
-      ]
-    },
+  //   {
+  //     type: "dialogue",
+  //     lines: [
+  //       "Nothing moves unless it's told to.",
+  //       "Nothing exists unless it's defined."
+  //     ]
+  //   },
 
-    { type: "cameraMove", x: 520, y: 560, duration: 2500 },
-    {
-      type: "dialogue",
-      lines: [
-        "I like that.",
-        "It makes the city predictable.",
-        "Reliable."
-      ]
-    },
+  //   { type: "cameraMove", x: 520, y: 560, duration: 2500 },
+  //   {
+  //     type: "dialogue",
+  //     lines: [
+  //       "I like that.",
+  //       "It makes the city predictable.",
+  //       "Reliable."
+  //     ]
+  //   },
 
-    {
-      type: "dialogue",
-      lines: [
-        "If I build something here...",
-        "It will stay built.",
-        "As long as I take responsibility for it."
-      ]
-    },
+  //   {
+  //     type: "dialogue",
+  //     lines: [
+  //       "If I build something here...",
+  //       "It will stay built.",
+  //       "As long as I take responsibility for it."
+  //     ]
+  //   },
 
-    {
-      type: "dialogue",
-      lines: [
-        "Alright.",
-        "Let's start from the foundation."
-      ]
-    },
+  //   {
+  //     type: "dialogue",
+  //     lines: [
+  //       "Alright.",
+  //       "Let's start from the foundation."
+  //     ]
+  //   },
 
-    { type: "cameraFollowPlayer" },
-    { type: "unlockPlayer" }
-  ]
+  //   { type: "cameraFollowPlayer" },
+  //   { type: "unlockPlayer" }
+  // ]
 };
