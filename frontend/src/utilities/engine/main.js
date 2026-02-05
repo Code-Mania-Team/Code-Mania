@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import GameScene from "./scenes/GameScene";
-import HelpScene from "./scenes/HelpScene";
+import GameScene from "./scenes/gameScene";
+import HelpScene from "./scenes/helpScene";
 
 export function initPhaserGame(containerId) {
   const game = new Phaser.Game({
@@ -19,11 +19,11 @@ export function initPhaserGame(containerId) {
 
     // 🔥 NO MARGINS, FULL FILL
     scale: {
-      mode: Phaser.Scale.ENVELOP,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
-      width: 960,
-      height: 540,
-    },
+    mode: Phaser.Scale.RESIZE,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: Phaser.Scale.DEFAULT_WIDTH || 960,
+    height: Phaser.Scale.DEFAULT_HEIGHT || 540,
+  },
 
     scene: [GameScene, HelpScene],
   });

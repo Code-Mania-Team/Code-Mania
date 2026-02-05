@@ -213,6 +213,12 @@
          "id":9,
          "name":"gate_close",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"requires",
+                 "type":"string",
+                 "value":"key"
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":20,
@@ -396,7 +402,7 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":13,
+ "nextlayerid":14,
  "nextobjectid":7,
  "orientation":"orthogonal",
  "renderorder":"right-down",
