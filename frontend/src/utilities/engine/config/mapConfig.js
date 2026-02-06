@@ -204,7 +204,24 @@ export const MAPS = {
         { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" }
       ],
       nextMap: null
-    }
+    },
+    map11: {
+      mapKey: "js_map11",
+      mapJson: "/assets/maps/JavaScript/js_map11.json",
+      tilesets: [
+        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
+        { name: "A1.rpgmvp", key: "A1.rpgmvp", image: "/assets/tilesets/Javascript/A1.rpgmvp.png" },
+        { name: "touhu_02.rpgmvp", key: "touhu_02.rpgmvp", image: "/assets/tilesets/Javascript/touhu_02.rpgmvp.png" },
+        { name: "bu_Outside.rpgmvp", key: "bu_Outside.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside.rpgmvp.png" },
+        { name: "B.rpgmvp", key: "B.rpgmvp", image: "/assets/tilesets/Javascript/B.rpgmvp.png" },
+        { name: "D.rpgmvp", key: "D.rpgmvp", image: "/assets/tilesets/Javascript/D.rpgmvp.png" },
+        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
+        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
+        { name: "bu_shrine2.rpgmvp", key: "bu_shrine2.rpgmvp", image: "/assets/tilesets/Javascript/bu_shrine2.rpgmvp.png" },
+        { name: "No1-2a.rpgmvp", key: "No1-2a.rpgmvp", image: "/assets/tilesets/Javascript/No1-2a.rpgmvp.png" }
+      ],
+      nextMap: "map12"
+    },
   },
   Cpp: {
     // ...C++ maps
