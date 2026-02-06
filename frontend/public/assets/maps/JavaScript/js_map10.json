@@ -101,6 +101,11 @@
                          "value":"map9"
                         }, 
                         {
+                         "name":"target_spawn",
+                         "type":"string",
+                         "value":"player_spawn_from_map10"
+                        }, 
+                        {
                          "name":"type",
                          "type":"string",
                          "value":"map_exit"
@@ -109,8 +114,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":624,
-                 "y":928
+                 "x":480,
+                 "y":931
                 }],
          "opacity":1,
          "type":"objectgroup",

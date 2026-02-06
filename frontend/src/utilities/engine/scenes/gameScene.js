@@ -63,6 +63,67 @@ export default class GameScene extends Phaser.Scene {
 
   }
 
+  setupLayerSwitching() {
+    // Get the layer references
+    this.groundLayer = this.mapLoader.map.getLayer("ground")?.tilemapLayer;
+    this.thingsLayer = this.mapLoader.map.getLayer("things")?.tilemapLayer;
+    this.groundInvisibleLayer = this.mapLoader.map.getLayer("ground_invisible")?.tilemapLayer;
+    this.thingsInvisibleLayer = this.mapLoader.map.getLayer("things_invisible")?.tilemapLayer;
+
+    // Set initial state
+    this.layersSwitched = false;
+    
+    // Initially show ground/things, hide invisible layers
+    if (this.groundLayer) this.groundLayer.setVisible(true);
+    if (this.thingsLayer) this.thingsLayer.setVisible(true);
+    if (this.groundInvisibleLayer) this.groundInvisibleLayer.setVisible(false);
+    if (this.thingsInvisibleLayer) this.thingsInvisibleLayer.setVisible(false);
+
+    console.log("🔄 Layer switching system initialized for js_map10");
+  }
+
+  openDoors() {
+    // Get door layers
+    const doorCloseLayer = this.mapLoader.map.getLayer("door_close")?.tilemapLayer;
+    const doorOpenLayer = this.mapLoader.map.getLayer("door_open")?.tilemapLayer;
+
+    if (!doorCloseLayer || !doorOpenLayer) {
+      console.warn("⚠️ Door layers not found in map");
+      return;
+    }
+
+    // Open doors (show open layer, hide closed layer)
+    doorCloseLayer.setVisible(false);
+    doorOpenLayer.setVisible(true);
+
+    console.log("🚪 Door opened automatically");
+  }
+
+  toggleLayers() {
+    if (!this.groundLayer || !this.thingsLayer || !this.groundInvisibleLayer || !this.thingsInvisibleLayer) {
+      console.warn("⚠️ Missing required layers for switching");
+      return;
+    }
+
+    this.layersSwitched = !this.layersSwitched;
+
+    if (this.layersSwitched) {
+      // Show invisible layers, hide normal layers
+      this.groundLayer.setVisible(false);
+      this.thingsLayer.setVisible(false);
+      this.groundInvisibleLayer.setVisible(true);
+      this.thingsInvisibleLayer.setVisible(true);
+      console.log("🔄 Layers switched to invisible state");
+    } else {
+      // Show normal layers, hide invisible layers
+      this.groundLayer.setVisible(true);
+      this.thingsLayer.setVisible(true);
+      this.groundInvisibleLayer.setVisible(false);
+      this.thingsInvisibleLayer.setVisible(false);
+      console.log("🔄 Layers switched to normal state");
+    }
+  }
+
   preload() {
     this.mapLoader = new MapLoader(this);
     this.mapLoader.load(
@@ -177,6 +238,11 @@ export default class GameScene extends Phaser.Scene {
 
     this.cameras.main.roundPixels = true;
 
+    // 🔄 LAYER SWITCHING SYSTEM (for js_map10)
+    if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+      this.setupLayerSwitching();
+    }
+
     // 🎵 Background music removed
 
     // 🎮 PLAYER ANIMATIONS
@@ -245,7 +311,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // 🧍 PLAYER
-    const spawn = this.getSpawnPoint("player_spawn");
+    const spawn = this.getPlayerSpawnPoint();
     this.player = this.physics.add.sprite(spawn.x, spawn.y, "player-down");
 
     // 👣 FEET-BASED SETUP (CRITICAL)
@@ -487,7 +553,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    const speed = 200;
+    const speed = 500;
     this.player.setVelocity(0);
 
     let moving = false;
@@ -683,6 +749,19 @@ export default class GameScene extends Phaser.Scene {
     return { x, y };
   }
 
+  getPlayerSpawnPoint() {
+    // Check for custom spawn point from previous map
+    const customSpawn = this.scene.settings.data?.spawnPoint;
+    if (customSpawn) {
+      const customPoint = this.getSpawnPoint(customSpawn);
+      console.log(`🎯 Using custom spawn point: ${customSpawn}`);
+      return customPoint;
+    }
+
+    // Fall back to default spawn
+    return this.getSpawnPoint("player_spawn");
+  }
+
   tryInteractWithNPC() {
     const npc = this.npcs.find(n =>
       Phaser.Math.Distance.Between(
@@ -708,6 +787,21 @@ export default class GameScene extends Phaser.Scene {
       !quest.completed &&
       this.questManager.activeQuest?.id !== quest.id
     ) {
+      // DOOR OPENING FOR JS_MAP7
+      if (this.currentMapId === 'map7' && this.language === 'JavaScript') {
+        this.openDoors();
+      }
+
+      // DOOR OPENING FOR JS_MAP8
+      if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
+        this.openDoors();
+      }
+
+      // LAYER SWITCHING FOR JS_MAP10 (whenever quest starts)
+      if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+        this.toggleLayers();
+      }
+
       this.dialogueManager.startDialogue(
         quest.dialogue || [],
         () => {
@@ -732,6 +826,11 @@ export default class GameScene extends Phaser.Scene {
       if (!this.worldState.abilities.has(quest.grants)) {
         this.worldState.abilities.add(quest.grants);
 
+        // 🔄 LAYER SWITCHING FOR JS_MAP10
+        if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+          this.toggleLayers();
+        }
+
         this.dialogueManager.startDialogue(
           [
             "Excellent work.",
@@ -740,6 +839,11 @@ export default class GameScene extends Phaser.Scene {
           () => (this.playerCanMove = true)
         );
       } else {
+        // 🔄 TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
+        if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+          this.toggleLayers();
+        }
+
         this.dialogueManager.startDialogue(
           ["You already have the key."],
           () => (this.playerCanMove = true)
@@ -979,6 +1083,9 @@ export default class GameScene extends Phaser.Scene {
         const targetMap =
           obj.properties.find(p => p.name === "target_map")?.value;
 
+        const targetSpawn =
+          obj.properties.find(p => p.name === "target_spawn")?.value;
+
         const direction =
           obj.properties.find(p => p.name === "direction")?.value ?? "down";
 
@@ -995,6 +1102,7 @@ export default class GameScene extends Phaser.Scene {
 
         zone.exitData = {
           targetMap,
+          targetSpawn,
           requiredQuest: rawQuest
         };
 
