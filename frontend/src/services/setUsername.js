@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const onBoardUsername = async (username) => {
+const onBoardUsername = async (username, characterId) => {
   if (username === '' || username.length < 3) {
     throw new Error("Please enter a valid username.");
   }
@@ -8,9 +8,9 @@ const onBoardUsername = async (username) => {
 
   try {
     const response = await axios.post(
-      "http://localhost:3000/v1/account/username",
-      { username },
-      {
+      "http://localhost:3000/v1/account/setOnboarding",
+      { username, character_id: characterId },
+      { 
         headers: {
           apikey: import.meta.env.VITE_API_KEY,
           "Content-Type": "application/json",
@@ -20,9 +20,8 @@ const onBoardUsername = async (username) => {
     );
     console.log("Username set response:", response.data);
     return response.data;
-    console.log("Username set response:", response.data);
   } catch (error) {
-    console.error("Error during top-up:", error);
+    console.error("Error during set userame:", error);
     throw error;
   }
 };

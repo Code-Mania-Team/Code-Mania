@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link 
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
-import Community from "./pages/Community";
+import FreedomWall from "./pages/FreedomWall";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -15,8 +15,8 @@ import JavaScriptExercise from "./pages/JavaScriptExercise";
 import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
-import { AuthProvider, useAuth } from './context/authProvider.jsx'
-
+import WelcomeOnboarding from "./components/WelcomeOnboarding";
+import { clearUserSession } from "./services/signOut";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -47,7 +47,7 @@ const Home = () => (
         <Link to="/learn/python" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/python.gif" alt="Python" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif" alt="Python" className="language-img" />
             </div>
             <h4>Python</h4>
             <p className="language-description">Versatile and beginner-friendly</p>
@@ -57,7 +57,7 @@ const Home = () => (
         <Link to="/learn/cpp" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/c++.gif" alt="C++" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif" alt="C++" className="language-img" />
             </div>
             <h4>C++</h4>
             <p className="language-description">High-performance programming</p>
@@ -67,7 +67,7 @@ const Home = () => (
         <Link to="/learn/javascript" className="language-card-link">
           <div className="language-card">
             <div className="language-image">
-              <img src="/src/assets/javascript.gif" alt="JavaScript" className="language-img" />
+              <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif" alt="JavaScript" className="language-img" />
             </div>
             <h4>JavaScript</h4>
             <p className="language-description">Web development powerhouse</p>
@@ -87,7 +87,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/learntocode.gif" alt="Learn to code" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/learntocode_yhnfkd.gif" alt="Learn to code" />
         </div>
       </div>
 
@@ -101,7 +101,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/chill.gif" alt="Chill coding" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/chill_jnydvb.gif" alt="Chill coding" />
         </div>
       </div>
 
@@ -114,7 +114,7 @@ const Home = () => (
           </p>
         </div>
         <div className="learn-image">
-          <img src="/src/assets/117.gif" alt="Coding challenge" />
+          <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/117_jycate.gif" alt="Coding challenge" />
         </div>
       </div>
     </section>
@@ -141,19 +141,27 @@ function App() {
   }
   // getCookies();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [isAuthenticated, setIsAuthenticated] = useState(() => {
-  //   // Initialize from localStorage if available
-  //   return localStorage.getItem('isAuthenticated') === 'true';
-  // });
-  const { isAuthenticated, signOut } = useAuth();
-  console.log("App isAuthenticated:", isAuthenticated);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Initialize from localStorage if available
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
+  const [isNewUser, setIsNewUser] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // // Update localStorage when isAuthenticated changes
-  // useEffect(() => {
-  //   localStorage.setItem('isAuthenticated', isAuthenticated);
-  // }, [isAuthenticated]);
+  const handleSignOut = () => {
+    clearUserSession();
+    setIsAuthenticated(false);
+    setIsNewUser(false);
+    window.dispatchEvent(new Event('authchange'));
+    window.dispatchEvent(new CustomEvent('characterUpdated'));
+    navigate('/');
+  };
+
+  // Update localStorage when isAuthenticated changes
+  useEffect(() => {
+    localStorage.setItem('isAuthenticated', isAuthenticated);
+  }, [isAuthenticated]);
 
   // hide header/footer on exercise routes and dashboard
   const hideGlobalHeaderFooter = 
@@ -162,13 +170,16 @@ function App() {
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard";
 
+  // hide only footer on freedom wall
+  const hideFooterOnly = location.pathname === "/freedomwall";
+
   return (
     <div className="app">
       {!hideGlobalHeaderFooter && (
         <Header 
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
-          onSignOut={() => signOut}
+          onSignOut={handleSignOut}
         />
       )}
       <ScrollToTop />
@@ -178,13 +189,14 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/python" element={<PythonCourse />} />
+
           <Route 
             path="/learn/python/exercise/:exerciseId" 
             element={
               <PythonExercise 
                 isAuthenticated={isAuthenticated}
                 onOpenModal={() => setIsModalOpen(true)}
-                onSignOut={() => signOut}
+                onSignOut={handleSignOut}
               />
             } 
           />
@@ -193,24 +205,47 @@ function App() {
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
-          <Route path="/community" element={<Community />} />
+          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
         </Routes>
       </main>
 
-      {!hideGlobalHeaderFooter && <Footer />}
+      {!hideGlobalHeaderFooter && !hideFooterOnly && <Footer />}
 
       <SignInModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        onSignInSuccess={() => {
-          
+        onSignInSuccess={(isNew) => {
+          setIsAuthenticated(true);
           setIsModalOpen(false);
+          setIsNewUser(!!isNew);
+          if (isNew) {
+            navigate('/welcome');
+            return;
+          }
           navigate('/dashboard');
         }}
       />
+      
+      {isAuthenticated && isNewUser && (
+        <Routes>
+          <Route 
+            path="/welcome" 
+            element={
+              <WelcomeOnboarding 
+                onComplete={() => {
+                  setIsNewUser(false);
+                  localStorage.setItem('hasSeenOnboarding', 'true');
+                  localStorage.setItem('hasCompletedOnboarding', 'true');
+                  navigate('/dashboard');
+                }} 
+              />
+            } 
+          />
+        </Routes>
+      )}
     </div>
   );
 }
@@ -219,9 +254,7 @@ function App() {
 export default function AppWithRouter() {
   return (
     <Router>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <App />
     </Router>
   );
 }

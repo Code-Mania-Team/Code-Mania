@@ -21,6 +21,23 @@ class FreedomWall {
         return data;
     }
 
+    async getCharacterIdByUserId(user_id) {
+        try {
+        const { data: userProfile, error } = await supabase
+            .from("users")
+            .select("character_id")
+            .eq("user_id", user_id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        return userProfile?.character_id ?? null;
+        } catch (err) {
+        console.error("<error> getCharacterIdByUserId", err);
+        throw new Error("Failed to fetch character ID");
+        }
+    }
+
     async getPost() {
         try{
             const { data, error } = await this.fd_wall
@@ -32,7 +49,7 @@ class FreedomWall {
                         user_id,
                         users (
                             username,
-                            profile_image
+                            character_id
                         )
                         `)
                 .order("created_at", { ascending: false });

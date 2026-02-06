@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import swordImage from '../assets/sword.png';
-import shieldImage from '../assets/shield.png';
-import '../App.css';
-import  {signUp} from '../services/signup';
-import  {verifyOtp} from '../services/verifyOtp';
-import  {login} from '../services/login';
-import { useAuth } from '../context/authProvider';
+import styles from '../styles/SignInModal.module.css';
+import { signUp } from '../services/signup';  // Import the signUp service
+import { verifyOtp } from '../services/verifyOtp';
+import { login } from '../services/login';
 
+const swordImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/sword_cnrdam.png';
+const shieldImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/shield_ykk5ek.png';
+const showPasswordIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/view_yj1elw.png';
+const hidePasswordIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/hide_apyeec.png';
 
 const OAuthButton = ({ isLoading, onClick, icon, text }) => (
   <button 
     type="button" 
-    className="oauth-button"
+    className={styles.oauthButton}
     onClick={onClick}
     disabled={isLoading}
   >
-    <div className="oauth-icon">
+    <div className={styles.oauthIcon}>
       {icon}
     </div>
     {text}
@@ -46,7 +47,6 @@ const GoogleIcon = () => (
 
 
 const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
-  // const { isAuthenticated, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
@@ -55,54 +55,159 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { refreshProfile } = useAuth();
-  
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [loginError, setLoginError] = useState('');
 
+  const validatePassword = (pass) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(pass);
+    const hasLowerCase = /[a-z]/.test(pass);
+    const hasNumbers = /\d/.test(pass);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+
+    if (pass.length < minLength) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (!hasUpperCase) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!hasLowerCase) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!hasNumbers) {
+      return 'Password must contain at least one number';
+    }
+    if (!hasSpecialChar) {
+      return 'Password must contain at least one special character';
+    }
+    return '';
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    if (isSignUpMode) {
+      setPasswordError(validatePassword(newPassword));
+      if (confirmPassword && newPassword !== confirmPassword) {
+        setConfirmPasswordError('Passwords do not match');
+      } else {
+        setConfirmPasswordError('');
+      }
+    }
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const newConfirmPassword = e.target.value;
+    setConfirmPassword(newConfirmPassword);
+    if (newConfirmPassword && password !== newConfirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+    } else {
+      setConfirmPasswordError('');
+    }
+  };
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
+    setLoginError(''); // Clear previous login errors
+    
     try {
       if (isSignUpMode) {
         // SIGN UP flow with OTP
         if (!showOtpField) {
           // Step 1: validate password + confirm and request OTP
           if (password !== confirmPassword) {
+            setConfirmPasswordError('Passwords do not match');
             setIsLoading(false);
             return;
           }
-            const res = await signUp(email, password); 
-            if (res.success)
-            setShowOtpField(true);
+          const passwordError = validatePassword(password);
+          if (passwordError) {
+            setPasswordError(passwordError);
+            setIsLoading(false);
+            return;
+          }
+          const user = await signUp(email, password);
+          setShowOtpField(true);
         } else {
-            const res = await verifyOtp(email, otp);
-            if (res.token) {
-              // localStorage.setItem("token", res.token);
-              localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");
-              await refreshProfile();
-              // localStorage.setItem("user_id", res.user_id);
-              
-            }
-            onSignInSuccess(res); 
+          const user = await verifyOtp(email, otp);
+          localStorage.setItem('needsUsername', 'true');
+          onSignInSuccess(true);
+          onClose();
+          return; // Exit early after successful signup
         }
       } else {
-           const res = await login(email, password);
-           if (res.success === true) {
-            // localStorage.setItem("token", res.token);
-            localStorage.setItem("username", res.username); //
-            localStorage.setItem("needsUsername", res.requiresUsername ? "true" : "false");}
-            await refreshProfile();  //
-            
-            onSignInSuccess(res); // Temporary for testing
+        const normalizedEmail = (email || '').trim();
+        const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+        if (!normalizedEmail) {
+          setLoginError('Please enter your email.');
+          setIsLoading(false);
+          return;
+        }
+        if (!emailIsValid) {
+          setLoginError('Please enter a valid email address.');
+          setIsLoading(false);
+          return;
+        }
+        if (!password) {
+          setLoginError('Please enter your password.');
+          setIsLoading(false);
+          return;
+        }
+
+        const user = await login(normalizedEmail, password);
+
+        // Prevent stale avatar from previous account when switching users
+        localStorage.removeItem('selectedCharacter');
+        localStorage.removeItem('selectedCharacterIcon');
+
+        const normalizedUsername = (user?.username || '').trim();
+        const needsOnboarding = !normalizedUsername;
+
+        const characterId = user?.character_id;
+        if (characterId !== undefined && characterId !== null) {
+          localStorage.setItem('selectedCharacter', String(characterId));
+          window.dispatchEvent(new CustomEvent('characterUpdated'));
+        } else {
+          window.dispatchEvent(new CustomEvent('characterUpdated'));
+        }
+
+        if (normalizedUsername) {
+          localStorage.setItem('username', normalizedUsername);
+          localStorage.setItem('needsUsername', 'false');
+          localStorage.setItem('hasSeenOnboarding', 'true');
+          localStorage.setItem('hasCompletedOnboarding', 'true');
+        } else {
+          localStorage.setItem('needsUsername', 'true');
+        }
+
+        onSignInSuccess(needsOnboarding);
+        onClose();
+        return; // Exit early after successful login
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message;
+
+      if (backendMessage) {
+        setLoginError(String(backendMessage));
+      } else {
+        setLoginError('An error occurred during sign in. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
+
+    e.stopPropagation();
+    return false;
   };
 
   const handleBackToEmailPassword = () => {
@@ -111,22 +216,22 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="signin-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="close-modal" onClick={onClose}>&times;</button>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.signinModal} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.closeModal} onClick={onClose}>&times;</button>
 
-        <div className="welcome-section">
-          <img src={swordImage} alt="Sword" className="pixel-icon pixel-sword" />
+        <div className={styles.welcomeSection}>
+          <img src={swordImage} alt="Sword" className={`${styles.pixelIcon} ${styles.pixelSword}`} />
           <h2>{isSignUpMode ? 'Create your account' : 'Welcome, Adventurer!'}</h2>
-          <img src={shieldImage} alt="Shield" className="pixel-icon pixel-shield" />
+          <img src={shieldImage} alt="Shield" className={`${styles.pixelIcon} ${styles.pixelShield}`} />
         </div>
 
-        <p className="subtext">
+        <p className={styles.subtext}>
           {isSignUpMode ? 'Start your adventure in Code Mania' : 'Sign in to continue your journey'}
         </p>
 
         {/* Google OAuth Button */}
-        <div className="oauth-buttons">
+        <div className={styles.oauthButtons}>
           <OAuthButton
             isLoading={isLoading}
             onClick={() => console.log('Google OAuth clicked')}
@@ -135,40 +240,68 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           />
         </div>
 
-        <div className="divider">
+        <div className={styles.divider}>
           <span>or</span>
         </div>
 
         {!isSignUpMode ? (
           <>
 
-            <form onSubmit={handleSubmit} className="signin-form">
-              <div className="form-group">
+            <form onSubmit={handleSubmit} className={styles.signinForm}>
+              <div className={styles.formGroup}>
                 <label htmlFor="email">Email</label>
                 <input
                   type="email"
                   id="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setLoginError(''); // Clear error when user types
+                  }}
                   placeholder="you@example.com"
                   required
                   disabled={showOtpField}
                 />
               </div>
 
-              <div className="form-group">
+              <div className={styles.formGroup}>
                 <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                />
+                <div className={styles.passwordInputContainer}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    value={password}
+                    onChange={(e) => {
+                      handlePasswordChange(e);
+                      setLoginError(''); // Clear error when user types
+                    }}
+                    placeholder="Enter your password"
+                    required
+                    className={styles.passwordInput}
+                  />
+                  <button 
+                    type="button" 
+                    className={styles.togglePasswordButton}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowPassword(!showPassword);
+                    }}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <img 
+                      src={showPassword ? hidePasswordIcon : showPasswordIcon} 
+                      alt=""
+                      className={styles.togglePasswordIcon}
+                    />
+                  </button>
+                </div>
+                {passwordError && !showOtpField && (
+                  <p className={styles.errorText}>{passwordError}</p>
+                )}
               </div>
 
-              <div className="form-group" style={{ display: 'flex', margin: '10px 0' }}>
+              <div className={styles.rememberMe}>
                 <input
                   type="checkbox"
                   id="rememberMe"
@@ -184,20 +317,25 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 </label>
               </div>
 
-              <button type="submit" className="signin-button" disabled={isLoading}>
+              <button type="submit" className={styles.signinButton} disabled={isLoading}>
                 {isLoading ? 'Processing...' : 'Continue'}
               </button>
 
+              {loginError && (
+                <p className={styles.errorText}>{loginError}</p>
+              )}
 
-              <p className="signup-hint">
+
+              <p className={styles.signupHint}>
                 Don't have an account yet?{' '}
                 <button
                   type="button"
-                  className="signup-link-button"
+                  className={styles.signupLinkButton}
                   onClick={() => {
                     setIsSignUpMode(true);
                     setShowOtpField(false);
                     setOtp('');
+                    setLoginError(''); // Clear error when switching modes
                   }}
                 >
                   Create one
@@ -208,8 +346,8 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         ) : (
           <>
 
-            <form onSubmit={handleSubmit} className="signin-form">
-              <div className="form-group">
+            <form onSubmit={handleSubmit} className={styles.signinForm}>
+              <div className={styles.formGroup}>
                 <label htmlFor="signup-email">Email</label>
                 <input
                   type="email"
@@ -221,32 +359,76 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 />
               </div>
 
-              <div className="form-group">
+              <div className={styles.formGroup}>
                 <label htmlFor="signup-password">Password</label>
-                <input
-                  type="password"
-                  id="signup-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Choose a password"
-                  required
-                />
+                <div className={styles.passwordInputContainer}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="signup-password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    placeholder="Choose a password"
+                    required
+                    className={styles.passwordInput}
+                  />
+                  <button 
+                    type="button" 
+                    className={styles.togglePasswordButton}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowPassword(!showPassword);
+                    }}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <img 
+                      src={showPassword ? hidePasswordIcon : showPasswordIcon} 
+                      alt=""
+                      className={styles.togglePasswordIcon}
+                    />
+                  </button>
+                </div>
+                {passwordError && !showOtpField && (
+                  <p className={styles.errorText}>{passwordError}</p>
+                )}
               </div>
 
-              <div className="form-group">
-                <label htmlFor="signup-confirm-password">Confirm Password</label>
-                <input
-                  type="password"
-                  id="signup-confirm-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat your password"
-                  required
-                />
+              <div className={styles.formGroup}>
+                <label htmlFor="confirm-password">Confirm Password</label>
+                <div className={styles.passwordInputContainer}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    id="confirm-password"
+                    value={confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                    placeholder="Confirm your password"
+                    required={isSignUpMode}
+                    className={styles.passwordInput}
+                  />
+                  <button 
+                    type="button" 
+                    className={styles.togglePasswordButton}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowConfirmPassword(!showConfirmPassword);
+                    }}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    <img 
+                      src={showConfirmPassword ? hidePasswordIcon : showPasswordIcon} 
+                      alt="" 
+                      className={styles.togglePasswordIcon}
+                    />
+                  </button>
+                </div>
+                {passwordError && !showOtpField && (
+                  <p className={styles.errorText}>{passwordError}</p>
+                )}
               </div>
 
               {showOtpField && (
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label htmlFor="otp">Enter OTP</label>
                   <input
                     type="text"
@@ -257,11 +439,11 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     required
                     maxLength="6"
                   />
-                  <p className="otp-note">We've sent a 6-digit OTP to your email</p>
+                  <p className={styles.otpNote}>We've sent a 6-digit OTP to your email</p>
                 </div>
               )}
 
-              <button type="submit" className="signin-button" disabled={isLoading}>
+              <button type="submit" className={styles.signinButton} disabled={isLoading}>
                 {isLoading
                   ? showOtpField
                     ? 'Verifying...'
@@ -274,7 +456,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
               {showOtpField && (
                 <button
                   type="button"
-                  className="back-to-email-button"
+                  className={styles.backButton}
                   onClick={handleBackToEmailPassword}
                   disabled={isLoading}
                 >
@@ -283,15 +465,16 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
               )}
 
 
-              <p className="signup-hint">
+              <p className={styles.signupHint}>
                 Already have an account?{' '}
                 <button
                   type="button"
-                  className="signup-link-button"
+                  className={styles.signupLinkButton}
                   onClick={() => {
                     setIsSignUpMode(false);
                     setShowOtpField(false);
                     setOtp('');
+                    setLoginError(''); // Clear error when switching modes
                   }}
                 >
                   Sign in
@@ -304,7 +487,5 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     </div>
   );
 };
-
-
 
 export default SignInModal;

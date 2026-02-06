@@ -1,0 +1,220 @@
+[
+  {
+    "id": 1,
+    "title": "The Program",
+    "lessonHeader": "🧙‍♂️ Getting Started with C++",
+    "description": " To begin your journey as a C++ adventurer, you must prepare your environment and cast your very first spell — a simple message that echoes through the console realm.",
+    "task": "Write a C++ program that prints 'Hello, C++!' to the console.",
+    "lessonExample": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Welcome to C++!\" << endl;\n    return 0;\n}",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["🔮 Use cout for output.", "📜 Don't forget #include <iostream>.", "⚔️ End statements with a semicolon."],
+    "requirements": { "mustInclude": ["cout"] },
+    "expectedOutput": "Hello, C++!"
+  },
+  {
+    "id": 2,
+    "title": "Hello World",
+    "lessonHeader": "🖥️ Printing Messages",
+    "description": "Learn the basic C++ syntax for printing text using cout.",
+    "task": "Complete the cout statement so it prints 'Hello World!' to the console.",
+    "lessonExample": "cout << \"Hello World!\" << endl;",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Wrap text in quotes.", "Use << endl to end the line."],
+    "requirements": { "mustInclude": ["cout"] },
+    "expectedOutput": "Hello World!"
+  },
+  {
+    "id": 3,
+    "title": "Comments",
+    "lessonHeader": "💬 Writing Comments",
+    "description": "Comments can be used to explain C++ code, and to make it more readable. It can also be used to prevent execution when testing alternative code. Comments can be singled-lined or multi-lined.",
+    "task": "Add a comment above the code that prints 'Code runs!' to the console.",
+    "lessonExample": "// This is a Singled-lined comment\n/* This is a Multi-lined comment \n used in longer comments! */\n\n cout << \"Code runs!\" << endl;",
+    "startingCode": "// Write your comment here\ncout << \"\" << endl;",
+    "hints": ["Use // for single-line comments.", "Comments are ignored by the compiler."],
+    "requirements": { "mustInclude": ["//", "cout"] },
+    "expectedOutput": "Code runs!"
+  },
+  {
+    "id": 4,
+    "title": "Basic Output",
+    "lessonHeader": "🖨️ Display Output",
+    "description": "The cout object, together with the << operator, is used to output values and print text. \nJust remember to surround the text with double quotes.",
+    "task": "Print a triangle pattern using asterisks (*) with three rows.",
+    "lessonExample": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello World!\" << endl;\n    return 0;\n}",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": [
+    "Each row should be printed on a new line.",
+    "Use cout multiple times.",
+    "Use asterisks (*) inside quotes."
+  ],
+    "requirements": { "mustInclude": ["cout"] },
+    "expectedOutput": "*\n* *\n* * *"
+  },
+  {
+  "id": 5,
+  "title": "Variables",
+  "lessonHeader": "📦 Variables in C++",
+  "description": "In C++, a variable is a name given to a memory location. It is the basic unit of storage in a program. The value stored in a variable can be accessed or changed during program execution.",
+  "task": "Declare the two integer variable named 'age' and 'year' and assign it with a value, then print the output of each variable.",
+  "lessonExample": "#include <iostream>\nusing namespace std;\n\nint main() {\n    int num = 6;\n    cout << num << endl;\n    return 0;\n}",
+  "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+  "hints": ["Use int for whole numbers.", "Assign values with =."],
+  "requirements": { "mustInclude": ["int", "cout"] },
+  "expectedOutput": ""
+ },
+  {
+    "id": 6,
+    "title": "Data Types",
+    "lessonHeader": "📊 Data Types",
+    "description": "In a programmer’s adventure, a variable is like a chest, and the data type is the magic that controls it. It decides what kind of treasure can be stored inside and how much space the chest has. Choosing the right data type keeps your journey safe and your program strong",
+    "task": "Declare a double variable 'price' with value 9.99 and a bool variable 'isStudent' with value true, then print both.",
+    "lessonExample": "double price = 9.98;\nbool isStudent = true;\nint myNumber = 15;\nchar grade = 'A';\nstring name = \"Alice\";\nfloat myFloatNum = 5.99;",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use bool for true/false.", "Use double for decimal numbers."],
+    "requirements": { "mustInclude": ["cout", "double", "bool"] },
+    "expectedOutput": "9.99\n1"
+  },
+  {
+    "id": 7,
+    "title": "Constants",
+    "lessonHeader": "🔒 Constants",
+    "description": "The const keyword (which stands for constant) is used to specify that the value of a variable cannot be changed anywhere in the program, either intentionally or accidentally.",
+    "lessonExample": "const int DAYS_IN_WEEK = 7;\ncout << DAYS_IN_WEEK << endl;",
+    "task": "Declare a constant integer 'DAYS_IN_WEEK' with value 7 and print it.",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use const before the type.", "Constants cannot be reassigned."],
+    "requirements": { "mustInclude": ["const", "cout"] },
+    "expectedOutput": "7"
+  },
+  {
+    "id": 8,
+    "title": "Type Casting",
+    "lessonHeader": "🔄 Type Casting",
+    "description": "Converting the value of one type to another type is also known as type casting.",
+    "lessonExample": "double d = 9.7;\nint x = (int)d;\ncout << x << endl;",
+    "task": "Cast a double value 15.8 to an integer, then cast an integer 4 to a double and print both results.",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use (type)value to cast.", "Casting truncates decimal values."],
+    "requirements": { "mustInclude": ["int", "cout"] },
+    "expectedOutput": "9"
+  },
+  {
+  "id": 9,
+  "title": "Arithmetic Operators",
+  "lessonHeader": "➕ Arithmetic Operators",
+  "description": "Arithmetic operator is one or more symbols that tells the computer what mathematical operation it should perform on values or variables. You can use +, -, *, /, and % to perform arithmetic operations.",
+  "task": "Using integer variables a and b with values 7 and 2, calculate a + b and print the result to the console.",
+  "lessonExample": "\n    a = 7;\n    b = 2;\n\n    // printing the sum of a and b\n    cout << \"a + b = \" << (a + b) << endl;\n\n    // printing the difference of a and b\n    cout << \"a - b = \" << (a - b) << endl;\n\n    // printing the product of a and b\n    cout << \"a * b = \" << (a * b) << endl;\n\n    // printing the division of a by b\n    cout << \"a / b = \" << (a / b) << endl;\n\n    // printing the modulo of a by b\n    cout << \"a % b = \" << (a % b) << endl;\n\n",
+  "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+  "hints": [
+    "Use arithmetic operators like +, -, *, /, and %.",
+    "You can print text and values together using cout.",
+    "Parentheses help make operations clear."
+  ],
+  "requirements": { "mustInclude": ["cout", "+"] },
+  "expectedOutput": "8"
+ },
+
+  {
+    "id": 10,
+    "title": "Comparison Operators",
+    "lessonHeader": "⚖️ Comparison Operators",
+    "description": "Comparison operators are used to compare two values (or variables). This is important in programming, because it helps us to find answers and make decisions. The return value of a comparison is either 1 or 0, which means true (1) or false (0). These values are known as Boolean values, and you will learn more about them in the Booleans and If..Else chapter. Use ==, !=, >, <, >=, <= to compare values.",
+    "lessonExample": "#include <iostream>\nusing namespace std;\n\nint main() {\n  int x = 10, y = 10;\n  cout << (x > y) << endl;\n  cout << (x == y) << endl;\n  cout << (x <= y) << endl;\n  return 0;\n}",
+    "task": "Compare two integers using three different comparison operators and print each result on a new line.",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": [
+      "Use different comparison operators like >, ==, <=",
+      "cout prints 1 for true and 0 for false",
+      "Each comparison should be on its own line"
+    ],
+    "requirements": {
+      "mustInclude": ["cout", ">", "==", "<="]
+    },
+    "expectedOutput": "0\n1\n1"
+  },
+  {
+    "id": 11,
+    "title": "Logical Operators",
+    "lessonHeader": "🔀 Logical Operators",
+    "description": "A logical operator is one or two symbols or a keyword that tells the computer how to combine conditional statements. The result of using a logical operator is a boolean value (true or false). You can use &&, ||, ! to combine conditions.",
+    "task": "Use logical AND (&&) to combine two boolean values true and false, then print the result.",
+    "lessonExample": "bool a = true, b = false;\ncout << (a && b) << endl;",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use && for AND, || for OR, ! for NOT.", "cout prints 1 for true, 0 for false."],
+    "requirements": { "mustInclude": ["cout", "&&"] },
+    "expectedOutput": "0"
+  },
+  {
+    "id": 12,
+    "title": "Assignment Operators",
+    "lessonHeader": "📝 Assignment Operators",
+    "description": "An assignment operator is one or two symbols that are used to assign a value to a variable. You can use =, +=, -=, *=, /= to assign and update values.",
+    "task": "Use the += operator to add 3 to the variable a initialized to 5, then print the result.",
+    "lessonExample": "int a = 5;\na += 3;\ncout << a << endl;",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use += to add and assign.", "Other operators work similarly."],
+    "requirements": { "mustInclude": ["cout", "+="] },
+    "expectedOutput": "8"
+  },
+  {
+    "id": 13,
+    "title": "If Statements",
+    "lessonHeader": "🔀 Conditional Statements",
+    "description": "Conditional statements allow a program to make decisions based on conditions. Using an if statement, the program checks whether a condition is true or false and then runs specific code only when the condition is true. This helps control the flow of a program, making it respond differently to different inputs or situations.",
+    "task": "Check if the variable 'age' (set to 18) is greater than or equal to 18, and print 'Adult' if true.",
+    "lessonExample": "int age = 18;\nif (age >= 18) cout << \"Adult\" << endl;",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use if keyword.", "cout prints inside the condition."],
+    "requirements": { "mustInclude": ["if", "cout"] },
+    "expectedOutput": "Adult"
+  },
+  {
+    "id": 14,
+    "title": "Switch Case",
+    "lessonHeader": "🔀 Switch Statements",
+    "description": "Using switch to select one of many code paths. acting as a cleaner alternative to long if-else if chains for checking multiple conditions against the same variable or expression",
+    "task": "Use a switch statement to print 'Tue' when the variable 'day' is set to 2.",
+    "lessonExample": "int day = 2;\nswitch(day) {\n    case 1: cout << \"Mon\"; break;\n    case 2: cout << \"Tue\"; break;\n}",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "requirements": { "mustInclude": ["switch", "cout"] },
+    "expectedOutput": "Tue"
+  },
+  {
+    "id": 15,
+    "title": "For Loops",
+    "lessonHeader": "🔁 For Loops",
+    "description": "Repeat actions using for loops. In C++, a for loop is a control flow statement used to execute a block of code repeatedly for a known number of times.",
+    "task": "Use a for loop to print numbers 0 to 10.",
+    "lessonExample": "for (int i = 0; i < 3; i++) cout << i << endl;",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Set loop limit.", "Increment with i++."],
+    "requirements": { "mustInclude": ["for", "cout"] },
+    "expectedOutput": "0\n1\n2"
+  },
+  {
+    "id": 16,
+    "title": "While Loops",
+    "lessonHeader": "🔁 While Loops",
+    "description": "If the condition is true, the program will run the code inside of the while loop. It will then go back and re-evaluate the condition. Every time the condition is true, the program will perform the code inside the loop.",
+    "task": "Use a while loop to print numbers 0 to 10.",
+    "lessonExample": "int count = 0;\nwhile (count < 3) {\n    cout << count << endl;\n    count++;\n}",
+    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Initialize the counter.", "Use while with a condition."],
+    "requirements": { "mustInclude": ["while", "cout"] },
+    "expectedOutput": "0\n1\n2"
+  },
+  {
+    "id": 17,
+    "title": "C++ Exam",
+    "lessonHeader": "📝 C++ Final Exam",
+    "description": "Test your C++ knowledge covering all modules.",
+    "task": "Write a C++ program that defines a function to add two integers and prints the result of adding 5 and 7.",
+    "lessonExample": "int add(int a, int b) {\n    return a + b;\n}\ncout << add(5, 7) << endl;",
+    "startingCode": "\n// Solve the exam here#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
+    "hints": ["Use variables, loops, conditionals, and functions.", "Test your code thoroughly."],
+    "requirements": { "mustInclude": ["cout"] },
+    "expectedOutput": "12"
+  }
+]

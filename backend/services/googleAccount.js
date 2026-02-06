@@ -1,23 +1,28 @@
 import User from "../models/user.js";
+import { encryptPassword } from "../utils/hash.js";
 
 class GoogleAccount {
     constructor () {
         this.user = new User();
     }
 
-    async emailExist(email) {
-        const data = await this.user.findByEmail(email)
-        return data
-    }
-
     async loginIfExist(id, email, provider) {
-        const emailExist = await this.emailExist(email);
-        console.log(id, provider)
+        const emailExist = await this.user.findByEmail(email)
+        const hashedPassword = encryptPassword(id + email)
+        
         try {
             if (!emailExist) {
                 //Signup
-                console.log("EMAIL: Doesn't exist!")
-                return "Email Doesn't Exist"
+                const newUser = await this.user.create({ 
+                    email: email,
+                    password: hashedPassword,
+                    provider: provider
+                })
+
+                return {
+                    id: newUser.user_id,
+                    email: newUser.email
+                }
             }
 
             if (emailExist) {

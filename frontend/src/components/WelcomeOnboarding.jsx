@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/WelcomeOnboarding.module.css';
-import idleSheet from '../assets/aseprites/Idle-Sheet.png';
-import {onBoardUsername} from '../services/setUsername';
-
+import char1Preview from '/assets/characters/Char1/Animation/walkdown_ch1.png';
+import char2Preview from '/assets/characters/Char2/Animation/walkdown_ch2.png';
+import char3Preview from '/assets/characters/Char3/Animation/walkdown_ch3.png';
+import char4Preview from '/assets/characters/Char4/Animation/walkdown_ch4.png';
+import characterIcon from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon3 from '/assets/characters/icons/character3.png';
+import characterIcon4 from '/assets/characters/icons/character4.png'
+import { onBoardUsername } from '../services/setUsername';
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -13,9 +19,10 @@ const WelcomeOnboarding = ({ onComplete }) => {
 
   // Character options (you can add more character sprites here)
   const characters = [
-    { id: 0, name: 'Character 1', sprite: idleSheet, color: '#ff6b6b' },
-    { id: 1, name: 'Character 2', sprite: idleSheet, color: '#4ecdc4' },
-    { id: 2, name: 'Character 3', sprite: idleSheet, color: '#95e1d3' },
+    { id: 0, name: 'Nova', sprite: char1Preview, icon: characterIcon1, color: '#ff6b6b' },
+    { id: 1, name: 'Echo', sprite: char2Preview, icon: characterIcon, color: '#4ecdc4' },
+    { id: 2, name: 'Flux', sprite: char3Preview, icon: characterIcon3, color: '#95e1d3' },
+    { id: 3, name: 'Zephyr', sprite: char4Preview, icon: characterIcon4, color: '#8aa6ff' },
   ];
 
   const steps = [
@@ -65,11 +72,17 @@ const WelcomeOnboarding = ({ onComplete }) => {
       // }
       try {
         // Save to backend
-        const res = await onBoardUsername(username);
+        const res = await onBoardUsername(username, characters[selectedCharacter].id);
         console.log("onBoardUsername response:", res);
         if (res.success) {
           localStorage.setItem("username", username);
           localStorage.setItem("needsUsername", "false");
+          localStorage.setItem('selectedCharacter', characters[selectedCharacter].id);
+          localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
+
+          window.dispatchEvent(new CustomEvent('characterUpdated', {
+            detail: { characterIcon: characters[selectedCharacter].icon }
+          }));
             
         }
 
@@ -84,13 +97,17 @@ const WelcomeOnboarding = ({ onComplete }) => {
       setCurrentStep(currentStep + 1);
     } else {
       // Save user preferences
-      localStorage.setItem('selectedCharacter', selectedCharacter);
+      localStorage.setItem('selectedCharacter', characters[selectedCharacter].id);
+      localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
+      localStorage.setItem('username', username);
+      
+      // Dispatch custom event to notify header component
+      window.dispatchEvent(new CustomEvent('characterUpdated', {
+        detail: { characterIcon: characters[selectedCharacter].icon }
+      }));
+      
       onComplete();
     }
-  };
-
-  const handleSkip = () => {
-    onComplete();
   };
 
   const handleBack = () => {
@@ -134,16 +151,13 @@ const WelcomeOnboarding = ({ onComplete }) => {
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <button className={styles.skipButton} onClick={handleSkip}>
-            Skip
-          </button>
         </div>
 
         {/* Computer Mascot with Speech Bubble */}
         <div className={styles.mascotSection}>
           <div className={styles.mascot}>
             <img 
-              src="/src/assets/COMPUTER.png" 
+              src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" 
               alt="Computer Mascot" 
               className={styles.computerImage}
             />
@@ -167,11 +181,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
               </button>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>
@@ -189,11 +211,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.usernameSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>
@@ -225,11 +255,19 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.welcomeSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <img 
-                    src={characters[selectedCharacter].sprite} 
-                    alt="Character"
-                    className={styles.spriteImage}
-                  />
+                  <div style={{
+                    width: '128px',
+                    height: '128px',
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={characters[selectedCharacter].sprite}
+                      className={styles.spriteImage}
+                      style={{
+                        transform: 'translateX(-128px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className={styles.characterShadow}></div>
               </div>

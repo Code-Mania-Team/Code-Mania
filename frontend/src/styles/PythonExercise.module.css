@@ -101,11 +101,12 @@
 
 /* Code container - Right side */
 .code-container {
-  width: 45%;
   min-width: 400px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .code-editor,
@@ -310,11 +311,9 @@
 
 .scroll-container {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  max-width: 850px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -371,8 +370,10 @@
 }
 
 .scroll-image {
-  width: 1600px;
-  height: 950px;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
   display: block;
   image-rendering: pixelated; /* keeps the retro look */
 }
@@ -922,6 +923,107 @@
 
 /* Responsive */
 @media (max-width: 900px) {
+  .codex-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+}
+
+.game-container {
+  flex: 1;
+  min-width: 0; /* Allows flex item to shrink below content size */
+}
+
+.game-preview {
+  background: #111827;
+  border-radius: 8px;
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.mobile-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mobile-frame-image {
+  display: none;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  position: relative;
+  z-index: 1;
+}
+
+.mobile-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.mobile-controls {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.game-preview h3 {
+  margin: 0 0 1rem 0;
+  color: #38bdf8;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .main-layout {
+    flex-direction: column;
+    width: 95%;
+  }
+
+  .code-container {
+    min-width: 0;
+  }
+
+  .game-preview {
+    padding: 0.5rem;
+  }
+
+  .mobile-frame {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    height: auto;
+  }
+
+  .mobile-frame-image {
+    display: block;
+  }
+
+  .mobile-screen {
+    position: absolute;
+    top: 13.5%;
+    left: 15.5%;
+    width: 69%;
+    height: 39.5%;
+  }
+
+  .game-scene {
+    border-radius: 0;
+    min-height: 0;
+  }
+
+  .mobile-controls {
+    display: block;
+  }
+
   .codex-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;

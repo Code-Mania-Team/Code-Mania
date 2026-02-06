@@ -3,43 +3,114 @@ import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
-import pythonGif from '../assets/python.gif';
 import styles from '../styles/Dashboard.module.css';
-import { useAuth } from '../context/authProvider';
 
-const Dashboard = () => {
+import characterIcon0 from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon2 from '/assets/characters/icons/character3.png';
+import characterIcon3 from '/assets/characters/icons/character4.png';
+
+const Dashboard = ({ onSignOut }) => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [progress] = useState(9);
+  const [progress] = useState(0);
+  const [characterIcon, setCharacterIcon] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
+
+  const [hasTouchedCourse] = useState(() => {
+    return localStorage.getItem('hasTouchedCourse') === 'true';
+  });
   const [userStats, setUserStats] = useState({
     name: 'User',
-    level: 1,
-    totalXP: 68,
-    rank: 1,
-    badges: 1,
-  });
-  const { isAuthenticated, signOut } = useAuth();  
-
-  const [currentCourse] = useState({
-    name: 'Python',
-    nextExercise: 'Data Types',
-    progress: 9
+    level: 0,
+    totalXP: 0,
+    rank: 0,
+    badges: 0,
   });
 
-  const [quest] = useState({
-    name: '#30NTestOfCode',
-    current: 2,
-    total: 30,
-    reward: 'Spike',
-    timeLeft: '3 HOURS LEFT'
+  const [currentCourse] = useState(() => {
+    const lastCourseTitle = localStorage.getItem('lastCourseTitle');
+    const exerciseTitles = {
+      'Python': 'Setting Up',
+      'C++': 'The Program',
+      'JavaScript': 'Introduction'
+    };
+    return {
+      name: lastCourseTitle,
+      nextExercise: exerciseTitles[lastCourseTitle] || 'Start Learning',
+      progress: 0
+    };
   });
+
+  const lastCourseRoute = localStorage.getItem('lastCourseRoute');
+  const courseRoute = lastCourseRoute || `/learn`;
+  const courseGifs = {
+    Python: 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif',
+    'C++': 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif',
+    JavaScript: 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif',
+  };
+  const courseGif = courseGifs[currentCourse.name] || courseGifs.Python;
+  const courseAccentColor =
+    currentCourse.name === 'C++'
+      ? '#5B8FB9'
+      : currentCourse.name === 'JavaScript'
+        ? '#FFD700'
+        : '#3CB371';
 
   useEffect(() => {
+    const iconByCharacterId = {
+      0: characterIcon1,
+      1: characterIcon0,
+      2: characterIcon2,
+      3: characterIcon3,
+    };
+
+    const loadCharacterIcon = () => {
+      const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
+      const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
+      if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
+        const storedIcon = localStorage.getItem('selectedCharacterIcon');
+        setCharacterIcon(storedIcon || null);
+        return;
+      }
+
+      const expectedIcon = iconByCharacterId[storedCharacterId] || null;
+      if (expectedIcon) {
+        localStorage.setItem('selectedCharacterIcon', expectedIcon);
+      } else {
+        localStorage.removeItem('selectedCharacterIcon');
+      }
+      setCharacterIcon(expectedIcon);
+    };
+
+    loadCharacterIcon();
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'selectedCharacterIcon' || e.key === 'selectedCharacter') {
+        loadCharacterIcon();
+      }
+    };
+
+    const handleCharacterUpdate = () => {
+      loadCharacterIcon();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('characterUpdated', handleCharacterUpdate);
+
     // Check if user is new (hasn't seen onboarding)
-    const needsUsername = localStorage.getItem('needsUsername');
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    console.log('hasSeenOnboarding:', hasSeenOnboarding);
     
-    if (needsUsername === 'true') {
+    // Show onboarding if the flag is not set to 'true'
+    if (hasSeenOnboarding !== 'true') {
+      console.log('Showing onboarding');
       setShowOnboarding(true);
+    } else {
+      console.log('Skipping onboarding');
+      setShowOnboarding(false);
     }
 
     // Load username from localStorage
@@ -50,11 +121,17 @@ const Dashboard = () => {
         name: savedUsername
       }));
     }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('characterUpdated', handleCharacterUpdate);
+    };
   }, []);
 
   const handleOnboardingComplete = () => {
+    console.log('Onboarding completed');
     setShowOnboarding(false);
-    localStorage.setItem('hasSeenOnboarding', 'false');
+    localStorage.setItem('hasSeenOnboarding', 'true');
     
     // Update username after onboarding
     const savedUsername = localStorage.getItem('username');
@@ -67,9 +144,15 @@ const Dashboard = () => {
   };
 
   const handleSignOut = () => {
-    signOut();
-    localStorage.clear();
+    if (onSignOut) {
+      onSignOut();
+      return;
+    }
+    localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
+    localStorage.removeItem('selectedCharacter');
+    localStorage.removeItem('selectedCharacterIcon');
+    setIsAuthenticated(false);
     navigate('/');
   };
 
@@ -77,69 +160,118 @@ const Dashboard = () => {
     <div className={styles.container}>
       {showOnboarding && <WelcomeOnboarding onComplete={handleOnboardingComplete} />}
       <Header 
+        isAuthenticated={isAuthenticated}
         onOpenModal={() => {}}
+        onSignOut={handleSignOut}
       />
       {/* Animated Background Circles */}
-      <div className={styles.circles}>
-        <div className={`${styles.circle} ${styles.circle1}`}></div>
-        <div className={`${styles.circle} ${styles.circle2}`}></div>
-        <div className={`${styles.circle} ${styles.circle3}`}></div>
-      </div>
-      {/* Welcome Message */}
-      <div className={styles['welcome-section']}>
-        <div className={styles['robot-icon']}>
-          <img src="/src/assets/COMPUTER.png" alt="Computer" style={{ width: '60px', height: '60px' }} />
+      {styles.circles && (
+        <div className={styles.circles}>
+          <div className={`${styles.circle} ${styles.circle1}`}></div>
+          <div className={`${styles.circle} ${styles.circle2}`}></div>
+          <div className={`${styles.circle} ${styles.circle3}`}></div>
         </div>
-        <div className={styles['speech-bubble']}>
-          Hi @{userStats.name}! We've been waiting for you.
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className={styles['main-content']}>
-        {/* Left Section - Course Card */}
-        <div className={styles['left-section']}>
-          <h2 className={styles['section-title']}>Jump back in</h2>
-          
-          <div className={styles['course-card']}>
-            <div className={styles['course-header']}>
-              <div className={styles['progress-bar']}>
-                <div className={styles['progress-fill']} style={{ width: `${progress}%` }}></div>
-              </div>
-              <span className={styles['progress-text']}>{progress}%</span>
-            </div>
-
-            <div className={styles['course-content']}>
-              <div className={styles['course-image']}>
-                <img 
-                  src={pythonGif} 
-                  alt="Python Programming" 
-                  className={styles['course-gif']}
+      )}
+ 
+      <section className={styles.welcomeHero}>
+        <div className={styles.welcomeHeroInner}>
+          <div className={styles['welcome-section']}>
+            <div className={styles.welcomeBannerInner}>
+              <div className={styles.welcomeComputer}>
+                <img
+                  src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png"
+                  alt="Computer"
+                  className={styles.welcomeComputerImg}
                 />
               </div>
 
-              <div className={styles['course-info']}>
-                <span className={styles['course-label']}>COURSE</span>
-                <h1 className={styles['course-name']}>{currentCourse.name}</h1>
-                <p className={styles['next-exercise']}>Next exercise: {currentCourse.nextExercise}</p>
-              </div>
-
-              <div className={styles['course-actions']}>
-                <button className={styles['continue-btn']}>Continue Learning</button>
-                <Link to={`/learn/${currentCourse.name.toLowerCase()}`} className={styles['view-course-btn']}>
-                  View course
-                </Link>
+              <div className={styles.welcomeBannerText}>
+                <div className={styles.welcomeBannerTitle}>Everything is under CTRL</div>
+                <div className={styles.welcomeBannerSubtitle}>
+                  Hi @{userStats.name}! We've been waiting for you.
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Right Section - Profile & Quest */}
+      <div className={styles['main-content']}>
+        <div className={styles['left-section']}>
+          {!hasTouchedCourse ? (
+            <div className={styles.welcomeFirstCardInline}>
+              <div className={styles.welcomeFirstSprite}>
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" alt="Computer" className={styles.welcomeFirstSpriteImg} />
+              </div>
+              <h1 className={styles.welcomeFirstTitle}>Welcome to Code Mania!</h1>
+              <p className={styles.welcomeFirstSubtitle}>
+                Your coding journey awaits!, Choose a language to start learning.
+              </p>
+              <button
+                type="button"
+                className={styles.getStartedBtn}
+                onClick={() => navigate('/learn')}
+              >
+                Get Started
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 className={styles['section-title']}>Jump back in</h2>
+              
+              <div className={styles['course-card']} style={{ '--course-accent': courseAccentColor }}>
+                <div className={styles['course-header']}>
+                  <div className={styles['progress-bar']}>
+                    <div className={styles['progress-fill']} style={{ width: `${progress}%` }}></div>
+                  </div>
+                  <span className={styles['progress-text']}>{progress}%</span>
+                </div>
+
+                <div className={styles['course-content']}>
+                  <div className={styles['course-image']}>
+                    <img 
+                      src={courseGif} 
+                      alt={`${currentCourse.name} Programming`} 
+                      className={styles['course-gif']}
+                    />
+                  </div>
+
+                  <div className={styles['course-info']}>
+                    <span className={styles['course-label']}>COURSE</span>
+                    <h1 className={styles['course-name']}>{currentCourse.name}</h1>
+                    <p className={styles['next-exercise']}>{currentCourse.nextExercise}</p>
+                  </div>
+
+                  <div className={styles['course-actions']}>
+                    <button
+                      type="button"
+                      className={styles['continue-btn']}
+                      onClick={() => navigate(courseRoute)}
+                    >
+                      Continue Learning
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
         <div className={styles['right-section']}>
-          {/* Profile Card */}
+          {hasTouchedCourse && <div className={styles.courseTitleSpacer} />}
           <div className={styles['profile-card']}>
             <div className={styles['profile-header']}>
-              <div className={styles.avatar}>👤</div>
+              <div className={styles.avatar}>
+                {characterIcon ? (
+                  <img
+                    src={characterIcon}
+                    alt="Avatar"
+                    style={{ width: '70%', height: '70%', objectFit: 'contain', imageRendering: 'pixelated' }}
+                  />
+                ) : (
+                  '👤'
+                )}
+              </div>
               <div className={styles['profile-info']}>
                 <h3 className={styles['user-name']}>{userStats.name}</h3>
                 <p className={styles['user-level']}>Level {userStats.level}</p>
@@ -169,5 +301,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;

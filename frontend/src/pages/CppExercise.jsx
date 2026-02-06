@@ -1,25 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
+import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
-import map1 from "../assets/aseprites/map1.png";
-import exercises from "../data/cppExercises.json";
+import cppStage1Badge from "../assets/badges/C++/c++-badges1.png";
+import cppStage2Badge from "../assets/badges/C++/c++-badges2.png";
+import cppStage3Badge from "../assets/badges/C++/c++-badge3.png";
+import cppStage4Badge from "../assets/badges/C++/c++-badge4.png";
+import exercises from "../utilities/data/cppExercises.json";
+import { initPhaserGame } from "../utilities/engine/main.js";
 
 const CppExercise = () => {
 const { exerciseId } = useParams();
 const navigate = useNavigate();
+const location = useLocation();
 const [currentExercise, setCurrentExercise] = useState(null);
 const [code, setCode] = useState("");
 const [output, setOutput] = useState("");
 const [showHelp, setShowHelp] = useState(false);
-const [showScroll, setShowScroll] = useState(false);
 const [showXpPanel, setShowXpPanel] = useState(false);
+const [showStageComplete, setShowStageComplete] = useState(false);
+const [, setXpEarned] = useState(0);
 
 // === Dialogue System ===
 const dialogues = [
@@ -31,12 +38,31 @@ const [isTyping, setIsTyping] = useState(false);
 
 // Load exercise data when route changes
 useEffect(() => {
+  const searchParams = new URLSearchParams(location.search);
+  const forceStageComplete = searchParams.get("stageComplete") === "1";
+
   if (exerciseId) {
     const id = parseInt(exerciseId.split("-")[0], 10);
     if (isNaN(id)) {
       console.error('Invalid exercise ID');
       return;
     }
+    
+    // Set language for game scene
+    localStorage.setItem("lastCourseTitle", "Cpp");
+    
+    // Set mapId based on current exercise number
+    let mapId;
+    if (id === 1) {
+      mapId = "map1";
+    } else if (id === 2) {
+      mapId = "map2";
+    } else if (id === 3) {
+      mapId = "map3";
+    } else {
+      mapId = "map2"; // Default to map2 for exercises 4+
+    }
+    localStorage.setItem("currentMapId", mapId);
     
     const exercise = exercises.find((ex) => ex.id === id);
     if (!exercise) {
@@ -52,8 +78,24 @@ useEffect(() => {
     setOutput("");
     setShowHelp(false);
     setShowXpPanel(false);
+    setShowStageComplete(forceStageComplete);
   }
-}, [exerciseId]);
+}, [exerciseId, location.search]);
+
+const stageNumber = currentExercise ? Math.floor((currentExercise.id - 1) / 4) + 1 : 1;
+const lessonInStage = currentExercise ? ((currentExercise.id - 1) % 4) + 1 : 1;
+const cppStageBadges = [cppStage1Badge, cppStage2Badge, cppStage3Badge, cppStage4Badge];
+const isExam = Boolean(
+  currentExercise &&
+  ((currentExercise.title && currentExercise.title.toLowerCase().includes("exam")) ||
+    (currentExercise.lessonHeader && currentExercise.lessonHeader.toLowerCase().includes("exam")))
+);
+const debugStageNumber = (() => {
+  const searchParams = new URLSearchParams(location.search);
+  const n = parseInt(searchParams.get("stage"), 10);
+  return Number.isFinite(n) ? n : null;
+})();
+const displayStageNumber = debugStageNumber ?? stageNumber;
 
 // Navigation functions
 const goToNextExercise = () => {
@@ -81,6 +123,14 @@ useEffect(() => {
 handleNextDialogue();
 }, []);
 
+useEffect(() => {
+  const game = initPhaserGame("phaser-container");
+
+  return () => {
+    if (game) game.cleanup();
+  };
+}, [exerciseId]); // Restart game when exerciseId changes
+
 const handleNextDialogue = () => {
   if (isTyping) return;
   const nextText = dialogues[currentDialogue];
@@ -99,24 +149,58 @@ const handleNextDialogue = () => {
         prev + 1 < dialogues.length ? prev + 1 : prev
       );
     }
-  }, 40);
+  }, 40); // typing speed
 };
 
-// Run code — In C++ we simulate output by showing expectedOutput
 const handleRunCode = () => {
-if (!currentExercise) return;
-  setOutput("Compiling...\n");
-
+setOutput("Running cpp...\n");
 setTimeout(() => {
-  setOutput(currentExercise.expectedOutput || "✔ Code compiled!");
-  setXpEarned(100); // Assuming 100 XP is earned for each successful submit
+  try {
+    // Capture console.log output
+    const logs = [];
+    const originalLog = console.log;
+    console.log = (...args) => {
+      logs.push(args.join(" "));
+      originalLog(...args);
+    };
+
+    // Execute the code (in a real app, you'd send this to a backend)
+    eval(code);
+
+    // Restore console.log
+    console.log = originalLog;
+
+    const resultText = logs.length > 0
+      ? `${logs.join("\n")}\n`
+      : "Program ran successfully.\n";
+    setOutput(resultText);
+
+if (lessonInStage === 4) {
+  setShowStageComplete(true);
+  setShowXpPanel(false);
+} else {
   setShowXpPanel(true);
+  setShowStageComplete(false);
+}
+  } catch (error) {
+    setOutput(
+      `Error: ${error.message}\n>>> Program failed`
+    );
+    setShowXpPanel(false);
+    setShowStageComplete(false);
+  }
 }, 500);
+};
+
+const handleStageContinue = () => {
+  setShowStageComplete(false);
+  setShowXpPanel(false);
+  goToNextExercise();
 };
 
 // --- Auth modal setup ---
 const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-const [isAuthenticated, setIsAuthenticated] = useState(false);
+const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('isAuthenticated') === 'true');
 const [user, setUser] = useState(null);
 
 const handleOpenModal = () => setIsSignInModalOpen(true);
@@ -126,6 +210,8 @@ const handleSignInSuccess = () => {
 const mockUser = { name: "Coder", email: "[coder@example.com](mailto:coder@example.com)" };
 setUser(mockUser);
 setIsAuthenticated(true);
+localStorage.setItem('isAuthenticated', 'true');
+window.dispatchEvent(new Event('authchange'));
 setIsSignInModalOpen(false);
 };
 
@@ -133,6 +219,7 @@ return (
 <div className={styles["javascript-exercise-page"]}>
 <div className={styles["scroll-background"]}></div>
 <Header
+isAuthenticated={isAuthenticated}
 onOpenModal={isAuthenticated ? null : handleOpenModal}
 user={user}
 />
@@ -146,9 +233,10 @@ user={user}
 
   <div className={styles["codex-fullscreen"]}>
     <ProgressBar
-      currentLesson={currentExercise ? currentExercise.id : 1}
-      totalLessons={exercises.length}
+      currentLesson={lessonInStage}
+      totalLessons={4}
       title={currentExercise?.lessonHeader || "⚙️ C++ Basics"}
+      variant={isExam ? "titleOnly" : "full"}
     />
 
     <div className={styles["main-layout"]}>
@@ -156,100 +244,28 @@ user={user}
       <div className={styles["game-container"]}>
         <div className={styles["game-preview"]}>
           <div
+            id="phaser-container"
             className={styles["game-scene"]}
             style={{
-              backgroundImage: `url(${map1})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
               minHeight: "400px",
               position: "relative",
               borderRadius: "8px",
               overflow: "hidden",
             }}
           >
-            {!showScroll && (
-              <button
-                onClick={() => setShowScroll(true)}
-                className={styles["show-scroll-btn"]}
-              >
-                View Challenge
-              </button>
-            )}
-
-            {showScroll && (
-              <div className={styles["scroll-container"]}>
-                <img
-                  src="/src/assets/aseprites/scroll.png"
-                  alt="Scroll"
-                  className={styles["scroll-image"]}
-                />
-
-                <div className={styles["scroll-content"]}>
-                  <h2>
-                    {currentExercise?.lessonHeader || "⚙️ C++ Exercise"}
-                  </h2>
-                  <p>
-                    {currentExercise?.description ||
-                      "Complete the C++ challenge below."}
-                  </p>
-
-                  {currentExercise?.lessonExample && (
-                    <div className={styles["code-example"]}>
-                      <h3>Example:</h3>
-                      <pre>{currentExercise.lessonExample}</pre>
-                    </div>
-                  )}
-
-                  <h3>Your Task:</h3>
-                  <p>
-                    {currentExercise?.description ||
-                      "Complete the C++ code below."}
-                  </p>
-
-                  <div className={styles.navigation}>
-                    <button
-                      onClick={goToPrevExercise}
-                      disabled={!currentExercise || currentExercise.id <= 1}
-                      className={styles.navButton}
-                    >
-                      <ChevronLeft size={20} /> Previous
-                    </button>
-
-                    <span>
-                      Exercise {currentExercise?.id || 1} of{" "}
-                      {exercises.length}
-                    </span>
-
-                    <button
-                      onClick={goToNextExercise}
-                      disabled={
-                        !currentExercise ||
-                        currentExercise.id >= exercises.length
-                      }
-                      className={styles.navButton}
-                    >
-                      Next <ChevronRight size={20} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Right Side - Code & Terminal */}
+      {/* Right Side - Code Editor and Terminal */}
       <div className={styles["code-container"]}>
         <div className={styles["code-editor"]}>
           <div className={styles["editor-header"]}>
             <span>main.cpp</span>
-            <button
-              className={`${styles["run-btn"]} ${
-                !showScroll ? styles["disabled-btn"] : ""
-              }`}
+            <button 
+              className={styles["run-btn"]} 
               onClick={handleRunCode}
-              disabled={!showScroll}
+              title="Run code"
             >
               <Play size={16} /> Run
             </button>
@@ -263,60 +279,43 @@ user={user}
 
         <div className={styles["terminal"]}>
           <div className={styles["terminal-header"]}>
-            Output
-            <button
-              className={`${styles["submit-btn"]} ${
-                !showScroll ? styles["disabled-btn"] : ""
-              }`}
+            Console
+            <button 
+              className={styles["submit-btn"]}
               onClick={handleRunCode}
-              disabled={!showScroll}
+              title="Submit code"
             >
               Submit
             </button>
           </div>
-
           <div className={styles["terminal-body"]}>
+            <div className={styles["terminal-line"]}>
+            </div>
             {output && (
               <div className={styles["terminal-output"]}>{output}</div>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <h3 className={styles["help-title"]}>Help</h3>
-    <div className={styles["help-section"]}>
-      <div
-        className={styles["help-header"]}
-        onClick={() => setShowHelp((prev) => !prev)}
-      >
-        <span>💡 Hint</span>
-        <span className={styles["help-arrow"]}>
-          {showHelp ? "▴" : "▾"}
-        </span>
-      </div>
-
-      {showHelp && (
-        <div
-          className={styles["dialogue-terminal"]}
-          onClick={handleNextDialogue}
-        >
-          <div className={styles["terminal-line"]}>
-            <span className={styles["dialogue-text"]}>
-              {displayedText}
+            <div className={styles["terminal-line"]}>
+              <span className={styles["prompt"]}>›</span>
               <span className={styles["cursor"]}></span>
-            </span>
+            </div>
           </div>
         </div>
-      )}
+        <XpNotification
+          show={showXpPanel}
+          onClose={() => setShowXpPanel(false)}
+          onNext={goToNextExercise}
+        />
+        <StageCompleteModal
+          show={showStageComplete}
+          stageNumber={displayStageNumber}
+          languageLabel="C++"
+          badgeSrc={cppStageBadges[displayStageNumber - 1]}
+          onContinue={handleStageContinue}
+          onClose={() => setShowStageComplete(false)}
+        />
+      </div>
     </div>
   </div>
-
-  <XpNotification
-    show={showXpPanel}
-    onClose={() => setShowXpPanel(false)}
-    onNext={goToNextExercise}
-  />
 
   <Footer />
 </div>

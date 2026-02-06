@@ -12,11 +12,13 @@ class FreedomWallController {
         const { content } = req.body || {};
         
         await this.post.createPost(user_id, content);
+        const character_id = await this.post.getCharacterIdByUserId(user_id);
         res.send({
             success: true,
             message: "Freedom Wall post created successfully",
             data:{
                 user_id: user_id,
+                character_id: character_id,
                 username: res.locals.username,
                 content: content,
                 created_at: new Date().toISOString()

@@ -1,126 +1,41 @@
 import { supabase } from "../core/supabaseClient.js";
-import { encryptPassword } from "../utils/hash.js";
-import { generateOtp, sendOtpEmail } from "../utils/otp.js";
 
 class User {
     constructor() {
         this.db = supabase;
     }
 
-    // STEP 1 → Insert / Update temp_user 
-    async createTempUser(email, password) {
-        const otp = generateOtp();
-        const hashedPassword = encryptPassword(password);
-        const expiresAt = new Date(Date.now() + 1000 * 60 * 1000); // 1 mins
-
-        // Check if user already exists
-        // const existingUser = await this.findByEmail(email);
-        // if (existingUser.email) throw new Error("email") // return existingUser;  // for signup OTP, user already exists
-
-        console.log("OTP for", email, "is", otp);
-        
-        
-        const { data, error } = await supabase
-            .from("temp_user")
-            .upsert(
-                {
-                    email,
-                    password: hashedPassword,
-                    otp,
-                    expiry_time: expiresAt.toISOString(),
-                    is_verified: false,
-                    created_at: new Date().toISOString()
-                },
-                { onConflict: ["email"] }
-            )
-            .select("*")
-            .maybeSingle();
-
-        if (error) throw error;
-
-        await sendOtpEmail(email, otp);
-
-        return data;
-    }
-
-    // VERIFY OTP
-    async updateTempUser(email, otp) {
-        const { data: tempUser, error } = await this.db
-            .from("temp_user")
-            .select("*")
-            .eq("email", email)
-            .eq("otp", otp)
-            .maybeSingle();
-        
-            console.log("OTP Entry:", tempUser);
-        if (error) throw error;                 // handle Supabase error
-        if (!tempUser) throw new Error("OTP not found");
-        if (tempUser.is_verified) throw new Error("OTP already used");
-        if (new Date(tempUser.expiry_time) < new Date()) throw new Error("OTP expired");
-
-        // Mark temporary user as verified
-        await this.db
-            .from("temp_user")
-            .update({ is_verified: true })
-            .eq("temp_user_id", tempUser.temp_user_id);
-
-        // Create new user if not exists
-        const { data: newUser, error: createError } = await this.db
-            .from("users")
-            .insert({
-                email: tempUser.email,
-                password: tempUser.password
-            })
-            .select("*")
-            .maybeSingle();
-
-        if (createError) throw createError;
-
-        return newUser;
-    }
-
     // Helper: find user by email
     async findByEmail(email) {
         const { data } = await this.db
             .from("users") // can be users table or temp_user (this should be temp_users with "s")
-            .select("email") // just select what column is needed, user_id, password, username are not necessary
+            .select("user_id, password, provider") // just select what column is needed, user_id, password, username are not necessary
             .eq("email", email)
             .maybeSingle();
         return data;
     }
 
-    //new login function na walang otp
-    async getUser(email, password) {
-        try {
-            
-            // const user = await this.findByEmail(email);
-            // if (!user.email) throw new Error("Email not registered");
+    async findByEmailAndPasswordHash(email, password) {
+        const { data, error } = await this.db
+            .from("users")
+            .select("user_id, username, email, full_name, profile_image, provider, created_at")
+            .eq("email", email)
+            .eq("password", password);
 
-            
-            const hashedPassword = encryptPassword(password);
-            // if (hashedPassword !== user.password) {
-            //     throw new Error("Incorrect password");
-            // }
+        if (error) throw error;
+        const [result] = data || [];
+        return result;
+    }
 
-            const { data, error } = await this.db
-                .from("users")
-                .select("user_id, username, email, password, provider")
-                .eq("email", email)
-                .eq("password", hashedPassword); 
+    async create({ email, password, provider }) {
+        const { data, error } = await this.db
+            .from("users")
+            .insert({ email, password, provider })
+            .select("*")
+            .maybeSingle();
 
-            if (error) throw error;
-            // console.log(`USER MODEL LOGIN: ${data}`)
-
-            // if (!data || data.length === 0) {
-            //     throw new Error("Invalid username or password");
-            // }
-
-            const [result] = data; 
-            return result;
-        } catch (err) {
-            // console.error("<error> user.verify", err);
-            throw err;
-        }
+        if (error) throw error;
+        return data;
     }
 
     //comment for now baka mabago ulit
@@ -167,21 +82,23 @@ class User {
     
 
     // ONE-TIME USERNAME SETUP
-    async setUsername(user_id, username) {
-        const { data } = await this.db
+    async setUsernameandCharacter(user_id, username, character_id) {
+        const { data, error } = await this.db
             .from("users")
-            .update({ username })
+            .update({ username, character_id })
             .eq("user_id", user_id)
-            .select()
-            .single();
+            .select();
+        console.log("SET USERNAME AND CHARACTER DATA:", data);
+        if (error) throw error;
         return data;
     }
+
 
     // PROFILE
     async getProfile(user_id) {
         const { data } = await this.db
             .from("users")
-            .select("user_id, email, username, full_name, profile_image, created_at")
+            .select("user_id, email, username, full_name, profile_image, character_id, created_at")
             .eq("user_id", user_id)
             .single();
         return data;
@@ -197,7 +114,7 @@ class User {
         return data;
     }
 
-    async deleteUser(user_id) {
+    async delete(user_id) {
         const { data } = await this.db
             .from("users")
             .delete()
@@ -205,9 +122,6 @@ class User {
             .select()
             .single();
         return data;
-    }
-    async logout() {
-        return { message: "cookies removed successfully" };
     }
 }
 

@@ -1,6 +1,7 @@
 // server.js (cleaned & fixed)
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import cookieSession from 'cookie-session';
 import cors from 'cors';
 import morgan from 'morgan';
 import 'dotenv/config.js';
@@ -17,6 +18,15 @@ const port = process.env.PORT || 3000;
 ----------------------------------- */
 app.use(morgan('combined'));
 app.use(cookieParser());
+
+// app.use(passport.initialize());
+// if (passport.initialize()) {
+//   console.log('Initialize passport')
+// } else { console.error('Passport initialization failed.')}
+// app.use(passport.session());
+// if (passport.session()) {
+//   console.log('Passport session.')
+// } else { console.error('Passport session failed.')}
 
 app.use(
   cors({

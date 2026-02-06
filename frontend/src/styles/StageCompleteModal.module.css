@@ -1,0 +1,88 @@
+/* StageCompleteModal.module.css */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: #1a1a1a;
+  border: 2px solid #2d2d2d;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  color: white;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #fbbf24;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.badgeWrap {
+  margin: 1.5rem 0;
+}
+
+.badge {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.continueBtn,
+.closeBtn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.continueBtn {
+  background: #10b981;
+  color: white;
+}
+
+.continueBtn:hover {
+  background: #059669;
+}
+
+.closeBtn {
+  background: #374151;
+  color: white;
+}
+
+.closeBtn:hover {
+  background: #1f2937;
+}

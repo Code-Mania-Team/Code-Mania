@@ -1,48 +1,53 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Lock, CheckCircle, Circle } from "lucide-react";
+import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
-import { useProfile } from "../hooks/useProfile";
+
+const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const PythonCourse = () => {
-  
   const navigate = useNavigate();
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { profile, loading, isAuthenticated } = useProfile();
-  console.log("Profile data:", profile);
-  console.log("profile data:", profile?.data);
-  const handleViewProfile = () => {
-    if (loading) return; // optional: wait for profile to load
-    if (isAuthenticated) {
-      setIsModalOpen(false); // show profile modal
-      navigate(`/profile`);
-    } else {
-      // optionally, show login modal if not authenticated
-      setIsModalOpen(true);
-    }
+
+  const onOpenModal = () => {
+    setIsModalOpen(true);
   };
 
   const onCloseModal = () => {
     setIsModalOpen(false);
   };
 
+  const handleViewProfile = () => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else {
+      onOpenModal();
+    }
+  };
+
   const handleStartExercise = (moduleId, exerciseName) => {
+    localStorage.setItem('hasTouchedCourse', 'true');
+    localStorage.setItem('lastCourseTitle', 'Python');
+    localStorage.setItem('lastCourseRoute', '/learn/python');
     const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
     navigate(`/learn/python/exercise/${moduleId}-${exerciseId}`);
   };
 
   const userProgress = {
-    name: (loading ? "Loading..." : profile?.data?.username || "Your Name"),
+    name: localStorage.getItem('username') || 'Your Name',
     level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: 0,
-    totalXp: 1600
+    totalXp: 3600
   };
+
+  const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
 
   const modules = [
     {
@@ -88,7 +93,15 @@ const PythonCourse = () => {
         { id: 3, name: "Range Function", status: "locked" },
         { id: 4, name: "Nested Loops", status: "locked" }
       ]
-    }
+    },
+    {
+    id: 5,
+    title: "Examination",
+    description: "Test your Python knowledge. Complete all previous modules to unlock this exam.",
+    exercises: [
+      { id: 1, name: "Python Exam", status: "locked" }
+    ]
+  }
   ];
 
   const toggleModule = (moduleId) => {
@@ -96,7 +109,9 @@ const PythonCourse = () => {
   };
 
   const getStatusIcon = (status) => {
-    if (status === "completed") return <CheckCircle className="status-icon completed" />;
+    if (status === "completed") {
+      return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
+    }
     if (status === "locked") return <Lock className="status-icon locked" />;
     return <Circle className="status-icon available" />;
   };
@@ -146,7 +161,9 @@ const PythonCourse = () => {
                     {module.exercises.map((exercise) => (
                       <div key={exercise.id} className={`exercise-item ${exercise.status}`}>
                         <div className="exercise-info">
-                          <span className="exercise-number">Exercise {exercise.id}</span>
+                          {module.id !== 5 && (
+                            <span className="exercise-number">Exercise {exercise.id}</span>
+                          )}
                           <span className="exercise-name">{exercise.name}</span>
                         </div>
                         <div className="exercise-status">
@@ -176,18 +193,13 @@ const PythonCourse = () => {
         <div className="sidebar">
           <div className="profile-card">
             <div className="profile-avatar">
-              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=user" alt="Profile" />
+              <img src={characterIcon} alt="Profile" />
             </div>
             <div className="profile-info">
               <h4>{userProgress.name}</h4>
               <p>Level {userProgress.level}</p>
             </div>
             <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
-              <SignInModal 
-                isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)}
-                onSignInSuccess={(token) => login(token)} 
-              />
           </div>
 
           <div className="progress-card">

@@ -12,7 +12,7 @@
   position: relative;
   width: 100%;
   min-height: 350px;
-  background: url('/src/assets/c++.gif') center/cover no-repeat;
+  background: url('https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,6 +77,26 @@
   font-size: 1.5rem;
   color: #5B8FB9;
   font-weight: bold;
+}
+
+/* Status Icons */
+.status-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.status-icon.completed {
+  width: 50px;
+  height: 50px;
+  color: #5B8FB9;
+}
+
+.status-icon.locked {
+  color: #64748b;
+}
+
+.status-icon.available {
+  color: #3b82f6;
 }
 
 /* Exercise Item - C++ Blue Border */

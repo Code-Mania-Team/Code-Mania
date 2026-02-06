@@ -11,10 +11,14 @@ const account = new AccountController();
 // Optional: protect some routes with authorization middleware
 // accountRouter.use(authorization);
 
-// 🔹 Request OTP (signup or login) – single endpoint
-accountRouter.post('/sign-up/request-otp', account.requestOtp.bind(account));
+// Request OTP (signup or login) – single endpoint
+accountRouter.post('/signup/request-otp', account.requestOtp.bind(account));
 
-accountRouter.post('/sign-up/verify-otp', account.verifyOtp.bind(account));
+// Verify OTP after user clicks or enters it
+accountRouter.post('/signup/verify-otp', account.verifyOtp.bind(account));
+
+// Set username (requires authentication)
+accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
 
 accountRouter.post('/login', account.login.bind(account));
 
@@ -26,18 +30,15 @@ accountRouter.get('/login/google/redirect', passport.authenticate('google', { se
     account.googleLogin(req, res);
 });
 
-// 🔹 Set username (requires authentication)
-accountRouter.post('/username', authentication, account.setUsername.bind(account));
-
 accountRouter.post('/logout', authentication, account.logout.bind(account));
 
-// 🔹 Get current user's profile
+// Get current user's profile
 accountRouter.get('/', authentication, account.profile.bind(account));
 
-// 🔹 Update profile (username/bio)
+// Update profile (username/full_name)
 accountRouter.patch('/', authentication, account.updateProfile.bind(account));
 
-// 🔹 Delete account
+// Delete account
 accountRouter.delete('/', authentication, account.deleteUser.bind(account));
 
 export default accountRouter;

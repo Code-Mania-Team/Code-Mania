@@ -1,71 +1,134 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
-import crown from "../assets/crown.png";
-import profileIcon from "../assets/profile-icon.png";
-import { useAuth } from "../context/authProvider"; 
 
+import characterIcon0 from '/assets/characters/icons/character.png';
+import characterIcon1 from '/assets/characters/icons/character1.png';
+import characterIcon2 from '/assets/characters/icons/character3.png';
+import characterIcon3 from '/assets/characters/icons/character4.png';
 
-const Header = ({onOpenModal}) => {
+const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
+const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
+
+const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [characterIcon, setCharacterIcon] = useState(null);
   const navigate = useNavigate();
-  const { isAuthenticated, signOut } = useAuth();
-  
+
+  // Load character icon from localStorage
+  useEffect(() => {
+    const iconByCharacterId = {
+      0: characterIcon1,
+      1: characterIcon0,
+      2: characterIcon2,
+      3: characterIcon3,
+    };
+
+    const loadCharacterIcon = () => {
+      const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
+      const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
+      if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
+        const storedIcon = localStorage.getItem('selectedCharacterIcon');
+        setCharacterIcon(storedIcon || null);
+        return;
+      }
+
+      const expectedIcon = iconByCharacterId[storedCharacterId] || null;
+      if (expectedIcon) {
+        localStorage.setItem('selectedCharacterIcon', expectedIcon);
+      } else {
+        localStorage.removeItem('selectedCharacterIcon');
+      }
+      setCharacterIcon(expectedIcon);
+    };
+
+    // Load immediately
+    loadCharacterIcon();
+
+    // Listen for storage changes (for cross-tab updates)
+    const handleStorageChange = (e) => {
+      if (e.key === 'selectedCharacterIcon' || e.key === 'selectedCharacter') {
+        loadCharacterIcon();
+      }
+    };
+
+    // Also listen for custom events (for same-tab updates)
+    const handleCharacterUpdate = () => {
+      loadCharacterIcon();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('characterUpdated', handleCharacterUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('characterUpdated', handleCharacterUpdate);
+    };
+  }, []);
+
+  const homePath = isAuthenticated ? '/dashboard' : '/';
 
   const handleProfileClick = () => {
     navigate('/profile');
+    setIsMenuOpen(false);
   };
 
-  // const handleSignOut = (e) => {
-  //   e.stopPropagation();
-  //   localStorage.clear();   // clears everything
-  //   onSignOut();
-  //   navigate('/');
-    
-  // };
-
-  const handleSignOut = async (e) => {
-    e.stopPropagation();
-    localStorage.clear();
-    await signOut();
-    navigate('/');
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
     <header className="header">
       <div className="logo">
-        <img src={crown} alt="Code Mania Logo" />
-        <h1 className="logo-text"><NavLink to="/">Code Mania</NavLink></h1>
+        <NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>
+          <img src={crown} alt="Code Mania Logo" />
+        </NavLink>
+        <h1 className="logo-text"><NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>Code Mania</NavLink></h1>
       </div>
 
-      <nav className="nav">
-        <NavLink to="/" className="nav-link">HOME</NavLink>
+      <button 
+        className="hamburger" 
+        onClick={toggleMenu}
+        aria-label="Menu"
+      >
+        <img 
+          src={burgerIcon} 
+          alt="Menu" 
+          className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`} 
+        />
+      </button>
+
+      <nav className={`nav ${isMenuOpen ? 'is-active' : ''}`}>
+        <NavLink to={homePath} className="nav-link" onClick={() => setIsMenuOpen(false)}>HOME</NavLink>
 
         <div className="nav-dropdown">
-          <NavLink to="/learn" className="nav-link">LEARN</NavLink>
+          <NavLink to="/learn" className="nav-link" onClick={() => setIsMenuOpen(false)}>LEARN</NavLink>
           <div className="dropdown-menu">
-            <Link to="/learn/python" className="dropdown-item">Python</Link>
-            <Link to="/learn/cpp" className="dropdown-item">C++</Link>
-            <Link to="/learn/javascript" className="dropdown-item">JavaScript</Link>
+            <Link to="/learn/python" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>Python</Link>
+            <Link to="/learn/cpp" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>C++</Link>
+            <Link to="/learn/javascript" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>JavaScript</Link>
           </div>
         </div>
 
-        <NavLink to="/community" className="nav-link">COMMUNITY</NavLink>
-        <NavLink to="/leaderboard" className="nav-link">LEADERBOARD</NavLink>
+        <NavLink to="/freedomwall" className="nav-link" onClick={() => setIsMenuOpen(false)}>FREEDOM WALL</NavLink>
+        <NavLink to="/leaderboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>LEADERBOARD</NavLink>
 
-        {isAuthenticated === true? (
+        {isAuthenticated ? (
           <div className="profile-icon-container" onClick={handleProfileClick}>
             <div className="profile-icon">
-              <span role="img" aria-label="Profile">👤</span>
-            </div>
-            
-            <div className="profile-dropdown">
-              <button className="dropdown-item" onClick={handleSignOut}>
-                Sign Out
-              </button>
+              {characterIcon ? (
+                <img 
+                  src={characterIcon} 
+                  alt="Profile" 
+                  className="profile-character-icon"
+                />
+              ) : (
+                <span role="img" aria-label="Profile">👤</span>
+              )}
             </div>
           </div>
         ) : (
-          <button className="sign-in-btn" onClick={onOpenModal}>
+          <button className="sign-in-btn" onClick={() => { onOpenModal(); setIsMenuOpen(false); }}>
             Sign In
           </button>
         )}

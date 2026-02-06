@@ -4,7 +4,7 @@ const verifyOtp = async (email, otp) => {
 
   try {
     const response = await axios.post(
-      "http://localhost:3000/v1/account/verify-otp",
+      "http://localhost:3000/v1/account/signup/verify-otp",
       { email, otp },
       {
         headers: {
@@ -14,9 +14,6 @@ const verifyOtp = async (email, otp) => {
         withCredentials: true,
       }
     );
-    if (response.data?.token) {
-      localStorage.setItem("token", response.data.token);
-    }
     console.log("Sign-up response:", response.data);
     return response.data;
   } catch (error) {
