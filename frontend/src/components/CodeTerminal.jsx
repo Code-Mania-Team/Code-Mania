@@ -108,7 +108,7 @@ const InteractiveTerminal = () => {
 
     // ✅ FIX: remove trailing space
     const socket = new WebSocket(
-      "https://scientist-machines-paxil-defined.trycloudflare.com"
+      "wss://terminal.codemania.fun"
     );
 
     socketRef.current = socket;

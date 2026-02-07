@@ -121,31 +121,37 @@ export default class GameScene extends Phaser.Scene {
 
   }
   onQuestComplete = (e) => {
-      const questId = e.detail?.questId;
-      console.log("📥 received quest-complete", e.detail);
-      if (!questId) return;
+    const questId = e.detail?.questId;
+    if (!questId) return;
 
-      const quest = this.questManager.getQuestById(questId);
-      if (!quest || !quest.badgeKey) return;
+    const quest = this.questManager.getQuestById(questId);
+    if (!quest) return;
 
-      if (quest.grants) {
-        this.worldState.abilities.add(quest.grants);
-        console.log("🎒 Obtained:", quest.grants);
-      }
+    const gainedExp = quest.experience || 0;
 
+    // 🎒 Grant ability (if any)
+    if (quest.grants) {
+      this.worldState.abilities.add(quest.grants);
+    }
+
+    // ✅ ALWAYS show quest completed toast
+    this.questCompleteToast.show({
+      title: quest.title,
+      badgeKey: quest.badgeKey || null, // toast can ignore if null
+      exp: gainedExp
+    });
+
+    // 🏅 ONLY show badge UI if quest has badge
+    if (quest.badgeKey) {
       const badge = BADGES[quest.badgeKey];
       if (!badge) return;
-
-      this.questCompleteToast.show({
-        title: quest.title,
-        badgeKey: badge.key
-      });
 
       this.badgeUnlockPopup.show({
         badgeKey: badge.key,
         label: quest.title
       });
-    };
+    }
+  };
 
   create() {
     // 🗺 MAP

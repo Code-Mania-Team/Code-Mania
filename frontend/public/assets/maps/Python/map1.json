@@ -244,33 +244,6 @@
          "name":"triggers",
          "objects":[
                 {
-                 "height":48,
-                 "id":11,
-                 "name":"cutscene",
-                 "properties":[
-                        {
-                         "name":"cutscene",
-                         "type":"string",
-                         "value":"map1_intro"
-                        }, 
-                        {
-                         "name":"name",
-                         "type":"string",
-                         "value":"cutscene"
-                        }, 
-                        {
-                         "name":"type",
-                         "type":"string",
-                         "value":"trigger"
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":96.5,
-                 "x":1008,
-                 "y":192
-                }, 
-                {
                  "height":0,
                  "id":16,
                  "name":"exit",
@@ -994,13 +967,13 @@
          "margin":0,
          "name":"A1",
          "spacing":0,
-         "tilecount":192,
+         "tilecount":0,
          "tileheight":48,
          "tilewidth":48
         }, 
         {
          "columns":16,
-         "firstgid":1025,
+         "firstgid":833,
          "image":"..\/..\/tilesets\/Python\/B_4.png",
          "imageheight":768,
          "imagewidth":768,
