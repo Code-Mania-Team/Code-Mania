@@ -112,9 +112,9 @@ const JavaScriptCourse = () => {
   // Update user progress based on completed exercises
   const updatedUserProgress = {
     exercisesCompleted: completedExercises.length,
-    totalExercises: 16,
+    totalExercises: 17,
     xpEarned: completedExercises.length * 225, // 225 XP per exercise
-    totalXp: 3600
+    totalXp: 3825
   };
 
   const modules = [
@@ -134,10 +134,10 @@ const JavaScriptCourse = () => {
       title: "Functions & Scope",
       description: "Master functions, parameters, and understand variable scope in JavaScript.",
       exercises: [
-        { id: 1, name: "Function Basics", status: "locked" },
-        { id: 2, name: "Parameters & Arguments", status: "locked" },
-        { id: 3, name: "Return Values", status: "locked" },
-        { id: 4, name: "Arrow Functions", status: "locked" }
+        { id: 5, name: "Function Basics", status: "locked" },
+        { id: 6, name: "Parameters & Arguments", status: "locked" },
+        { id: 7, name: "Return Values", status: "locked" },
+        { id: 8, name: "Arrow Functions", status: "locked" }
       ]
     },
     {
@@ -145,10 +145,10 @@ const JavaScriptCourse = () => {
       title: "Arrays & Objects",
       description: "Learn to work with arrays and objects to store and manipulate complex data.",
       exercises: [
-        { id: 1, name: "Arrays", status: "locked" },
-        { id: 2, name: "Array Methods", status: "locked" },
-        { id: 3, name: "Objects", status: "locked" },
-        { id: 4, name: "Object Methods", status: "locked" }
+        { id: 9, name: "Arrays", status: "locked" },
+        { id: 10, name: "Array Methods", status: "locked" },
+        { id: 11, name: "Objects", status: "locked" },
+        { id: 12, name: "Object Methods", status: "locked" }
       ]
     },
     {
@@ -156,10 +156,10 @@ const JavaScriptCourse = () => {
       title: "DOM Manipulation",
       description: "Interact with web pages by manipulating the Document Object Model.",
       exercises: [
-        { id: 1, name: "Selecting Elements", status: "locked" },
-        { id: 2, name: "Modifying Content", status: "locked" },
-        { id: 3, name: "Event Listeners", status: "locked" },
-        { id: 4, name: "Dynamic Styling", status: "locked" }
+        { id: 13, name: "Selecting Elements", status: "locked" },
+        { id: 14, name: "Modifying Content", status: "locked" },
+        { id: 15, name: "Event Listeners", status: "locked" },
+        { id: 16, name: "Dynamic Styling", status: "locked" }
       ]
     },
     {
@@ -167,7 +167,7 @@ const JavaScriptCourse = () => {
       title: "Examination",
       description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
       exercises: [
-        { id: 1, name: "JavaScript Exam", status: "locked" }
+        { id: 17, name: "JavaScript Exam", status: "locked" }
       ]
     }
   ];

@@ -78,10 +78,10 @@ const PythonCourse = () => {
       title: "Variables & Data Types",
       description: "Understand how to store and manipulate data using variables in Python.",
       exercises: [
-        { id: 1, name: "Variables", status: "locked" },
-        { id: 2, name: "Strings", status: "locked" },
-        { id: 3, name: "Numbers", status: "locked" },
-        { id: 4, name: "Booleans", status: "locked" }
+        { id: 5, name: "Variables", status: "locked" },
+        { id: 6, name: "Strings", status: "locked" },
+        { id: 7, name: "Numbers", status: "locked" },
+        { id: 8, name: "Booleans", status: "locked" }
       ]
     },
     {
@@ -89,10 +89,10 @@ const PythonCourse = () => {
       title: "Control Flow",
       description: "Master conditional statements and decision-making in your programs.",
       exercises: [
-        { id: 1, name: "If Statements", status: "locked" },
-        { id: 2, name: "Else & Elif", status: "locked" },
-        { id: 3, name: "Comparison", status: "locked" },
-        { id: 4, name: "Logical Operators", status: "locked" }
+        { id: 9, name: "If Statements", status: "locked" },
+        { id: 10, name: "Else & Elif", status: "locked" },
+        { id: 11, name: "Comparison", status: "locked" },
+        { id: 12, name: "Logical Operators", status: "locked" }
       ]
     },
     {
@@ -100,20 +100,20 @@ const PythonCourse = () => {
       title: "Loops",
       description: "Learn how to repeat code efficiently using for and while loops.",
       exercises: [
-        { id: 1, name: "For Loops", status: "locked" },
-        { id: 2, name: "While Loops", status: "locked" },
-        { id: 3, name: "Range Function", status: "locked" },
-        { id: 4, name: "Nested Loops", status: "locked" }
+        { id: 13, name: "For Loops", status: "locked" },
+        { id: 14, name: "While Loops", status: "locked" },
+        { id: 15, name: "Range Function", status: "locked" },
+        { id: 16, name: "Nested Loops", status: "locked" }
       ]
     },
     {
-    id: 5,
-    title: "Examination",
-    description: "Test your Python knowledge. Complete all previous modules to unlock this exam.",
-    exercises: [
-      { id: 1, name: "Python Exam", status: "locked" }
-    ]
-  }
+      id: 5,
+      title: "Examination",
+      description: "Test your Python knowledge. Complete all previous modules to unlock this exam.",
+      exercises: [
+        { id: 17, name: "Python Exam", status: "locked" }
+      ]
+    }
   ];
 
   const toggleModule = (moduleId) => {

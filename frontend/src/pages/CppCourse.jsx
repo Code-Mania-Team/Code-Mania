@@ -53,10 +53,10 @@ const CppCourse = () => {
       title: "Variables & Data Types",
       description: "Learn about different data types, variables, and how to work with them in C++.",
       exercises: [
-        { id: 1, name: "Variables", status: "available" },
-        { id: 2, name: "Data Types", status: "available" },
-        { id: 3, name: "Constants", status: "available" },
-        { id: 4, name: "Type Casting", status: "available" }
+        { id: 5, name: "Variables", status: "available" },
+        { id: 6, name: "Data Types", status: "available" },
+        { id: 7, name: "Constants", status: "available" },
+        { id: 8, name: "Type Casting", status: "available" }
       ]
     },
     {
@@ -64,10 +64,10 @@ const CppCourse = () => {
       title: "Operators & Expressions",
       description: "Master arithmetic, comparison, and logical operators in C++.",
       exercises: [
-        { id: 1, name: "Arithmetic Operators", status: "locked" },
-        { id: 2, name: "Comparison Operators", status: "locked" },
-        { id: 3, name: "Logical Operators", status: "locked" },
-        { id: 4, name: "Assignment Operators", status: "locked" }
+        { id: 9, name: "Arithmetic Operators", status: "locked" },
+        { id: 10, name: "Comparison Operators", status: "locked" },
+        { id: 11, name: "Logical Operators", status: "locked" },
+        { id: 12, name: "Assignment Operators", status: "locked" }
       ]
     },
     {
@@ -75,20 +75,20 @@ const CppCourse = () => {
       title: "Control Flow",
       description: "Learn to control program flow with conditional statements and loops.",
       exercises: [
-        { id: 1, name: "If Statements", status: "locked" },
-        { id: 2, name: "Switch Case", status: "locked" },
-        { id: 3, name: "For Loops", status: "locked" },
-        { id: 4, name: "While Loops", status: "locked" }
+        { id: 13, name: "If Statements", status: "locked" },
+        { id: 14, name: "Switch Case", status: "locked" },
+        { id: 15, name: "For Loops", status: "locked" },
+        { id: 16, name: "While Loops", status: "locked" }
       ]
     },
     {
-    id: 5,
-    title: "Examination",
-    description: "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
-    exercises: [
-      { id: 1, name: "C++ Exam", status: "locked" }
-    ]
-  }
+      id: 5,
+      title: "Examination",
+      description: "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
+      exercises: [
+        { id: 17, name: "C++ Exam", status: "locked" }
+      ]
+    }
   ];
 
   const navigate = useNavigate();
