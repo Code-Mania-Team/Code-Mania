@@ -90,64 +90,86 @@ export const CUTSCENES = {
     { type: "unlockPlayer" }
   ],
 
-  // Cpp_map1_intro: [
-  //   { type: "lockPlayer" },
+  Cpp_map1_intro: [
+  { type: "lockPlayer" },
 
-  //   { type: "cameraMove", x: 760, y: 380, duration: 3000 },
-  //   {
-  //     type: "dialogue",
-  //     lines: [
-  //       "This city feels... solid.",
-  //       "Like everything here was built to last."
-  //     ]
-  //   },
+  { type: "cameraMove", x: 760, y: 380, duration: 3000 },
+  {
+    type: "dialogue",
+    lines: [
+      "This city feels... solid.",
+      "Like every structure was placed with intention.",
+      "Nothing accidental."
+    ]
+  },
 
-  //   { type: "cameraMove", x: 600, y: 420, duration: 2800 },
-  //   {
-  //     type: "dialogue",
-  //     lines: [
-  //       "Tall structures.",
-  //       "Clear paths.",
-  //       "Every block has a purpose."
-  //     ]
-  //   },
+  { type: "cameraMove", x: 600, y: 420, duration: 2800 },
+  {
+    type: "dialogue",
+    lines: [
+      "Tall buildings.",
+      "Clean edges.",
+      "Clear paths from one place to another."
+    ]
+  },
 
-  //   {
-  //     type: "dialogue",
-  //     lines: [
-  //       "Nothing moves unless it's told to.",
-  //       "Nothing exists unless it's defined."
-  //     ]
-  //   },
+  {
+    type: "dialogue",
+    lines: [
+      "Nothing moves unless it's told to.",
+      "Nothing exists unless it’s defined first."
+    ]
+  },
 
-  //   { type: "cameraMove", x: 520, y: 560, duration: 2500 },
-  //   {
-  //     type: "dialogue",
-  //     lines: [
-  //       "I like that.",
-  //       "It makes the city predictable.",
-  //       "Reliable."
-  //     ]
-  //   },
+  { type: "cameraMove", x: 520, y: 560, duration: 2500 },
+  {
+    type: "dialogue",
+    lines: [
+      "I think I understand this place.",
+      "The city doesn’t guess.",
+      "It only does exactly what it’s instructed to do."
+    ]
+  },
 
-  //   {
-  //     type: "dialogue",
-  //     lines: [
-  //       "If I build something here...",
-  //       "It will stay built.",
-  //       "As long as I take responsibility for it."
-  //     ]
-  //   },
+  {
+    type: "dialogue",
+    lines: [
+      "If something breaks here…",
+      "It’s not chaos.",
+      "It’s a missing instruction."
+    ]
+  },
 
-  //   {
-  //     type: "dialogue",
-  //     lines: [
-  //       "Alright.",
-  //       "Let's start from the foundation."
-  //     ]
-  //   },
+  {
+    type: "dialogue",
+    lines: [
+      "If I build something in this city...",
+      "It will stay built.",
+      "As long as I take responsibility for every part of it."
+    ]
+  },
 
-  //   { type: "cameraFollowPlayer" },
-  //   { type: "unlockPlayer" }
-  // ]
+  {
+    type: "dialogue",
+    lines: [
+      "No shortcuts.",
+      "No assumptions.",
+      "Just clear rules."
+    ]
+  },
+
+  {
+    type: "dialogue",
+    lines: [
+      "Alright.",
+      "Let’s start from the foundation.",
+      "Every system begins somewhere."
+    ]
+  },
+
+  { type: "cameraFollowPlayer" },
+  { type: "unlockPlayer" }
+
+
+]
 };
