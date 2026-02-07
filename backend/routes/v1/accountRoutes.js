@@ -28,6 +28,7 @@ accountRouter.get('/login/google', passport.authenticate('google', {
 
 accountRouter.get('/login/google/redirect', passport.authenticate('google', { session: false }), (req, res) => {
     account.googleLogin(req, res);
+    // res.redirect('http://localhost:5173/learn')
 });
 
 accountRouter.post('/logout', authentication, account.logout.bind(account));

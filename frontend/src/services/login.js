@@ -35,4 +35,8 @@ const login = async (email, password) => {
   }
 };
 
-export { login };
+const loginWithGoogle = async () => {
+  await window.open("http://localhost:3000/v1/account/login/google", "_self")
+}
+
+export { login, loginWithGoogle };

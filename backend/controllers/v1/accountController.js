@@ -189,10 +189,12 @@ class AccountController {
     async googleLogin(req, res) {
         const { id, emails, provider } = req.user
         const data = await this.accountService.googleLogin(id, emails[0].value, provider)
-        // console.log(data)
+        
         try {
             if (data) {
-                res.status(200).json({data})
+                console.log(data)
+                res.redirect(`http://localhost:5173/learn?user_id=${data.id}`)
+                // res.status(200).json({data})
             }
         } catch (err) {
             console.error(err)
