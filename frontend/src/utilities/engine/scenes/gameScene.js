@@ -22,7 +22,7 @@ import { BADGES } from "../config/badgeConfig";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
-
+import QuestValidator from "../systems/questValidator";
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
@@ -183,6 +183,7 @@ export default class GameScene extends Phaser.Scene {
   }
   onQuestComplete = (e) => {
       const questId = e.detail?.questId;
+      console.log("📥 received quest-complete", e.detail);
       if (!questId) return;
 
       const quest = this.questManager.getQuestById(questId);
@@ -337,12 +338,12 @@ export default class GameScene extends Phaser.Scene {
       this.handleInteract();
     });
 
-    this.input.on("pointerdown", (pointer) => {
-      // left click or tap
-      if (pointer.button !== 0) return;
+    // this.input.on("pointerdown", (pointer) => {
+    //   // left click or tap
+    //   if (pointer.button !== 0) return;
 
-      this.handleInteract();
-    });
+    //   this.handleInteract();
+    // });
 
     this.input.keyboard.on("keydown-Q", () => {
       if (this.gamePausedByTerminal) return;
@@ -468,9 +469,11 @@ export default class GameScene extends Phaser.Scene {
     this.questIconManager = new QuestIconManager(this);
     this.chestQuestManager = new ChestQuestManager(this);
     this.helpManager = new HelpManager(this);
+    this.questValidator = new QuestValidator(this);
     this.questCompleteToast = new QuestCompleteToast(this);
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
     this.cinematicBars = new CinematicBars(this);
+
 
     this.isMobile =
       this.sys.game.device.os.android ||
@@ -1155,10 +1158,12 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
 
     this.cameras.main.once("camerafadeoutcomplete", () => {
-      // Start next map scene
-      this.scene.start("GameScene", {
-        mapId: targetMap
-      });
+    localStorage.setItem("currentMapId", targetMap);
+
+    this.scene.start("GameScene", {
+      mapId: targetMap
+    });
+
     });
   }
 }
