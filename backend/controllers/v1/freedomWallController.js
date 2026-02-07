@@ -13,7 +13,6 @@ class FreedomWallController {
         
         await this.post.createPost(user_id, content);
         const character_id = await this.post.getCharacterIdByUserId(user_id);
-
         res.send({
             success: true,
             message: "Freedom Wall post created successfully",

@@ -42,6 +42,7 @@ class AccountService {
         const newUser = await this.user.create({
             email: otpEntry.email,
             password: otpEntry.password,
+            provider: null
         });
 
         return newUser;
@@ -54,6 +55,34 @@ class AccountService {
         const hashedPassword = encryptPassword(password);
         const authUser = await this.user.findByEmailAndPasswordHash(email, hashedPassword);
         return authUser;
+    }
+
+    async googleLogin(id, email, provider) {
+        const emailExist = await this.user.findByEmail(email)
+        const hashedPassword = encryptPassword(id + email)
+    
+        if (!emailExist) {
+            //Signup
+            const newUser = await this.user.create({ 
+            email: email,
+                password: hashedPassword,
+                provider: provider
+            })
+
+            return {
+                id: newUser.user_id,
+                email: newUser.email
+            }
+        }
+
+        if (emailExist && emailExist.password == hashedPassword && emailExist.provider == provider) {
+            //Login. Provider must check if it has a value of google (optional)
+            console.log("EMAIL: Logged-in success")
+            return {
+                id: emailExist.user_id,
+                message: "Logged in."
+            }
+        }    
     }
 }
 

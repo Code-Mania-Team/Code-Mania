@@ -185,8 +185,21 @@ class AccountController {
         }
     }
 
+    // GOOGLE LOGIN/SIGNUP
+    async googleLogin(req, res) {
+        const { id, emails, provider } = req.user
+        const data = await this.accountService.googleLogin(id, emails[0].value, provider)
+        // console.log(data)
+        try {
+            if (data) {
+                res.status(200).json({data})
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
 
-        // =========================
+    // =========================
     // REFRESH TOKEN (ROTATION)
     // =========================
     async refresh(req, res) {

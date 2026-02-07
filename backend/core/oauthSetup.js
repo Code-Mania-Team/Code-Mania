@@ -6,8 +6,8 @@ dotenv.config();
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/v1/login/google/redirect' || 'https://8d66b618b7df.ngrok-free.app/v1/login/google/redirect',
+    callbackURL: '/v1/account/login/google/redirect',
     scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
-    done(null, profile)
+    return done(null, profile);
 }));

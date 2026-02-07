@@ -8,8 +8,8 @@ class User {
     // Helper: find user by email
     async findByEmail(email) {
         const { data } = await this.db
-            .from("users")
-            .select("user_id, email, password, username")
+            .from("users") // can be users table or temp_user (this should be temp_users with "s")
+            .select("user_id, password, provider") // just select what column is needed, user_id, password, username are not necessary
             .eq("email", email)
             .maybeSingle();
         return data;
@@ -18,7 +18,7 @@ class User {
     async findByEmailAndPasswordHash(email, password) {
         const { data, error } = await this.db
             .from("users")
-            .select("user_id, username, email, full_name, profile_image, created_at")
+            .select("user_id, username, email, full_name, profile_image, provider, created_at")
             .eq("email", email)
             .eq("password", password);
 
@@ -27,10 +27,10 @@ class User {
         return result;
     }
 
-    async create({ email, password }) {
+    async create({ email, password, provider }) {
         const { data, error } = await this.db
             .from("users")
-            .insert({ email, password })
+            .insert({ email, password, provider })
             .select("*")
             .maybeSingle();
 

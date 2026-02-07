@@ -2,7 +2,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cookieSession from 'cookie-session';
-// import passport from 'passport';
 import cors from 'cors';
 import morgan from 'morgan';
 import 'dotenv/config.js';
@@ -19,11 +18,6 @@ const port = process.env.PORT || 3000;
 ----------------------------------- */
 app.use(morgan('combined'));
 app.use(cookieParser());
-app.use(cookieSession({
-  name: 'codemania',
-  keys: ['codemaniaAPI'],
-  maxAge: 24 * 60 * 60 * 1000
-}));
 
 // app.use(passport.initialize());
 // if (passport.initialize()) {
@@ -57,6 +51,21 @@ app.get('/', (req, res) => {
   // res.cookie('cookie', 'codemaniaBackend', {maxAge: 24 * 60 * 60 * 1000});
   res.json({message: 'Backend is running successfully!' });
 });
+
+/* ---------------------------------
+   Set cookies to client side
+----------------------------------- */
+app.get('/set-cookies', (req, res) => {
+  res.cookie('Set-cookie', 'SweetCookies', {
+    httpOnly: true
+  })
+  res.send('Successfully set cookies')
+})
+
+app.get('/get-cookies', (req, res) => {
+  console.log(req);
+  res.send(req.cookies);
+})
 
 /* ---------------------------------
    Start Server
