@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
-import Footer from "../components/footer";
+
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
@@ -406,7 +406,6 @@ const JavaScriptExercise = () => {
         </div>
       </div>
 
-      <Footer />
     </div>
 );
 };

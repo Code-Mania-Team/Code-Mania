@@ -19,6 +19,7 @@ Arrow Keys   —   Move
 E            —   Interact
 Q            —   Quest Log
 H / ESC      —   Close Help
+Left click    —   Advance Dialogue
         `
       },
       {

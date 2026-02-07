@@ -2,6 +2,7 @@
   {
     "id": 1,
     "title": "Setting Up",
+    "validationMode": "FUNDAMENTALS",
     "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "Hey adventurer!",
@@ -17,12 +18,12 @@
     "lessonExample": "print(\"Welcome to Python!\")",
     "startingCode": "print()",
     "hints": ["Use print() to display output.", "Make sure your code runs without errors."],
-    "requirements": { "mustInclude": ["print"] },
-    "expectedOutput": "Hello, Python!"
+    "requirements": { "mustInclude": ["print"] }
   },
   {
     "id": 2,
     "title": "Hello World",
+    "validationMode": "HYBRID",
     "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "The chest remains sealed.",
@@ -43,6 +44,7 @@
   {
     "id": 3,
     "title": "Pattern",
+    "validationMode": "HYBRID",
     "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "Patterns are everywhere in Codemania.",
@@ -57,11 +59,13 @@
     "startingCode": "print()",
     "hints": ["Use \\n for new lines.", "Type the pattern exactly."],
     "requirements": { "mustInclude": ["print"] },
-    "expectedOutput": "*\n**\n***"
+    "expectedOutput": "*\n**\n***",
+    "grants": "key"
   },
   {
     "id": 4,
     "title": "Initials",
+    "validationMode": "HYBRID",
     "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [
       "Sometimes, your identity is all you need to start the restoration.",
@@ -80,6 +84,8 @@
   {
     "id": 5,
     "title": "Variables",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_2",
     "dialogue": [
       "Variables are like containers for your knowledge.",
       "You can store information in them and use it when needed. Without them, Codemania cannot function.",
@@ -97,6 +103,8 @@
   {
     "id": 6,
     "title": "Strings",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_2",
     "dialogue": [
       "Strings are like the words you use to communicate in Codemania.",
       "They hold the essence of everything—messages, names, and commands.",
@@ -114,6 +122,8 @@
   {
     "id": 7,
     "title": "Numbers",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_2",
     "dialogue": [
       "Numbers govern the very structure of Codemania.",
       "Without them, calculations would be impossible, and logic would fall apart.",
@@ -131,6 +141,8 @@
   {
     "id": 8,
     "title": "Booleans",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_2",
     "dialogue": [
       "In Codemania, truth is paramount.",
       "Booleans—True or False—determine the flow of everything.",
@@ -148,6 +160,8 @@
   {
     "id": 9,
     "title": "If Statements",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_3",
     "dialogue": [
       "Control flow. It’s how the land reacts to your decisions.",
       "An if statement will decide the course of events based on conditions you define.",
@@ -165,6 +179,8 @@
   {
     "id": 10,
     "title": "Else & Elif",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_3",
     "dialogue": [
       "The world is full of alternatives.",
       "What if the first condition doesn’t hold? That’s where else and elif come in.",
@@ -182,6 +198,8 @@
   {
     "id": 11,
     "title": "Comparison",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_3",
     "dialogue": [
       "Comparison allows you to measure the land, to judge what is larger, smaller, equal, or different.",
       "The world of Codemania is built on comparison.",
@@ -199,6 +217,8 @@
   {
     "id": 12,
     "title": "Logical Operators",
+    "validationMode": "HYBRID", 
+    "badgeKey": "PYTHON_STAGE_3",
     "dialogue": [
       "Combining conditions is a powerful skill.",
       "Use logical operators like ‘and’, ‘or’, and ‘not’ to test multiple things at once.",
@@ -216,6 +236,8 @@
   {
     "id": 13,
     "title": "For Loops",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_4",
     "dialogue": [
       "Repeating actions is the essence of power in Codemania.",
       "With a `for` loop, you can repeat tasks as many times as you need. The more you repeat, the stronger you get.",
@@ -233,6 +255,8 @@
   {
     "id": 14,
     "title": "While Loops",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_4",
     "dialogue": [
       "What if you need to keep repeating an action, but only as long as a condition is true?",
       "The while loop will help you do just that.",
@@ -250,6 +274,8 @@
   {
     "id": 15,
     "title": "Range Function",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_4",
     "dialogue": [
       "Sometimes, the range of possibilities is vast.",
       "The range function helps you loop through sequences—whether it’s from 0 to 10, or any other span.",
@@ -267,6 +293,8 @@
   {
     "id": 16,
     "title": "Nested Loops",
+    "validationMode": "HYBRID",
+    "badgeKey": "PYTHON_STAGE_4",
     "dialogue": [
       "Sometimes, you’ll need to loop through multiple layers of logic.",
       "That’s where nested loops come in—loops within loops.",
@@ -284,6 +312,8 @@
   {
     "id": 17,
     "title": "Python Exam",
+    "validationMode": "STRICT",
+    "badgeKey": "PYTHON_COMPLETE",
     "dialogue": [
       "The time has come for your final test, adventurer.",
       "Everything you’ve learned about Codemania is about to be put to the ultimate test.",

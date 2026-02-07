@@ -19,7 +19,10 @@ import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/QuestCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import { BADGES } from "../config/badgeConfig";
-
+import CinematicBars from "../systems/cinematicBars";
+import OrientationManager from "../systems/orientationManager";
+import MobileControls from "../systems/mobileControls";
+import QuestValidator from "../systems/questValidator";
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
@@ -41,6 +44,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.playerCanMove = true;
     this.helpShownThisSession = false;
+    this.gamePausedByTerminal = false;
     // this.openedChests = new Set(
     //   JSON.parse(localStorage.getItem("openedChests") || "[]")
     // );
@@ -118,10 +122,16 @@ export default class GameScene extends Phaser.Scene {
   }
   onQuestComplete = (e) => {
       const questId = e.detail?.questId;
+      console.log("📥 received quest-complete", e.detail);
       if (!questId) return;
 
       const quest = this.questManager.getQuestById(questId);
       if (!quest || !quest.badgeKey) return;
+
+      if (quest.grants) {
+        this.worldState.abilities.add(quest.grants);
+        console.log("🎒 Obtained:", quest.grants);
+      }
 
       const badge = BADGES[quest.badgeKey];
       if (!badge) return;
@@ -230,30 +240,52 @@ export default class GameScene extends Phaser.Scene {
       this.physics.add.collider(this.player, layer);
     });
 
-    this.input.keyboard.clearCaptures();
+    // ⌨ INPUT — ONLY ONCE
+    this.cursors = this.input.keyboard.createCursorKeys();
+    // 🔓 FREE SPACEBAR FOR THE BROWSER / TERMINAL
+    this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-    this.gamePausedByTerminal = false;
 
+    // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
+    this.input.keyboard.on("keydown-E", () => {
+      this.handleInteract();
+    });
+
+    // this.input.on("pointerdown", (pointer) => {
+    //   // left click or tap
+    //   if (pointer.button !== 0) return;
+
+    //   this.handleInteract();
+    // });
+
+    this.input.keyboard.on("keydown-Q", () => {
+      if (this.gamePausedByTerminal) return;
+      this.questHUD.toggle(this.questManager.activeQuest);
+    });
+
+    this.input.keyboard.on("keydown-H", () => {
+      if (this.gamePausedByTerminal) return;
+      this.helpManager.openHelp();
+    });
+    
+    this.input.keyboard.on("keydown-T", () => {
+      if (this.gamePausedByTerminal) return;
+      const activeQuest = this.questManager.activeQuest;
+      if (activeQuest) {
+        this.questManager.completeQuest(activeQuest.id);
+        console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
+      }
+    });
+
+    // 🔒 TERMINAL EVENTS
     window.addEventListener("code-mania:terminal-active", () => {
       this.gamePausedByTerminal = true;
-      this.playerCanMove = false;
       this.player.setVelocity(0);
-      // 🛑 Disable keyboard input when quest HUD appears
-      this.input.keyboard.disableGlobalCapture();
     });
 
     window.addEventListener("code-mania:terminal-inactive", () => {
       this.gamePausedByTerminal = false;
-      this.playerCanMove = true;
-      // ▶ Re-enable keyboard input when quest HUD hides
-      this.input.keyboard.enableGlobalCapture();
     });
-
-    // normal input setup
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.interactKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.E
-    );
 
     // 🪨 ROCK LAYERS
     this.interactableRockLayer =
@@ -289,30 +321,39 @@ export default class GameScene extends Phaser.Scene {
       this.chestOpenLayer.setVisible(false);
     }
 
+    this.gateCloseLayer =
+    this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
+
+    this.gateOpenLayer =
+      this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
+
+    if (this.gateCloseLayer) {
+      this.gateCloseLayer.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, this.gateCloseLayer);
+    }
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(false);
+    }
+
+    this.events.once("shutdown", () => {
+      if (this.helpButton) {
+        this.helpButton.destroy();
+        this.helpButton = null;
+      }
+    });
+
+
 
     this.createInteractionMarker();
 
-    // 🌍 CAMERA
     const w = this.mapLoader.map.widthInPixels;
     const h = this.mapLoader.map.heightInPixels;
 
     this.physics.world.setBounds(0, 0, w, h);
     this.cameras.main.setBounds(0, 0, w, h);
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-
-    // ⌨ INPUT
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.interactKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.E
-    );
-    this.questKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.Q
-    );
-    this.testCompleteKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.T
-    );
     
-
     const QUESTS_BY_LANGUAGE = {
       Python: pythonQuests,
       JavaScript: jsQuests,
@@ -332,9 +373,27 @@ export default class GameScene extends Phaser.Scene {
     this.questIconManager = new QuestIconManager(this);
     this.chestQuestManager = new ChestQuestManager(this);
     this.helpManager = new HelpManager(this);
+    this.questValidator = new QuestValidator(this);
     this.questCompleteToast = new QuestCompleteToast(this);
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
+    this.cinematicBars = new CinematicBars(this);
 
+
+    this.isMobile =
+      this.sys.game.device.os.android ||
+      this.sys.game.device.os.iOS;
+
+    if (this.isMobile) {
+      this.mobileControls = new MobileControls(this, {
+      onInteract: () => this.handleInteract()
+    });
+
+    }
+
+    this.orientationManager = new OrientationManager(this);
+    this.scale.on("resize", () => {
+      this.cinematicBars.resize();
+    });
     
 
     // ✅ QUEST COMPLETE EVENT (AFTER SYSTEMS EXIST)
@@ -356,11 +415,7 @@ export default class GameScene extends Phaser.Scene {
     this.helpButton = new HelpButton(this, () => {
       this.helpManager.openHelp();
     });
-
-    // Keyboard shortcut
-    this.helpKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.H
-    );
+  
     this.createMapExits();
     this.lastDirection = "down";
     // 🧑 NPCs
@@ -375,73 +430,95 @@ export default class GameScene extends Phaser.Scene {
 
   }
 
+  resizeCamera(gameSize) {
+    const cam = this.cameras.main;
+    const map = this.mapLoader.map;
+
+    const viewWidth = gameSize.width;
+    const viewHeight = gameSize.height;
+
+    const mapWidth = map.widthInPixels;
+    const mapHeight = map.heightInPixels;
+
+    // Fit map to screen
+    const zoomX = viewWidth / mapWidth;
+    const zoomY = viewHeight / mapHeight;
+    const zoom = Math.min(zoomX, zoomY);
+
+    cam.setZoom(Math.min(zoom, 3)); // cap zoom
+    cam.setViewport(0, 0, viewWidth, viewHeight);
+    cam.setBounds(0, 0, mapWidth, mapHeight);
+
+    // Small map → center
+    if (
+      mapWidth * cam.zoom <= viewWidth &&
+      mapHeight * cam.zoom <= viewHeight
+    ) {
+      cam.stopFollow();
+      cam.centerOn(mapWidth / 2, mapHeight / 2);
+    } else {
+      cam.startFollow(this.player, true, 0.1, 0.1);
+    }
+  }
+
+
   update() {
-    // 🛑 Stop all game input when quest HUD is active
-    if (this.gamePausedByTerminal || !this.playerCanMove) {
+    if (this.gamePausedByTerminal) {
       this.player.setVelocity(0);
+      this.player.anims.stop();
       return;
     }
 
-    this.updateInteractionMarker();
-
-    const speed = 120;
+    const speed = 200;
     this.player.setVelocity(0);
 
     let moving = false;
 
-    if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-speed);
-      this.lastDirection = "left";
-      moving = true;
-    } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(speed);
-      this.lastDirection = "right";
-      moving = true;
+    if (this.isMobile && this.mobileControls) {
+      const vx = this.mobileControls.vector.x * speed;
+      const vy = this.mobileControls.vector.y * speed;
+
+      this.player.setVelocity(vx, vy);
+
+      moving = Math.abs(vx) > 1 || Math.abs(vy) > 1;
+
+      if (moving) {
+        if (Math.abs(vx) > Math.abs(vy)) {
+          this.lastDirection = vx > 0 ? "right" : "left";
+        } else {
+          this.lastDirection = vy > 0 ? "down" : "up";
+        }
+      }
+    } else {
+        if (this.cursors.left.isDown) {
+          this.player.setVelocityX(-speed);
+          this.lastDirection = "left";
+          moving = true;
+        } else if (this.cursors.right.isDown) {
+            this.player.setVelocityX(speed);
+            this.lastDirection = "right";
+            moving = true;
+        }
+
+        if (this.cursors.up.isDown) {
+          this.player.setVelocityY(-speed);
+          this.lastDirection = "up";
+          moving = true;
+        } else if (this.cursors.down.isDown) {
+            this.player.setVelocityY(speed);
+            this.lastDirection = "down";
+            moving = true;
+      }
     }
 
-    if (this.cursors.up.isDown) {
-      this.player.setVelocityY(-speed);
-      this.lastDirection = "up";
-      moving = true;
-    } else if (this.cursors.down.isDown) {
-      this.player.setVelocityY(speed);
-      this.lastDirection = "down";
-      moving = true;
-    }
+    
 
     const anim = moving
       ? `walk-${this.lastDirection}`
       : `idle-${this.lastDirection}`;
     this.player.anims.play(anim, true);
-
-    // 🧠 DEPTH SORT (MAGIC LINE)
-    // this.player.setDepth(this.player.y);
-
-    // this.npcs.forEach(npc => npc.setDepth(npc.y));
-
-    if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
-      this.tryInteractWithNPC();
-      this.tryInteractWithChest();
-      this.tryBreakRock();
-    }
-
-
-    if (Phaser.Input.Keyboard.JustDown(this.questKey)) {
-      this.questHUD.toggle(this.questManager.activeQuest);
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.testCompleteKey)) {
-      const activeQuest = this.questManager.activeQuest;
-      if (activeQuest) {
-        this.questManager.completeQuest(activeQuest.id);
-        console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
-      }
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.helpKey)) {
-      this.helpManager.openHelp();
-    }
-
-
   }
+
 
   spawnChestQuestIcons() {
     const chestLayer = this.mapLoader.map.getLayer("chest")?.tilemapLayer;
@@ -597,21 +674,75 @@ export default class GameScene extends Phaser.Scene {
         n.y
       ) <= 50
     );
-    if (!npc) return;
+
+    if (!npc) return false; // 👈 IMPORTANT
 
     this.interactionMarker?.setVisible(false);
     this.interactPrompt?.setVisible(false);
 
     const quest = this.questManager.getQuestById(npc.npcData.questId);
-    if (!quest) return;
+    if (!quest) return false;
 
     this.playerCanMove = false;
 
-    this.dialogueManager.startDialogue(quest.dialogue || [], () => {
-      this.questManager.startQuest(quest.id);
-      this.playerCanMove = true;
-    });
+    // 1️⃣ QUEST NOT STARTED
+    if (
+      !quest.completed &&
+      this.questManager.activeQuest?.id !== quest.id
+    ) {
+      this.dialogueManager.startDialogue(
+        quest.dialogue || [],
+        () => {
+          this.questManager.startQuest(quest.id);
+          this.playerCanMove = true;
+        }
+      );
+      return true; // ✅ INPUT CONSUMED
+    }
+
+    // 2️⃣ QUEST ACTIVE BUT NOT DONE
+    if (!quest.completed) {
+      this.dialogueManager.startDialogue(
+        ["Solve the challenge to earn the key."],
+        () => (this.playerCanMove = true)
+      );
+      return true;
+    }
+
+    // 3️⃣ QUEST COMPLETED → GIVE KEY
+    if (quest.completed && quest.grants) {
+      if (!this.worldState.abilities.has(quest.grants)) {
+        this.worldState.abilities.add(quest.grants);
+
+        this.dialogueManager.startDialogue(
+          [
+            "Excellent work.",
+            "Take this key — it opens the gate."
+          ],
+          () => (this.playerCanMove = true)
+        );
+      } else {
+        this.dialogueManager.startDialogue(
+          ["You already have the key."],
+          () => (this.playerCanMove = true)
+        );
+      }
+      return true;
+    }
+
+    this.playerCanMove = true;
+    return true;
   }
+
+  handleInteract() {
+    if (this.gamePausedByTerminal) return;
+
+    if (this.tryInteractWithNPC()) return;
+    if (this.tryInteractWithChest()) return;
+    if (this.tryOpenGate()) return;
+    this.tryBreakRock();
+  }
+
   tryBreakRock() {
     if (!this.interactableRockLayer) return;
     if (!this.worldState || !this.worldState.abilities) return;
@@ -748,17 +879,60 @@ export default class GameScene extends Phaser.Scene {
 
 
 
-  playIntroCutscene() {
+  async playIntroCutscene() {
     const key = `${this.language}_${this.currentMapId}_intro`;
     const cutscene = CUTSCENES[key];
     if (!cutscene) return;
 
     this.time.delayedCall(500, async () => {
+      // 🔒 Lock player + show cinematic bars
+      this.playerCanMove = false;
+      this.cinematicBars.show(500);
+
       await this.cutsceneManager.play(cutscene);
 
-      // Help removed - don't auto-show when quest HUD appears
+      // 🎬 Restore gameplay view
+      this.cinematicBars.hide(500);
+      this.playerCanMove = true;
     });
   }
+
+  tryOpenGate() {
+    if (!this.gateCloseLayer) return;
+
+    const requiredProp =
+      this.gateCloseLayer.layer.properties?.find(
+        p => p.name === "requires"
+      );
+
+    const requiredKey = requiredProp?.value;
+    if (!requiredKey) return;
+
+    // ❌ No key
+    if (!this.worldState.abilities.has(requiredKey)) {
+      this.dialogueManager.startDialogue(
+        ["The gate is locked. You need a key."],
+        () => {}
+      );
+      return;
+    }
+
+    // ✅ HAS KEY → OPEN GATE
+    this.gateCloseLayer.setVisible(false);
+    this.gateCloseLayer.forEachTile(t => t.setCollision(false));
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(true);
+    }
+
+    this.dialogueManager.startDialogue(
+      ["You unlock the gate.", "The path is now open."],
+      () => {}
+    );
+
+    console.log("🚪 Gate opened!");
+  }
+
 
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
@@ -846,10 +1020,12 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
 
     this.cameras.main.once("camerafadeoutcomplete", () => {
-      // Start next map scene
-      this.scene.start("GameScene", {
-        mapId: targetMap
-      });
+    localStorage.setItem("currentMapId", targetMap);
+
+    this.scene.start("GameScene", {
+      mapId: targetMap
+    });
+
     });
   }
 }
