@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
+import TutorialPopup from "../components/TutorialPopup";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -12,6 +13,9 @@ const JavaScriptCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [completedExercises, setCompletedExercises] = useState([]);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Tutorial will be shown only when clicking Start button
 
   // Load completed exercises from localStorage
   useEffect(() => {
@@ -54,6 +58,14 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseName) => {
+    // Check if tutorial should be shown before starting first exercise
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+    
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'JavaScript');
     localStorage.setItem('lastCourseRoute', '/learn/javascript');
@@ -270,6 +282,17 @@ const JavaScriptCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
+      )}
     </div>
   );
 };

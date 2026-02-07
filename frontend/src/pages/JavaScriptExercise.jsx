@@ -48,6 +48,14 @@ const JavaScriptExercise = () => {
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
+    // Check if tutorial should be shown for new accounts
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+
     if (exerciseId) {
       const id = parseInt(exerciseId.split('-')[0], 10);
       const exercise = exercises.find(ex => ex.id === id);
@@ -335,32 +343,6 @@ const JavaScriptExercise = () => {
       <div className={styles["scroll-background"]}></div>
       <Header isAuthenticated={isAuthenticated} onOpenModal={handleOpenModal} user={user} />
       
-      {/* Tutorial Test Button - More Visible */}
-      <div style={{ 
-        position: "fixed", 
-        top: "80px", 
-        right: "20px", 
-        zIndex: 1000,
-        background: "#3b82f6",
-        padding: "12px 20px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)"
-      }}>
-        <button 
-          onClick={() => setShowTutorial(true)}
-          style={{
-            background: "transparent",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "14px",
-            fontWeight: "600"
-          }}
-        >
-          🎮 Show Tutorial
-        </button>
-      </div>
-      
       {isSignInModalOpen && (
         <SignInModal 
           isOpen={isSignInModalOpen}
@@ -433,7 +415,13 @@ const JavaScriptExercise = () => {
       
       {/* Tutorial Popup */}
       {showTutorial && (
-        <TutorialPopup open={showTutorial} onClose={() => setShowTutorial(false)} />
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
       )}
     </div>
   );

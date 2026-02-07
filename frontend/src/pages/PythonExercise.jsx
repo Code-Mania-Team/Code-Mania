@@ -6,6 +6,7 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 import MobileControls from "../components/MobileControls";
+import TutorialPopup from "../components/TutorialPopup";
 
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../utilities/engine/main.js";
@@ -22,6 +23,7 @@ const PythonExercise = ({ isAuthenticated }) => {
     const id = Number(exerciseId);
     return Number.isFinite(id) && id > 0 ? id : 1;
   });
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const activeExercise = useMemo(() => {
     return (
@@ -81,6 +83,14 @@ const PythonExercise = ({ isAuthenticated }) => {
      PHASER INIT + EVENTS
   =============================== */
   useEffect(() => {
+    // Check if tutorial should be shown for new accounts
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+
     const game = initPhaserGame("phaser-container");
     window.game = game;
 
@@ -283,7 +293,17 @@ const PythonExercise = ({ isAuthenticated }) => {
           />
         </div>
       </div>
-
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
+      )}
     </div>
   );
 };

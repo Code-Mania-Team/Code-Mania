@@ -4,10 +4,11 @@ import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'luci
 import profileBanner from '../assets/profile-banner.jpg';
 import { DeleteAccount } from '../services/deleteAccount';
 import { EditAccount } from '../services/editAccount';
-import characterIcon0 from '/assets/characters/icons/character.png';
-import characterIcon1 from '/assets/characters/icons/character1.png';
-import characterIcon2 from '/assets/characters/icons/character3.png';
-import characterIcon3 from '/assets/characters/icons/character4.png';
+// Character icons from Cloudinary
+const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
+const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
+const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
+const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 
 import pythonBadge1 from '../assets/badges/Python/python-badge1.png';
 import pythonBadge2 from '../assets/badges/Python/python-badge2.png';

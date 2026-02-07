@@ -373,6 +373,15 @@ export default class GameScene extends Phaser.Scene {
       this.gamePausedByTerminal = false;
     });
 
+    // 📚 TUTORIAL EVENTS (paused for now)
+    window.addEventListener("code-mania:tutorial-open", () => {
+      this.isTutorialOpen = true;
+    });
+
+    window.addEventListener("code-mania:tutorial-close", () => {
+      this.isTutorialOpen = false;
+    });
+
     // 🪨 ROCK LAYERS
     this.interactableRockLayer =
       this.mapLoader.map.getLayer("interactable_rock")?.tilemapLayer;

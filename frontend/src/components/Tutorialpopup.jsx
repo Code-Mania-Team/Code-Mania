@@ -8,6 +8,9 @@ export default function TutorialOverlay({ open, onClose }) {
   useEffect(() => {
     if (!open) return;
 
+    // Emit tutorial open event to pause the game
+    window.dispatchEvent(new CustomEvent('code-mania:tutorial-open'));
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -26,7 +29,11 @@ export default function TutorialOverlay({ open, onClose }) {
       if (section) observer.observe(section);
     });
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      // Emit tutorial close event to resume the game
+      window.dispatchEvent(new CustomEvent('code-mania:tutorial-close'));
+    };
   }, [open]);
 
   if (!open) return null;

@@ -7,6 +7,7 @@ import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
 import CodeTerminal from "../components/CodeTerminal";
+import TutorialPopup from "../components/TutorialPopup";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
 import cppStage1Badge from "../assets/badges/C++/c++-badges1.png";
@@ -27,6 +28,7 @@ const [showHelp, setShowHelp] = useState(false);
 const [showXpPanel, setShowXpPanel] = useState(false);
 const [showStageComplete, setShowStageComplete] = useState(false);
 const [, setXpEarned] = useState(0);
+const [showTutorial, setShowTutorial] = useState(false);
 
 // === Dialogue System ===
 const dialogues = [
@@ -40,6 +42,14 @@ const [isTyping, setIsTyping] = useState(false);
 useEffect(() => {
   const searchParams = new URLSearchParams(location.search);
   const forceStageComplete = searchParams.get("stageComplete") === "1";
+
+  // Check if tutorial should be shown for new accounts
+  const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  
+  if (isAuthenticated && !hasSeenTutorial) {
+    setShowTutorial(true);
+  }
 
   if (exerciseId) {
     const id = parseInt(exerciseId.split("-")[0], 10);
@@ -223,64 +233,71 @@ isAuthenticated={isAuthenticated}
 onOpenModal={isAuthenticated ? null : handleOpenModal}
 user={user}
 />
-  {isSignInModalOpen && (
-    <SignInModal
-      isOpen={isSignInModalOpen}
-      onClose={handleCloseModal}
-      onSignInSuccess={handleSignInSuccess}
-    />
-  )}
+{isSignInModalOpen && (
+<SignInModal
+isOpen={isSignInModalOpen}
+onClose={handleCloseModal}
+onSignInSuccess={handleSignInSuccess}
+/>
+)}
 
-  <div className={styles["codex-fullscreen"]}>
-    <ProgressBar
-      currentLesson={lessonInStage}
-      totalLessons={4}
-      title={currentExercise?.lessonHeader || "⚙️ C++ Basics"}
-      variant={isExam ? "titleOnly" : "full"}
-    />
+<div className={styles["codex-fullscreen"]}>
+<ProgressBar
+currentLesson={lessonInStage}
+totalLessons={4}
+title={currentExercise?.lessonHeader || " C++ Basics"}
+variant={isExam ? "titleOnly" : "full"}
+/>
 
-    <div className={styles["main-layout"]}>
-      {/* Left Side */}
-      <div className={styles["game-container"]}>
-        <div className={styles["game-preview"]}>
-          <div
-            id="phaser-container"
-            className={styles["game-scene"]}
-            style={{
-              width: "100%",
-              height: "100%",
-              imageRendering: "pixelated"
-            }}
-          >
-          </div>
-        </div>
-      </div>
+<div className={styles["main-layout"]}>
+{/* Left Side */}
+<div className={styles["game-container"]}>
+<div className={styles["game-preview"]}>
+<div
+id="phaser-container"
+className={styles["game-scene"]}
+style={{
+width: "100%",
+height: "100%",
+imageRendering: "pixelated"
+}}
+>
+</div>
+</div>
+</div>
 
-      {/* Right Side */}
-      <CodeTerminal
-        language="cpp"
-        code={code}
-        onRunCode={handleRunCode}
-        runUnlocked={true}
-      />
-
-      <XpNotification
-        show={showXpPanel}
-        onClose={() => setShowXpPanel(false)}
-        onNext={goToNextExercise}
-      />
-      <StageCompleteModal
-        show={showStageComplete}
-        stageNumber={displayStageNumber}
-        languageLabel="C++"
-        badgeSrc={cppStageBadges[displayStageNumber - 1]}
-        onContinue={handleStageContinue}
-        onClose={() => setShowStageComplete(false)}
-      />
-    </div>
-  </div>
+{/* Right Side */}
+<CodeTerminal
+language="cpp"
+code={code}
+onRunCode={handleRunCode}
+runUnlocked={true}
+/>
 
 </div>
+
+<StageCompleteModal
+show={showStageComplete}
+stageNumber={displayStageNumber}
+languageLabel="C++"
+badgeSrc={cppStageBadges[displayStageNumber - 1]}
+onContinue={handleStageContinue}
+onClose={() => setShowStageComplete(false)}
+/>
+
+</div>
+
+{/* Tutorial Popup */}
+{showTutorial && (
+<TutorialPopup 
+open={showTutorial} 
+onClose={() => {
+setShowTutorial(false);
+          localStorage.setItem('hasSeenTutorial', 'true');
+        }} 
+      />
+    )}
+  </div>
 );
 };
 
