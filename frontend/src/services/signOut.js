@@ -27,7 +27,6 @@ const clearUserSession = () => {
   const username = localStorage.getItem('username');
 
   localStorage.removeItem('isAuthenticated');
-  localStorage.removeItem('accessToken');
   localStorage.removeItem('username');
   localStorage.removeItem('fullName');
   localStorage.removeItem('needsUsername');

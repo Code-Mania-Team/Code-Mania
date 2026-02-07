@@ -1,5 +1,6 @@
 
 import User from "../../models/user.js";
+import AccountService from "../../services/accountService.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/token.js";
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
@@ -7,6 +8,7 @@ import crypto from "crypto";
 class AccountController {
     constructor() {
         this.user = new User();
+        this.accountService = new AccountService();
         this.userToken = new UserToken();
     }
 
@@ -18,7 +20,7 @@ class AccountController {
                 return res.status(400).json({ success: false, message: "Email and password are required" });
             }
 
-            const response = await this.user.createTempUser(email, password);
+            const response = await this.accountService.requestSignupOtp(email, password);
             return res.status(200).json({
                 success: true,
                 message: "OTP sent to email",
@@ -41,7 +43,7 @@ class AccountController {
             return res.status(400).json({ success: false, message: "Email and OTP required" });
         }
 
-        const authUser = await this.user.verifyOtp(email, otp);
+        const authUser = await this.accountService.verifySignupOtp(email, otp);
         if (!authUser) {
             return res.status(401).json({ success: false, message: "Invalid OTP" });
         }
@@ -75,9 +77,7 @@ class AccountController {
             maxAge: 15 * 60 * 1000, // 15 minutes
         });
 
-        res.cookie('refreshToken', JSON.stringify({ 
-            refreshToken
-        }), {
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'Strict',
@@ -130,14 +130,13 @@ class AccountController {
             return res.status(400).json({ success: false, message: "Email and password required" });
         }
 
-        const authUser = await this.user.verify(email, password);
+        const authUser = await this.accountService.loginWithPassword(email, password);
         if (!authUser) {
-            res.send({ success: false, message: "Invalid credentials" })
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
         const profile = await this.user.getProfile(authUser.user_id);
-
+        
         const accessToken = generateAccessToken({
             user_id: authUser.user_id,
             username: profile?.email,
@@ -179,30 +178,66 @@ class AccountController {
         });
         } catch (err) {
         console.error("login error:", err);
+        if (err?.message === 'Email not registered yet') {
+            return res.status(404).json({ success: false, message: 'Email not registered yet' });
+        }
         return res.status(500).json({ success: false, message: err.message });
         }
     }
 
+    // GOOGLE LOGIN/SIGNUP
+    async googleLogin(req, res) {
+        const { id, emails, provider } = req.user
+        const data = await this.accountService.googleLogin(id, emails[0].value, provider)
+        // console.log(data)
+        try {
+            if (data) {
+                res.status(200).json({data})
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
 
-        // =========================
+    // =========================
     // REFRESH TOKEN (ROTATION)
     // =========================
     async refresh(req, res) {
         try {
-        const oldRefreshToken = req.cookies.refreshToken;
-        if (!oldRefreshToken) {
+        const rawRefreshToken = req.cookies.refreshToken;
+        if (!rawRefreshToken) {
             return res.status(401).json({ success: false, message: "No refresh token" });
         }
 
-        const userId = res.locals.user_id;
+        // Backward compatible: previous versions stored JSON in cookie
+        let oldRefreshToken = rawRefreshToken;
+        if (typeof rawRefreshToken === 'string' && rawRefreshToken.trim().startsWith('{')) {
+            try {
+                const parsed = JSON.parse(rawRefreshToken);
+                if (parsed?.refreshToken) {
+                    oldRefreshToken = parsed.refreshToken;
+                }
+            } catch (e) {
+                oldRefreshToken = rawRefreshToken;
+            }
+        }
 
-        // 🔁 Rotate token
-        const { refreshToken: newRefreshToken } =
-            await this.userToken.rotate(userId, oldRefreshToken);
+        // 🔁 Rotate token (opaque refresh token)
+        const { user_id, refreshToken: newRefreshToken } =
+            await this.userToken.rotate(oldRefreshToken);
+
+        const profile = await this.user.getProfile(user_id);
 
         const accessToken = generateAccessToken({
-            user_id: userId,
-            username: res.locals.username,
+            user_id,
+            username: profile?.email,
+        });
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
         });
 
         res.cookie("refreshToken", newRefreshToken, {
@@ -296,7 +331,7 @@ class AccountController {
         if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
         try {
-            const deleted = await this.user.deleteUser(userId);
+            const deleted = await this.user.delete(userId);
             if (!deleted) return res.status(400).json({ success: false, message: "Failed to delete account" });
 
             // Clear refresh token cookie

@@ -14,9 +14,6 @@ const verifyOtp = async (email, otp) => {
         withCredentials: true,
       }
     );
-    if (response.data?.accessToken) {
-      localStorage.setItem("accessToken", response.data.accessToken);
-    }
     console.log("Sign-up response:", response.data);
     return response.data;
   } catch (error) {

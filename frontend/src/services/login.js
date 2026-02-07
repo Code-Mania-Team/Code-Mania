@@ -10,6 +10,7 @@ const login = async (email, password) => {
           "Content-Type": "application/json",
           
         },
+        withCredentials: true,
       }
     );
     console.log("Login response:", response.data);
@@ -17,9 +18,6 @@ const login = async (email, password) => {
     if (response.data.success === false) {
       console.log(response.data.message);
       throw new Error(response.data.message || "Login failed");
-    }
-    if (response.data?.accessToken) {
-      localStorage.setItem("accessToken", response.data.accessToken);
     }
  
     // returns the accessToken and user info from backend

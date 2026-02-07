@@ -4,10 +4,11 @@ import char1Preview from '/assets/characters/Char1/Animation/walkdown_ch1.png';
 import char2Preview from '/assets/characters/Char2/Animation/walkdown_ch2.png';
 import char3Preview from '/assets/characters/Char3/Animation/walkdown_ch3.png';
 import char4Preview from '/assets/characters/Char4/Animation/walkdown_ch4.png';
-import characterIcon from '/assets/characters/icons/character.png';
-import characterIcon1 from '/assets/characters/icons/character1.png';
-import characterIcon3 from '/assets/characters/icons/character3.png';
-import characterIcon4 from '/assets/characters/icons/character4.png'
+// Character icons from Cloudinary
+const characterIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
+const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
+const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
+const characterIcon4 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 import { onBoardUsername } from '../services/setUsername';
 
 const WelcomeOnboarding = ({ onComplete }) => {

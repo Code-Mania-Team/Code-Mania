@@ -191,7 +191,6 @@ const Profile = ({ onSignOut }) => {
     const username = localStorage.getItem('username');
     
     localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('accessToken');
     localStorage.removeItem('username');
     localStorage.removeItem('fullName');
     localStorage.removeItem('selectedCharacter');
@@ -230,10 +229,6 @@ const Profile = ({ onSignOut }) => {
   const handleSaveEdit = async () => {
     try {
       const response = await EditAccount(editFormData.userName);
-
-      if (response?.accessToken) {
-        localStorage.setItem('accessToken', response.accessToken);
-      }
 
       if (response?.full_name) {
         localStorage.setItem('fullName', response.full_name);

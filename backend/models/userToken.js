@@ -1,7 +1,6 @@
 import { supabase } from "../core/supabaseClient.js";
 import crypto from "crypto";
 
-
 class UserToken {
     constructor() {
         this.db = supabase;
@@ -94,7 +93,27 @@ class UserToken {
         if (error) throw error;
     }
 
+    async rotate(oldRefreshToken) {
+        const hashedOld = crypto.createHash('sha256').update(oldRefreshToken).digest('hex');
+        const tokenRow = await this.findByRefresh(hashedOld);
 
+        if (!tokenRow || !tokenRow.user_id || !tokenRow.token) {
+            throw new Error('Invalid refresh token');
+        }
 
+        const expiresAt = tokenRow.expires_at ? new Date(tokenRow.expires_at) : null;
+        if (!expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt < new Date()) {
+            throw new Error('Invalid refresh token');
+        }
+
+        const newRefreshToken = crypto.randomBytes(40).toString('hex');
+        const hashedNew = crypto.createHash('sha256').update(newRefreshToken).digest('hex');
+        await this.update(tokenRow.user_id, hashedNew);
+
+        return {
+            user_id: tokenRow.user_id,
+            refreshToken: newRefreshToken,
+        };
+    }
 }
 export default UserToken;
