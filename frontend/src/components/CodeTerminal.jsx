@@ -94,7 +94,7 @@ const InteractiveTerminal = () => {
     resetTerminal();
     setIsRunning(true);
 
-    const socket = new WebSocket("https://excellent-spider-excess-notified.trycloudflare.com");
+    const socket = new WebSocket("https://scientist-machines-paxil-defined.trycloudflare.com");
     socketRef.current = socket;
 
     socket.onopen = () => {
