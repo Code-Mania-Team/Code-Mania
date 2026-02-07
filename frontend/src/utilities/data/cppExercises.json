@@ -13,8 +13,8 @@
   },
   {
     "id": 2,
-    "title": "Hello World",
-    "lessonHeader": "🖥️ Printing Messages",
+    "title": "Basic Input",
+    "lessonHeader": "🖥️ Display Input",
     "description": "Learn the basic C++ syntax for printing text using cout.",
     "task": "Complete the cout statement so it prints 'Hello World!' to the console.",
     "lessonExample": "cout << \"Hello World!\" << endl;",

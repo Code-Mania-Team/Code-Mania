@@ -39,9 +39,9 @@ const CppCourse = () => {
       description: "Set up your C++ environment and write your first program with basic output.",
       exercises: [
         { id: 1, name: "The Program", status: "available" },
-        { id: 2, name: "Hello World", status: "locked" },
-        { id: 3, name: "Comments", status: "locked" },
-        { id: 4, name: "Basic Output", status: "locked" }
+        { id: 2, name: "Basic Input", status: "available" },
+        { id: 3, name: "Comments", status: "available" },
+        { id: 4, name: "Basic Output", status: "available" }
       ]
     },
     {
