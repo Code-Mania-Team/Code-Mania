@@ -59,8 +59,49 @@ export const MAPS = {
       }
     ],
     nextMap: "map4" // matches your trigger target_map
-  }
-
+  },
+    map4: {
+      mapKey: "map4",
+      mapJson: "/assets/maps/Python/map4.json",
+      tilesets: [
+        {
+          name: "A2",
+          key: "A2",
+          image: "/assets/tilesets/Python/A2.png"
+        },
+        {
+          name: "ADBTileC_interior",
+          key: "ADBTileC_interior",
+          image: "/assets/tilesets/Python/ADBTileC_interior.png"
+        },
+        {
+          name: "E_exterior",
+          key: "E_exterior",
+          image: "/assets/tilesets/Python/E_exterior.png"
+        },
+        {
+          name: "ADBTileA5_interior",
+          key: "ADBTileA5_interior",
+          image: "/assets/tilesets/Python/ADBTileA5_interior.png"
+        },
+        {
+          name: "commu_church-A4",
+          key: "commu_church-A4",
+          image: "/assets/tilesets/Python/commu_church-A4.png"
+        },
+        {
+          name: "Dungeon_B_for_mineral",
+          key: "Dungeon_B_for_mineral",
+          image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+        },
+        {
+          name: "ADBTileB_exterior4",
+          key: "ADBTileB_exterior4",
+          image: "/assets/tilesets/Python/ADBTileB_exterior4.png"
+        }
+      ],
+      nextMap: null // or "map5" if you add it later
+    }
 
   },
   JavaScript: {

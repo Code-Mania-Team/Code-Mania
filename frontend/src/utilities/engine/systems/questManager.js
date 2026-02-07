@@ -12,7 +12,6 @@ export default class QuestManager {
     this.activeQuest = null;
   }
 
-
   getQuestById(id) {
     return this.quests.find(q => q.id === id);
   }
@@ -22,39 +21,42 @@ export default class QuestManager {
     if (!quest) return;
 
     this.activeQuest = quest;
-    console.log("🚀 QUEST STARTED:", quest.title);
 
-    // 🔔 Notify React (terminal unlock)
+    // 🔗 Bridge to terminal
+    localStorage.setItem("activeQuestId", quest.id);
+
     window.dispatchEvent(
       new CustomEvent("code-mania:quest-started", {
         detail: { questId: quest.id }
       })
     );
 
-    // 🔔 THIS WAS MISSING ❗
     window.dispatchEvent(
       new CustomEvent("code-mania:dialogue-complete", {
         detail: { questId: quest.id }
       })
     );
 
-    // Hide icons
+    console.log("🚀 QUEST STARTED:", quest.title);
+
+    // ✅ HIDE NPC QUEST ICON
     this.scene.npcs?.forEach(npc => {
       if (npc.npcData?.questId === id) {
         this.scene.questIconManager?.hideForNPC(npc);
       }
     });
 
+    // ✅ ALSO hide chest quest icons if any
     this.scene.chestQuestManager?.hideIconForQuest(id);
+
     this.scene.questHUD?.showQuest(quest);
-}
+  }
 
 
   completeQuest(id) {
     const quest = this.getQuestById(id);
-    if (!quest) return;
-
-    if (quest.completed) return;
+    console.log("📤 dispatch quest-complete", id);
+    if (!quest || quest.completed) return;
 
     quest.completed = true;
 
@@ -64,18 +66,23 @@ export default class QuestManager {
       // localStorage.setItem("completedQuests", JSON.stringify(completed));
     }
 
-    // Clear active quest if it was this one
     if (this.activeQuest?.id === id) {
       this.activeQuest = null;
+      localStorage.removeItem("activeQuestId");
     }
 
-    // 🔓 Unlock exits ANYWHERE that depend on this quest
+    window.dispatchEvent(
+      new CustomEvent("code-mania:quest-complete", {
+        detail: { questId: id }
+      })
+    );
+
+    console.log("🏁 QUEST COMPLETED:", quest.title);
+
     this.scene.mapExits?.children?.iterate(zone => {
       if (Number(zone.exitData?.requiredQuest) === id) {
         zone.exitArrow?.setVisible(true);
       }
     });
   }
-
-
 }

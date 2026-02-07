@@ -14,7 +14,7 @@ function getLanguageFromLocalStorage() {
   if (title.includes("java script")) return "javascript";
   if (title.includes("c++")) return "cpp";
 
-  return "python"; // fallback
+  return "python";
 }
 
 function getMonacoLang(lang) {
@@ -39,10 +39,15 @@ int main() {
 
     default:
       return `# Write code below ❤️
-
-a = input("hello: ")
-print(a)`;
+print("Hello world")`;
   }
+}
+
+/* ===============================
+   QUEST BRIDGE
+=============================== */
+function getActiveQuestId() {
+  return Number(localStorage.getItem("activeQuestId"));
 }
 
 const InteractiveTerminal = () => {
@@ -56,6 +61,9 @@ const InteractiveTerminal = () => {
   const socketRef = useRef(null);
   const waitingForInputRef = useRef(false);
   const inputBufferRef = useRef("");
+
+  // ✅ FIX: output must be a ref (state is async)
+  const outputRef = useRef("");
 
   /* ===============================
      GAME PAUSE / RESUME
@@ -74,10 +82,12 @@ const InteractiveTerminal = () => {
      TERMINAL HELPERS
   =============================== */
   const write = (text) => {
-    setOutput((prev) => prev + text);
+    outputRef.current += text;           // ✅ FIX
+    setOutput(outputRef.current);         // keep UI in sync
   };
 
   const resetTerminal = () => {
+    outputRef.current = "";               // ✅ FIX
     setOutput("");
     waitingForInputRef.current = false;
     inputBufferRef.current = "";
@@ -87,6 +97,8 @@ const InteractiveTerminal = () => {
      START SESSION
   =============================== */
   const handleRun = () => {
+    localStorage.setItem("lastSubmittedCode", code);
+
     if (socketRef.current) {
       socketRef.current.close();
     }
@@ -94,11 +106,15 @@ const InteractiveTerminal = () => {
     resetTerminal();
     setIsRunning(true);
 
-    const socket = new WebSocket("https://excellent-spider-excess-notified.trycloudflare.com");
+    // ✅ FIX: remove trailing space
+    const socket = new WebSocket(
+      "https://scientist-machines-paxil-defined.trycloudflare.com"
+    );
+
     socketRef.current = socket;
 
     socket.onopen = () => {
-      write(`▶ Running ${language.toUpperCase()}\n`);
+      // write(`▶ Running ${language.toUpperCase()}\n`);
       socket.send(
         JSON.stringify({
           language,
@@ -110,15 +126,34 @@ const InteractiveTerminal = () => {
     socket.onmessage = (e) => {
       write(e.data);
 
-      // No newline → waiting for input()
       if (!e.data.endsWith("\n")) {
         waitingForInputRef.current = true;
       }
     };
 
     socket.onclose = () => {
+      console.log("🧨 SOCKET CLOSED");
       setIsRunning(false);
       waitingForInputRef.current = false;
+
+      const questId = getActiveQuestId();
+      if (!questId) return;
+
+      // ✅ FIX: dispatch FINAL output
+      window.dispatchEvent(
+        new CustomEvent("code-mania:terminal-result", {
+          detail: {
+            questId,
+            output: outputRef.current,
+            error: null
+          }
+        })
+      );
+
+      console.log("📤 terminal-result dispatched", {
+        questId,
+        output: outputRef.current
+      });
     };
   };
 
@@ -142,7 +177,8 @@ const InteractiveTerminal = () => {
 
       if (e.key === "Backspace") {
         inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-        setOutput((prev) => prev.slice(0, -1));
+        outputRef.current = outputRef.current.slice(0, -1); // ✅ FIX
+        setOutput(outputRef.current);
         e.preventDefault();
         return;
       }
@@ -159,7 +195,7 @@ const InteractiveTerminal = () => {
   }, []);
 
   /* ===============================
-     RENDER
+     RENDER (UNCHANGED)
   =============================== */
   return (
     <div className={styles["code-container"]}>

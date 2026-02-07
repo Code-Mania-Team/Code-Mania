@@ -9,10 +9,10 @@ import XpNotification from "../components/XpNotification";
 import CodeTerminal from "../components/CodeTerminal";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
-import cppStage1Badge from "../assets/badges/C++/c++-badges1.png";
-import cppStage2Badge from "../assets/badges/C++/c++-badges2.png";
-import cppStage3Badge from "../assets/badges/C++/c++-badge3.png";
-import cppStage4Badge from "../assets/badges/C++/c++-badge4.png";
+import cppStage1Badge from "../assets/badges/C++/cpp-badges1.png";
+import cppStage2Badge from "../assets/badges/C++/cpp-badges2.png";
+import cppStage3Badge from "../assets/badges/C++/cpp-badge3.png";
+import cppStage4Badge from "../assets/badges/C++/cpp-badge4.png";
 import exercises from "../utilities/data/cppExercises.json";
 import { initPhaserGame } from "../utilities/engine/main.js";
 
@@ -247,10 +247,9 @@ user={user}
             id="phaser-container"
             className={styles["game-scene"]}
             style={{
-              minHeight: "400px",
-              position: "relative",
-              borderRadius: "8px",
-              overflow: "hidden",
+              width: "100%",
+              height: "100%",
+              imageRendering: "pixelated"
             }}
           >
           </div>
