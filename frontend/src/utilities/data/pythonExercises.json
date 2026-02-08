@@ -99,7 +99,8 @@
     "startingCode": "heroName = \"\"\nprint(heroName)",
     "hints": ["Assign values using =.", "Use meaningful variable names."],
     "requirements": { "mustInclude": ["=", "print"] },
-    "expectedOutput": "Jet"
+    "expectedOutput": "Jet",
+    "grants": "key"
   },
   {
     "id": 6,
