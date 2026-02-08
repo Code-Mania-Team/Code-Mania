@@ -1,11 +1,10 @@
-import e, { Router } from 'express';
+import { Router } from 'express';
 import accountRouter from './accountRoutes.js';
 import passport from 'passport';
 import freedomWallRouter from './freedomWallRoutes.js';
 import homeRouter from './homeRoutes.js';
 import refreshRouter from './refreshRoute.js';
 import userGameDataRouter from './userGameDataRoutes.js';
-import executeRouter from './executeRoutes.js';
 
 const v1 = new Router();
 
@@ -14,7 +13,6 @@ v1.use('/', homeRouter);
 v1.use('/', userGameDataRouter);
 v1.use('/freedom-wall', freedomWallRouter);
 v1.use('/refresh', refreshRouter);
-v1.use('/run', executeRouter);
 
 v1.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']
