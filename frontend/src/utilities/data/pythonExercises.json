@@ -22,7 +22,7 @@
   },
   {
     "id": 2,
-    "title": "Hello World",
+    "title": "User Inputs",
     "validationMode": "HYBRID",
     "badgeKey": "PYTHON_STAGE_1",
     "dialogue": [

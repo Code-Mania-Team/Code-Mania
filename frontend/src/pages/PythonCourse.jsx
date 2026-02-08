@@ -56,7 +56,7 @@ const PythonCourse = () => {
       description: "Learn how to write your first line of Python by printing messages to the terminal.",
       exercises: [
         { id: 1, name: "Setting Up", status: "available" },
-        { id: 2, name: "Hello World", status: "locked" },
+        { id: 2, name: "User Inputs", status: "locked" },
         { id: 3, name: "Pattern", status: "locked" },
         { id: 4, name: "Initials", status: "locked" }
       ]

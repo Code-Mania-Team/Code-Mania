@@ -21,27 +21,28 @@
   },
 
   {
-    "id": 2,
-    "title": "Basic Input",
-    "dialogue": [
-      "Nice to see you again.",
-      "Programs use output to communicate.",
-      "Try changing the message and see what appears."
-    ],  
-    "lessonHeader": "🖥️ Using Inputs",
-    "description": "C++ programs often need to communicate information to the user. This is done using output statements. The cout object is part of the standard output stream and is commonly used to display text, numbers, and results of expressions on the screen. Learning how to use cout correctly is an important first step before moving on to user input and more advanced interactions.",
-    "task": "Complete the cout statement so it prints 'Hello World!' to the console.",
-    "lessonExample": "cout << \"Hello World!\" << endl;",
-    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
-    "hints": [
-      "Text must be enclosed in double quotes.",
-      "Use the << operator to send output to cout.",
-      "endl moves the cursor to a new line."
-    ],
-    "requirements": { "mustInclude": ["cout"] },
-    "expectedOutput": "Hello World!"
+  "id": 2,
+  "title": "Basic Input",
+  "dialogue": [
+    "Welcome back!",
+    "So far, your programs can talk.",
+    "Now let’s teach them how to listen."
+  ],
+  "lessonHeader": "🖥️ Using Inputs",
+  "description": "In many programs, output alone is not enough. Programs often need information from the user in order to behave differently. In C++, user input is handled using the cin object, which reads data entered from the keyboard. By combining cin and cout, programs can interact with users instead of displaying fixed messages. In this lesson, you will learn how to ask for input and display it back to the user.",
+  "task": "Ask the user for their name using cin, then print a greeting that includes the name.",
+  "lessonExample": "#include <iostream>\nusing namespace std;\n\nint main() {\n    string name;\n    cout << \"Enter your name: \";\n    cin >> name;\n    cout << \"Hello, \" << name << \"!\" << endl;\n    return 0;\n}",
+  "startingCode": "#include <iostream>\nusing namespace std;\n\nint main() {\n    string name;\n    // Ask for user input here\n    return 0;\n}",
+  "hints": [
+    "Use cin to read input from the keyboard.",
+    "Store the input in a variable.",
+    "You can combine text and variables using cout."
+  ],
+  "requirements": {
+    "mustInclude": ["cin", "cout"]
   },
-
+  "expectedOutput": "Hello, <name>!"
+},
   {
     "id": 3,
     "title": "Comments",
