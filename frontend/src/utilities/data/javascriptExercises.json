@@ -2,7 +2,7 @@
   {
     "id": 1,
     "title": "Introduction",
-    "lessonHeader": "🌐 Introduction to JavaScript",
+    "lessonHeader": "🌐 Introduction to JavaScript ES6+",
     "description": "JavaScript is a programming language used to make web pages interactive. It runs in the browser and allows you to respond to user actions.",
     "task": "Print 'Hello, JS!' to show the output using console.log().",
     "dialogue": [
