@@ -60,6 +60,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
 
   const validatePassword = (pass) => {
     const minLength = 8;
@@ -215,6 +216,53 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     setOtp('');
   };
 
+  const handleForgotPassword = () => {
+    setIsForgotPasswordMode(true);
+    setLoginError('');
+  };
+
+  const handleBackToSignIn = () => {
+    setIsForgotPasswordMode(false);
+    setLoginError('');
+  };
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setLoginError('');
+    
+    try {
+      const normalizedEmail = (email || '').trim();
+      const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+      
+      if (!normalizedEmail) {
+        setLoginError('Please enter your email.');
+        setIsLoading(false);
+        return;
+      }
+      
+      if (!emailIsValid) {
+        setLoginError('Please enter a valid email address.');
+        setIsLoading(false);
+        return;
+      }
+
+      // TODO: Call forgot password API
+      console.log('Sending password reset to:', normalizedEmail);
+      
+      // For now, simulate success
+      setTimeout(() => {
+        setLoginError('Password reset link sent! Check your email.');
+        setIsLoading(false);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      setLoginError('Failed to send reset link. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.signinModal} onClick={(e) => e.stopPropagation()}>
@@ -222,12 +270,18 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         <div className={styles.welcomeSection}>
           <img src={swordImage} alt="Sword" className={`${styles.pixelIcon} ${styles.pixelSword}`} />
-          <h2>{isSignUpMode ? 'Create your account' : 'Welcome, Adventurer!'}</h2>
+          <h2>
+            {isSignUpMode ? 'Create your account' : 
+             isForgotPasswordMode ? 'Reset Password' : 'Welcome, Adventurer!'}
+            }
+          </h2>
           <img src={shieldImage} alt="Shield" className={`${styles.pixelIcon} ${styles.pixelShield}`} />
         </div>
 
         <p className={styles.subtext}>
-          {isSignUpMode ? 'Start your adventure in Code Mania' : 'Sign in to continue your journey'}
+          {isSignUpMode ? 'Start your adventure in Code Mania' : 
+           isForgotPasswordMode ? 'Enter your email to reset password' : 'Sign in to continue your journey'}
+          }
         </p>
 
         {/* Google OAuth Button */}
@@ -244,7 +298,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           <span>or</span>
         </div>
 
-        {!isSignUpMode ? (
+        {!isSignUpMode && !isForgotPasswordMode ? (
           <>
 
             <form onSubmit={handleSubmit} className={styles.signinForm}>
@@ -325,7 +379,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 <p className={styles.errorText}>{loginError}</p>
               )}
 
-
               <p className={styles.signupHint}>
                 Don't have an account yet?{' '}
                 <button
@@ -340,7 +393,51 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 >
                   Create one
                 </button>
+                <button
+                  type="button"
+                  className={styles.forgotPasswordButton}
+                  onClick={handleForgotPassword}
+                >
+                  Forgot password?
+                </button>
               </p>
+            </form>
+          </>
+        ) : isForgotPasswordMode ? (
+          <>
+
+            <form onSubmit={handleForgotPasswordSubmit} className={styles.signinForm}>
+              <div className={styles.formGroup}>
+                <label htmlFor="forgot-email">Email</label>
+                <input
+                  type="email"
+                  id="forgot-email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setLoginError(''); // Clear error when user types
+                  }}
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+
+              <button type="submit" className={styles.signinButton} disabled={isLoading}>
+                {isLoading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+
+              {loginError && (
+                <p className={styles.errorText}>{loginError}</p>
+              )}
+
+              <button
+                type="button"
+                className={styles.backButton}
+                onClick={handleBackToSignIn}
+                disabled={isLoading}
+              >
+                Back to Sign In
+              </button>
             </form>
           </>
         ) : (
@@ -435,7 +532,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     id="otp"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter the 6-digit OTP"
+                    placeholder="Enter 6-digit OTP"
                     required
                     maxLength="6"
                   />
@@ -463,7 +560,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   Back to email & password
                 </button>
               )}
-
 
               <p className={styles.signupHint}>
                 Already have an account?{' '}
