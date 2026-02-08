@@ -15,6 +15,8 @@ import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 import exercises from "../utilities/data/javascriptExercises.json";
 import achievements from "../utilities/data/achievements.json";
 import { initPhaserGame } from "../utilities/engine/main.js";
+import useAuth from "../hooks/useAxios";
+import { axiosPublic } from "../api/axios";
 
 const JavaScriptExercise = () => {
   const { exerciseId } = useParams();
@@ -296,8 +298,7 @@ const JavaScriptExercise = () => {
   };
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('isAuthenticated') === 'true');
-  const [user, setUser] = useState(null);
+  const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
   const handleOpenModal = () => {
     setIsSignInModalOpen(true);
@@ -308,11 +309,26 @@ const JavaScriptExercise = () => {
   };
 
   const handleSignInSuccess = () => {
-    // In a real app, you would get user data from your auth provider
-    const mockUser = { name: 'Coder', email: 'coder@example.com' };
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    localStorage.setItem('isAuthenticated', 'true');
+    axiosPublic
+      .get("/v1/account")
+      .then((res) => {
+        const ok = res?.data?.success === true;
+        const profile = res?.data?.data;
+        const hasUserId = Boolean(profile && profile.user_id);
+
+        if (ok && hasUserId) {
+          setUser(profile);
+          setIsAuthenticated(true);
+          return;
+        }
+
+        setUser(null);
+        setIsAuthenticated(false);
+      })
+      .catch(() => {
+        setUser(null);
+        setIsAuthenticated(false);
+      });
     window.dispatchEvent(new Event('authchange'));
     setIsSignInModalOpen(false);
   };

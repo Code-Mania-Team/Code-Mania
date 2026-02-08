@@ -8,7 +8,7 @@ import characterIcon from '/assets/characters/icons/character.png';
 import characterIcon1 from '/assets/characters/icons/character1.png';
 import characterIcon3 from '/assets/characters/icons/character3.png';
 import characterIcon4 from '/assets/characters/icons/character4.png'
-import { onBoardUsername } from '../services/setUsername';
+import { useOnBoardUsername } from '../services/setUsername';
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -16,6 +16,8 @@ const WelcomeOnboarding = ({ onComplete }) => {
   const [selectedCharacter, setSelectedCharacter] = useState(0);
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
+
+  const onBoardUsername = useOnBoardUsername();
 
   // Character options (you can add more character sprites here)
   const characters = [

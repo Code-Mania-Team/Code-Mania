@@ -4,6 +4,7 @@ import Footer from '../components/footer';
 import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import styles from '../styles/Dashboard.module.css';
+import useAuth from "../hooks/useAxios";
 
 import characterIcon0 from '/assets/characters/icons/character.png';
 import characterIcon1 from '/assets/characters/icons/character1.png';
@@ -15,9 +16,7 @@ const Dashboard = ({ onSignOut }) => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(0);
   const [characterIcon, setCharacterIcon] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('isAuthenticated') === 'true';
-  });
+  const { isAuthenticated } = useAuth();
 
   const [hasTouchedCourse] = useState(() => {
     return localStorage.getItem('hasTouchedCourse') === 'true';
@@ -148,11 +147,9 @@ const Dashboard = ({ onSignOut }) => {
       onSignOut();
       return;
     }
-    localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
     localStorage.removeItem('selectedCharacter');
     localStorage.removeItem('selectedCharacterIcon');
-    setIsAuthenticated(false);
     navigate('/');
   };
 

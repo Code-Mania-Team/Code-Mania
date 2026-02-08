@@ -16,7 +16,9 @@ import SignInModal from "./components/SignInModal";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
-import { clearUserSession } from "./services/signOut";
+import useSessionOut, { clearUserSession } from "./services/signOut";
+import useAuth from "./hooks/useAxios";
+import { axiosPublic } from "./api/axios";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -141,27 +143,28 @@ function App() {
   }
   // getCookies();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Initialize from localStorage if available
-    return localStorage.getItem('isAuthenticated') === 'true';
-  });
+  const { isAuthenticated, setIsAuthenticated, setUser } = useAuth();
   const [isNewUser, setIsNewUser] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleSignOut = () => {
+  const SessionOut = useSessionOut();
+
+  const handleSignOut = async () => {
+    try {
+      await SessionOut();
+    } catch {
+      // ignore logout network errors; still clear local session state
+    }
+
     clearUserSession();
     setIsAuthenticated(false);
+    setUser(null);
     setIsNewUser(false);
     window.dispatchEvent(new Event('authchange'));
     window.dispatchEvent(new CustomEvent('characterUpdated'));
     navigate('/');
   };
-
-  // Update localStorage when isAuthenticated changes
-  useEffect(() => {
-    localStorage.setItem('isAuthenticated', isAuthenticated);
-  }, [isAuthenticated]);
 
   // hide header/footer on exercise routes and dashboard
   const hideGlobalHeaderFooter = 
@@ -217,10 +220,19 @@ function App() {
       <SignInModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        onSignInSuccess={(isNew) => {
+        onSignInSuccess={async (isNew) => {
           setIsAuthenticated(true);
           setIsModalOpen(false);
           setIsNewUser(!!isNew);
+
+          try {
+            const res = await axiosPublic.get("/v1/account");
+            const profile = res?.data?.data || null;
+            setUser(profile);
+          } catch {
+            setUser(null);
+          }
+
           if (isNew) {
             navigate('/welcome');
             return;

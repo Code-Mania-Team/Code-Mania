@@ -30,7 +30,7 @@ accountRouter.get('/login/google/redirect', passport.authenticate('google', { se
     account.googleLogin(req, res);
 });
 
-accountRouter.post('/logout', authentication, account.logout.bind(account));
+accountRouter.post('/logout', account.logout.bind(account));
 
 // Get current user's profile
 accountRouter.get('/', authentication, account.profile.bind(account));

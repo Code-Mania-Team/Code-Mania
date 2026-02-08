@@ -3,7 +3,7 @@ import { Search, Send } from "lucide-react";
 import "../styles/FreedomWall.css";
 
 import useGetAllPosts from "../services/home";
-import { userPost } from "../services/postFreedomwall";
+import useUserPost from "../services/postFreedomwall";
 
 import characterIcon0 from '/assets/characters/icons/character.png';
 import characterIcon1 from '/assets/characters/icons/character1.png';
@@ -12,6 +12,7 @@ import characterIcon3 from '/assets/characters/icons/character4.png';
 
 const FreedomWall = ({ onOpenModal }) => {
   const getAllPosts = useGetAllPosts();
+  const userPost = useUserPost();
   const [comments, setComments] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [fetchError, setFetchError] = useState('');

@@ -3,11 +3,13 @@ import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
+import useAuth from "../hooks/useAxios";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const PythonCourse = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -20,7 +22,6 @@ const PythonCourse = () => {
   };
 
   const handleViewProfile = () => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     if (isAuthenticated) {
       navigate('/profile');
     } else {

@@ -117,7 +117,6 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
   };
 
   const handleSignInSuccess = () => {
-    localStorage.setItem('isAuthenticated', 'true');
     window.dispatchEvent(new Event('authchange'));
     handleCloseModal();
   };

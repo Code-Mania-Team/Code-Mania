@@ -1,27 +1,23 @@
-import axios from 'axios';
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
-const DeleteAccount = async () => {
+const useDeleteAccount = () => {
+  const axiosPrivate = useAxiosPrivate();
 
-  try {
-    const response = await axios.delete(
-      "http://localhost:3000/v1/account",
-      {
-        headers: {
-          apikey: import.meta.env.VITE_API_KEY,
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      }
-    );
-    
-    console.log("Delete Account response:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error:", error);
-    throw error;
-  }
+  const DeleteAccount = async () => {
+
+    try {
+      const response = await axiosPrivate.delete("/v1/account");
+      
+      console.log("Delete Account response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  };
+
+  return DeleteAccount;
 };
 
-
-export { DeleteAccount };
+export { useDeleteAccount };
 

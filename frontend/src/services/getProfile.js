@@ -1,18 +1,11 @@
-import axios from "axios";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 const useGetProfile = () => {
+  const axiosPrivate = useAxiosPrivate();
+
   const getProfile = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:3000/v1/account",
-        {
-          withCredentials: true,
-          headers: {
-            apikey: import.meta.env.VITE_API_KEY,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axiosPrivate.get("/v1/account");
 
       return response.data;
     } catch (error) {

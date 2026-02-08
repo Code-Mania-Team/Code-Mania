@@ -15,6 +15,8 @@ import cppStage3Badge from "../assets/badges/C++/c++-badge3.png";
 import cppStage4Badge from "../assets/badges/C++/c++-badge4.png";
 import exercises from "../utilities/data/cppExercises.json";
 import { initPhaserGame } from "../utilities/engine/main.js";
+import useAuth from "../hooks/useAxios";
+import { axiosPublic } from "../api/axios";
 
 const CppExercise = () => {
 const { exerciseId } = useParams();
@@ -200,17 +202,32 @@ const handleStageContinue = () => {
 
 // --- Auth modal setup ---
 const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('isAuthenticated') === 'true');
-const [user, setUser] = useState(null);
+const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
 const handleOpenModal = () => setIsSignInModalOpen(true);
 const handleCloseModal = () => setIsSignInModalOpen(false);
 
 const handleSignInSuccess = () => {
-const mockUser = { name: "Coder", email: "[coder@example.com](mailto:coder@example.com)" };
-setUser(mockUser);
-setIsAuthenticated(true);
-localStorage.setItem('isAuthenticated', 'true');
+axiosPublic
+  .get("/v1/account")
+  .then((res) => {
+    const ok = res?.data?.success === true;
+    const profile = res?.data?.data;
+    const hasUserId = Boolean(profile && profile.user_id);
+
+    if (ok && hasUserId) {
+      setUser(profile);
+      setIsAuthenticated(true);
+      return;
+    }
+
+    setUser(null);
+    setIsAuthenticated(false);
+  })
+  .catch(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+  });
 window.dispatchEvent(new Event('authchange'));
 setIsSignInModalOpen(false);
 };
