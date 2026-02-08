@@ -1,8 +1,11 @@
-import  refreshController  from "../../controllers/v1/refreshController.js";
 import express from 'express';
-const refreshRouter = express.Router();
+import AccountController from '../../controllers/v1/accountController.js';
+import { authorization } from '../../middlewares/authorization.js';
 
-const token = new refreshController();
-refreshRouter.get("/", token.refreshAccessToken.bind(token));
+const refreshRouter = express.Router();
+const account = new AccountController();
+
+refreshRouter.use(authorization);
+refreshRouter.get('/', account.refresh.bind(account));
 
 export default refreshRouter;

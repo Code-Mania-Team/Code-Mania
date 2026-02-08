@@ -100,8 +100,46 @@ export const MAPS = {
           image: "/assets/tilesets/Python/ADBTileB_exterior4.png"
         }
       ],
-      nextMap: null // or "map5" if you add it later
+      nextMap: "map5" // or "map5" if you add it later
+    },
+    map5: {
+      mapKey: "map5",
+      mapJson: "/assets/maps/Python/map5.json",
+      tilesets: [
+        {
+          name: "fsm_C_Inside01_A4",
+          key: "fsm_C_Inside01_A4",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_A4.png"
+        },
+        {
+          name: "fsm_C_Inside01_A5_1",
+          key: "fsm_C_Inside01_A5_1",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+        },
+        {
+          name: "fsm_C_Inside01_B1",
+          key: "fsm_C_Inside01_B1",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+        },
+        {
+          name: "fsm_C_Inside01_C",
+          key: "fsm_C_Inside01_C",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+        },
+        {
+          name: "fsm_C_Inside01_D3",
+          key: "fsm_C_Inside01_D3",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_D3.png"
+        },
+        {
+          name: "Dungeon_B_for_mineral",
+          key: "Dungeon_B_for_mineral",
+          image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+        }
+      ],
+      nextMap: "map6"
     }
+
 
   },
   JavaScript: {
