@@ -23,13 +23,8 @@
   {
     "id": 2,
     "title": "Basic Input",
-    "dialogue": [
-      "Nice to see you again.",
-      "Programs use output to communicate.",
-      "Try changing the message and see what appears."
-    ],  
-    "lessonHeader": "🖥️ Using Inputs",
-    "description": "C++ programs often need to communicate information to the user. This is done using output statements. The cout object is part of the standard output stream and is commonly used to display text, numbers, and results of expressions on the screen. Learning how to use cout correctly is an important first step before moving on to user input and more advanced interactions.",
+    "lessonHeader": "🖥️ Display Input",
+    "description": "Learn the basic C++ syntax for printing text using cout.",
     "task": "Complete the cout statement so it prints 'Hello World!' to the console.",
     "lessonExample": "cout << \"Hello World!\" << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",

@@ -1,4 +1,4 @@
-import axios from "axios";
+import { axiosPublic } from "../api/axios";
 
 const signUp = async (email, password) => {
   console.log("SIGNUP FUNCTION ENTERED");
@@ -7,14 +7,11 @@ const signUp = async (email, password) => {
   try {
     console.log("ABOUT TO CALL AXIOS");
 
-    const response = await axios.post(
-      "http://localhost:3000/v1/account/signup/request-otp",
+    const response = await axiosPublic.post(
+      "/v1/account/signup/request-otp",
       { email, password },
       {
-        headers: {
-          apikey: import.meta.env.VITE_API_KEY,
-          "Content-Type": "application/json",
-        },
+        withCredentials: true,
       }
     );
 

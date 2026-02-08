@@ -235,9 +235,6 @@ const PythonExercise = ({ isAuthenticated }) => {
     setIsSignInModalOpen(false);
   };
 
-  /* ===============================
-     RENDER
-  =============================== */
   return (
     <div className={styles["python-exercise-page"]}>
       <Header

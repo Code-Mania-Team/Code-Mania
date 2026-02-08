@@ -1,11 +1,12 @@
 import { useContext, useDebugValue } from "react";
-import AuthContext from "../context/AuthProvider";
+import AuthContext from "../context/AuthProvider.jsx";
 
 const useAuth = () => {
   const context = useContext(AuthContext);
 
-  useDebugValue(context?.auth, auth =>
-    auth?.accessToken ? "Authenticated" : "Unauthenticated"
+  useDebugValue(
+    context,
+    (ctx) => (ctx?.isAuthenticated ? "Authenticated" : "Unauthenticated")
   );
 
   return context;

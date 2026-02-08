@@ -1,26 +1,22 @@
-import axios from 'axios';
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
-const SessionOut = async () => {
+const useSessionOut = () => {
+  const axiosPrivate = useAxiosPrivate();
 
-  try {
-    const response = await axios.post(
-      "http://localhost:3000/v1/account/logout",
-      {},
-      {
-        headers: {
-          apikey: import.meta.env.VITE_API_KEY,
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      }
-    );
-    
-    console.log("Sign-out response:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error:", error);
-    throw error;
-  }
+  const SessionOut = async () => {
+
+    try {
+      const response = await axiosPrivate.post("/v1/account/logout", {});
+      
+      console.log("Sign-out response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  };
+
+  return SessionOut;
 };
 
 const clearUserSession = () => {
@@ -66,5 +62,6 @@ const clearUserSession = () => {
   keysToRemove.forEach((key) => localStorage.removeItem(key));
 };
 
-export { SessionOut, clearUserSession };
+export { clearUserSession };
 
+export default useSessionOut;

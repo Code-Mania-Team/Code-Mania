@@ -1,19 +1,14 @@
-import axios from 'axios';
+import { axiosPublic } from "../api/axios";
 
 const verifyOtp = async (email, otp) => {
 
   try {
-    const response = await axios.post(
-      "http://localhost:3000/v1/account/signup/verify-otp",
+    const response = await axiosPublic.post(
+      "/v1/account/signup/verify-otp",
       { email, otp },
-      {
-        headers: {
-          apikey: import.meta.env.VITE_API_KEY,
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      }
+      { withCredentials: true }
     );
+
     console.log("Sign-up response:", response.data);
     return response.data;
   } catch (error) {

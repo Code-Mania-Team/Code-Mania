@@ -4,6 +4,7 @@ import Footer from '../components/footer';
 import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import styles from '../styles/Dashboard.module.css';
+import useAuth from "../hooks/useAxios";
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -16,9 +17,7 @@ const Dashboard = ({ onSignOut }) => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(0);
   const [characterIcon, setCharacterIcon] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('isAuthenticated') === 'true';
-  });
+  const { isAuthenticated } = useAuth();
 
   const [hasTouchedCourse] = useState(() => {
     return localStorage.getItem('hasTouchedCourse') === 'true';
@@ -149,11 +148,9 @@ const Dashboard = ({ onSignOut }) => {
       onSignOut();
       return;
     }
-    localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('username');
     localStorage.removeItem('selectedCharacter');
     localStorage.removeItem('selectedCharacterIcon');
-    setIsAuthenticated(false);
     navigate('/');
   };
 

@@ -9,7 +9,7 @@ const characterIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v177043
 const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
 const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
 const characterIcon4 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
-import { onBoardUsername } from '../services/setUsername';
+import { useOnBoardUsername } from '../services/setUsername';
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -17,6 +17,8 @@ const WelcomeOnboarding = ({ onComplete }) => {
   const [selectedCharacter, setSelectedCharacter] = useState(0);
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
+
+  const onBoardUsername = useOnBoardUsername();
 
   // Character options (you can add more character sprites here)
   const characters = [
@@ -97,16 +99,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Save user preferences
-      localStorage.setItem('selectedCharacter', characters[selectedCharacter].id);
-      localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
-      localStorage.setItem('username', username);
-      
-      // Dispatch custom event to notify header component
-      window.dispatchEvent(new CustomEvent('characterUpdated', {
-        detail: { characterIcon: characters[selectedCharacter].icon }
-      }));
-      
       onComplete();
     }
   };

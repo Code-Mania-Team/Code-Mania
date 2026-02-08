@@ -1,29 +1,29 @@
-import axios from 'axios';
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
-const onBoardUsername = async (username, characterId) => {
-  if (username === '' || username.length < 3) {
-    throw new Error("Please enter a valid username.");
-  }
-  
+const useOnBoardUsername = () => {
+  const axiosPrivate = useAxiosPrivate();
 
-  try {
-    const response = await axios.post(
-      "http://localhost:3000/v1/account/setOnboarding",
-      { username, character_id: characterId },
-      { 
-        headers: {
-          apikey: import.meta.env.VITE_API_KEY,
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      }
-    );
-    console.log("Username set response:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error during set userame:", error);
-    throw error;
-  }
+  const onBoardUsername = async (username, characterId) => {
+    if (username === '' || username.length < 3) {
+      throw new Error("Please enter a valid username.");
+    }
+    
+
+    try {
+      const response = await axiosPrivate.post("/v1/account/setOnboarding", {
+        username,
+        character_id: characterId,
+      });
+
+      console.log("Username set response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error during set userame:", error);
+      throw error;
+    }
+  };
+
+  return onBoardUsername;
 };
 
-export { onBoardUsername };
+export { useOnBoardUsername };
