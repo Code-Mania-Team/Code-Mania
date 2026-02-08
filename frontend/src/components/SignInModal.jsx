@@ -273,7 +273,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           <h2>
             {isSignUpMode ? 'Create your account' : 
              isForgotPasswordMode ? 'Reset Password' : 'Welcome, Adventurer!'}
-            }
           </h2>
           <img src={shieldImage} alt="Shield" className={`${styles.pixelIcon} ${styles.pixelShield}`} />
         </div>
@@ -281,7 +280,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         <p className={styles.subtext}>
           {isSignUpMode ? 'Start your adventure in Code Mania' : 
            isForgotPasswordMode ? 'Enter your email to reset password' : 'Sign in to continue your journey'}
-          }
         </p>
 
         {/* Google OAuth Button */}
