@@ -6,6 +6,12 @@ import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
 
+// Import JavaScript course badges
+import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
+import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
+import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
+import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
+
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const JavaScriptCourse = () => {
@@ -272,6 +278,17 @@ const JavaScriptCourse = () => {
               <span className="progress-value">
                 {updatedUserProgress.xpEarned} / {updatedUserProgress.totalXp}
               </span>
+            </div>
+          </div>
+
+          {/* Course Badges Section */}
+          <div className="progress-card">
+            <h4 className="progress-title">Course Badges</h4>
+            <div className="course-badges-grid">
+              <img src={jsStage1Badge} alt="JavaScript Stage 1" className="course-badge" />
+              <img src={jsStage2Badge} alt="JavaScript Stage 2" className="course-badge" />
+              <img src={jsStage3Badge} alt="JavaScript Stage 3" className="course-badge" />
+              <img src={jsStage4Badge} alt="JavaScript Stage 4" className="course-badge" />
             </div>
           </div>
         </div>

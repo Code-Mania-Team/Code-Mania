@@ -52,7 +52,7 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="0"
             >
               <div className="section-image">
-                <img src="/assets/welcome-tutorial.png" alt="Welcome Tutorial" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453739/welcome-tutorial_mpega0.png" alt="Welcome Tutorial" />
               </div>
 
               <div className="section-text">
@@ -72,7 +72,7 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="1"
             >
               <div className="section-image">
-                <img src="/assets/welcome-controls.png" alt="Character Controls" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453737/welcome-controls_cxskmf.png" alt="Character Controls" />
               </div>
 
               <div className="section-text">
@@ -92,7 +92,7 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="2"
             >
               <div className="section-image">
-                <img src="/assets/welcome-mechanics.png" alt="Game Mechanics" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453738/welcome-mechanics_a8axyq.png" alt="Game Mechanics" />
               </div>
 
               <div className="section-text">
@@ -112,7 +112,7 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="3"
             >
               <div className="section-image">
-                <img src="/tutorial/scene4.png" alt="Advanced Features" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770578515/welcome-achievement_l6rcbx.png" alt="Advanced Features" />
               </div>
 
               <div className="section-text">
@@ -132,7 +132,7 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="4"
             >
               <div className="section-image">
-                <img src="/assets/welcome-leaderboard.png" alt="Competition" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770575075/welcome-exam_xi8wve.png" alt="Final Exam" />
               </div>
 
               <div className="section-text">
@@ -152,7 +152,7 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="5"
             >
               <div className="section-image">
-                <img src="/assets/welcome-leaderboard.png" alt="Competition" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453720/welcome-leaderboard_lbvloc.jpg" alt="Competition" />
               </div>
 
               <div className="section-text">

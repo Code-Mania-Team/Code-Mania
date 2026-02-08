@@ -5,6 +5,12 @@ import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
 import useAuth from "../hooks/useAxios";
 
+// Import Python course badges
+import pythonBadge1 from "../assets/badges/Python/python-badge1.png";
+import pythonBadge2 from "../assets/badges/Python/python-badge2.png";
+import pythonBadge3 from "../assets/badges/Python/python-badge3.png";
+import pythonBadge4 from "../assets/badges/Python/python-badge4.png";
+
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const PythonCourse = () => {
@@ -235,6 +241,17 @@ const PythonCourse = () => {
               <span className="progress-value">
                 {userProgress.xpEarned} / {userProgress.totalXp}
               </span>
+            </div>
+          </div>
+
+          {/* Course Badges Section */}
+          <div className="progress-card">
+            <h4 className="progress-title">Course Badges</h4>
+            <div className="course-badges-grid">
+              <img src={pythonBadge1} alt="Python Stage 1" className="course-badge" />
+              <img src={pythonBadge2} alt="Python Stage 2" className="course-badge" />
+              <img src={pythonBadge3} alt="Python Stage 3" className="course-badge" />
+              <img src={pythonBadge4} alt="Python Stage 4" className="course-badge" />
             </div>
           </div>
         </div>
