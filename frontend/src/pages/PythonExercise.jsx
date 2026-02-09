@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
@@ -9,12 +9,15 @@ import MobileControls from "../components/MobileControls";
 import TutorialPopup from "../components/TutorialPopup";
 
 import styles from "../styles/PythonExercise.module.css";
-import { initPhaserGame } from "../utilities/engine/main.js";
+import { startGame } from "../utilities/engine/main.js";
 import pythonExercises from "../utilities/data/pythonExercises.json";
 import mobileFrame from "../assets/mobile.png";
 
 const PythonExercise = ({ isAuthenticated }) => {
   const { exerciseId } = useParams();
+  const location = useLocation();
+  const completedQuests =
+  location.state?.completedQuests ?? [];
 
   /* ===============================
      QUEST / LESSON STATE
@@ -83,16 +86,20 @@ const PythonExercise = ({ isAuthenticated }) => {
      PHASER INIT + EVENTS
   =============================== */
   useEffect(() => {
-    // Check if tutorial should be shown for new accounts
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    
+    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+    const isAuthenticated =
+      localStorage.getItem("isAuthenticated") === "true";
+
     if (isAuthenticated && !hasSeenTutorial) {
       setShowTutorial(true);
     }
 
-    const game = initPhaserGame("phaser-container");
-    window.game = game;
+    // 🔥 THIS IS THE ONLY CORRECT WAY
+    startGame({
+      exerciseId: activeExerciseId,
+      parent: "phaser-container",
+      completedQuests,
+    });
 
     const onQuestStarted = (e) => {
       const questId = e.detail?.questId;
@@ -122,9 +129,9 @@ const PythonExercise = ({ isAuthenticated }) => {
     return () => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
-      game?.cleanup?.();
     };
-  }, []);
+  }, [activeExerciseId]);
+
 
   /* ===============================
      UPDATE CODE ON QUEST CHANGE

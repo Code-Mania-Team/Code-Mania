@@ -15,7 +15,7 @@ import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
 import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 import exercises from "../utilities/data/javascriptExercises.json";
 import achievements from "../utilities/data/achievements.json";
-import { initPhaserGame } from "../utilities/engine/main.js";
+// import { initPhaserGame } from "../utilities/engine/main.js";
 import useAuth from "../hooks/useAxios";
 import { axiosPublic } from "../api/axios";
 

@@ -1,10 +1,10 @@
 export default class QuestManager {
-  constructor(scene, quests) {
+  constructor(scene, quests, completedQuestIds = []) {
     this.scene = scene;
     this.quests = quests;
 
-    const saved = JSON.parse(localStorage.getItem("completedQuests") || "[]");
-    saved.forEach(id => {
+    this.completedQuestIds = new Set(completedQuestIds);
+    this.completedQuestIds.forEach(id => {
       const q = this.getQuestById(id);
       if (q) q.completed = true;
     });
@@ -59,12 +59,8 @@ export default class QuestManager {
     if (!quest || quest.completed) return;
 
     quest.completed = true;
+    this.completedQuestIds.add(id);
 
-    const completed = JSON.parse(localStorage.getItem("completedQuests") || "[]");
-    if (!completed.includes(id)) {
-      completed.push(id);
-      // localStorage.setItem("completedQuests", JSON.stringify(completed));
-    }
 
     if (this.activeQuest?.id === id) {
       this.activeQuest = null;

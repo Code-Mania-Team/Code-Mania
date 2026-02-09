@@ -23,12 +23,15 @@ import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
 import QuestValidator from "../systems/questValidator";
+import { postGameProgress } from "../../../services/postGameProgress";
+
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
   }
 
   init(data) {
+    this.completedQuestIds = new Set(data.completedQuests || [])
     // Use the last course title from localStorage if available
     const storedLanguage = localStorage.getItem("lastCourseTitle") || "Python";
     
@@ -36,8 +39,14 @@ export default class GameScene extends Phaser.Scene {
     this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
 
     // Map ID passed from previous scene, or fall back to localStorage, or default to map1
-    const storedMapId = localStorage.getItem("currentMapId");
-    this.currentMapId = data?.mapId || storedMapId || "map1";
+    if (data?.exerciseId) {
+      this.currentMapId = `map${data.exerciseId}`;
+    } else {
+      // fallback only (free roam / dev mode)
+      this.currentMapId =
+        localStorage.getItem("currentMapId") || "map1";
+    }
+
 
     // Access mapData based on language
     this.mapData = MAPS[this.language][this.currentMapId];
@@ -181,8 +190,9 @@ export default class GameScene extends Phaser.Scene {
     });
 
   }
-  onQuestComplete = (e) => {
+  onQuestComplete = async (e) => {
     const questId = e.detail?.questId;
+    console.log("questId", questId);
     if (!questId) return;
 
     const quest = this.questManager.getQuestById(questId);
@@ -194,6 +204,19 @@ export default class GameScene extends Phaser.Scene {
     if (quest.grants) {
       this.worldState.abilities.add(quest.grants);
     }
+    try {
+      await postGameProgress({
+        questId: quest.id,
+        xp: quest.experience ?? 0,
+        programming_language: localStorage.getItem("lastCourseTitle") || "Python",
+      });
+
+
+      console.log("✅ quest saved");
+    } catch (err) {
+      console.error("❌ save failed", err);
+    }
+
 
     // ✅ ALWAYS show quest completed toast
     this.questCompleteToast.show({
@@ -445,7 +468,8 @@ export default class GameScene extends Phaser.Scene {
     this.questHUD = new QuestHUD(this);
     this.questManager = new QuestManager(
       this,
-      QUESTS_BY_LANGUAGE[this.language]
+      QUESTS_BY_LANGUAGE[this.language],
+      this.completedQuestIds
     );
 
     this.dialogueManager = new DialogueManager(this);

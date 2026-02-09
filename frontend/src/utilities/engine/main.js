@@ -2,12 +2,30 @@ import Phaser from "phaser";
 import GameScene from "./scenes/gameScene";
 import HelpScene from "./scenes/helpScene";
 
-export function initPhaserGame(containerId) {
-  const game = new Phaser.Game({
+let game = null;
+
+export const startGame = ({ exerciseId, parent }) => {
+  // destroy previous game
+  if (game) {
+    game.destroy(true);
+    game = null;
+  }
+
+  const container = document.getElementById(parent);
+  if (!container) {
+    console.error("❌ Phaser container not found:", parent);
+    return;
+  }
+
+  // const width = container.clientWidth;
+  // const height = container.clientHeight;
+
+  game = new Phaser.Game({
     type: Phaser.AUTO,
-    parent: containerId,
-    backgroundColor: "#0f172a",
-    pixelArt: true,
+    parent,
+    width: 800,
+    height: 600,
+    backgroundColor: "#000000",
 
     physics: {
       default: "arcade",
@@ -17,36 +35,22 @@ export function initPhaserGame(containerId) {
       },
     },
 
-    // 🔥 NO MARGINS, FULL FILL
     scale: {
-    mode: Phaser.Scale.RESIZE,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: Phaser.Scale.DEFAULT_WIDTH || 960,
-    height: Phaser.Scale.DEFAULT_HEIGHT || 540,
-  },
+      mode: Phaser.Scale.FIT,        // ✅ SAFE
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
 
-    scene: [GameScene, HelpScene],
+    scene: [],
   });
 
-  // -------------------------------
-  // ✅ CLEANUP (IMPORTANT FOR REACT)
-  // -------------------------------
-  game.cleanup = () => {
-    try {
-      console.log("🔥 Cleaning up Phaser...");
 
-      // Stop all scenes safely
-      Object.values(game.scene.keys).forEach(scene => {
-        scene?.scene?.stop?.();
-      });
+  // register scenes
+  game.scene.add("GameScene", GameScene, false);
+  game.scene.add("HelpScene", HelpScene, false);
 
-      // Destroy game instance
-      game.destroy(true);
+  // start with correct exercise → map
+  game.scene.start("GameScene", { exerciseId });
 
-    } catch (err) {
-      console.warn("Phaser cleanup error:", err);
-    }
-  };
-
-  return game;
-}
+  // 🔁 keep reference
+  window.game = game;
+};
