@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
+import PageNotFound from "./pages/PageNotFound";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -27,7 +28,6 @@ const ScrollToTop = () => {
   return null;
 };
 
-// Home page
 const Home = () => (
   <>
     <section className="hero-section">
@@ -124,7 +124,6 @@ const Home = () => (
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Initialize from localStorage if available
     return localStorage.getItem('isAuthenticated') === 'true';
   });
   const [isNewUser, setIsNewUser] = useState(false);
@@ -136,57 +135,75 @@ function App() {
     localStorage.setItem('isAuthenticated', isAuthenticated);
   }, [isAuthenticated]);
 
-  // hide header/footer on exercise routes and dashboard
-  const hideGlobalHeaderFooter = 
-    location.pathname.startsWith("/learn/python/exercise") || 
-    location.pathname.startsWith("/learn/cpp/exercise") ||
-    location.pathname.startsWith("/learn/javascript/exercise") ||
-    location.pathname === "/dashboard";
+  // Determine if this is a 404 page
+ const isNotFoundPage =
+  location.pathname !== "/" &&
+  ![
+    "/learn",
+    "/freedomwall",
+    "/leaderboard",
+    "/profile",
+    "/dashboard",
+    "/about"
+  ].some((path) => location.pathname.startsWith(path));
+
+const hideGlobalHeaderFooter =
+  isNotFoundPage ||
+  location.pathname.startsWith("/learn/python/exercise") || 
+  location.pathname.startsWith("/learn/cpp/exercise") ||
+  location.pathname.startsWith("/learn/javascript/exercise") ||
+  location.pathname === "/dashboard";
 
   // hide only footer on freedom wall
   const hideFooterOnly = location.pathname === "/freedomwall";
 
   return (
     <div className="app">
-      {!hideGlobalHeaderFooter && (
-        <Header 
+      {!hideGlobalHeaderFooter && !isNotFoundPage && (
+        <Header
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
           onSignOut={() => setIsAuthenticated(false)}
         />
       )}
+
       <ScrollToTop />
 
-      <main className="main-content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/learn" element={<Learn />} />
-          <Route path="/learn/python" element={<PythonCourse />} />
-          <Route 
-            path="/learn/python/exercise/:exerciseId" 
-            element={
-              <PythonExercise 
-                isAuthenticated={isAuthenticated}
-                onOpenModal={() => setIsModalOpen(true)}
-                onSignOut={() => setIsAuthenticated(false)}
-              />
-            } 
+      {isNotFoundPage ? (
+  <Routes>
+    <Route path="*" element={<PageNotFound />} />
+  </Routes>
+) : (
+  <main className="main-content">
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/learn" element={<Learn />} />
+      <Route path="/learn/python" element={<PythonCourse />} />
+      <Route
+        path="/learn/python/exercise/:exerciseId"
+        element={
+          <PythonExercise
+            isAuthenticated={isAuthenticated}
+            onOpenModal={() => setIsModalOpen(true)}
+            onSignOut={() => setIsAuthenticated(false)}
           />
-          <Route path="/learn/cpp" element={<CppCourse />} />
-          <Route path="/learn/cpp/exercise/:exerciseId" element={<CppExercise />} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
-          <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-          <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
-          <Route path="/freedomwall" element={<FreedomWall />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile onSignOut={() => setIsAuthenticated(false)} />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/About" element={<About />} />
+        }
+      />
+      <Route path="/learn/cpp" element={<CppCourse />} />
+      <Route path="/learn/cpp/exercise/:exerciseId" element={<CppExercise />} />
+      <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
+      <Route path="/learn/javascript" element={<JavaScriptCourse />} />
+      <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
+      <Route path="/freedomwall" element={<FreedomWall />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/profile" element={<Profile onSignOut={() => setIsAuthenticated(false)} />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/about" element={<About />} />
+    </Routes>
+  </main>
+)}
 
-        </Routes>
-      </main>
-
-      {!hideGlobalHeaderFooter && !hideFooterOnly && <Footer />}
+      {!hideGlobalHeaderFooter && !hideFooterOnly && !isNotFoundPage && <Footer />}
 
       <SignInModal 
         isOpen={isModalOpen} 
@@ -202,7 +219,7 @@ function App() {
           }
         }}
       />
-      
+
       {isAuthenticated && isNewUser && (
         <Routes>
           <Route 

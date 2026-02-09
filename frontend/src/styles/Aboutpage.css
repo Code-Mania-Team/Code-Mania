@@ -2,18 +2,21 @@
 
 .about-page {
     margin: 0 auto;
-    
-    
+    background-color: #0F172A;
+   
+}
+.hero-left{
+    margin-top: 20px;
 }
 
-/* Hero Layout */
+
+
 .about-section {
+    background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%, rgb(15,23,42,1) 100%);
     padding: 60px;
     display: flex;
     align-items: center;
-    gap: 40px;
-background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%, rgb(15,23,42,1) 100%)};
-
+}
 .about-image {
     flex: 1;
     position: relative;
@@ -21,20 +24,20 @@ background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%
 }
 
 .about-image img {
-    width: 100%;
-    max-width: 450px;
-    filter: drop-shadow(0 0 20px rgba(94, 44, 165, 0.5));
+    width: 110%;
+    filter: drop-shadow(10px 10px 20px rgba(27, 25, 31, 0.5));
 }
 
 .skills {
     display: inline-block;
-    background: #4a1d96;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 20px;
+     background: linear-gradient(to right, rgba(42, 40, 47, 0.1) 1%, transparent 40%, transparent 60%, rgba(155, 126, 218, 0.1) 100%);    padding: 4px 12px;
+    border-radius: 10px 12px;
+    font-size: 18px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
+    color:rgb(255, 255, 255);
     text-transform: uppercase;
+  box-shadow: inset 10px 10px 20px rgba(155, 126, 218, 0.4), 0 0 9px 3px rgba(155, 126, 218, 0.1);
 }
 
 .about-text {
@@ -42,14 +45,17 @@ background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%
 }
 
 .about-text h1 {
-    color: #ffff00; /* Neon Yellow */
-    font-size: 2.2rem;
+        font-family: 'Press Start 2P', monospace;
+
+    color: #ffff00; 
+    font-size: 28px;
     margin-bottom: 20px;
     line-height: 1.1;
+    
 }
 
 .about-text p {
-    font-size: 0.95rem;
+    font-size: 20px;
     color: #cccccc;
 }
 
@@ -59,42 +65,33 @@ background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%
     color: #7f5af0;
 }
 
-/* Info Box */
 .info-container {
-    margin-bottom: 100px;
+    padding: 10px 80px;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 .info-box {
-    border: 1px solid #333366;
-    background: rgba(15, 15, 35, 0.8);
-    padding: 30px;
-    position: relative;
-    box-shadow: inset 0 0 15px rgba(94, 44, 165, 0.2);
-}
+    border: 2px solid #4a1d96;
+    padding: 40px 80px;
 
-/* The double border effect */
-.info-box::after {
-    content: '';
-    position: absolute;
-    top: 5px; left: 5px; right: 5px; bottom: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    pointer-events: none;
+     background: rgba(15, 15, 35, 0.8);
+  box-shadow: 5px 5px 0px rgb(255, 255, 255);
 }
 
 .info-box h3 {
     margin-top: 0;
-    font-size: 1rem;
+    font-size: 20px;
     letter-spacing: 1px;
 }
 
 .info-box ul {
     list-style: none;
-    padding: 0;
+    padding: 20px;
+    font-size: 18px;
 }
 
 .info-box li {
     margin-bottom: 10px;
-    font-size: 0.9rem;
     color: #b8b8b8;
 }
 
@@ -102,31 +99,30 @@ background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%
     color: #fff;
 }
 
-/* Developer Grid */
-.dev-header {
+.dev-section {
+  padding: 80px 0;
+  margin-top:50px;
+  
+}.dev-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin: 50px;
+    font-family: 'Press Start 2P', monospace;
 }
 
 .dev-header h2 {
     font-size: 2rem;
-    letter-spacing: 4px;
     margin-bottom: 5px;
 }
 
 .dev-header p {
-    color: #4da6ff; /* Light Blue */
+    color: #4da6ff; 
     font-size: 0.9rem;
 }
 
-.dev-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
-}
+
 
 .dev-card {
-    background-color: #d9d9d9; /* Gray placeholders from image */
+    background-color: #d9d9d9; 
     aspect-ratio: 4 / 5;
     border-radius: 4px;
     transition: transform 0.3s ease;
@@ -137,8 +133,155 @@ background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%
     box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .hero-section { flex-direction: column; text-align: center; }
-    .dev-grid { grid-template-columns: repeat(2, 1fr); }
+.developer{
+    padding:0px 70px;
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    justify-items:center;
+    margin-top: 6%;
+
+}
+.card {
+  width: 15em;
+  height: 18em;
+  background: #171717;
+  transition: 1s ease-in-out;
+  clip-path: polygon(30px 0%, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0% 30px);
+  border-top-right-radius: 20px;
+  border-bottom-left-radius: 20px;
+  flex-direction: column;
+  box-shadow: 4px 4px #fefefe;
+  border:2px solid #fefefe;
+}
+
+.card .img {
+  width: 100%;
+  height: 190px;
+  background: white;
+  border-radius: 15px;
+}
+.dev-info {
+  font-weight: 400;
+  color: white;
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  margin: 1em;
+}
+.share {
+  margin-top: 1em;
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+}
+.share  a {
+  color: white;
+  transition: 0.4s ease-in-out;
+}
+.share  a:hover {
+  color: red;
+}
+@media (min-width:320px) and (max-width:425px){
+
+.about-section{
+    flex-direction: column;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.about-image img{
+    width: 95%;
+}
+
+.about-text h1{
+    font-size: 18px;
+}
+
+.about-text p{
+    font-size: 15px;
+}
+
+.skills{
+    font-size: 14px;
+}
+
+.info-container{
+    padding: 10px 20px;
+}
+
+.info-box{
+    padding: 20px;
+}
+
+.info-box h3{
+    font-size: 16px;
+}
+
+.info-box ul{
+    font-size: 14px;
+    padding: 10px;
+}
+
+.developer{
+    grid-template-columns: 1fr;
+    padding: 0 20px;
+    gap: 20px;
+}
+
+.card{
+    width: 100%;
+    height: auto;
+}
+
+.dev-header h2{
+    font-size: 1.2rem;
+}
+
+.dev-header p{
+    font-size: 0.7rem;
+}
+
+}
+@media (min-width:426px) and (max-width:760px){
+
+.about-section{
+    flex-direction: column;
+    padding: 40px;
+    text-align: center;
+}
+
+.about-image img{
+    width: 90%;
+}
+
+.about-text h1{
+    font-size: 22px;
+}
+
+.about-text p{
+    font-size: 17px;
+}
+
+.info-container{
+    padding: 10px 40px;
+}
+
+.info-box{
+    padding: 30px;
+}
+
+.developer{
+    grid-template-columns: repeat(2,1fr);
+    padding: 0 40px;
+    gap: 30px;
+}
+
+.card{
+    width: 100%;
+}
+
+.dev-header h2{
+    font-size: 1.5rem;
+}
+
 }
