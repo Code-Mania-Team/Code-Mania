@@ -139,9 +139,9 @@ const PythonCourse = () => {
       {/* Hero Section */}
       <section className="python-hero">
         <div className="python-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="python-hero-badge">
+            <span className="python-badge-text">BEGINNER</span>
+            <span className="python-badge-text">COURSE</span>
           </div>
           <h1 className="python-hero-title">Python</h1>
           <p className="python-hero-description">
@@ -248,10 +248,10 @@ const PythonCourse = () => {
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
-              <img src={pythonBadge1} alt="Python Stage 1" className="course-badge" />
-              <img src={pythonBadge2} alt="Python Stage 2" className="course-badge" />
-              <img src={pythonBadge3} alt="Python Stage 3" className="course-badge" />
-              <img src={pythonBadge4} alt="Python Stage 4" className="course-badge" />
+              <img src={pythonBadge1} alt="Python Stage 1" className="python-course-badge" />
+              <img src={pythonBadge2} alt="Python Stage 2" className="python-course-badge" />
+              <img src={pythonBadge3} alt="Python Stage 3" className="python-course-badge" />
+              <img src={pythonBadge4} alt="Python Stage 4" className="python-course-badge" />
             </div>
           </div>
         </div>

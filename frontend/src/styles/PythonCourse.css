@@ -35,14 +35,14 @@
   text-align: center;
 }
 
-.course-badge {
+.python-hero-badge {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
   justify-content: center;
 }
 
-.badge-text {
+.python-badge-text {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -464,16 +464,16 @@
   margin-top: 12px;
 }
 
-.course-badge {
+.python-course-badge {
   width: 60px;
   height: 60px;
   border-radius: 8px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
 }
 
-.course-badge:hover {
+.python-course-badge:hover {
   transform: scale(1.1);
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);

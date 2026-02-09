@@ -183,9 +183,9 @@ const JavaScriptCourse = () => {
       {/* Hero Section */}
       <section className="javascript-hero">
         <div className="javascript-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="javascript-hero-badge">
+            <span className="javascript-badge-text">BEGINNER</span>
+            <span className="javascript-badge-text">COURSE</span>
           </div>
           <h1 className="javascript-hero-title">JavaScript</h1>
           <p className="javascript-hero-description">
@@ -285,10 +285,10 @@ const JavaScriptCourse = () => {
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
-              <img src={jsStage1Badge} alt="JavaScript Stage 1" className="course-badge" />
-              <img src={jsStage2Badge} alt="JavaScript Stage 2" className="course-badge" />
-              <img src={jsStage3Badge} alt="JavaScript Stage 3" className="course-badge" />
-              <img src={jsStage4Badge} alt="JavaScript Stage 4" className="course-badge" />
+              <img src={jsStage1Badge} alt="JavaScript Stage 1" className="javascript-course-badge" />
+              <img src={jsStage2Badge} alt="JavaScript Stage 2" className="javascript-course-badge" />
+              <img src={jsStage3Badge} alt="JavaScript Stage 3" className="javascript-course-badge" />
+              <img src={jsStage4Badge} alt="JavaScript Stage 4" className="javascript-course-badge" />
             </div>
           </div>
         </div>

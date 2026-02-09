@@ -131,9 +131,9 @@ const CppCourse = () => {
       {/* Hero Section */}
       <section className="cpp-hero">
         <div className="cpp-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="cpp-hero-badge">
+            <span className="cpp-badge-text">BEGINNER</span>
+            <span className="cpp-badge-text">COURSE</span>
           </div>
           <h1 className="cpp-hero-title">C++</h1>
           <p className="cpp-hero-description">
@@ -231,10 +231,10 @@ const CppCourse = () => {
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
-              <img src={cppBadge1} alt="C++ Stage 1" className="course-badge" />
-              <img src={cppBadge2} alt="C++ Stage 2" className="course-badge" />
-              <img src={cppBadge3} alt="C++ Stage 3" className="course-badge" />
-              <img src={cppBadge4} alt="C++ Stage 4" className="course-badge" />
+              <img src={cppBadge1} alt="C++ Stage 1" className="cpp-course-badge" />
+              <img src={cppBadge2} alt="C++ Stage 2" className="cpp-course-badge" />
+              <img src={cppBadge3} alt="C++ Stage 3" className="cpp-course-badge" />
+              <img src={cppBadge4} alt="C++ Stage 4" className="cpp-course-badge" />
             </div>
           </div>
         </div>
