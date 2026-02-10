@@ -8,15 +8,22 @@ class UserGameDataController {
     async learningData(req, res) {
         try {
             const user_id = res.locals.user_id;
+
             const programming_language =
-            req.headers["x-programming-language"] || "Python";
+            req.query.programming_language;
+
+            if (!programming_language) {
+            return res.status(400).json({
+                success: false,
+                message: "programming_language is required",
+            });
+            }
 
             let rows = await this.gameDataService.getLearningData(
             user_id,
             programming_language
             );
 
-            // 🔑 normalize: single row → array
             if (!Array.isArray(rows)) {
             rows = rows ? [rows] : [];
             }
@@ -35,9 +42,7 @@ class UserGameDataController {
             message: err.message,
             });
         }
-        }
-
-
+    }
 
 
     async gameData(req, res) {

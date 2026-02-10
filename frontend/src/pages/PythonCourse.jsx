@@ -28,7 +28,7 @@ const PythonCourse = () => {
 
     const loadProgress = async () => {
       try {
-        const result = await getGameProgress();
+        const result = await getGameProgress("Python");
 
         if (result?.completedQuests) {
           setCompletedExercises(new Set(result.completedQuests));

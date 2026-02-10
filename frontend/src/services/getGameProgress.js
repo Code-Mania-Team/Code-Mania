@@ -1,10 +1,18 @@
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 const useGetGameProgress = () => {
-    const axiosPrivate = useAxiosPrivate();
-  const getGameProgress = async () => {
+  const axiosPrivate = useAxiosPrivate();
+
+  const getGameProgress = async (programmingLanguage) => {
     try {
-      const response = await axiosPrivate.get("/v1/learning-data");
+      const response = await axiosPrivate.get(
+        "/v1/learning-data",
+        {
+          params: {
+            programming_language: programmingLanguage
+          }
+        }
+      );
 
       return response.data; // { completedQuests: [...] }
     } catch (error) {
