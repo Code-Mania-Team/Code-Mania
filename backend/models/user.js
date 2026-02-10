@@ -114,6 +114,18 @@ class User {
         return data;
     }
 
+    async updatePassword(email, hashedPassword) {
+        const { data, error } = await this.db
+            .from("users")
+            .update({ password: hashedPassword })
+            .eq("email", email)
+            .select()
+            .maybeSingle();
+
+        if (error) throw error;
+        return data;
+    }
+
     async delete(user_id) {
         const { data } = await this.db
             .from("users")

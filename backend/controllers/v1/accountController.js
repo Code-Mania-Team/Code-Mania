@@ -174,6 +174,7 @@ class AccountController {
             username: profile?.username || null,
             character_id: profile?.character_id,
             user_id: authUser.user_id,
+            accessToken, // remove if using cookie-only
         });
         } catch (err) {
         console.error("login error:", err);
