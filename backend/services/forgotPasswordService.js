@@ -25,7 +25,11 @@ class ForgotPasswordService {
             expiry_time: expiresAt.toISOString(),
         });
 
-        await sendOtpEmail(email, otp);
+        await sendOtpEmail({
+            toEmail: email,
+            otp,
+            type: "reset"
+            });
         return record;
     }
 
