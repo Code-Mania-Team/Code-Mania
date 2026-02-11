@@ -63,13 +63,17 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
   const [showForgotPasswordOtp, setShowForgotPasswordOtp] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [resetPasswordError, setResetPasswordError] = useState('');
 
   const validatePassword = (pass) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(pass);
     const hasLowerCase = /[a-z]/.test(pass);
     const hasNumbers = /\d/.test(pass);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+    const hasSpecialChar = /[!@#$%^&*(),.?:{}|<>]/.test(pass);
 
     if (pass.length < minLength) {
       return 'Password must be at least 8 characters long';
@@ -232,57 +236,85 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     e.preventDefault();
     setIsLoading(true);
     setLoginError('');
-    
+    setResetPasswordError('');
+
     try {
-      if (!showForgotPasswordOtp) {
-        // Step 1: Send OTP to email
+      // STEP 1: Send OTP
+      if (!showForgotPasswordOtp && !showResetPassword) {
         const normalizedEmail = (email || '').trim();
         const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-        
+
         if (!normalizedEmail) {
           setLoginError('Please enter your email.');
           setIsLoading(false);
           return;
         }
-        
+
         if (!emailIsValid) {
           setLoginError('Please enter a valid email address.');
           setIsLoading(false);
           return;
         }
 
-        // TODO: Call forgot password API to send OTP
-        console.log('Sending password reset OTP to:', normalizedEmail);
-        
-        // Store email and show OTP field
         setForgotPasswordEmail(normalizedEmail);
-        
-        // For now, simulate success
+
+        // TODO: Call backend to send OTP
         setTimeout(() => {
           setShowForgotPasswordOtp(true);
           setLoginError('OTP sent! Check your email.');
           setIsLoading(false);
         }, 1000);
-        
-      } else {
-        // Step 2: Verify OTP and proceed to password reset
+        return;
+      }
+
+      // STEP 2: Verify OTP
+      if (showForgotPasswordOtp && !showResetPassword) {
         if (!otp || otp.length !== 6) {
           setLoginError('Please enter a valid 6-digit OTP.');
           setIsLoading(false);
           return;
         }
 
-        // TODO: Call API to verify OTP
-        console.log('Verifying OTP for:', forgotPasswordEmail, 'OTP:', otp);
-        
-        // For now, simulate success
+        // TODO: Verify OTP with backend
         setTimeout(() => {
-          setLoginError('OTP verified! You can now reset your password.');
+          setShowResetPassword(true);
+          setShowForgotPasswordOtp(false);
+          setLoginError('');
           setIsLoading(false);
-          // TODO: Redirect to password reset form or show password input fields
+        }, 1000);
+        return;
+      }
+
+      // STEP 3: Reset Password
+      if (showResetPassword) {
+        if (newPassword !== confirmNewPassword) {
+          setResetPasswordError('Passwords do not match.');
+          setIsLoading(false);
+          return;
+        }
+
+        const validationError = validatePassword(newPassword);
+        if (validationError) {
+          setResetPasswordError(validationError);
+          setIsLoading(false);
+          return;
+        }
+
+        // TODO: Call backend reset password API
+        console.log('Resetting password for:', forgotPasswordEmail);
+
+        // After success
+        setTimeout(() => {
+          setShowResetPassword(false);
+          setIsForgotPasswordMode(false);
+          setNewPassword('');
+          setConfirmNewPassword('');
+          setOtp('');
+          setLoginError('Password successfully reset. You can now sign in.');
+          setIsLoading(false);
         }, 1000);
       }
-      
+
     } catch (error) {
       console.error('Forgot password error:', error);
       setLoginError('Failed to process request. Please try again.');
@@ -313,7 +345,8 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         <p className={styles.subtext}>
           {isSignUpMode ? 'Start your adventure in Code Mania' : 
            isForgotPasswordMode ? 
-             (showForgotPasswordOtp ? 'Enter the OTP sent to your email' : 'Enter your email to reset password') 
+             (showResetPassword ? 'Set your new password' :
+              showForgotPasswordOtp ? 'Enter the OTP sent to your email' : 'Enter your email to reset password') 
              : 'Sign in to continue your journey'}
         </p>
 
@@ -440,7 +473,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           <>
 
             <form onSubmit={handleForgotPasswordSubmit} className={styles.signinForm}>
-              {!showForgotPasswordOtp ? (
+              {!showForgotPasswordOtp && !showResetPassword ? (
                 // Step 1: Email input
                 <>
                   <div className={styles.formGroup}>
@@ -462,7 +495,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     {isLoading ? 'Sending...' : 'Send OTP'}
                   </button>
                 </>
-              ) : (
+              ) : showForgotPasswordOtp && !showResetPassword ? (
                 // Step 2: OTP input
                 <>
                   <div className={styles.formGroup}>
@@ -494,13 +527,106 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     Back to Email
                   </button>
                 </>
+              ) : null}
+
+              {showResetPassword && (
+                <>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="new-password">New Password</label>
+                    <div className={styles.passwordInputContainer}>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        id="new-password"
+                        value={newPassword}
+                        onChange={(e) => {
+                          setNewPassword(e.target.value);
+                          setResetPasswordError('');
+                        }}
+                        placeholder="Enter new password"
+                        required
+                        className={styles.passwordInput}
+                      />
+                      <button 
+                        type="button" 
+                        className={styles.togglePasswordButton}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowPassword(!showPassword);
+                        }}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        <img 
+                          src={showPassword ? hidePasswordIcon : showPasswordIcon} 
+                          alt=""
+                          className={styles.togglePasswordIcon}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="confirm-new-password">Confirm New Password</label>
+                    <div className={styles.passwordInputContainer}>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        id="confirm-new-password"
+                        value={confirmNewPassword}
+                        onChange={(e) => {
+                          setConfirmNewPassword(e.target.value);
+                          setResetPasswordError('');
+                        }}
+                        placeholder="Confirm new password"
+                        required
+                        className={styles.passwordInput}
+                      />
+                      <button 
+                        type="button" 
+                        className={styles.togglePasswordButton}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowConfirmPassword(!showConfirmPassword);
+                        }}
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        <img 
+                          src={showConfirmPassword ? hidePasswordIcon : showPasswordIcon} 
+                          alt=""
+                          className={styles.togglePasswordIcon}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <button type="submit" className={styles.signinButton} disabled={isLoading}>
+                    {isLoading ? 'Resetting...' : 'Reset Password'}
+                  </button>
+
+                  {resetPasswordError && (
+                    <p className={styles.errorText}>{resetPasswordError}</p>
+                  )}
+
+                  <button
+                    type="button"
+                    className={styles.backButton}
+                    onClick={() => {
+                      setShowResetPassword(false);
+                      setShowForgotPasswordOtp(true);
+                      setResetPasswordError('');
+                    }}
+                    disabled={isLoading}
+                  >
+                    Back to OTP
+                  </button>
+                </>
               )}
 
               {loginError && (
                 <p className={styles.errorText}>{loginError}</p>
               )}
 
-              {!showForgotPasswordOtp && (
+              {!showForgotPasswordOtp && !showResetPassword ? (
                 <button
                   type="button"
                   className={styles.backButton}
@@ -509,7 +635,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 >
                   Back to Sign In
                 </button>
-              )}
+              ) : null}
             </form>
           </>
         ) : (
