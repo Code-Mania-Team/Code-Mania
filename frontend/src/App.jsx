@@ -19,6 +19,7 @@ import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
+import AuthLoadingOverlay from "./components/AuthLoadingOverlay";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -124,6 +125,7 @@ const Home = () => (
 );
 import axios from 'axios';
 function App() {
+  const { isLoading } = useAuth();
   const setCookie = async() => {
     try {
       await axios.get('http://localhost:3000/set-cookies', {
@@ -178,6 +180,7 @@ function App() {
 
   return (
     <div className="app">
+      {isLoading && <AuthLoadingOverlay />}
       {!hideGlobalHeaderFooter && (
         <Header 
           isAuthenticated={isAuthenticated}

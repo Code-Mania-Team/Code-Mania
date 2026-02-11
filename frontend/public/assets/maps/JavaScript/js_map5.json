@@ -76,7 +76,7 @@
                 {
                  "height":0,
                  "id":4,
-                 "name":"",
+                 "name":"exit",
                  "point":true,
                  "properties":[
                         {
@@ -92,7 +92,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-                         "value":1
+                         "value":5
                         }, 
                         {
                          "name":"target_map",

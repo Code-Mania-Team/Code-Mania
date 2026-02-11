@@ -200,6 +200,9 @@ export default class GameScene extends Phaser.Scene {
 
     const gainedExp = quest.experience || 0;
 
+    console.log("LANGUAGE BEING SENT:", localStorage.getItem("lastCourseTitle"));
+
+
     // 🎒 Grant ability (if any)
     if (quest.grants) {
       this.worldState.abilities.add(quest.grants);

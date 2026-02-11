@@ -13,7 +13,7 @@ const checkmarkIcon =
 
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user} = useAuth();
   const getGameProgress = useGetGameProgress();
 
   const [completedExercises, setCompletedExercises] = useState(new Set());
@@ -73,7 +73,7 @@ const JavaScriptCourse = () => {
   };
 
   const userProgress = {
-    name: localStorage.getItem('username') || 'Your Name',
+    name: user?.username || "Guest",
     level: 1,
     exercisesCompleted: data?.completedQuests?.length || 0,
     totalExercises: 16,

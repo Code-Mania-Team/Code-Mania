@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
+import useAuth from "../hooks/useAxios";
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -11,9 +12,10 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
 const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
 
-const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+const Header = ({ onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [characterIcon, setCharacterIcon] = useState(null);
+  const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
   // Load character icon from localStorage
@@ -114,7 +116,7 @@ const Header = ({ isAuthenticated, onOpenModal, onSignOut }) => {
         <NavLink to="/freedomwall" className="nav-link" onClick={() => setIsMenuOpen(false)}>FREEDOM WALL</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={() => setIsMenuOpen(false)}>LEADERBOARD</NavLink>
 
-        {isAuthenticated ? (
+        {isLoading ? null : isAuthenticated ?  (
           <div className="profile-icon-container" onClick={handleProfileClick}>
             <div className="profile-icon">
               {characterIcon ? (
