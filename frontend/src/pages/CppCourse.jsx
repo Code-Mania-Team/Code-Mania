@@ -5,12 +5,15 @@ import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
+<<<<<<< HEAD
 
 // Import C++ course badges
 import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
 import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
 import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
 import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
+=======
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 

@@ -967,13 +967,13 @@
          "margin":0,
          "name":"A1",
          "spacing":0,
-         "tilecount":192,
+         "tilecount":0,
          "tileheight":48,
          "tilewidth":48
         }, 
         {
          "columns":16,
-         "firstgid":1025,
+         "firstgid":833,
          "image":"..\/..\/tilesets\/Python\/B_4.png",
          "imageheight":768,
          "imagewidth":768,

@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
-import StageCompleteModal from "../components/StageCompleteModal";
-import XpNotification from "../components/XpNotification";
 import CodeTerminal from "../components/CodeTerminal";
 import TutorialPopup from "../components/TutorialPopup";
+import StageCompleteModal from "../components/StageCompleteModal";
+import XpNotification from "../components/XpNotification";
+<<<<<<< HEAD
+import CodeTerminal from "../components/CodeTerminal";
+import TutorialPopup from "../components/TutorialPopup";
+=======
+
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 import styles from "../styles/JavaScriptExercise.module.css";
-import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
-import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
-import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
-import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 import exercises from "../utilities/data/javascriptExercises.json";
-import achievements from "../utilities/data/achievements.json";
-import { initPhaserGame } from "../utilities/engine/main.js";
+import { startGame } from "../utilities/engine/main.js";
 import useAuth from "../hooks/useAxios";
 import { axiosPublic } from "../api/axios";
 
@@ -23,6 +23,7 @@ const JavaScriptExercise = () => {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+<<<<<<< HEAD
   const [currentExercise, setCurrentExercise] = useState(null);
   const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
@@ -32,20 +33,20 @@ const JavaScriptExercise = () => {
   const [showStageComplete, setShowStageComplete] = useState(false);
   const [runUnlocked, setRunUnlocked] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+=======
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
-  // === Dialogue System ===
-  const dialogues = [
-    "Remember to check the hints if you get stuck during the course. But for this exercise, you don't have to know what's going on with the code – just copy and paste it.",
-  ];
-  const [currentDialogue, setCurrentDialogue] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const completedQuests = location.state?.completedQuests ?? [];
 
-  // Load exercise data and reset state when exerciseId changes
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const forceStageComplete = searchParams.get("stageComplete") === "1";
+  /* ===============================
+     QUEST STATE (MATCH PYTHON)
+  =============================== */
+  const [activeExerciseId, setActiveExerciseId] = useState(() => {
+    const id = Number(exerciseId);
+    return Number.isFinite(id) && id > 0 ? id : 1;
+  });
 
+<<<<<<< HEAD
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
@@ -204,10 +205,19 @@ const JavaScriptExercise = () => {
   const awardAchievementForExercise = (exerciseIdToAward) => {
     const achievement = achievements.find(
       a => a.language === "JavaScript" && a.exerciseId === exerciseIdToAward
+=======
+  const activeExercise = useMemo(() => {
+    return (
+      exercises.find(e => e.id === activeExerciseId) ||
+      exercises[0]
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     );
+  }, [activeExerciseId]);
 
-    if (!achievement) return null;
+  const [activeQuestId, setActiveQuestId] = useState(null);
+  const [terminalEnabled, setTerminalEnabled] = useState(false);
 
+<<<<<<< HEAD
     const earnedRaw = localStorage.getItem("earnedAchievements") || "[]";
     let earned;
     try {
@@ -317,67 +327,208 @@ const JavaScriptExercise = () => {
     // 🚫 NO MORE REACT BADGE MODAL - USING PHASER BADGE SYSTEM INSTEAD
     goToNextExercise();
   };
+=======
+  /* ===============================
+     TERMINAL STATE
+  =============================== */
+  const [code, setCode] = useState(
+    activeExercise?.startingCode ||
+      `// Write code below ❤️\n\nconsole.log("Hello, World!")`
+  );
+  const [output, setOutput] = useState("");
+  const [isRunning, setIsRunning] = useState(false);
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
+  /* ===============================
+     AUTH / UI
+  =============================== */
+  const [showTutorial, setShowTutorial] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [showStageComplete, setShowStageComplete] = useState(false);
+  const [showXpPanel, setShowXpPanel] = useState(false);
+
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
-  const handleOpenModal = () => {
-    setIsSignInModalOpen(true);
+  /* ===============================
+     NORMALIZE (SAME AS PYTHON)
+  =============================== */
+  const normalize = (text = "") =>
+    text
+      .replace(/\r\n/g, "\n")
+      .split("\n")
+      .map(line => line.trim())
+      .join("\n")
+      .trim();
+
+  /* ===============================
+     PHASER INIT + EVENTS
+  =============================== */
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+    const authed = localStorage.getItem("isAuthenticated") === "true";
+
+    if (authed && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+
+    startGame({
+      exerciseId: activeExerciseId,
+      parent: "phaser-container",
+      completedQuests,
+    });
+
+    const onQuestStarted = (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      setTerminalEnabled(true);
+      setActiveQuestId(questId);
+      setActiveExerciseId(questId);
+    };
+
+    const onQuestComplete = (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      const scene = window.game?.scene?.keys?.GameScene;
+      scene?.questManager?.completeQuest(questId);
+
+      if (scene) {
+        scene.playerCanMove = true;
+        scene.gamePausedByTerminal = false;
+      }
+    };
+
+    window.addEventListener("code-mania:quest-started", onQuestStarted);
+    window.addEventListener("code-mania:quest-complete", onQuestComplete);
+
+    return () => {
+      window.removeEventListener("code-mania:quest-started", onQuestStarted);
+      window.removeEventListener("code-mania:quest-complete", onQuestComplete);
+    };
+  }, [activeExerciseId]);
+
+  /* ===============================
+     UPDATE CODE ON QUEST CHANGE
+  =============================== */
+  useEffect(() => {
+    if (activeExercise?.startingCode) {
+      setCode(activeExercise.startingCode);
+      setOutput("");
+    }
+  }, [activeExerciseId]);
+
+  /* ===============================
+     RUN CODE (FIXED)
+  =============================== */
+  const handleRunCode = () => {
+    if (!terminalEnabled || isRunning) return;
+
+    setIsRunning(true);
+    setOutput("Running...");
+
+    try {
+      const logs = [];
+      const originalLog = console.log;
+
+      console.log = (...args) => {
+        logs.push(args.join(" "));
+        originalLog(...args);
+      };
+
+      eval(code);
+
+      console.log = originalLog;
+
+      const rawOutput = logs.join("\n");
+      setOutput(rawOutput);
+
+      const expected = normalize(activeExercise.expectedOutput);
+      const actual = normalize(rawOutput);
+
+      if (
+        expected &&
+        actual === expected &&
+        activeQuestId === activeExercise.id
+      ) {
+        window.dispatchEvent(
+          new CustomEvent("code-mania:quest-complete", {
+            detail: { questId: activeExercise.id }
+          })
+        );
+
+        setShowXpPanel(true);
+      }
+    } catch (err) {
+      setOutput(`❌ ${err.message}`);
+    } finally {
+      setIsRunning(false);
+      window.dispatchEvent(
+        new CustomEvent("code-mania:terminal-inactive")
+      );
+    }
   };
 
-  const handleCloseModal = () => {
-    setIsSignInModalOpen(false);
-  };
-
+  /* ===============================
+     AUTH
+  =============================== */
   const handleSignInSuccess = () => {
     axiosPublic
       .get("/v1/account")
       .then((res) => {
-        const ok = res?.data?.success === true;
         const profile = res?.data?.data;
-        const hasUserId = Boolean(profile && profile.user_id);
-
-        if (ok && hasUserId) {
+        if (profile?.user_id) {
           setUser(profile);
           setIsAuthenticated(true);
-          return;
         }
-
-        setUser(null);
-        setIsAuthenticated(false);
       })
       .catch(() => {
         setUser(null);
         setIsAuthenticated(false);
       });
-    window.dispatchEvent(new Event('authchange'));
+
+    window.dispatchEvent(new Event("authchange"));
     setIsSignInModalOpen(false);
+  };
+
+  /* ===============================
+     NAVIGATION
+  =============================== */
+  const goToNextExercise = () => {
+    const nextId = activeExercise.id + 1;
+    if (nextId <= exercises.length) {
+      navigate(`/learn/javascript/exercise/${nextId}`);
+    } else {
+      setShowStageComplete(true);
+    }
   };
 
   return (
     <div className={styles["javascript-exercise-page"]}>
-      <div className={styles["scroll-background"]}></div>
-      <Header isAuthenticated={isAuthenticated} onOpenModal={handleOpenModal} user={user} />
-      
+      <Header
+        isAuthenticated={isAuthenticated}
+        onOpenModal={() => setIsSignInModalOpen(true)}
+        user={user}
+      />
+
       {isSignInModalOpen && (
-        <SignInModal 
-          isOpen={isSignInModalOpen}
-          onClose={handleCloseModal}
+        <SignInModal
+          isOpen
+          onClose={() => setIsSignInModalOpen(false)}
           onSignInSuccess={handleSignInSuccess}
         />
       )}
 
       <div className={styles["codex-fullscreen"]}>
-        <ProgressBar 
-          currentLesson={lessonInStage} 
-          totalLessons={4} 
-          title="🌐 JavaScript Basics" 
-          variant={isExam ? "titleOnly" : "full"}
+        <ProgressBar
+          currentLesson={activeExercise.id}
+          totalLessons={exercises.length}
+          title="🌐 JavaScript Basics"
         />
 
         <div className={styles["main-layout"]}>
-          {/* Left Side - Game Preview */}
           <div className={styles["game-container"]}>
+<<<<<<< HEAD
             <div className={styles["game-preview"]}>
               <div 
                 className={styles["game-scene"]}
@@ -437,6 +588,44 @@ const JavaScriptExercise = () => {
             setShowTutorial(false);
             localStorage.setItem('hasSeenTutorial', 'true');
           }} 
+=======
+            <div id="phaser-container" className={styles["game-scene"]} />
+          </div>
+
+          <CodeTerminal
+            language="javascript"
+            code={code}
+            onCodeChange={setCode}
+            onRun={handleRunCode}
+            output={output}
+            isRunning={isRunning}
+            showRunButton={terminalEnabled}
+            disabled={!terminalEnabled}
+          />
+        </div>
+      </div>
+
+      <XpNotification
+        show={showXpPanel}
+        onClose={() => setShowXpPanel(false)}
+        onNext={goToNextExercise}
+      />
+
+      <StageCompleteModal
+        show={showStageComplete}
+        languageLabel="JavaScript"
+        onContinue={goToNextExercise}
+        onClose={() => setShowStageComplete(false)}
+      />
+
+      {showTutorial && (
+        <TutorialPopup
+          open={showTutorial}
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem("hasSeenTutorial", "true");
+          }}
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
         />
       )}
     </div>

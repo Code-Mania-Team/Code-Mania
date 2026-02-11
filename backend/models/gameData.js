@@ -5,28 +5,27 @@ class GameData {
         this.db = supabase;
     }
 
-    async getUserGameData(user_id) {
+    async getUserGameData(user_id, programming_language) {
         const { data, error } = await this.db
             .from("users_game_data")
-            .select("*")
+            .select("exercise_id, xp_earned, programming_language")
             .eq("user_id", user_id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .eq("programming_language", programming_language);
 
         if (error) throw error;
         return data;
-    }
+        }
 
-    async createUserGameData({ user_id, xp_earned, exercise_id }) {
+
+    async createUserGameData({ user_id, xp_earned, exercise_id , programming_language}) {
         const { data, error } = await this.db
             .from("users_game_data")
             .insert({
                 user_id,
                 xp_earned,
                 exercise_id,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
+                programming_language: programming_language,
+                created_at: new Date().toISOString()
             })
             .select("*")
             .maybeSingle();
@@ -41,7 +40,6 @@ class GameData {
             .update({
                 xp_earned,
                 exercise_id,
-                updated_at: new Date().toISOString(),
             })
             .eq("user_id", user_id)
             .eq("game_id", game_id)

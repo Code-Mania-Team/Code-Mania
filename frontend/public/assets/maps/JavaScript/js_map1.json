@@ -42,7 +42,7 @@
                 }, 
                 {
                  "height":0,
-                 "id":17,
+                 "id":29,
                  "name":"npc_spawn",
                  "point":true,
                  "properties":[
@@ -70,8 +70,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":792.5,
-                 "y":327.5
+                 "x":791.333333333333,
+                 "y":320.666666666667
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -501,7 +501,7 @@
          "y":0
         }],
  "nextlayerid":17,
- "nextobjectid":29,
+ "nextobjectid":30,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

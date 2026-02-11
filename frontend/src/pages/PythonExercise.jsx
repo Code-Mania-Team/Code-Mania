@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
+<<<<<<< HEAD
 import { useParams } from "react-router-dom";
+=======
+import { useParams, useLocation } from "react-router-dom";
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
 import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
@@ -9,12 +13,18 @@ import MobileControls from "../components/MobileControls";
 import TutorialPopup from "../components/TutorialPopup";
 
 import styles from "../styles/PythonExercise.module.css";
-import { initPhaserGame } from "../utilities/engine/main.js";
+import { startGame } from "../utilities/engine/main.js";
 import pythonExercises from "../utilities/data/pythonExercises.json";
 import mobileFrame from "../assets/mobile.png";
 
 const PythonExercise = ({ isAuthenticated }) => {
   const { exerciseId } = useParams();
+<<<<<<< HEAD
+=======
+  const location = useLocation();
+  const completedQuests =
+  location.state?.completedQuests ?? [];
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
   /* ===============================
      QUEST / LESSON STATE
@@ -83,16 +93,32 @@ const PythonExercise = ({ isAuthenticated }) => {
      PHASER INIT + EVENTS
   =============================== */
   useEffect(() => {
+<<<<<<< HEAD
     // Check if tutorial should be shown for new accounts
     const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     
+=======
+    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+    const isAuthenticated =
+      localStorage.getItem("isAuthenticated") === "true";
+
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     if (isAuthenticated && !hasSeenTutorial) {
       setShowTutorial(true);
     }
 
+<<<<<<< HEAD
     const game = initPhaserGame("phaser-container");
     window.game = game;
+=======
+    // 🔥 THIS IS THE ONLY CORRECT WAY
+    startGame({
+      exerciseId: activeExerciseId,
+      parent: "phaser-container",
+      completedQuests,
+    });
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
     const onQuestStarted = (e) => {
       const questId = e.detail?.questId;
@@ -122,9 +148,15 @@ const PythonExercise = ({ isAuthenticated }) => {
     return () => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
+<<<<<<< HEAD
       game?.cleanup?.();
     };
   }, []);
+=======
+    };
+  }, [activeExerciseId]);
+
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
   /* ===============================
      UPDATE CODE ON QUEST CHANGE

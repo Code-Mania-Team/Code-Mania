@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
 import useAuth from "../hooks/useAxios";
+import useGetGameProgress from "../services/getGameProgress";
+import { useParams } from "react-router-dom";
 
 // Import Python course badges
 import pythonBadge1 from "../assets/badges/Python/python-badge1.png";
@@ -13,14 +15,44 @@ import pythonBadge4 from "../assets/badges/Python/python-badge4.png";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
+
 const PythonCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const getGameProgress = useGetGameProgress();
+  const [completedExercises, setCompletedExercises] = useState(new Set());
+
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
 
   // Tutorial will be shown only when clicking Start button
+<<<<<<< HEAD
+=======
+  const { exerciseId } = useParams();
+  const numericExerciseId = Number(exerciseId);
+  const [data, setData] = useState();
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadProgress = async () => {
+      try {
+        const result = await getGameProgress("Python");
+
+        setData(result);
+
+        if (result?.completedQuests) {
+          setCompletedExercises(new Set(result.completedQuests));
+        }
+      } catch (err) {
+        console.error("Failed to load game progress", err);
+      }
+    };
+
+    loadProgress();
+  }, [isAuthenticated]);
+
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
   const onOpenModal = () => {
     setIsModalOpen(true);
@@ -38,6 +70,7 @@ const PythonCourse = () => {
     }
   };
 
+<<<<<<< HEAD
   const handleStartExercise = (moduleId, exerciseName) => {
     // Check if tutorial should be shown before starting first exercise
     const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
@@ -52,16 +85,48 @@ const PythonCourse = () => {
     localStorage.setItem('lastCourseRoute', '/learn/python');
     const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
     navigate(`/learn/python/exercise/${moduleId}-${exerciseId}`);
+=======
+  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+    if (completedExercises.has(exerciseId)) return "completed";
+
+    // unlock next exercise if previous is completed
+    if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
+      return "available";
+    }
+
+    return "locked";
+>>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
   };
 
+  const handleStartExercise = (exerciseId) => {
+    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "Python");
+    localStorage.setItem("lastCourseRoute", "/learn/python");
+
+    // 🔥 PASS THE REAL EXERCISE ID
+    navigate(`/learn/python/exercise/${exerciseId}`, {
+      state: {
+        completedQuests: Array.from(completedExercises),
+      },
+    });
+  };
+
+
   const userProgress = {
-    name: localStorage.getItem('username') || 'Your Name',
+    name: user?.username || "Guest",
     level: 1,
-    exercisesCompleted: 0,
+    exercisesCompleted: data?.completedQuests?.length || 0,
     totalExercises: 16,
     projectsCompleted: 0,
     totalProjects: 2,
-    xpEarned: 0,
+    xpEarned: data?.xpEarned || 0,
     totalXp: 3600
   };
 
@@ -176,30 +241,41 @@ const PythonCourse = () => {
                 <div className="module-content">
                   <p className="module-description">{module.description}</p>
                   <div className="exercises-list">
-                    {module.exercises.map((exercise) => (
-                      <div key={exercise.id} className={`exercise-item ${exercise.status}`}>
-                        <div className="exercise-info">
-                          {module.id !== 5 && (
-                            <span className="exercise-number">Exercise {exercise.id}</span>
-                          )}
-                          <span className="exercise-name">{exercise.name}</span>
+                    {module.exercises.map((exercise, index) => {
+                      const previousExercise =
+                        index > 0 ? module.exercises[index - 1].id : null;
+
+                      const status = getExerciseStatus(exercise.id, previousExercise);
+
+                      return (
+                        <div key={exercise.id} className={`exercise-item ${status}`}>
+                          <div className="exercise-info">
+                            {module.id !== 5 && (
+                              <span className="exercise-number">
+                                Exercise {exercise.id}
+                              </span>
+                            )}
+                            <span className="exercise-name">{exercise.name}</span>
+                          </div>
+
+                          <div className="exercise-status">
+                            {status === "available" ? (
+                              <button
+                                className="start-btn"
+                                onClick={() => handleStartExercise(exercise.id)}
+                              >
+                                Start
+                              </button>
+                            ) : (
+                              <button className="locked-btn" disabled>
+                                {getStatusIcon(status)}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <div className="exercise-status">
-                          {exercise.status === "available" ? (
-                            <button 
-                              className="start-btn"
-                              onClick={() => handleStartExercise(module.id, exercise.name)}
-                            >
-                              Start
-                            </button>
-                          ) : (
-                            <button className="locked-btn" disabled>
-                              {getStatusIcon(exercise.status)}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+
                   </div>
                 </div>
               )}

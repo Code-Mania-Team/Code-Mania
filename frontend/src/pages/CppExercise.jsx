@@ -15,7 +15,7 @@ import cppStage2Badge from "../assets/badges/C++/cpp-badges2.png";
 import cppStage3Badge from "../assets/badges/C++/cpp-badge3.png";
 import cppStage4Badge from "../assets/badges/C++/cpp-badge4.png";
 import exercises from "../utilities/data/cppExercises.json";
-import { initPhaserGame } from "../utilities/engine/main.js";
+// import { initPhaserGame } from "../utilities/engine/main.js";
 import useAuth from "../hooks/useAxios";
 import { axiosPublic } from "../api/axios";
 
