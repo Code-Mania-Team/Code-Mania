@@ -1,5 +1,5 @@
 import ForgotPasswordService from "../../services/forgotPasswordService.js";
-
+import forgotPassword from "../../models/forgotPassword.js";    
 class ForgotPasswordController {
     constructor() {
         this.forgotPasswordService = new ForgotPasswordService();

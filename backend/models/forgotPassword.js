@@ -40,8 +40,16 @@ class forgotPassword {
         
         if (error) throw error;
         return data;
-    }
+    };
 
+    async deleteById(temp_user_id) {
+        const { error } = await this.db
+            .from("temp_user")
+            .delete()
+            .eq("temp_user_id", temp_user_id);
+
+        if (error) throw error;
+}
     async findByEmail(email) {
         const { data, error } = await this.db
             .from("temp_user")
