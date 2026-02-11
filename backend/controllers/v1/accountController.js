@@ -158,7 +158,7 @@ class AccountController {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 15 * 60 * 1000,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
             });
 
         res.cookie("refreshToken", refreshToken, {
@@ -174,7 +174,7 @@ class AccountController {
             username: profile?.username || null,
             character_id: profile?.character_id,
             user_id: authUser.user_id,
-            accessToken, // remove if using cookie-only
+            //accessToken, // remove if using cookie-only
         });
         } catch (err) {
         console.error("login error:", err);
@@ -237,7 +237,8 @@ class AccountController {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 15 * 60 * 1000,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+
         });
 
         res.cookie("refreshToken", newRefreshToken, {
@@ -309,7 +310,7 @@ class AccountController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
-                maxAge: 15 * 60 * 1000,
+                maxAge: 30 * 24 * 60 * 60 * 1000,
                 });
 
             return res.status(200).json({
