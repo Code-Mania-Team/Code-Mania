@@ -103,29 +103,11 @@ const Profile = ({ onSignOut }) => {
 
   const getProfile = useGetProfile();
 
-  const [editFormData, setEditFormData] = useState(() => {
-
-    const storedUsername = localStorage.getItem('username') || '';
-
-    const storedFullName = localStorage.getItem('fullName') || '';
-
-    const storedCharacterIcon = localStorage.getItem('selectedCharacterIcon') || '';
-
-    const displayUsername = storedUsername ? `@${storedUsername}` : '@';
-
-    const displayFullName = storedFullName || storedUsername || 'Jet Padilla';
-
-    return {
-
-      userName: displayFullName,
-
-      username: displayUsername,
-
-      characterIcon: storedCharacterIcon,
-
-    };
-
-  });
+  const [editFormData, setEditFormData] = useState(() => ({
+    userName: localStorage.getItem('fullName') || localStorage.getItem('username') || 'Unknown',
+    username: localStorage.getItem('username') ? `@${localStorage.getItem('username')}` : '@',
+    characterIcon: localStorage.getItem('selectedCharacterIcon') || '',
+  }));
 
   useEffect(() => {
 
@@ -197,7 +179,7 @@ const Profile = ({ onSignOut }) => {
 
         const displayUsername = nextUsername ? `@${nextUsername}` : prev.username;
 
-        const displayFullName = nextFullName || nextUsername || prev.userName;
+        const displayFullName = nextFullName || prev.userName;
 
         const nextIcon =
 
@@ -754,13 +736,8 @@ const Profile = ({ onSignOut }) => {
                           className={styles.badgeIcon}
 
                           src={
-
                             (badge.badgeKey && badgeImageByKey[badge.badgeKey]) ||
-
-                            badgeImageById[badge.id] ||
-
-                            defaultBadgeImage
-
+                            badgeImageByKey['python-stage1']
                           }
 
                           alt={badge.title}
