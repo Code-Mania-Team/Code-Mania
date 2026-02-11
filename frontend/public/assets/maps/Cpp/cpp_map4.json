@@ -4,30 +4,64 @@
  "layers":[
         {
          "draworder":"topdown",
-         "id":5,
+         "id":4,
          "name":"spawn",
          "objects":[
                 {
-                 "height":27,
+                 "height":0,
                  "id":1,
                  "name":"player_spawn",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"player_spawn"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"player"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":43,
-                 "x":626,
-                 "y":410.667
+                 "width":0,
+                 "x":168,
+                 "y":425
                 }, 
                 {
-                 "height":18.875,
-                 "id":4,
+                 "height":0,
+                 "id":6,
                  "name":"npc_spawn",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"string",
+                         "value":"intro_npc"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"npc_spawn"
+                        }, 
+                        {
+                         "name":"quest_id",
+                         "type":"int",
+                         "value":4
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"npc"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":22.125,
-                 "x":815.875,
-                 "y":317.25
+                 "width":0,
+                 "x":646,
+                 "y":232
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -37,20 +71,46 @@
         }, 
         {
          "draworder":"topdown",
-         "id":6,
+         "id":5,
          "name":"triggers",
          "objects":[
                 {
                  "height":0,
-                 "id":5,
+                 "id":7,
                  "name":"exit",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"right"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"exit"
+                        }, 
+                        {
+                         "name":"required_quest",
+                         "type":"int",
+                         "value":1
+                        }, 
+                        {
+                         "name":"target_map",
+                         "type":"string",
+                         "value":"map5"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_exit"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":6.5,
-                 "y":137
+                 "x":725,
+                 "y":282
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -59,26 +119,26 @@
          "y":0
         }, 
         {
-         "data":[5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+         "data":[1091, 1092, 1091, 1092, 1091, 1092, 1091, 1092, 1091, 1092, 1091, 1092, 1091, 1092, 1091, 1092, 1091, 1092, 1091, 1092,
+            1107, 1108, 1107, 1108, 1107, 1108, 1107, 1108, 1107, 1108, 1107, 1108, 1107, 1108, 1107, 1108, 1107, 1108, 1107, 1108,
             5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
             5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
             5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-            5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 5, 5, 5,
-            5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 5, 5, 5,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 5, 5, 5,
             5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 475, 5, 5, 5, 5, 5, 5,
-            102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 474, 102, 102, 102, 102, 102, 102,
-            110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110,
             5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+            63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
+            71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
             102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
             110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110,
-            92, 93, 94, 95, 92, 93, 94, 95, 96, 92, 93, 94, 92, 84, 94, 95, 96, 92, 93, 94,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+            92, 93, 94, 95, 96, 92, 93, 94, 95, 96, 92, 93, 94, 95, 96, 92, 93, 94, 95, 96,
+            102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,
+            110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110,
+            93, 94, 95, 96, 92, 93, 94, 95, 96, 85, 92, 93, 94, 95, 96, 92, 93, 94, 95, 96,
+            3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543,
+            63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
+            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+            47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47,
+            47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47],
          "height":20,
          "id":1,
          "name":"Tile Layer 1",
@@ -90,26 +150,26 @@
          "y":0
         }, 
         {
-         "data":[651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 651, 652,
-            667, 667, 667, 667, 667, 667, 667, 667, 667, 667, 667, 667, 0, 667, 667, 667, 667, 667, 667, 668,
-            0, 0, 0, 1551, 1552, 0, 0, 0, 0, 1551, 1552, 0, 0, 1551, 1552, 0, 0, 0, 0, 0,
+         "data":[1227, 1228, 1229, 1230, 1263, 1264, 1259, 1260, 1261, 1262, 1385, 1197, 1198, 1199, 1200, 1388, 1145, 0, 1225, 1226,
+            1243, 1244, 1245, 1246, 1279, 1280, 1275, 1276, 1277, 1278, 1401, 1213, 1214, 1215, 1216, 1404, 1161, 361, 1241, 1242,
+            0, 415, 416, 0, 415, 416, 0, 415, 416, 0, 1417, 0, 415, 416, 0, 1420, 0, 377, 571, 509,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1090, 1090, 1090, 1090, 1090, 1090, 0, 1090, 1090, 1090, 1090, 1090, 1090, 1090, 1090, 1090, 0, 1090, 1090, 1090,
-            63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
-            70, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 377, 378, 379, 380, 381, 382, 383, 384,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 393, 394, 395, 396, 397, 398, 399, 400,
-            92, 93, 94, 95, 96, 92, 93, 94, 84, 96, 92, 93, 94, 95, 96, 84, 93, 94, 95, 96,
-            377, 378, 379, 380, 381, 382, 383, 384, 379, 380, 381, 382, 409, 0, 0, 0, 0, 0, 0, 0,
-            393, 394, 395, 396, 397, 398, 399, 400, 395, 396, 397, 398, 425, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 475, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            249, 250, 251, 252, 253, 254, 255, 256, 250, 251, 252, 253, 254, 281, 0, 0, 0, 0, 0, 0,
+            265, 266, 267, 268, 269, 270, 271, 272, 266, 267, 268, 269, 270, 297, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 249, 250, 251, 252, 253, 254, 255,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 265, 266, 267, 268, 269, 270, 271,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            2147485480, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1832,
+            2147485496, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1848,
+            404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404, 404,
+            420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420, 420],
          "height":20,
          "id":2,
          "name":"Tile Layer 2",
@@ -121,23 +181,23 @@
          "y":0
         }, 
         {
-         "data":[0, 0, 0, 767, 768, 0, 0, 0, 0, 0, 0, 0, 824, 825, 826, 827, 491, 0, 783, 784,
-            20, 66, 67, 0, 0, 17, 18, 19, 65, 0, 0, 0, 840, 841, 842, 20, 0, 0, 489, 0,
-            28, 74, 75, 0, 0, 25, 26, 27, 73, 0, 0, 0, 0, 0, 0, 28, 0, 0, 505, 0,
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1583, 1584, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1127, 0, 1128, 0, 0,
-            0, 0, 0, 0, 0, 0, 1090, 0, 0, 0, 0, 0, 0, 0, 0, 1143, 493, 1144, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 585, 586, 587, 588,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 601, 602, 603, 604,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 617, 618, 619, 620,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 633, 634, 635, 636,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 473, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 345, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            3221225544, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 476, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543, 3221225543,
-            63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -150,40 +210,9 @@
          "width":20,
          "x":0,
          "y":0
-        }, 
-        {
-         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 1468, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1646, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1703, 0, 0, 0, 0, 0, 0, 0,
-            1662, 1663, 1664, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1719, 0, 0, 0, 0, 0, 0, 0,
-            1678, 1679, 1680, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1694, 1695, 1696, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1742, 1742, 1712, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1276, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1306,
-            1292, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1322,
-            1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540, 1540,
-            1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556, 1556],
-         "height":20,
-         "id":4,
-         "name":"Tile Layer 4",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":20,
-         "x":0,
-         "y":0
         }],
- "nextlayerid":7,
- "nextobjectid":7,
+ "nextlayerid":6,
+ "nextobjectid":8,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
@@ -192,7 +221,7 @@
         {
          "columns":8,
          "firstgid":1,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/pika_nos_in_tiles01_A5_2.png",
+         "image":"..\/..\/tilesets\/Cpp\/pika_nos_in_tiles01_A5_2.png",
          "imageheight":768,
          "imagewidth":384,
          "margin":0,
@@ -200,235 +229,98 @@
          "spacing":0,
          "tilecount":128,
          "tileheight":48,
-         "tiles":[
-                {
-                 "id":16,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":17,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":18,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":19,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":24,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":25,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":26,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":27,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":64,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":65,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":66,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":72,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":73,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":74,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":101,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":102,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":109,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":110,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":117,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":118,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                },
-            
-                {
-                 "id":125,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":126,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }],
          "tilewidth":48
         }, 
         {
-         "columns":8,
+         "columns":16,
          "firstgid":129,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/cyber_A5.png",
+         "image":"..\/..\/tilesets\/Python\/Commu-ditie1.png",
          "imageheight":768,
-         "imagewidth":384,
+         "imagewidth":768,
          "margin":0,
-         "name":"cyber_A5",
+         "name":"Commu-ditie1",
          "spacing":0,
-         "tilecount":128,
+         "tilecount":256,
          "tileheight":48,
          "tilewidth":48
         }, 
         {
          "columns":16,
-         "firstgid":257,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Python\/Commu-ditie3.png",
+         "firstgid":385,
+         "image":"..\/..\/tilesets\/Cpp\/pika_nos_tiles02_B.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
-         "name":"Commu-ditie3",
+         "name":"pika_nos_tiles02_B",
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
          "tiles":[
                 {
-                 "id":232,
+                 "id":186,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":200,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":201,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":219,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":220,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":233,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":234,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":235,
                  "properties":[
                         {
                          "name":"collision",
@@ -453,17 +345,44 @@
                          "type":"bool",
                          "value":true
                         }]
+                }, 
+                {
+                 "id":249,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":250,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":251,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
                 }],
          "tilewidth":48
         }, 
         {
          "columns":16,
-         "firstgid":513,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/SP_Inside_A4.png",
+         "firstgid":641,
+         "image":"..\/..\/tilesets\/Cpp\/MordernOuter_TileA4.png",
          "imageheight":720,
          "imagewidth":768,
          "margin":0,
-         "name":"SP_Inside_A4",
+         "name":"MordernOuter_TileA4",
          "spacing":0,
          "tilecount":240,
          "tileheight":48,
@@ -471,12 +390,25 @@
         }, 
         {
          "columns":16,
-         "firstgid":753,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/FutsuCity_C.png",
+         "firstgid":881,
+         "image":"..\/..\/tilesets\/Cpp\/univ_wall.png",
+         "imageheight":720,
+         "imagewidth":768,
+         "margin":0,
+         "name":"univ_wall",
+         "spacing":0,
+         "tilecount":240,
+         "tileheight":48,
+         "tilewidth":48
+        }, 
+        {
+         "columns":16,
+         "firstgid":1121,
+         "image":"..\/..\/tilesets\/Cpp\/MordernOuter_Outdoor.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
-         "name":"FutsuCity_C",
+         "name":"MordernOuter_Outdoor",
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
@@ -484,89 +416,12 @@
         }, 
         {
          "columns":16,
-         "firstgid":1009,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/ModernCity_C_Night.png",
+         "firstgid":1377,
+         "image":"..\/..\/tilesets\/Cpp\/cyber_B.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
-         "name":"ModernCity_C_Night",
-         "spacing":0,
-         "tilecount":256,
-         "tileheight":48,
-         "tiles":[
-                {
-                 "id":81,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":102,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":103,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":118,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":119,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":134,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":135,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }],
-         "tilewidth":48
-        }, 
-        {
-         "columns":16,
-         "firstgid":1265,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/pika_nos_in_tiles01_C.png",
-         "imageheight":768,
-         "imagewidth":768,
-         "margin":0,
-         "name":"pika_nos_in_tiles01_C",
+         "name":"cyber_B",
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
@@ -574,124 +429,15 @@
         }, 
         {
          "columns":16,
-         "firstgid":1521,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/pika_nos_tiles02_B.png",
+         "firstgid":1633,
+         "image":"..\/..\/tilesets\/Cpp\/BlackCom_Inside_B.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
-         "name":"pika_nos_tiles02_B",
+         "name":"BlackCom_Inside_B",
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
-         "tiles":[
-                {
-                 "id":30,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":31,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":125,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":142,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":143,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":173,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":174,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":182,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":183,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":191,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":198,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }, 
-                {
-                 "id":199,
-                 "properties":[
-                        {
-                         "name":"collision",
-                         "type":"bool",
-                         "value":true
-                        }]
-                }],
          "tilewidth":48
         }],
  "tilewidth":48,

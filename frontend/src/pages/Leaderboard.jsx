@@ -7,13 +7,19 @@ const trophyIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v176692575
 const Leaderboard = () => {
   const [activeTab, setActiveTab] = React.useState('all');
   
-  // Sample leaderboard data
-  const leaderboardData = [
-    { rank: 1, name: 'Vince De Castro', score: 9850, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=alex' },
-    { rank: 2, name: 'Diether Pano', score: 8765, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=maria' },
-    { rank: 3, name: 'Wilson Esmabe', score: 7654, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=james' },
-    { rank: 4, name: 'Jet Padilla', score: 7432, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=sarah' },
-    { rank: 5, name: 'John Paul Bodino', score: 7210, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=david' },
+  // Character icons from Cloudinary
+const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
+const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
+const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
+const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
+
+// Sample leaderboard data
+const leaderboardData = [
+    { rank: 1, name: 'Jet Padilla', score: 9850, avatar: characterIcon0 },
+    { rank: 2, name: 'Diether Pano', score: 8765, avatar: characterIcon1 },
+    { rank: 3, name: 'John Paul Bodino', score: 7654, avatar: characterIcon0 },
+    { rank: 4, name: 'Wilster Dela Cruz', score: 7432, avatar: characterIcon1 },
+    { rank: 5, name: 'Genniesys Bracia', score: 7210, avatar: characterIcon3 },
   ];
 
   return (

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
-import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
+import CodeTerminal from "../components/CodeTerminal";
+import TutorialPopup from "../components/TutorialPopup";
 import styles from "../styles/JavaScriptExercise.module.css";
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
@@ -26,9 +27,11 @@ const JavaScriptExercise = () => {
   const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
   const [showHelp, setShowHelp] = useState(false);
-  const [showScroll, setShowScroll] = useState(false);
+  const [showScroll, setShowScroll] = useState(true);
   const [showXpPanel, setShowXpPanel] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
+  const [runUnlocked, setRunUnlocked] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // === Dialogue System ===
   const dialogues = [
@@ -46,6 +49,14 @@ const JavaScriptExercise = () => {
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
+
+    // Check if tutorial should be shown for new accounts
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
 
     if (exerciseId) {
       const id = parseInt(exerciseId.split('-')[0], 10);
@@ -70,9 +81,28 @@ const JavaScriptExercise = () => {
         setShowHelp(false);
         setShowXpPanel(false);
         setShowStageComplete(forceStageComplete);
+        setRunUnlocked(false);
       }
     }
   }, [exerciseId, location.search]);
+
+  useEffect(() => {
+    const onTerminalActive = () => {
+      setRunUnlocked(true);
+    };
+
+    // 🚫 Prevent scrolling from the very beginning
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    window.addEventListener("code-mania:terminal-active", onTerminalActive);
+    return () => {
+      // ✅ IMPORTANT: Restore scrolling when leaving this page
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+      window.removeEventListener("code-mania:terminal-active", onTerminalActive);
+    };
+  }, []);
 
   const stageNumber = currentExercise ? Math.floor((currentExercise.id - 1) / 4) + 1 : 1;
   const lessonInStage = currentExercise ? ((currentExercise.id - 1) % 4) + 1 : 1;
@@ -218,13 +248,11 @@ const JavaScriptExercise = () => {
           : "Program ran successfully.\n";
         setOutput(resultText);
 
-        const currentId = currentExercise?.id;
-        const achievement = awardAchievementForExercise(currentId);
+        // 🎯 Close quest HUD and allow character movement when program runs successfully
+        window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
 
-        if (achievement && lessonInStage !== 4) {
-          setAchievementToShow(achievement);
-          setShowAchievementModal(true);
-        }
+        const currentId = currentExercise?.id;
+        // 🚫 NO MORE REACT BADGE MODAL - USING PHASER BADGE SYSTEM INSTEAD
 
         if (lessonInStage === 4) {
           setShowStageComplete(true);
@@ -286,14 +314,7 @@ const JavaScriptExercise = () => {
       }
     }
 
-    if (achievement) {
-      setAchievementToShow(achievement);
-      setShowAchievementModal(true);
-      setShowXpPanel(false);
-      setShowStageComplete(false);
-      return;
-    }
-
+    // 🚫 NO MORE REACT BADGE MODAL - USING PHASER BADGE SYSTEM INSTEAD
     goToNextExercise();
   };
 
@@ -368,137 +389,56 @@ const JavaScriptExercise = () => {
                   overflow: "hidden"
                 }}
               >
-                {showScroll && (
-                  <div className={styles["scroll-container"]}>
-                    <img
-                      src="/src/assets/aseprites/scroll.png"
-                      alt="Scroll"
-                      className={styles["scroll-image"]}
-                    />
-
-                    <div className={styles["scroll-content"]}>
-                      <h2>{currentExercise?.lessonHeader || '🌐 JavaScript'}</h2>
-                      <p>{currentExercise?.description || 'Welcome to JavaScript exercises!'}</p>
-                      
-                      {currentExercise?.lessonExample && (
-                        <div className={styles["code-example"]}>
-                          <h3>Example:</h3>
-                          <pre>{currentExercise.lessonExample}</pre>
-                        </div>
-                      )}
-                      
-                      <h3>Your Task:</h3>
-                      <p>{currentExercise?.task || 'Complete the JavaScript code below.'}</p>
-                      
-                      <div className={styles.navigation}>
-                        <button 
-                          onClick={goToPrevExercise}
-                          disabled={!currentExercise || currentExercise.id <= 1}
-                          className={styles.navButton}
-                        >
-                          <ChevronLeft size={20} /> Previous
-                        </button>
-                        <span>Exercise {currentExercise?.id || 1} of {exercises.length}</span>
-                        <button 
-                          onClick={goToNextExercise}
-                          disabled={!currentExercise || currentExercise.id >= exercises.length}
-                          className={styles.navButton}
-                        >
-                          Next <ChevronRight size={20} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
             </div>
           </div>
 
           {/* Right Side - Code Editor and Terminal */}
-          <div className={styles["code-container"]}>
-            <div className={styles["code-editor"]}>
-              <div className={styles["editor-header"]}>
-                <span>script.js</span>
-                <button 
-                  className={`${styles["run-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`} 
-                  onClick={handleRunCode}
-                  disabled={!showScroll}
-                  title={!showScroll ? "View the lesson first" : "Run code"}
-                >
-                  <Play size={16} /> Run
-                </button>
-              </div>
-              <textarea
-                className={styles["code-box"]}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              ></textarea>
-            </div>
+          <CodeTerminal
+            language="javascript"
+            code={code}
+            onRunCode={handleRunCode}
+            runUnlocked={runUnlocked}
+          />
 
-            <div className={styles["terminal"]}>
-              <div className={styles["terminal-header"]}>
-                Console
-                <button 
-                  className={`${styles["submit-btn"]} ${!showScroll ? styles["disabled-btn"] : ""}`}
-                  onClick={handleRunCode}
-                  disabled={!showScroll}
-                  title={!showScroll ? "View the lesson first" : "Submit code"}
-                >
-                  Submit
-                </button>
-              </div>
-              <div className={styles["terminal-body"]}>
-                <div className={styles["terminal-line"]}>
-                </div>
-                {output && (
-                  <div className={styles["terminal-output"]}>{output}</div>
-                )}
-                <div className={styles["terminal-line"]}>
-                  <span className={styles["prompt"]}>›</span>
-                  <span className={styles["cursor"]}></span>
-                </div>
-              </div>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
-              <button
-                className={styles["submit-btn"]}
-                onClick={handleDebugSkip}
-                title="Next (earn badge)"
-              >
-                Next (Earn Badge)
-              </button>
-            </div>
+          <XpNotification
+            show={showXpPanel}
+            onClose={() => setShowXpPanel(false)}
+            onNext={goToNextExercise}
+          />
 
-            <XpNotification
-              show={showXpPanel}
-              onClose={() => setShowXpPanel(false)}
-              onNext={goToNextExercise}
-            />
+          <StageCompleteModal
+            show={showAchievementModal}
+            languageLabel="JavaScript"
+            titleText={achievementToShow?.title}
+            subtitleText={achievementToShow?.description}
+            badgeSrc={achievementToShow ? badgeByKey[achievementToShow.badgeKey] : undefined}
+            onContinue={handleAchievementContinue}
+            onClose={handleAchievementClose}
+          />
 
-            <StageCompleteModal
-              show={showAchievementModal}
-              languageLabel="JavaScript"
-              titleText={achievementToShow?.title}
-              subtitleText={achievementToShow?.description}
-              badgeSrc={achievementToShow ? badgeByKey[achievementToShow.badgeKey] : undefined}
-              onContinue={handleAchievementContinue}
-              onClose={handleAchievementClose}
-            />
-
-            <StageCompleteModal
-              show={showStageComplete}
-              stageNumber={displayStageNumber}
-              languageLabel="JavaScript"
-              badgeSrc={jsStageBadges[displayStageNumber - 1]}
-              onContinue={handleStageContinue}
-              onClose={() => setShowStageComplete(false)}
-            />
-          </div>
+          <StageCompleteModal
+            show={showStageComplete}
+            stageNumber={displayStageNumber}
+            languageLabel="JavaScript"
+            badgeSrc={jsStageBadges[displayStageNumber - 1]}
+            onContinue={handleStageContinue}
+            onClose={() => setShowStageComplete(false)}
+          />
         </div>
       </div>
-
-      <Footer />
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
+      )}
     </div>
   );
 };

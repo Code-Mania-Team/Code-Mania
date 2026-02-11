@@ -4,6 +4,7 @@ export default class QuestUI {
   constructor(scene) {
     this.scene = scene;
     this.visible = false;
+    this.ignoreWheelUntil = 0;
 
     const { width, height } = scene.scale;
 
@@ -105,6 +106,7 @@ export default class QuestUI {
 
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (!this.visible) return;
+      if (this.scene.time.now < this.ignoreWheelUntil) return;
       if (this.bodyScrollMax <= 0) return;
 
       const insidePanel =
@@ -138,6 +140,15 @@ export default class QuestUI {
   // =========================
   showQuest(quest) {
     if (!quest) return;
+
+    this.ignoreWheelUntil = this.scene.time.now + 250;
+
+    // 🛑 Pause game when quest HUD appears
+    window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
+    
+    // 🚫 Prevent page scrolling when quest HUD is active
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     // Lesson title
     this.titleText.setText(quest.title || "");
@@ -211,6 +222,9 @@ export default class QuestUI {
   // =========================
   hide() {
     if (!this.visible) return;
+
+    // ▶ Resume game when quest HUD hides
+    window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
 
     this.scene.tweens.add({
       targets: this.container,

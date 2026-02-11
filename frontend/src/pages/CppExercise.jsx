@@ -2,17 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/header";
-import Footer from "../components/footer";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import XpNotification from "../components/XpNotification";
+import CodeTerminal from "../components/CodeTerminal";
+import TutorialPopup from "../components/TutorialPopup";
 import styles from "../styles/JavaScriptExercise.module.css";
 // Reusing CSS – you can replace with C++ styles if you add them
-import cppStage1Badge from "../assets/badges/C++/c++-badges1.png";
-import cppStage2Badge from "../assets/badges/C++/c++-badges2.png";
-import cppStage3Badge from "../assets/badges/C++/c++-badge3.png";
-import cppStage4Badge from "../assets/badges/C++/c++-badge4.png";
+import cppStage1Badge from "../assets/badges/C++/cpp-badges1.png";
+import cppStage2Badge from "../assets/badges/C++/cpp-badges2.png";
+import cppStage3Badge from "../assets/badges/C++/cpp-badge3.png";
+import cppStage4Badge from "../assets/badges/C++/cpp-badge4.png";
 import exercises from "../utilities/data/cppExercises.json";
 import { initPhaserGame } from "../utilities/engine/main.js";
 import useAuth from "../hooks/useAxios";
@@ -29,6 +30,7 @@ const [showHelp, setShowHelp] = useState(false);
 const [showXpPanel, setShowXpPanel] = useState(false);
 const [showStageComplete, setShowStageComplete] = useState(false);
 const [, setXpEarned] = useState(0);
+const [showTutorial, setShowTutorial] = useState(false);
 
 // === Dialogue System ===
 const dialogues = [
@@ -43,6 +45,14 @@ useEffect(() => {
   const searchParams = new URLSearchParams(location.search);
   const forceStageComplete = searchParams.get("stageComplete") === "1";
 
+  // Check if tutorial should be shown for new accounts
+  const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  
+  if (isAuthenticated && !hasSeenTutorial) {
+    setShowTutorial(true);
+  }
+
   if (exerciseId) {
     const id = parseInt(exerciseId.split("-")[0], 10);
     if (isNaN(id)) {
@@ -51,7 +61,7 @@ useEffect(() => {
     }
     
     // Set language for game scene
-    localStorage.setItem("lastCourseTitle", "Cpp");
+    localStorage.setItem("lastCourseTitle", "C++");
     
     // Set mapId based on current exercise number
     let mapId;
@@ -240,102 +250,71 @@ isAuthenticated={isAuthenticated}
 onOpenModal={isAuthenticated ? null : handleOpenModal}
 user={user}
 />
-  {isSignInModalOpen && (
-    <SignInModal
-      isOpen={isSignInModalOpen}
-      onClose={handleCloseModal}
-      onSignInSuccess={handleSignInSuccess}
-    />
-  )}
+{isSignInModalOpen && (
+<SignInModal
+isOpen={isSignInModalOpen}
+onClose={handleCloseModal}
+onSignInSuccess={handleSignInSuccess}
+/>
+)}
 
-  <div className={styles["codex-fullscreen"]}>
-    <ProgressBar
-      currentLesson={lessonInStage}
-      totalLessons={4}
-      title={currentExercise?.lessonHeader || "⚙️ C++ Basics"}
-      variant={isExam ? "titleOnly" : "full"}
-    />
+<div className={styles["codex-fullscreen"]}>
+<ProgressBar
+currentLesson={lessonInStage}
+totalLessons={4}
+title={currentExercise?.lessonHeader || " C++ Basics"}
+variant={isExam ? "titleOnly" : "full"}
+/>
 
-    <div className={styles["main-layout"]}>
-      {/* Left Side */}
-      <div className={styles["game-container"]}>
-        <div className={styles["game-preview"]}>
-          <div
-            id="phaser-container"
-            className={styles["game-scene"]}
-            style={{
-              minHeight: "400px",
-              position: "relative",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Code Editor and Terminal */}
-      <div className={styles["code-container"]}>
-        <div className={styles["code-editor"]}>
-          <div className={styles["editor-header"]}>
-            <span>main.cpp</span>
-            <button 
-              className={styles["run-btn"]} 
-              onClick={handleRunCode}
-              title="Run code"
-            >
-              <Play size={16} /> Run
-            </button>
-          </div>
-          <textarea
-            className={styles["code-box"]}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          ></textarea>
-        </div>
-
-        <div className={styles["terminal"]}>
-          <div className={styles["terminal-header"]}>
-            Console
-            <button 
-              className={styles["submit-btn"]}
-              onClick={handleRunCode}
-              title="Submit code"
-            >
-              Submit
-            </button>
-          </div>
-          <div className={styles["terminal-body"]}>
-            <div className={styles["terminal-line"]}>
-            </div>
-            {output && (
-              <div className={styles["terminal-output"]}>{output}</div>
-            )}
-            <div className={styles["terminal-line"]}>
-              <span className={styles["prompt"]}>›</span>
-              <span className={styles["cursor"]}></span>
-            </div>
-          </div>
-        </div>
-        <XpNotification
-          show={showXpPanel}
-          onClose={() => setShowXpPanel(false)}
-          onNext={goToNextExercise}
-        />
-        <StageCompleteModal
-          show={showStageComplete}
-          stageNumber={displayStageNumber}
-          languageLabel="C++"
-          badgeSrc={cppStageBadges[displayStageNumber - 1]}
-          onContinue={handleStageContinue}
-          onClose={() => setShowStageComplete(false)}
-        />
-      </div>
-    </div>
-  </div>
-
-  <Footer />
+<div className={styles["main-layout"]}>
+{/* Left Side */}
+<div className={styles["game-container"]}>
+<div className={styles["game-preview"]}>
+<div
+id="phaser-container"
+className={styles["game-scene"]}
+style={{
+width: "100%",
+height: "100%",
+imageRendering: "pixelated"
+}}
+>
 </div>
+</div>
+</div>
+
+{/* Right Side */}
+<CodeTerminal
+language="cpp"
+code={code}
+onRunCode={handleRunCode}
+runUnlocked={true}
+/>
+
+</div>
+
+<StageCompleteModal
+show={showStageComplete}
+stageNumber={displayStageNumber}
+languageLabel="C++"
+badgeSrc={cppStageBadges[displayStageNumber - 1]}
+onContinue={handleStageContinue}
+onClose={() => setShowStageComplete(false)}
+/>
+
+</div>
+
+{/* Tutorial Popup */}
+{showTutorial && (
+<TutorialPopup 
+open={showTutorial} 
+onClose={() => {
+setShowTutorial(false);
+          localStorage.setItem('hasSeenTutorial', 'true');
+        }} 
+      />
+    )}
+  </div>
 );
 };
 

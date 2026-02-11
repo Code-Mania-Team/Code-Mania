@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
 import useAuth from "../hooks/useAxios";
+
+// Import Python course badges
+import pythonBadge1 from "../assets/badges/Python/python-badge1.png";
+import pythonBadge2 from "../assets/badges/Python/python-badge2.png";
+import pythonBadge3 from "../assets/badges/Python/python-badge3.png";
+import pythonBadge4 from "../assets/badges/Python/python-badge4.png";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -12,6 +18,9 @@ const PythonCourse = () => {
   const { isAuthenticated } = useAuth();
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Tutorial will be shown only when clicking Start button
 
   const onOpenModal = () => {
     setIsModalOpen(true);
@@ -30,6 +39,14 @@ const PythonCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseName) => {
+    // Check if tutorial should be shown before starting first exercise
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+    
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'Python');
     localStorage.setItem('lastCourseRoute', '/learn/python');
@@ -67,10 +84,10 @@ const PythonCourse = () => {
       title: "Variables & Data Types",
       description: "Understand how to store and manipulate data using variables in Python.",
       exercises: [
-        { id: 1, name: "Variables", status: "locked" },
-        { id: 2, name: "Strings", status: "locked" },
-        { id: 3, name: "Numbers", status: "locked" },
-        { id: 4, name: "Booleans", status: "locked" }
+        { id: 5, name: "Variables", status: "locked" },
+        { id: 6, name: "Strings", status: "locked" },
+        { id: 7, name: "Numbers", status: "locked" },
+        { id: 8, name: "Booleans", status: "locked" }
       ]
     },
     {
@@ -78,10 +95,10 @@ const PythonCourse = () => {
       title: "Control Flow",
       description: "Master conditional statements and decision-making in your programs.",
       exercises: [
-        { id: 1, name: "If Statements", status: "locked" },
-        { id: 2, name: "Else & Elif", status: "locked" },
-        { id: 3, name: "Comparison", status: "locked" },
-        { id: 4, name: "Logical Operators", status: "locked" }
+        { id: 9, name: "If Statements", status: "locked" },
+        { id: 10, name: "Else & Elif", status: "locked" },
+        { id: 11, name: "Comparison", status: "locked" },
+        { id: 12, name: "Logical Operators", status: "locked" }
       ]
     },
     {
@@ -89,20 +106,20 @@ const PythonCourse = () => {
       title: "Loops",
       description: "Learn how to repeat code efficiently using for and while loops.",
       exercises: [
-        { id: 1, name: "For Loops", status: "locked" },
-        { id: 2, name: "While Loops", status: "locked" },
-        { id: 3, name: "Range Function", status: "locked" },
-        { id: 4, name: "Nested Loops", status: "locked" }
+        { id: 13, name: "For Loops", status: "locked" },
+        { id: 14, name: "While Loops", status: "locked" },
+        { id: 15, name: "Range Function", status: "locked" },
+        { id: 16, name: "Nested Loops", status: "locked" }
       ]
     },
     {
-    id: 5,
-    title: "Examination",
-    description: "Test your Python knowledge. Complete all previous modules to unlock this exam.",
-    exercises: [
-      { id: 1, name: "Python Exam", status: "locked" }
-    ]
-  }
+      id: 5,
+      title: "Examination",
+      description: "Test your Python knowledge. Complete all previous modules to unlock this exam.",
+      exercises: [
+        { id: 17, name: "Python Exam", status: "locked" }
+      ]
+    }
   ];
 
   const toggleModule = (moduleId) => {
@@ -122,9 +139,9 @@ const PythonCourse = () => {
       {/* Hero Section */}
       <section className="python-hero">
         <div className="python-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="python-hero-badge">
+            <span className="python-badge-text">BEGINNER</span>
+            <span className="python-badge-text">COURSE</span>
           </div>
           <h1 className="python-hero-title">Python</h1>
           <p className="python-hero-description">
@@ -226,6 +243,17 @@ const PythonCourse = () => {
               </span>
             </div>
           </div>
+
+          {/* Course Badges Section */}
+          <div className="progress-card">
+            <h4 className="progress-title">Course Badges</h4>
+            <div className="course-badges-grid">
+              <img src={pythonBadge1} alt="Python Stage 1" className="python-course-badge" />
+              <img src={pythonBadge2} alt="Python Stage 2" className="python-course-badge" />
+              <img src={pythonBadge3} alt="Python Stage 3" className="python-course-badge" />
+              <img src={pythonBadge4} alt="Python Stage 4" className="python-course-badge" />
+            </div>
+          </div>
         </div>
       </div>
       
@@ -234,6 +262,17 @@ const PythonCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
+      )}
     </div>
   );
 };

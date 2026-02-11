@@ -789,6 +789,15 @@
                         }]
                 }, 
                 {
+                 "id":70,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
                  "id":85,
                  "properties":[
                         {

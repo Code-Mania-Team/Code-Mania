@@ -4,6 +4,13 @@ import { useNavigate } from "react-router-dom";
 import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
+import TutorialPopup from "../components/TutorialPopup";
+
+// Import JavaScript course badges
+import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
+import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
+import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
+import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -12,6 +19,9 @@ const JavaScriptCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [completedExercises, setCompletedExercises] = useState([]);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Tutorial will be shown only when clicking Start button
 
   // Load completed exercises from localStorage
   useEffect(() => {
@@ -54,6 +64,14 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseName) => {
+    // Check if tutorial should be shown before starting first exercise
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+    
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'JavaScript');
     localStorage.setItem('lastCourseRoute', '/learn/javascript');
@@ -100,9 +118,9 @@ const JavaScriptCourse = () => {
   // Update user progress based on completed exercises
   const updatedUserProgress = {
     exercisesCompleted: completedExercises.length,
-    totalExercises: 16,
+    totalExercises: 17,
     xpEarned: completedExercises.length * 225, // 225 XP per exercise
-    totalXp: 3600
+    totalXp: 3825
   };
 
   const modules = [
@@ -122,10 +140,10 @@ const JavaScriptCourse = () => {
       title: "Functions & Scope",
       description: "Master functions, parameters, and understand variable scope in JavaScript.",
       exercises: [
-        { id: 1, name: "Function Basics", status: "locked" },
-        { id: 2, name: "Parameters & Arguments", status: "locked" },
-        { id: 3, name: "Return Values", status: "locked" },
-        { id: 4, name: "Arrow Functions", status: "locked" }
+        { id: 5, name: "Function Basics", status: "locked" },
+        { id: 6, name: "Parameters & Arguments", status: "locked" },
+        { id: 7, name: "Return Values", status: "locked" },
+        { id: 8, name: "Arrow Functions", status: "locked" }
       ]
     },
     {
@@ -133,10 +151,10 @@ const JavaScriptCourse = () => {
       title: "Arrays & Objects",
       description: "Learn to work with arrays and objects to store and manipulate complex data.",
       exercises: [
-        { id: 1, name: "Arrays", status: "locked" },
-        { id: 2, name: "Array Methods", status: "locked" },
-        { id: 3, name: "Objects", status: "locked" },
-        { id: 4, name: "Object Methods", status: "locked" }
+        { id: 9, name: "Arrays", status: "locked" },
+        { id: 10, name: "Array Methods", status: "locked" },
+        { id: 11, name: "Objects", status: "locked" },
+        { id: 12, name: "Object Methods", status: "locked" }
       ]
     },
     {
@@ -144,10 +162,10 @@ const JavaScriptCourse = () => {
       title: "DOM Manipulation",
       description: "Interact with web pages by manipulating the Document Object Model.",
       exercises: [
-        { id: 1, name: "Selecting Elements", status: "locked" },
-        { id: 2, name: "Modifying Content", status: "locked" },
-        { id: 3, name: "Event Listeners", status: "locked" },
-        { id: 4, name: "Dynamic Styling", status: "locked" }
+        { id: 13, name: "Selecting Elements", status: "locked" },
+        { id: 14, name: "Modifying Content", status: "locked" },
+        { id: 15, name: "Event Listeners", status: "locked" },
+        { id: 16, name: "Dynamic Styling", status: "locked" }
       ]
     },
     {
@@ -155,7 +173,7 @@ const JavaScriptCourse = () => {
       title: "Examination",
       description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
       exercises: [
-        { id: 1, name: "JavaScript Exam", status: "locked" }
+        { id: 17, name: "JavaScript Exam", status: "locked" }
       ]
     }
   ];
@@ -165,9 +183,9 @@ const JavaScriptCourse = () => {
       {/* Hero Section */}
       <section className="javascript-hero">
         <div className="javascript-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="javascript-hero-badge">
+            <span className="javascript-badge-text">BEGINNER</span>
+            <span className="javascript-badge-text">COURSE</span>
           </div>
           <h1 className="javascript-hero-title">JavaScript</h1>
           <p className="javascript-hero-description">
@@ -262,6 +280,17 @@ const JavaScriptCourse = () => {
               </span>
             </div>
           </div>
+
+          {/* Course Badges Section */}
+          <div className="progress-card">
+            <h4 className="progress-title">Course Badges</h4>
+            <div className="course-badges-grid">
+              <img src={jsStage1Badge} alt="JavaScript Stage 1" className="javascript-course-badge" />
+              <img src={jsStage2Badge} alt="JavaScript Stage 2" className="javascript-course-badge" />
+              <img src={jsStage3Badge} alt="JavaScript Stage 3" className="javascript-course-badge" />
+              <img src={jsStage4Badge} alt="JavaScript Stage 4" className="javascript-course-badge" />
+            </div>
+          </div>
         </div>
       </div>
       
@@ -270,6 +299,17 @@ const JavaScriptCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
+      )}
     </div>
   );
 };

@@ -5,20 +5,14 @@ import styles from '../styles/Profile.module.css';
 import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'lucide-react';
 
 import profileBanner from '../assets/profile-banner.jpg';
-
 import { useDeleteAccount } from '../services/deleteAccount';
-
 import { useEditAccount } from '../services/editAccount';
-
-import useGetProfile from "../services/getProfile";
-
-import characterIcon0 from '/assets/characters/icons/character.png';
-
-import characterIcon1 from '/assets/characters/icons/character1.png';
-
-import characterIcon2 from '/assets/characters/icons/character3.png';
-
-import characterIcon3 from '/assets/characters/icons/character4.png';
+import useGetProfile from '../services/getProfile';
+// Character icons from Cloudinary
+const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
+const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
+const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
+const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 
 import pythonBadge1 from '../assets/badges/Python/python-badge1.png';
 
@@ -28,13 +22,10 @@ import pythonBadge3 from '../assets/badges/Python/python-badge3.png';
 
 import pythonBadge4 from '../assets/badges/Python/python-badge4.png';
 
-import cppBadge1 from '../assets/badges/C++/c++-badges1.png';
-
-import cppBadge2 from '../assets/badges/C++/c++-badges2.png';
-
-import cppBadge3 from '../assets/badges/C++/c++-badge3.png';
-
-import cppBadge4 from '../assets/badges/C++/c++-badge4.png';
+import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
+import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
+import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
+import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
 
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 
@@ -106,9 +97,9 @@ const Profile = ({ onSignOut }) => {
 
   const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
 
-  const DeleteAccount = useDeleteAccount();
+  const deleteAccount = useDeleteAccount();
 
-  const EditAccount = useEditAccount();
+  const editAccount = useEditAccount();
 
   const getProfile = useGetProfile();
 
@@ -462,7 +453,7 @@ const Profile = ({ onSignOut }) => {
 
     try {
 
-      await DeleteAccount();
+      await deleteAccount();
 
     } catch (error) {
 
@@ -554,7 +545,7 @@ const Profile = ({ onSignOut }) => {
 
     try {
 
-      const response = await EditAccount(editFormData.userName);
+      const response = await editAccount(editFormData.userName);
 
 
 

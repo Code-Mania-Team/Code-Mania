@@ -4,12 +4,22 @@ import { useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
+import TutorialPopup from "../components/TutorialPopup";
+
+// Import C++ course badges
+import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
+import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
+import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
+import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const CppCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Tutorial will be shown only when clicking Start button
 
   // Set course info when component loads
   useEffect(() => {
@@ -49,10 +59,10 @@ const CppCourse = () => {
       title: "Variables & Data Types",
       description: "Learn about different data types, variables, and how to work with them in C++.",
       exercises: [
-        { id: 1, name: "Variables", status: "locked" },
-        { id: 2, name: "Data Types", status: "locked" },
-        { id: 3, name: "Constants", status: "locked" },
-        { id: 4, name: "Type Casting", status: "locked" }
+        { id: 5, name: "Variables", status: "available" },
+        { id: 6, name: "Data Types", status: "available" },
+        { id: 7, name: "Constants", status: "available" },
+        { id: 8, name: "Type Casting", status: "available" }
       ]
     },
     {
@@ -60,10 +70,10 @@ const CppCourse = () => {
       title: "Operators & Expressions",
       description: "Master arithmetic, comparison, and logical operators in C++.",
       exercises: [
-        { id: 1, name: "Arithmetic Operators", status: "locked" },
-        { id: 2, name: "Comparison Operators", status: "locked" },
-        { id: 3, name: "Logical Operators", status: "locked" },
-        { id: 4, name: "Assignment Operators", status: "locked" }
+        { id: 9, name: "Arithmetic Operators", status: "locked" },
+        { id: 10, name: "Comparison Operators", status: "locked" },
+        { id: 11, name: "Logical Operators", status: "locked" },
+        { id: 12, name: "Assignment Operators", status: "locked" }
       ]
     },
     {
@@ -71,20 +81,20 @@ const CppCourse = () => {
       title: "Control Flow",
       description: "Learn to control program flow with conditional statements and loops.",
       exercises: [
-        { id: 1, name: "If Statements", status: "locked" },
-        { id: 2, name: "Switch Case", status: "locked" },
-        { id: 3, name: "For Loops", status: "locked" },
-        { id: 4, name: "While Loops", status: "locked" }
+        { id: 13, name: "If Statements", status: "locked" },
+        { id: 14, name: "Switch Case", status: "locked" },
+        { id: 15, name: "For Loops", status: "locked" },
+        { id: 16, name: "While Loops", status: "locked" }
       ]
     },
     {
-    id: 5,
-    title: "Examination",
-    description: "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
-    exercises: [
-      { id: 1, name: "C++ Exam", status: "locked" }
-    ]
-  }
+      id: 5,
+      title: "Examination",
+      description: "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
+      exercises: [
+        { id: 17, name: "C++ Exam", status: "locked" }
+      ]
+    }
   ];
 
   const navigate = useNavigate();
@@ -94,6 +104,14 @@ const CppCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
+    // Check if tutorial should be shown before starting first exercise
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+    
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'C++');
     localStorage.setItem('lastCourseRoute', '/learn/cpp');
@@ -113,9 +131,9 @@ const CppCourse = () => {
       {/* Hero Section */}
       <section className="cpp-hero">
         <div className="cpp-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="cpp-hero-badge">
+            <span className="cpp-badge-text">BEGINNER</span>
+            <span className="cpp-badge-text">COURSE</span>
           </div>
           <h1 className="cpp-hero-title">C++</h1>
           <p className="cpp-hero-description">
@@ -208,6 +226,17 @@ const CppCourse = () => {
               </span>
             </div>
           </div>
+
+          {/* Course Badges Section */}
+          <div className="progress-card">
+            <h4 className="progress-title">Course Badges</h4>
+            <div className="course-badges-grid">
+              <img src={cppBadge1} alt="C++ Stage 1" className="cpp-course-badge" />
+              <img src={cppBadge2} alt="C++ Stage 2" className="cpp-course-badge" />
+              <img src={cppBadge3} alt="C++ Stage 3" className="cpp-course-badge" />
+              <img src={cppBadge4} alt="C++ Stage 4" className="cpp-course-badge" />
+            </div>
+          </div>
         </div>
       </div>
       
@@ -216,6 +245,17 @@ const CppCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
+      )}
     </div>
   );
 };

@@ -22,7 +22,125 @@ export const MAPS = {
         { name: "!fsm_chest01", key: "Chest", image: "/assets/tilesets/Python/!fsm_chest01.png" }
       ],
       nextMap: "map3"
+    },
+    map3: {
+    mapKey: "map3",
+    mapJson: "/assets/maps/Python/map3.json",
+    tilesets: [
+      {
+        name: "ADBTileB_exterior4",
+        key: "ADBTileB_exterior4",
+        image: "/assets/tilesets/Python/ADBTileB_exterior4.png"
+      },
+      {
+        name: "A2",
+        key: "A2",
+        image: "/assets/tilesets/Python/A2.png"
+      },
+      {
+        name: "D_2",
+        key: "D_2",
+        image: "/assets/tilesets/Python/D_2.png"
+      },
+      {
+        name: "Inside_A2",
+        key: "Inside_A2",
+        image: "/assets/tilesets/Python/Inside_A2.png"
+      },
+      {
+        name: "pika_nos_tiles01_C",
+        key: "pika_nos_tiles01_C",
+        image: "/assets/tilesets/Python/pika_nos_tiles01_C.png"
+      },
+      {
+        name: "ADBTileD_exterior2",
+        key: "ADBTileD_exterior2",
+        image: "/assets/tilesets/Python/ADBTileD_exterior2.png"
+      }
+    ],
+    nextMap: "map4" // matches your trigger target_map
+  },
+    map4: {
+      mapKey: "map4",
+      mapJson: "/assets/maps/Python/map4.json",
+      tilesets: [
+        {
+          name: "A2",
+          key: "A2",
+          image: "/assets/tilesets/Python/A2.png"
+        },
+        {
+          name: "ADBTileC_interior",
+          key: "ADBTileC_interior",
+          image: "/assets/tilesets/Python/ADBTileC_interior.png"
+        },
+        {
+          name: "E_exterior",
+          key: "E_exterior",
+          image: "/assets/tilesets/Python/E_exterior.png"
+        },
+        {
+          name: "ADBTileA5_interior",
+          key: "ADBTileA5_interior",
+          image: "/assets/tilesets/Python/ADBTileA5_interior.png"
+        },
+        {
+          name: "commu_church-A4",
+          key: "commu_church-A4",
+          image: "/assets/tilesets/Python/commu_church-A4.png"
+        },
+        {
+          name: "Dungeon_B_for_mineral",
+          key: "Dungeon_B_for_mineral",
+          image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+        },
+        {
+          name: "ADBTileB_exterior4",
+          key: "ADBTileB_exterior4",
+          image: "/assets/tilesets/Python/ADBTileB_exterior4.png"
+        }
+      ],
+      nextMap: "map5" // or "map5" if you add it later
+    },
+    map5: {
+      mapKey: "map5",
+      mapJson: "/assets/maps/Python/map5.json",
+      tilesets: [
+        {
+          name: "fsm_C_Inside01_A4",
+          key: "fsm_C_Inside01_A4",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_A4.png"
+        },
+        {
+          name: "fsm_C_Inside01_A5_1",
+          key: "fsm_C_Inside01_A5_1",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+        },
+        {
+          name: "fsm_C_Inside01_B1",
+          key: "fsm_C_Inside01_B1",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+        },
+        {
+          name: "fsm_C_Inside01_C",
+          key: "fsm_C_Inside01_C",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+        },
+        {
+          name: "fsm_C_Inside01_D3",
+          key: "fsm_C_Inside01_D3",
+          image: "/assets/tilesets/Python/fsm_C_Inside01_D3.png"
+        },
+        {
+          name: "Dungeon_B_for_mineral",
+          key: "Dungeon_B_for_mineral",
+          image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+        }
+      ],
+      nextMap: "map6"
     }
+
+
   },
   JavaScript: {
     map1: {
@@ -88,10 +206,115 @@ export const MAPS = {
         { name: "No1-2a.rpgmvp", key: "No1-2a.rpgmvp", image: "/assets/tilesets/Javascript/No1-2a.rpgmvp.png" },
         { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" }
       ],
+      nextMap: "map5"
+    },
+    map5: {
+      mapKey: "js_map5",
+      mapJson: "/assets/maps/JavaScript/js_map5.json",
+      tilesets: [
+        { name: "Outside_A3.rpgmvp", key: "Outside_A3.rpgmvp", image: "/assets/tilesets/Javascript/Outside_A3.rpgmvp.png" },
+        { name: "A1.rpgmvp", key: "A1.rpgmvp", image: "/assets/tilesets/Javascript/A1.rpgmvp.png" },
+        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
+        { name: "bu_Outside_a.rpgmvp", key: "bu_Outside_a.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside_a.rpgmvp.png" },
+        { name: "Outside_A5.rpgmvp", key: "Outside_A5.rpgmvp", image: "/assets/tilesets/Javascript/Outside_A5.rpgmvp.png" },
+        { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" },
+        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" }
+      ],
+      nextMap: "map6"
+    },
+    map6: {
+      mapKey: "js_map6",
+      mapJson: "/assets/maps/JavaScript/js_map6.json",
+      tilesets: [
+        { name: "A4b.rpgmvp", key: "A4b.rpgmvp", image: "/assets/tilesets/Javascript/A4b.rpgmvp.png" },
+        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
+        { name: "D.rpgmvp", key: "D.rpgmvp", image: "/assets/tilesets/Javascript/D.rpgmvp.png" },
+        { name: "A1.rpgmvp", key: "A1.rpgmvp", image: "/assets/tilesets/Javascript/A1.rpgmvp.png" },
+        { name: "touhu_02.rpgmvp", key: "touhu_02.rpgmvp", image: "/assets/tilesets/Javascript/touhu_02.rpgmvp.png" }
+      ],
+      nextMap: "map7"
+    },
+    map7: {
+      mapKey: "js_map7",
+      mapJson: "/assets/maps/JavaScript/js_map7.json",
+      tilesets: [
+        { name: "A4.rpgmvp", key: "A4.rpgmvp", image: "/assets/tilesets/Javascript/A4.rpgmvp.png" },
+        { name: "bu_shrine2.rpgmvp", key: "bu_shrine2.rpgmvp", image: "/assets/tilesets/Javascript/bu_shrine2.rpgmvp.png" },
+        { name: "bu_Outside2.rpgmvp", key: "bu_Outside2.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside2.rpgmvp.png" },
+        { name: "No1-2a.rpgmvp", key: "No1-2a.rpgmvp", image: "/assets/tilesets/Javascript/No1-2a.rpgmvp.png" },
+        { name: "bu_Out_A3.rpgmvp", key: "bu_Out_A3.rpgmvp", image: "/assets/tilesets/Javascript/bu_Out_A3.rpgmvp.png" }
+      ],
+      nextMap: "map8",
+      hasBlockLayers: true
+    },
+    map8: {
+      mapKey: "js_map8",
+      mapJson: "/assets/maps/JavaScript/js_map8.json",
+      tilesets: [
+        { name: "Outside_A3.rpgmvp", key: "Outside_A3.rpgmvp", image: "/assets/tilesets/Javascript/Outside_A3.rpgmvp.png" },
+        { name: "A4b.rpgmvp", key: "A4b.rpgmvp", image: "/assets/tilesets/Javascript/A4b.rpgmvp.png" },
+        { name: "A2_02.rpgmvp", key: "A2_02.rpgmvp", image: "/assets/tilesets/Javascript/A2_02.rpgmvp.png" },
+        { name: "No1-2a.rpgmvp", key: "No1-2a.rpgmvp", image: "/assets/tilesets/Javascript/No1-2a.rpgmvp.png" },
+        { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" },
+        { name: "Outside_B.rpgmvp", key: "Outside_B.rpgmvp", image: "/assets/tilesets/Javascript/Outside_B.rpgmvp.png" },
+        { name: "D.rpgmvp", key: "D.rpgmvp", image: "/assets/tilesets/Javascript/D.rpgmvp.png" }
+      ],
+      nextMap: "map9"
+    },
+    map9: {
+      mapKey: "js_map9",
+      mapJson: "/assets/maps/JavaScript/js_map9.json",
+      tilesets: [
+        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
+        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
+        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
+        { name: "touhu_02.rpgmvp", key: "touhu_02.rpgmvp", image: "/assets/tilesets/Javascript/touhu_02.rpgmvp.png" },
+        { name: "bu_Outside_a.rpgmvp", key: "bu_Outside_a.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside_a.rpgmvp.png" },
+        { name: "komyu_01.rpgmvp", key: "komyu_01.rpgmvp", image: "/assets/tilesets/Javascript/komyu_01.rpgmvp.png" },
+        { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" }
+      ],
+      nextMap: "map10"
+    },
+    map10: {
+      mapKey: "js_map10",
+      mapJson: "/assets/maps/JavaScript/js_map10.json",
+      tilesets: [
+        { name: "A2_02.rpgmvp", key: "A2_02.rpgmvp", image: "/assets/tilesets/Javascript/A2_02.rpgmvp.png" },
+        { name: "No1-2.rpgmvp", key: "No1-2.rpgmvp", image: "/assets/tilesets/Javascript/No1-2.rpgmvp.png" }
+      ],
       nextMap: null
-    }
+    },
+    map11: {
+      mapKey: "js_map11",
+      mapJson: "/assets/maps/JavaScript/js_map11.json",
+      tilesets: [
+        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
+        { name: "A1.rpgmvp", key: "A1.rpgmvp", image: "/assets/tilesets/Javascript/A1.rpgmvp.png" },
+        { name: "touhu_02.rpgmvp", key: "touhu_02.rpgmvp", image: "/assets/tilesets/Javascript/touhu_02.rpgmvp.png" },
+        { name: "bu_Outside.rpgmvp", key: "bu_Outside.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside.rpgmvp.png" },
+        { name: "B.rpgmvp", key: "B.rpgmvp", image: "/assets/tilesets/Javascript/B.rpgmvp.png" },
+        { name: "D.rpgmvp", key: "D.rpgmvp", image: "/assets/tilesets/Javascript/D.rpgmvp.png" },
+        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
+        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
+        { name: "bu_shrine2.rpgmvp", key: "bu_shrine2.rpgmvp", image: "/assets/tilesets/Javascript/bu_shrine2.rpgmvp.png" },
+        { name: "No1-2a.rpgmvp", key: "No1-2a.rpgmvp", image: "/assets/tilesets/Javascript/No1-2a.rpgmvp.png" }
+      ],
+      nextMap: "map12"
+    },
+    map12: {
+      mapKey: "js_map12",
+      mapJson: "/assets/maps/JavaScript/js_map12.json",
+      tilesets: [
+        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
+        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
+        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
+        { name: "B.rpgmvp", key: "B.rpgmvp", image: "/assets/tilesets/Javascript/B.rpgmvp.png" },
+        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
+        { name: "Outside_B.rpgmvp", key: "Outside_B.rpgmvp", image: "/assets/tilesets/Javascript/Outside_B.rpgmvp.png" }
+      ],
+      nextMap: null
+    },
   },
-  
   Cpp: {
     // ...C++ maps
     map1: {
@@ -134,6 +357,129 @@ export const MAPS = {
         { name: "pika_nos_in_tiles01_D", key: "pika_nos_in_tiles01_D", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_D.png" },
         { name: "FutsuCity_C", key: "FutsuCity_C", image: "/assets/tilesets/Cpp/FutsuCity_C.png" },
         { name: "ModernCity_B", key: "ModernCity_B", image: "/assets/tilesets/Cpp/ModernCity_B.png" }
+      ],
+      nextMap: "map3"
+    },
+    map3: {
+      mapKey: "cpp_map3",
+      mapJson: "/assets/maps/Cpp/cpp_map3.json",
+      tilesets: [
+        {
+          name: "pika_nos_in_tiles01_A5_2",
+          key: "pika_nos_in_tiles01_A5_2",
+          image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png"
+        },
+        {
+          name: "pika_nos_tiles02_B",
+          key: "pika_nos_tiles02_B",
+          image: "/assets/tilesets/Cpp/pika_nos_tiles02_B.png"
+        },
+        {
+          name: "MordernOuter_Outdoor",
+          key: "MordernOuter_Outdoor",
+          image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png"
+        },
+        {
+          name: "NightClub_A2",
+          key: "NightClub_A2",
+          image: "/assets/tilesets/Cpp/NightClub_A2.png"
+        },
+        {
+          name: "Commu-ditie3",
+          key: "Commu-ditie3",
+          image: "/assets/tilesets/Python/Commu-ditie3.png"
+        }
+      ],
+      nextMap: "map4"
+    },
+    map4: {
+      mapKey: "cpp_map4",
+      mapJson: "/assets/maps/Cpp/cpp_map4.json",
+      tilesets: [
+        { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" },
+        { name: "Commu-ditie1", key: "Commu-ditie1", image: "/assets/tilesets/Python/Commu-ditie1.png" },
+        { name: "pika_nos_tiles02_B", key: "pika_nos_tiles02_B", image: "/assets/tilesets/Cpp/pika_nos_tiles02_B.png" },
+        { name: "MordernOuter_TileA4", key: "MordernOuter_TileA4", image: "/assets/tilesets/Cpp/MordernOuter_TileA4.png" },
+        { name: "univ_wall", key: "univ_wall", image: "/assets/tilesets/Cpp/univ_wall.png" },
+        { name: "MordernOuter_Outdoor", key: "MordernOuter_Outdoor", image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png" },
+        { name: "BlackCom_Inside_B", key: "BlackCom_Inside_B", image: "/assets/tilesets/Cpp/BlackCom_Inside_B.png" }
+      ],
+      nextMap: "map5"
+    },
+    map5: {
+      mapKey: "cpp_map5",
+      mapJson: "/assets/maps/Cpp/cpp_map5.json",
+      tilesets: [
+        {
+          name: "commu_law03",
+          key: "commu_law03",
+          image: "/assets/tilesets/Cpp/commu_law03.png"
+        },
+        {
+          name: "pika_nos_tiles02_B",
+          key: "pika_nos_tiles02_B",
+          image: "/assets/tilesets/Cpp/pika_nos_tiles02_B.png"
+        },
+        {
+          name: "pika_nos_in_tiles01_A5_1",
+          key: "pika_nos_in_tiles01_A5_1",
+          image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_1.png"
+        },
+        {
+          name: "univ_wall",
+          key: "univ_wall",
+          image: "/assets/tilesets/Cpp/univ_wall.png"
+        },
+        {
+          name: "commu_libraryfloor",
+          key: "commu_libraryfloor",
+          image: "/assets/tilesets/Cpp/commu_libraryfloor.png"
+        },
+        {
+          name: "ModernCity_A2",
+          key: "ModernCity_A2",
+          image: "/assets/tilesets/Cpp/ModernCity_A2.png"
+        },
+        {
+          name: "ModernCity_A5",
+          key: "ModernCity_A5",
+          image: "/assets/tilesets/Cpp/ModernCity_A5.png"
+        },
+        {
+          name: "commu_law01",
+          key: "commu_law01",
+          image: "/assets/tilesets/Cpp/commu_law01.png"
+        },
+        {
+          name: "cyber_B",
+          key: "cyber_B",
+          image: "/assets/tilesets/Cpp/cyber_B.png"
+        },
+        {
+          name: "commu_picture",
+          key: "commu_picture",
+          image: "/assets/tilesets/Cpp/commu_picture.png"
+        },
+        {
+          name: "MordernOuter_Suburbs",
+          key: "MordernOuter_Suburbs",
+          image: "/assets/tilesets/Cpp/MordernOuter_Suburbs.png"
+        },
+        {
+          name: "SP_Inside_A2",
+          key: "SP_Inside_A2",
+          image: "/assets/tilesets/Cpp/SP_Inside_A2.png"
+        },
+        {
+          name: "SP_Inside_A5",
+          key: "SP_Inside_A5",
+          image: "/assets/tilesets/Cpp/SP_Inside_A5.png"
+        },
+        {
+          name: "pika_nos_tiles02_C",
+          key: "pika_nos_tiles02_C",
+          image: "/assets/tilesets/Cpp/pika_nos_tiles02_C.png"
+        }
       ],
       nextMap: null
     }

@@ -1,135 +1,251 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import Header from "../components/header.jsx";
-import Footer from "../components/footer.jsx";
-import SignInModal from "../components/SignInModal.jsx";
-import ProgressBar from "../components/ProgressBar.jsx";
-import CodeTerminal from "../components/CodeTerminal.jsx";
-import MobileControls from "../components/MobileControls.jsx";
+
+import Header from "../components/header";
+import SignInModal from "../components/SignInModal";
+import ProgressBar from "../components/ProgressBar";
+import CodeTerminal from "../components/CodeTerminal";
+import MobileControls from "../components/MobileControls";
+import TutorialPopup from "../components/TutorialPopup";
+
 import styles from "../styles/PythonExercise.module.css";
 import { initPhaserGame } from "../utilities/engine/main.js";
 import pythonExercises from "../utilities/data/pythonExercises.json";
 import mobileFrame from "../assets/mobile.png";
 
-const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
+const PythonExercise = ({ isAuthenticated }) => {
   const { exerciseId } = useParams();
+
+  /* ===============================
+     QUEST / LESSON STATE
+  =============================== */
   const [activeExerciseId, setActiveExerciseId] = useState(() => {
-    const initialId = Number(exerciseId);
-    return Number.isFinite(initialId) && initialId > 0 ? initialId : 1;
+    const id = Number(exerciseId);
+    return Number.isFinite(id) && id > 0 ? id : 1;
   });
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const activeExercise = useMemo(() => {
-    const found = pythonExercises.find((e) => e.id === activeExerciseId);
-    return found || pythonExercises[0];
+    return (
+      pythonExercises.find(e => e.id === activeExerciseId) ||
+      pythonExercises[0]
+    );
   }, [activeExerciseId]);
 
-  const [code, setCode] = useState(() => {
-    return (
-      pythonExercises.find((e) => e.id === activeExerciseId)?.startingCode ||
+  /* ===============================
+     TERMINAL STATE
+  =============================== */
+  const [terminalEnabled, setTerminalEnabled] = useState(false);
+  const [activeQuestId, setActiveQuestId] = useState(null);
+
+  const [code, setCode] = useState(
+    activeExercise?.startingCode ||
       `# Write code below ❤️\n\nprint("Hello, World!")`
-    );
-  });
+  );
+
   const [output, setOutput] = useState("");
-  const [showScroll, setShowScroll] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
 
+  /* =====================================================
+     🔑 GLOBAL KEYBOARD INTERCEPT (PHASER SAFE)
+  ===================================================== */
   useEffect(() => {
-    const newId = Number(exerciseId);
-    if (Number.isFinite(newId) && newId > 0) {
-      setActiveExerciseId(newId);
-    }
-  }, [exerciseId]);
+    let terminalActive = false;
 
+    const onTerminalActive = () => {
+      terminalActive = true;
+    };
+
+    const onTerminalInactive = () => {
+      terminalActive = false;
+    };
+
+    // const blockKeys = (e) => {
+    //   if (!terminalActive) return;
+    //   e.stopImmediatePropagation();
+    // };
+
+    window.addEventListener("code-mania:terminal-active", onTerminalActive);
+    window.addEventListener("code-mania:terminal-inactive", onTerminalInactive);
+
+    // window.addEventListener("keydown", blockKeys, true);
+    // window.addEventListener("keyup", blockKeys, true);
+
+    return () => {
+      window.removeEventListener("code-mania:terminal-active", onTerminalActive);
+      window.removeEventListener("code-mania:terminal-inactive", onTerminalInactive);
+      // window.removeEventListener("keydown", blockKeys, true);
+      // window.removeEventListener("keyup", blockKeys, true);
+    };
+  }, []);
+
+  /* ===============================
+     PHASER INIT + EVENTS
+  =============================== */
+  useEffect(() => {
+    // Check if tutorial should be shown for new accounts
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+
+    const game = initPhaserGame("phaser-container");
+    window.game = game;
+
+    const onQuestStarted = (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      setTerminalEnabled(true);
+      setActiveQuestId(questId);
+      setActiveExerciseId(questId);
+    };
+
+    const onQuestComplete = (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      const scene = window.game?.scene?.keys?.GameScene;
+      scene?.questManager?.completeQuest(questId);
+
+      if (scene) {
+        scene.playerCanMove = true;
+        scene.gamePausedByTerminal = false;
+      }
+    };
+
+    window.addEventListener("code-mania:quest-started", onQuestStarted);
+    window.addEventListener("code-mania:quest-complete", onQuestComplete);
+
+    return () => {
+      window.removeEventListener("code-mania:quest-started", onQuestStarted);
+      window.removeEventListener("code-mania:quest-complete", onQuestComplete);
+      game?.cleanup?.();
+    };
+  }, []);
+
+  /* ===============================
+     UPDATE CODE ON QUEST CHANGE
+  =============================== */
   useEffect(() => {
     if (activeExercise?.startingCode) {
       setCode(activeExercise.startingCode);
       setOutput("");
     }
-    setShowScroll(false);
   }, [activeExerciseId]);
 
-  useEffect(() => {
-    const game = initPhaserGame("phaser-container");
+  /* ===============================
+     TERMINAL EXECUTION
+  =============================== */
+  const validateRequirements = (code, requirements) => {
+    if (!requirements) return { ok: true };
 
-    const handleDialogueComplete = (event) => {
-      const questId =
-        event && typeof event === "object" && "detail" in event
-          ? event.detail?.questId
-          : undefined;
-
-      if (Number.isFinite(Number(questId))) {
-        const nextId = Number(questId);
-        if (pythonExercises.some((e) => e.id === nextId)) {
-          setActiveExerciseId(nextId);
+    if (requirements.mustInclude) {
+      for (const keyword of requirements.mustInclude) {
+        if (!code.includes(keyword)) {
+          return {
+            ok: false,
+            message: `❌ Your code must include: "${keyword}"`
+          };
         }
       }
-      setShowScroll(true);
-    };
+    }
 
-    window.addEventListener("code-mania:dialogue-complete", handleDialogueComplete);
-    return () => {
-      window.removeEventListener(
-        "code-mania:dialogue-complete",
-        handleDialogueComplete
-      );
-      if (game) game.cleanup();
-    };
-  }, []);
+    return { ok: true };
+  };
+
+  const normalize = (text = "") =>
+    text
+      .replace(/\r\n/g, "\n")
+      .split("\n")
+      .map(line => line.trim())
+      .join("\n")
+      .trim();
 
   const handleRunCode = async () => {
-    if (isRunning) return;
-    
+    if (!terminalEnabled || isRunning) return;
+
+    const validation = validateRequirements(
+      code,
+      activeExercise.requirements
+    );
+
+    if (!validation.ok) {
+      setOutput(validation.message);
+      return;
+    }
+
     setIsRunning(true);
     setOutput("Running...");
-    
+
     try {
-      const response = await fetch("http://localhost:3000/v1/run", {
+      const res = await fetch("http://localhost:3000/v1/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": "hotdog" },
+        headers: {
+          "Content-Type": "application/json",
+          apikey: "hotdog"
+        },
         body: JSON.stringify({
-          code: code,
-          language: "python"
+          language: "python",
+          code
         })
       });
 
-      const data = await response.json();
-      setOutput(data.output || data.error || "No output");
-    } catch (err) {
-      setOutput("Error connecting to server");
+      const data = await res.json();
+
+      if (data.error) {
+        setOutput(data.error);
+        return;
+      }
+
+      const rawOutput = data.output ?? "";
+      setOutput(rawOutput);
+
+      const expected = normalize(activeExercise.expectedOutput);
+      const actual = normalize(rawOutput);
+
+      if (
+        expected &&
+        actual === expected &&
+        activeQuestId === activeExercise.id
+      ) {
+        window.dispatchEvent(
+          new CustomEvent("code-mania:quest-complete", {
+            detail: { questId: activeExercise.id }
+          })
+        );
+      }
+    } catch {
+      setOutput("❌ Error connecting to server");
     } finally {
       setIsRunning(false);
     }
   };
-  
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-  };
 
-  // === Sign-in modal handling ===
+  /* ===============================
+     AUTH MODAL
+  =============================== */
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
-  const handleOpenModal = () => {
-    setIsSignInModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsSignInModalOpen(false);
-  };
-
   const handleSignInSuccess = () => {
-    window.dispatchEvent(new Event('authchange'));
-    handleCloseModal();
+    localStorage.setItem("isAuthenticated", "true");
+    window.dispatchEvent(new Event("authchange"));
+    setIsSignInModalOpen(false);
   };
 
   return (
     <div className={styles["python-exercise-page"]}>
-      <div className={styles["scroll-background"]}></div>
-      <Header isAuthenticated={isAuthenticated} onOpenModal={isAuthenticated ? null : handleOpenModal} />
+      <Header
+        isAuthenticated={isAuthenticated}
+        onOpenModal={() => setIsSignInModalOpen(true)}
+      />
 
       {isSignInModalOpen && (
         <SignInModal
-          isOpen={isSignInModalOpen}
-          onClose={handleCloseModal}
+          isOpen
+          onClose={() => setIsSignInModalOpen(false)}
           onSignInSuccess={handleSignInSuccess}
         />
       )}
@@ -142,47 +258,49 @@ const PythonExercise = ({ isAuthenticated, onOpenModal, onSignOut }) => {
         />
 
         <div className={styles["main-layout"]}>
-          {/* === LEFT SIDE: Phaser Game === */}
+          {/* ===== GAME ===== */}
           <div className={styles["game-container"]}>
-            <div className={styles["game-preview"]}>
-              <div className={styles["mobile-frame"]}>
-                <img
-                  src={mobileFrame}
-                  alt="Mobile Frame"
-                  className={styles["mobile-frame-image"]}
+            <div className={styles["mobile-frame"]}>
+              <img
+                src={mobileFrame}
+                alt="Mobile Frame"
+                className={styles["mobile-frame-image"]}
+              />
+
+              <MobileControls />
+
+              <div className={styles["mobile-screen"]}>
+                <div
+                  id="phaser-container"
+                  className={styles["game-scene"]}
                 />
-
-                <div className={styles["mobile-controls"]}>
-                  <MobileControls />
-                </div>
-
-                <div className={styles["mobile-screen"]}>
-                  {/* Phaser mounts here */}
-                  <div
-                    id="phaser-container"
-                    className={styles["game-scene"]}
-                  >
-                  </div>
-                </div>
               </div>
             </div>
           </div>
 
-          {/* === RIGHT SIDE: Code Editor and Terminal === */}
+          {/* ===== TERMINAL ===== */}
           <CodeTerminal
             code={code}
-            onCodeChange={handleCodeChange}
+            onCodeChange={setCode}
             onRun={handleRunCode}
             output={output}
             isRunning={isRunning}
-            showRunButton={showScroll}
-            disabled={!showScroll}
-            disabledMessage="View the lesson first"
+            showRunButton={terminalEnabled}
+            disabled={!terminalEnabled}
           />
         </div>
       </div>
-
-      <Footer />
+      
+      {/* Tutorial Popup */}
+      {showTutorial && (
+        <TutorialPopup 
+          open={showTutorial} 
+          onClose={() => {
+            setShowTutorial(false);
+            localStorage.setItem('hasSeenTutorial', 'true');
+          }} 
+        />
+      )}
     </div>
   );
 };

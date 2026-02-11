@@ -65,18 +65,23 @@
 }
 
 /* Module Icon - C++ Blue */
-.cpp-course-page .module-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: rgba(91, 143, 185, 0.2);
-  border: 2px solid #5B8FB9;
-  border-radius: 0.5rem;
+.cpp-hero-badge {
   display: flex;
-  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   justify-content: center;
-  font-size: 1.5rem;
-  color: #5B8FB9;
-  font-weight: bold;
+}
+
+.cpp-badge-text {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.4rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 /* Status Icons */
@@ -136,4 +141,27 @@
   .module-title {
     font-size: 1.4rem;
   }
+}
+
+/* Course Badges Styles */
+.course-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.cpp-course-badge {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.cpp-course-badge:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

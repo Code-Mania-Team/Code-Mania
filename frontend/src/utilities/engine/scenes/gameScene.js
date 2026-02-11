@@ -16,7 +16,13 @@ import QuestIconManager from "../systems/questIconManager";
 import ChestQuestManager from "../systems/chestQuestManager";
 import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
-
+import QuestCompleteToast from "../ui/questCompleteToast";
+import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
+import { BADGES } from "../config/badgeConfig";
+import CinematicBars from "../systems/cinematicBars";
+import OrientationManager from "../systems/orientationManager";
+import MobileControls from "../systems/mobileControls";
+import QuestValidator from "../systems/questValidator";
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
@@ -24,26 +30,98 @@ export default class GameScene extends Phaser.Scene {
 
   init(data) {
     // Use the last course title from localStorage if available
-    this.language = localStorage.getItem("lastCourseTitle") || "Python";
+    const storedLanguage = localStorage.getItem("lastCourseTitle") || "Python";
+    
+    // Map language names to MAPS keys
+    this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
 
-    // Map ID passed from previous scene, or default to map1
-    this.currentMapId = data?.mapId || "map1";
+    // Map ID passed from previous scene, or fall back to localStorage, or default to map1
+    const storedMapId = localStorage.getItem("currentMapId");
+    this.currentMapId = data?.mapId || storedMapId || "map1";
 
     // Access mapData based on language
     this.mapData = MAPS[this.language][this.currentMapId];
 
     this.playerCanMove = true;
-    this.openedChests = new Set(
-      JSON.parse(localStorage.getItem("openedChests") || "[]")
-    );
+    this.helpShownThisSession = false;
+    this.gamePausedByTerminal = false;
+    // this.openedChests = new Set(
+    //   JSON.parse(localStorage.getItem("openedChests") || "[]")
+    // );
 
-    const savedAbilities = JSON.parse(
-      localStorage.getItem("abilities") || "[]"
-    );
+    // const savedAbilities = JSON.parse(
+    //   localStorage.getItem("abilities") || "[]"
+    // );
+    // this.worldState = {
+    //   abilities: new Set(savedAbilities)
+    // };
     this.worldState = {
-      abilities: new Set(savedAbilities)
+      abilities: new Set()
     };
 
+    this.openedChests = new Set();
+
+  }
+
+  setupLayerSwitching() {
+    // Get the layer references
+    this.groundLayer = this.mapLoader.map.getLayer("ground")?.tilemapLayer;
+    this.thingsLayer = this.mapLoader.map.getLayer("things")?.tilemapLayer;
+    this.groundInvisibleLayer = this.mapLoader.map.getLayer("ground_invisible")?.tilemapLayer;
+    this.thingsInvisibleLayer = this.mapLoader.map.getLayer("things_invisible")?.tilemapLayer;
+
+    // Set initial state
+    this.layersSwitched = false;
+    
+    // Initially show ground/things, hide invisible layers
+    if (this.groundLayer) this.groundLayer.setVisible(true);
+    if (this.thingsLayer) this.thingsLayer.setVisible(true);
+    if (this.groundInvisibleLayer) this.groundInvisibleLayer.setVisible(false);
+    if (this.thingsInvisibleLayer) this.thingsInvisibleLayer.setVisible(false);
+
+    console.log("🔄 Layer switching system initialized for js_map10");
+  }
+
+  openDoors() {
+    // Get door layers
+    const doorCloseLayer = this.mapLoader.map.getLayer("door_close")?.tilemapLayer;
+    const doorOpenLayer = this.mapLoader.map.getLayer("door_open")?.tilemapLayer;
+
+    if (!doorCloseLayer || !doorOpenLayer) {
+      console.warn("⚠️ Door layers not found in map");
+      return;
+    }
+
+    // Open doors (show open layer, hide closed layer)
+    doorCloseLayer.setVisible(false);
+    doorOpenLayer.setVisible(true);
+
+    console.log("🚪 Door opened automatically");
+  }
+
+  toggleLayers() {
+    if (!this.groundLayer || !this.thingsLayer || !this.groundInvisibleLayer || !this.thingsInvisibleLayer) {
+      console.warn("⚠️ Missing required layers for switching");
+      return;
+    }
+
+    this.layersSwitched = !this.layersSwitched;
+
+    if (this.layersSwitched) {
+      // Show invisible layers, hide normal layers
+      this.groundLayer.setVisible(false);
+      this.thingsLayer.setVisible(false);
+      this.groundInvisibleLayer.setVisible(true);
+      this.thingsInvisibleLayer.setVisible(true);
+      console.log("🔄 Layers switched to invisible state");
+    } else {
+      // Show normal layers, hide invisible layers
+      this.groundLayer.setVisible(true);
+      this.thingsLayer.setVisible(true);
+      this.groundInvisibleLayer.setVisible(false);
+      this.thingsInvisibleLayer.setVisible(false);
+      console.log("🔄 Layers switched to normal state");
+    }
   }
 
   preload() {
@@ -63,6 +141,10 @@ export default class GameScene extends Phaser.Scene {
         frameWidth: 48,
         frameHeight: 48
       });
+    });
+
+    Object.values(BADGES).forEach(badge => {
+      this.load.image(badge.key, badge.path);
     });
 
     this.load.spritesheet("npc-villager", "/assets/npcs/npc1.png", {
@@ -99,6 +181,38 @@ export default class GameScene extends Phaser.Scene {
     });
 
   }
+  onQuestComplete = (e) => {
+    const questId = e.detail?.questId;
+    if (!questId) return;
+
+    const quest = this.questManager.getQuestById(questId);
+    if (!quest) return;
+
+    const gainedExp = quest.experience || 0;
+
+    // 🎒 Grant ability (if any)
+    if (quest.grants) {
+      this.worldState.abilities.add(quest.grants);
+    }
+
+    // ✅ ALWAYS show quest completed toast
+    this.questCompleteToast.show({
+      title: quest.title,
+      badgeKey: quest.badgeKey || null, // toast can ignore if null
+      exp: gainedExp
+    });
+
+    // 🏅 ONLY show badge UI if quest has badge
+    if (quest.badgeKey) {
+      const badge = BADGES[quest.badgeKey];
+      if (!badge) return;
+
+      this.badgeUnlockPopup.show({
+        badgeKey: badge.key,
+        label: quest.title
+      });
+    }
+  };
 
   create() {
     // 🗺 MAP
@@ -110,7 +224,14 @@ export default class GameScene extends Phaser.Scene {
 
     this.cameras.main.roundPixels = true;
 
-    // 🎞 PLAYER ANIMATIONS
+    // 🔄 LAYER SWITCHING SYSTEM (for js_map10)
+    if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+      this.setupLayerSwitching();
+    }
+
+    // 🎵 Background music removed
+
+    // 🎮 PLAYER ANIMATIONS
     const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
     
     const characterIdleFrames = {
@@ -176,7 +297,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // 🧍 PLAYER
-    const spawn = this.getSpawnPoint("player_spawn");
+    const spawn = this.getPlayerSpawnPoint();
     this.player = this.physics.add.sprite(spawn.x, spawn.y, "player-down");
 
     // 👣 FEET-BASED SETUP (CRITICAL)
@@ -189,6 +310,62 @@ export default class GameScene extends Phaser.Scene {
     // 🧱 COLLISIONS
     this.mapLoader.collisionLayers.forEach(layer => {
       this.physics.add.collider(this.player, layer);
+    });
+
+    // ⌨ INPUT — ONLY ONCE
+    this.cursors = this.input.keyboard.createCursorKeys();
+    // 🔓 FREE SPACEBAR FOR THE BROWSER / TERMINAL
+    this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+
+    // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
+    this.input.keyboard.on("keydown-E", () => {
+      this.handleInteract();
+    });
+
+    // this.input.on("pointerdown", (pointer) => {
+    //   // left click or tap
+    //   if (pointer.button !== 0) return;
+
+    //   this.handleInteract();
+    // });
+
+    this.input.keyboard.on("keydown-Q", () => {
+      if (this.gamePausedByTerminal) return;
+      this.questHUD.toggle(this.questManager.activeQuest);
+    });
+
+    this.input.keyboard.on("keydown-H", () => {
+      if (this.gamePausedByTerminal) return;
+      this.helpManager.openHelp();
+    });
+    
+    this.input.keyboard.on("keydown-T", () => {
+      if (this.gamePausedByTerminal) return;
+      const activeQuest = this.questManager.activeQuest;
+      if (activeQuest) {
+        this.questManager.completeQuest(activeQuest.id);
+        console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
+      }
+    });
+
+    // 🔒 TERMINAL EVENTS
+    window.addEventListener("code-mania:terminal-active", () => {
+      this.gamePausedByTerminal = true;
+      this.player.setVelocity(0);
+    });
+
+    window.addEventListener("code-mania:terminal-inactive", () => {
+      this.gamePausedByTerminal = false;
+    });
+
+    // 📚 TUTORIAL EVENTS (paused for now)
+    window.addEventListener("code-mania:tutorial-open", () => {
+      this.isTutorialOpen = true;
+    });
+
+    window.addEventListener("code-mania:tutorial-close", () => {
+      this.isTutorialOpen = false;
     });
 
     // 🪨 ROCK LAYERS
@@ -225,32 +402,39 @@ export default class GameScene extends Phaser.Scene {
       this.chestOpenLayer.setVisible(false);
     }
 
+    this.gateCloseLayer =
+    this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
 
-    
+    this.gateOpenLayer =
+      this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
+
+    if (this.gateCloseLayer) {
+      this.gateCloseLayer.setCollisionByProperty({ collides: true });
+      this.physics.add.collider(this.player, this.gateCloseLayer);
+    }
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(false);
+    }
+
+    this.events.once("shutdown", () => {
+      if (this.helpButton) {
+        this.helpButton.destroy();
+        this.helpButton = null;
+      }
+    });
+
+
 
     this.createInteractionMarker();
 
-    // 🌍 CAMERA
     const w = this.mapLoader.map.widthInPixels;
     const h = this.mapLoader.map.heightInPixels;
 
     this.physics.world.setBounds(0, 0, w, h);
     this.cameras.main.setBounds(0, 0, w, h);
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-
-    // ⌨ INPUT
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.interactKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.E
-    );
-    this.questKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.Q
-    );
-    this.testCompleteKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.T
-    );
     
-
     const QUESTS_BY_LANGUAGE = {
       Python: pythonQuests,
       JavaScript: jsQuests,
@@ -270,16 +454,49 @@ export default class GameScene extends Phaser.Scene {
     this.questIconManager = new QuestIconManager(this);
     this.chestQuestManager = new ChestQuestManager(this);
     this.helpManager = new HelpManager(this);
+    this.questValidator = new QuestValidator(this);
+    this.questCompleteToast = new QuestCompleteToast(this);
+    this.badgeUnlockPopup = new BadgeUnlockPopup(this);
+    this.cinematicBars = new CinematicBars(this);
+
+
+    this.isMobile =
+      this.sys.game.device.os.android ||
+      this.sys.game.device.os.iOS;
+
+    if (this.isMobile) {
+      this.mobileControls = new MobileControls(this, {
+      onInteract: () => this.handleInteract()
+    });
+
+    }
+
+    this.orientationManager = new OrientationManager(this);
+    this.scale.on("resize", () => {
+      this.cinematicBars.resize();
+    });
+    
+
+    // ✅ QUEST COMPLETE EVENT (AFTER SYSTEMS EXIST)
+    window.addEventListener(
+      "code-mania:quest-complete",
+      this.onQuestComplete
+    );
+
+    this.events.once("shutdown", () => {
+      window.removeEventListener(
+        "code-mania:quest-complete",
+        this.onQuestComplete
+      );
+    });
+
+
 
     // Help button (always available)
     this.helpButton = new HelpButton(this, () => {
       this.helpManager.openHelp();
     });
-
-    // Keyboard shortcut
-    this.helpKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.H
-    );
+  
     this.createMapExits();
     this.lastDirection = "down";
     // 🧑 NPCs
@@ -291,74 +508,98 @@ export default class GameScene extends Phaser.Scene {
     // 🎬 INTRO
     this.playIntroCutscene();
     this.spawnChestQuestIcons();
+
   }
 
+  resizeCamera(gameSize) {
+    const cam = this.cameras.main;
+    const map = this.mapLoader.map;
+
+    const viewWidth = gameSize.width;
+    const viewHeight = gameSize.height;
+
+    const mapWidth = map.widthInPixels;
+    const mapHeight = map.heightInPixels;
+
+    // Fit map to screen
+    const zoomX = viewWidth / mapWidth;
+    const zoomY = viewHeight / mapHeight;
+    const zoom = Math.min(zoomX, zoomY);
+
+    cam.setZoom(Math.min(zoom, 3)); // cap zoom
+    cam.setViewport(0, 0, viewWidth, viewHeight);
+    cam.setBounds(0, 0, mapWidth, mapHeight);
+
+    // Small map → center
+    if (
+      mapWidth * cam.zoom <= viewWidth &&
+      mapHeight * cam.zoom <= viewHeight
+    ) {
+      cam.stopFollow();
+      cam.centerOn(mapWidth / 2, mapHeight / 2);
+    } else {
+      cam.startFollow(this.player, true, 0.1, 0.1);
+    }
+  }
+
+
   update() {
-    if (!this.playerCanMove) {
+    if (this.gamePausedByTerminal) {
       this.player.setVelocity(0);
+      this.player.anims.stop();
       return;
     }
 
-    this.updateInteractionMarker();
-
-    const speed = 120;
+    const speed = 500;
     this.player.setVelocity(0);
 
     let moving = false;
 
-    if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-speed);
-      this.lastDirection = "left";
-      moving = true;
-    } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(speed);
-      this.lastDirection = "right";
-      moving = true;
+    if (this.isMobile && this.mobileControls) {
+      const vx = this.mobileControls.vector.x * speed;
+      const vy = this.mobileControls.vector.y * speed;
+
+      this.player.setVelocity(vx, vy);
+
+      moving = Math.abs(vx) > 1 || Math.abs(vy) > 1;
+
+      if (moving) {
+        if (Math.abs(vx) > Math.abs(vy)) {
+          this.lastDirection = vx > 0 ? "right" : "left";
+        } else {
+          this.lastDirection = vy > 0 ? "down" : "up";
+        }
+      }
+    } else {
+        if (this.cursors.left.isDown) {
+          this.player.setVelocityX(-speed);
+          this.lastDirection = "left";
+          moving = true;
+        } else if (this.cursors.right.isDown) {
+            this.player.setVelocityX(speed);
+            this.lastDirection = "right";
+            moving = true;
+        }
+
+        if (this.cursors.up.isDown) {
+          this.player.setVelocityY(-speed);
+          this.lastDirection = "up";
+          moving = true;
+        } else if (this.cursors.down.isDown) {
+            this.player.setVelocityY(speed);
+            this.lastDirection = "down";
+            moving = true;
+      }
     }
 
-    if (this.cursors.up.isDown) {
-      this.player.setVelocityY(-speed);
-      this.lastDirection = "up";
-      moving = true;
-    } else if (this.cursors.down.isDown) {
-      this.player.setVelocityY(speed);
-      this.lastDirection = "down";
-      moving = true;
-    }
+    
 
     const anim = moving
       ? `walk-${this.lastDirection}`
       : `idle-${this.lastDirection}`;
     this.player.anims.play(anim, true);
-
-    // 🧠 DEPTH SORT (MAGIC LINE)
-    // this.player.setDepth(this.player.y);
-
-    // this.npcs.forEach(npc => npc.setDepth(npc.y));
-
-    if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
-      this.tryInteractWithNPC();
-      this.tryInteractWithChest();
-      this.tryBreakRock();
-    }
-
-
-    if (Phaser.Input.Keyboard.JustDown(this.questKey)) {
-      this.questHUD.toggle(this.questManager.activeQuest);
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.testCompleteKey)) {
-      const activeQuest = this.questManager.activeQuest;
-      if (activeQuest) {
-        this.questManager.completeQuest(activeQuest.id);
-        console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
-      }
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.helpKey)) {
-      this.helpManager.openHelp();
-    }
-
-
   }
+
 
   spawnChestQuestIcons() {
     const chestLayer = this.mapLoader.map.getLayer("chest")?.tilemapLayer;
@@ -505,6 +746,19 @@ export default class GameScene extends Phaser.Scene {
     return { x, y };
   }
 
+  getPlayerSpawnPoint() {
+    // Check for custom spawn point from previous map
+    const customSpawn = this.scene.settings.data?.spawnPoint;
+    if (customSpawn) {
+      const customPoint = this.getSpawnPoint(customSpawn);
+      console.log(`🎯 Using custom spawn point: ${customSpawn}`);
+      return customPoint;
+    }
+
+    // Fall back to default spawn
+    return this.getSpawnPoint("player_spawn");
+  }
+
   tryInteractWithNPC() {
     const npc = this.npcs.find(n =>
       Phaser.Math.Distance.Between(
@@ -514,23 +768,103 @@ export default class GameScene extends Phaser.Scene {
         n.y
       ) <= 50
     );
-    if (!npc) return;
+
+    if (!npc) return false; // 👈 IMPORTANT
 
     this.interactionMarker?.setVisible(false);
     this.interactPrompt?.setVisible(false);
 
     const quest = this.questManager.getQuestById(npc.npcData.questId);
-    if (!quest) return;
+    if (!quest) return false;
 
     this.playerCanMove = false;
 
-    this.dialogueManager.startDialogue(quest.dialogue || [], () => {
-      this.questManager.startQuest(quest.id);
-      this.playerCanMove = true;
-    });
+    // 1️⃣ QUEST NOT STARTED
+    if (
+      !quest.completed &&
+      this.questManager.activeQuest?.id !== quest.id
+    ) {
+      // DOOR OPENING FOR JS_MAP7
+      if (this.currentMapId === 'map7' && this.language === 'JavaScript') {
+        this.openDoors();
+      }
+
+      // DOOR OPENING FOR JS_MAP8
+      if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
+        this.openDoors();
+      }
+
+      // LAYER SWITCHING FOR JS_MAP10 (whenever quest starts)
+      if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+        this.toggleLayers();
+      }
+
+      this.dialogueManager.startDialogue(
+        quest.dialogue || [],
+        () => {
+          this.questManager.startQuest(quest.id);
+          this.playerCanMove = true;
+        }
+      );
+      return true; // ✅ INPUT CONSUMED
+    }
+
+    // 2️⃣ QUEST ACTIVE BUT NOT DONE
+    if (!quest.completed) {
+      this.dialogueManager.startDialogue(
+        ["Solve the challenge to earn the key."],
+        () => (this.playerCanMove = true)
+      );
+      return true;
+    }
+
+    // 3️⃣ QUEST COMPLETED → GIVE KEY
+    if (quest.completed && quest.grants) {
+      if (!this.worldState.abilities.has(quest.grants)) {
+        this.worldState.abilities.add(quest.grants);
+
+        // 🔄 LAYER SWITCHING FOR JS_MAP10
+        if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+          this.toggleLayers();
+        }
+
+        this.dialogueManager.startDialogue(
+          [
+            "Excellent work.",
+            "Take this key — it opens the gate."
+          ],
+          () => (this.playerCanMove = true)
+        );
+      } else {
+        // 🔄 TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
+        if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+          this.toggleLayers();
+        }
+
+        this.dialogueManager.startDialogue(
+          ["You already have the key."],
+          () => (this.playerCanMove = true)
+        );
+      }
+      return true;
+    }
+
+    this.playerCanMove = true;
+    return true;
   }
+
+  handleInteract() {
+    if (this.gamePausedByTerminal) return;
+
+    if (this.tryInteractWithNPC()) return;
+    if (this.tryInteractWithChest()) return;
+    if (this.tryOpenGate()) return;
+    this.tryBreakRock();
+  }
+
   tryBreakRock() {
     if (!this.interactableRockLayer) return;
+    if (!this.worldState || !this.worldState.abilities) return;
 
     const requiredProp =
       this.interactableRockLayer.layer.properties?.find(
@@ -574,6 +908,7 @@ export default class GameScene extends Phaser.Scene {
 
 
   tryInteractWithChest() {
+    if (!this.openedChests) return;
     if (!this.chestLayer || !this.chestOpenLayer) return;
 
     const offsets = [
@@ -640,17 +975,17 @@ export default class GameScene extends Phaser.Scene {
         () => {
           // Grant ability
           this.worldState.abilities.add(quest.grants);
-          localStorage.setItem(
-            "abilities",
-            JSON.stringify([...this.worldState.abilities])
-          );
+          // localStorage.setItem(
+          //   "abilities",
+          //   JSON.stringify([...this.worldState.abilities])
+          // );
 
           // Save opened chest
           this.openedChests.add(chestKey);
-          localStorage.setItem(
-            "openedChests",
-            JSON.stringify([...this.openedChests])
-          );
+          // localStorage.setItem(
+          //   "openedChests",
+          //   JSON.stringify([...this.openedChests])
+          // );
 
           this.playerCanMove = true;
           console.log("🧰 Pickaxe obtained!");
@@ -663,21 +998,61 @@ export default class GameScene extends Phaser.Scene {
 
 
 
-  playIntroCutscene() {
+  async playIntroCutscene() {
     const key = `${this.language}_${this.currentMapId}_intro`;
     const cutscene = CUTSCENES[key];
     if (!cutscene) return;
 
     this.time.delayedCall(500, async () => {
-      await this.cutsceneManager.play(cutscene);
-      localStorage.setItem(`cutscene_${key}`, "true");
-      this.time.delayedCall(0, () => {
-        this.helpManager.showOnceAfterIntro();
-      });
+      // 🔒 Lock player + show cinematic bars
+      this.playerCanMove = false;
+      this.cinematicBars.show(500);
 
+      await this.cutsceneManager.play(cutscene);
+
+      // 🎬 Restore gameplay view
+      this.cinematicBars.hide(500);
+      this.playerCanMove = true;
     });
-    
   }
+
+  tryOpenGate() {
+    if (!this.gateCloseLayer) return;
+
+    const requiredProp =
+      this.gateCloseLayer.layer.properties?.find(
+        p => p.name === "requires"
+      );
+
+    const requiredKey = requiredProp?.value;
+    if (!requiredKey) return;
+
+    // ❌ No key
+    if (!this.worldState.abilities.has(requiredKey)) {
+      this.dialogueManager.startDialogue(
+        ["The gate is locked. You need a key."],
+        () => {}
+      );
+      return;
+    }
+
+    // ✅ HAS KEY → OPEN GATE
+    this.gateCloseLayer.setVisible(false);
+    this.gateCloseLayer.forEachTile(t => t.setCollision(false));
+
+    if (this.gateOpenLayer) {
+      this.gateOpenLayer.setVisible(true);
+    }
+
+    this.dialogueManager.startDialogue(
+      ["You unlock the gate.", "The path is now open."],
+      () => {}
+    );
+
+    console.log("🚪 Gate opened!");
+  }
+
+
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
     if (!layer) return;
@@ -689,12 +1064,14 @@ export default class GameScene extends Phaser.Scene {
         o.properties?.some(p => p.name === "type" && p.value === "map_exit")
       )
       .forEach(obj => {
-        const zone = this.add.zone(
-          obj.x + obj.width / 2,
-          obj.y + obj.height / 2,
-          obj.width,
-          obj.height
-        );
+        const isJavaScript = this.language === "JavaScript";
+        const isPoint = Boolean(obj.point) || obj.width === 0 || obj.height === 0;
+        const zoneWidth = isJavaScript && isPoint ? 48 : obj.width;
+        const zoneHeight = isJavaScript && isPoint ? 48 : obj.height;
+        const zoneX = isJavaScript && isPoint ? obj.x : obj.x + obj.width / 2;
+        const zoneY = isJavaScript && isPoint ? obj.y : obj.y + obj.height / 2;
+
+        const zone = this.add.zone(zoneX, zoneY, zoneWidth, zoneHeight);
 
         this.physics.world.enable(zone);
         zone.body.setAllowGravity(false);
@@ -702,6 +1079,9 @@ export default class GameScene extends Phaser.Scene {
 
         const targetMap =
           obj.properties.find(p => p.name === "target_map")?.value;
+
+        const targetSpawn =
+          obj.properties.find(p => p.name === "target_spawn")?.value;
 
         const direction =
           obj.properties.find(p => p.name === "direction")?.value ?? "down";
@@ -719,6 +1099,7 @@ export default class GameScene extends Phaser.Scene {
 
         zone.exitData = {
           targetMap,
+          targetSpawn,
           requiredQuest: rawQuest
         };
 
@@ -762,10 +1143,12 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
 
     this.cameras.main.once("camerafadeoutcomplete", () => {
-      // Start next map scene
-      this.scene.start("GameScene", {
-        mapId: targetMap
-      });
+    localStorage.setItem("currentMapId", targetMap);
+
+    this.scene.start("GameScene", {
+      mapId: targetMap
+    });
+
     });
   }
 }
