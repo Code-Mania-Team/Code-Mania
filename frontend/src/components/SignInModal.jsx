@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../styles/SignInModal.module.css';
-import { signUp } from '../services/signup';  // Import signUp service
+import { signUp } from '../services/signup';  
 import { verifyOtp } from '../services/verifyOtp';
 import { login } from '../services/login';
 import { axiosPublic } from '../api/axios';
@@ -128,7 +128,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
       if (isSignUpMode) {
         // SIGN UP flow with OTP
         if (!showOtpField) {
-          // Step 1: validate password + confirm and request OTP
+          //  validate password + confirm and request OTP
           if (password !== confirmPassword) {
             setConfirmPasswordError('Passwords do not match');
             setIsLoading(false);
@@ -147,7 +147,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           localStorage.setItem('needsUsername', 'true');
           onSignInSuccess(true);
           onClose();
-          return; // Exit early after successful signup
+          return; // End of SIGN UP flow
         }
       } else {
         const normalizedEmail = (email || '').trim();
@@ -170,7 +170,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         const user = await login(normalizedEmail, password);
 
-        // Prevent stale avatar from previous account when switching users
+        // just to prevent stale avatar from previous account when switching users
         localStorage.removeItem('selectedCharacter');
         localStorage.removeItem('selectedCharacterIcon');
 
@@ -196,7 +196,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         onSignInSuccess(needsOnboarding);
         onClose();
-        return; // Exit early after successful login
+        return; 
       }
     } catch (error) {
       console.error('Authentication error:', error);
@@ -240,7 +240,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     setResetPasswordError('');
 
     try {
-      // STEP 1: Send OTP
+      // Send OTP
       if (!showForgotPasswordOtp && !showResetPassword) {
         const normalizedEmail = (email || '').trim();
         const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
@@ -259,7 +259,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         setForgotPasswordEmail(normalizedEmail);
 
-        // Call backend to send OTP
+        // call the backend to send OTP
         const response = await axiosPublic.post('/v1/forgot-password/request-otp', { email });
         
         if (response.data.success) {
@@ -274,7 +274,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         return;
       }
 
-      // STEP 2: Verify OTP
+      // Verify OTP
       if (showForgotPasswordOtp && !showResetPassword) {
         if (!otp || otp.length !== 6) {
           setLoginError('Please enter a valid 6-digit OTP.');
@@ -491,7 +491,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
             <form onSubmit={handleForgotPasswordSubmit} className={styles.signinForm}>
               {!showForgotPasswordOtp && !showResetPassword ? (
-                // Step 1: Email input
+                // Email input
                 <>
                   <div className={styles.formGroup}>
                     <label htmlFor="forgot-email">Email</label>
@@ -513,7 +513,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   </button>
                 </>
               ) : showForgotPasswordOtp && !showResetPassword ? (
-                // Step 2: OTP input
+                // OTP input
                 <>
                   <div className={styles.formGroup}>
                     <label htmlFor="forgot-otp">Enter OTP</label>
@@ -785,7 +785,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     setIsSignUpMode(false);
                     setShowOtpField(false);
                     setOtp('');
-                    setLoginError(''); // Clear error when switching modes
+                    setLoginError(''); 
                   }}
                 >
                   Sign in
