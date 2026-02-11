@@ -187,7 +187,7 @@ const JavaScriptCourse = () => {
             <span className="javascript-badge-text">BEGINNER</span>
             <span className="javascript-badge-text">COURSE</span>
           </div>
-          <h1 className="javascript-hero-title">JavaScript</h1>
+          <h1 className="javascript-hero-title">JavaScript ES6+</h1>
           <p className="javascript-hero-description">
             Create interactive web experiences with JavaScript. Learn DOM manipulation, events, and modern ES6+ features.
           </p>
