@@ -95,11 +95,7 @@ const JavaScriptCourse = () => {
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
-    navigate(`/learn/javascript/exercise/${exerciseId}`, {
-      state: {
-        completedQuests: Array.from(completedExercises),
-      },
-    });
+    navigate(`/learn/javascript/exercise/play`);
   };
 
   const toggleModule = (moduleId) => {

@@ -4,7 +4,7 @@ import HelpScene from "./scenes/helpScene";
 
 let game = null;
 
-export const startGame = ({ exerciseId, parent }) => {
+export const startGame = ({ exerciseId, parent, completedQuests = [] }) => {
   // destroy previous game
   if (game) {
     game.destroy(true);
@@ -49,7 +49,7 @@ export const startGame = ({ exerciseId, parent }) => {
   game.scene.add("HelpScene", HelpScene, false);
 
   // start with correct exercise → map
-  game.scene.start("GameScene", { exerciseId });
+  game.scene.start("GameScene", { exerciseId, completedQuests });
 
   // 🔁 keep reference
   window.game = game;

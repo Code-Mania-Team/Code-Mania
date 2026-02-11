@@ -32,6 +32,7 @@ export default class GameScene extends Phaser.Scene {
 
   init(data) {
     this.completedQuestIds = new Set(data.completedQuests || [])
+    console.log("NIGGA",data);
     // Use the last course title from localStorage if available
     const storedLanguage = localStorage.getItem("lastCourseTitle") || "Python";
     
