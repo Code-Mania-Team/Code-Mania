@@ -7,6 +7,7 @@ import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'luci
 import profileBanner from '../assets/profile-banner.jpg';
 import { useDeleteAccount } from '../services/deleteAccount';
 import { useEditAccount } from '../services/editAccount';
+import useGetProfile from '../services/getProfile';
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
 const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';

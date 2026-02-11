@@ -23,12 +23,15 @@ const PythonCourse = () => {
   // Tutorial will be shown only when clicking Start button
   const { exerciseId } = useParams();
   const numericExerciseId = Number(exerciseId);
+  const [data, setData] = useState();
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const loadProgress = async () => {
       try {
         const result = await getGameProgress("Python");
+
+        setData(result);
 
         if (result?.completedQuests) {
           setCompletedExercises(new Set(result.completedQuests));
@@ -93,11 +96,11 @@ const PythonCourse = () => {
   const userProgress = {
     name: localStorage.getItem('username') || 'Your Name',
     level: 1,
-    exercisesCompleted: 0,
+    exercisesCompleted: data?.completedQuests?.length || 0,
     totalExercises: 16,
     projectsCompleted: 0,
     totalProjects: 2,
-    xpEarned: 0,
+    xpEarned: data?.xpEarned || 0,
     totalXp: 3600
   };
 

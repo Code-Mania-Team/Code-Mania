@@ -20,6 +20,7 @@ const JavaScriptCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [data, setData] = useState();
 
   /* ===============================
      LOAD PROGRESS (PYTHON LOGIC)
@@ -30,6 +31,7 @@ const JavaScriptCourse = () => {
     const loadProgress = async () => {
       try {
         const result = await getGameProgress("JavaScript");
+        setData(result);
         if (result?.completedQuests) {
           setCompletedExercises(new Set(result.completedQuests));
         }
@@ -54,6 +56,33 @@ const JavaScriptCourse = () => {
     return "locked";
   };
 
+  const handleViewProfile = () => {
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else {
+      onOpenModal();
+    }
+  };
+
+  const onOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const onCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const userProgress = {
+    name: localStorage.getItem('username') || 'Your Name',
+    level: 1,
+    exercisesCompleted: data?.completedQuests?.length || 0,
+    totalExercises: 16,
+    projectsCompleted: 0,
+    totalProjects: 2,
+    xpEarned: data?.xpEarned || 0,
+    totalXp: 3600
+  };
+
   const handleStartExercise = (exerciseId) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const authed = localStorage.getItem("isAuthenticated") === "true";
@@ -76,6 +105,7 @@ const JavaScriptCourse = () => {
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
+  const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
 
   const getStatusIcon = (status) => {
     if (status === "completed") {
@@ -252,14 +282,47 @@ const JavaScriptCourse = () => {
 
         {/* Sidebar */}
         <div className="sidebar">
-          <ProfileCard onSignInRequired={() => setIsModalOpen(true)} />
+          <div className="profile-card">
+            <div className="profile-avatar">
+              <img src={characterIcon} alt="Profile" />
+            </div>
+            <div className="profile-info">
+              <h4>{userProgress.name}</h4>
+              <p>Level {userProgress.level}</p>
+            </div>
+            <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
+          </div>
+
+          <div className="progress-card">
+            <h4 className="progress-title">Course Progress</h4>
+            
+            <div className="progress-item">
+              <div className="progress-label">
+                <div className="progress-icon exercises"></div>
+                <span>Exercises</span>
+              </div>
+              <span className="progress-value">
+                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
+              </span>
+            </div>
+
+            <div className="progress-item">
+              <div className="progress-label">
+                <div className="progress-icon xp"></div>
+                <span>XP Earned</span>
+              </div>
+              <span className="progress-value">
+                {userProgress.xpEarned} / {userProgress.totalXp}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
       <SignInModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSignInSuccess={() => setIsModalOpen(false)}
+        onClose={onCloseModal}
+        onSignInSuccess={onCloseModal}
       />
 
       {showTutorial && (
