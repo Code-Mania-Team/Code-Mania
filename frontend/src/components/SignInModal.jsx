@@ -61,6 +61,8 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
+  const [showForgotPasswordOtp, setShowForgotPasswordOtp] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
 
   const validatePassword = (pass) => {
     const minLength = 8;
@@ -232,35 +234,66 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     setLoginError('');
     
     try {
-      const normalizedEmail = (email || '').trim();
-      const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-      
-      if (!normalizedEmail) {
-        setLoginError('Please enter your email.');
-        setIsLoading(false);
-        return;
-      }
-      
-      if (!emailIsValid) {
-        setLoginError('Please enter a valid email address.');
-        setIsLoading(false);
-        return;
-      }
+      if (!showForgotPasswordOtp) {
+        // Step 1: Send OTP to email
+        const normalizedEmail = (email || '').trim();
+        const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+        
+        if (!normalizedEmail) {
+          setLoginError('Please enter your email.');
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!emailIsValid) {
+          setLoginError('Please enter a valid email address.');
+          setIsLoading(false);
+          return;
+        }
 
-      // TODO: Call forgot password API
-      console.log('Sending password reset to:', normalizedEmail);
-      
-      // For now, simulate success
-      setTimeout(() => {
-        setLoginError('Password reset link sent! Check your email.');
-        setIsLoading(false);
-      }, 1000);
+        // TODO: Call forgot password API to send OTP
+        console.log('Sending password reset OTP to:', normalizedEmail);
+        
+        // Store email and show OTP field
+        setForgotPasswordEmail(normalizedEmail);
+        
+        // For now, simulate success
+        setTimeout(() => {
+          setShowForgotPasswordOtp(true);
+          setLoginError('OTP sent! Check your email.');
+          setIsLoading(false);
+        }, 1000);
+        
+      } else {
+        // Step 2: Verify OTP and proceed to password reset
+        if (!otp || otp.length !== 6) {
+          setLoginError('Please enter a valid 6-digit OTP.');
+          setIsLoading(false);
+          return;
+        }
+
+        // TODO: Call API to verify OTP
+        console.log('Verifying OTP for:', forgotPasswordEmail, 'OTP:', otp);
+        
+        // For now, simulate success
+        setTimeout(() => {
+          setLoginError('OTP verified! You can now reset your password.');
+          setIsLoading(false);
+          // TODO: Redirect to password reset form or show password input fields
+        }, 1000);
+      }
       
     } catch (error) {
       console.error('Forgot password error:', error);
-      setLoginError('Failed to send reset link. Please try again.');
+      setLoginError('Failed to process request. Please try again.');
       setIsLoading(false);
     }
+  };
+
+  const handleBackToForgotPasswordEmail = () => {
+    setShowForgotPasswordOtp(false);
+    setOtp('');
+    setLoginError('');
   };
 
   return (
@@ -279,7 +312,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         <p className={styles.subtext}>
           {isSignUpMode ? 'Start your adventure in Code Mania' : 
-           isForgotPasswordMode ? 'Enter your email to reset password' : 'Sign in to continue your journey'}
+           isForgotPasswordMode ? 
+             (showForgotPasswordOtp ? 'Enter the OTP sent to your email' : 'Enter your email to reset password') 
+             : 'Sign in to continue your journey'}
         </p>
 
         {/* Google OAuth Button */}
@@ -405,37 +440,76 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           <>
 
             <form onSubmit={handleForgotPasswordSubmit} className={styles.signinForm}>
-              <div className={styles.formGroup}>
-                <label htmlFor="forgot-email">Email</label>
-                <input
-                  type="email"
-                  id="forgot-email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setLoginError(''); // Clear error when user types
-                  }}
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
+              {!showForgotPasswordOtp ? (
+                // Step 1: Email input
+                <>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="forgot-email">Email</label>
+                    <input
+                      type="email"
+                      id="forgot-email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setLoginError(''); // Clear error when user types
+                      }}
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
 
-              <button type="submit" className={styles.signinButton} disabled={isLoading}>
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
-              </button>
+                  <button type="submit" className={styles.signinButton} disabled={isLoading}>
+                    {isLoading ? 'Sending...' : 'Send OTP'}
+                  </button>
+                </>
+              ) : (
+                // Step 2: OTP input
+                <>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="forgot-otp">Enter OTP</label>
+                    <input
+                      type="text"
+                      id="forgot-otp"
+                      value={otp}
+                      onChange={(e) => {
+                        setOtp(e.target.value);
+                        setLoginError(''); // Clear error when user types
+                      }}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+
+                  <button type="submit" className={styles.signinButton} disabled={isLoading}>
+                    {isLoading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.backButton}
+                    onClick={handleBackToForgotPasswordEmail}
+                    disabled={isLoading}
+                  >
+                    Back to Email
+                  </button>
+                </>
+              )}
 
               {loginError && (
                 <p className={styles.errorText}>{loginError}</p>
               )}
 
-              <button
-                type="button"
-                className={styles.backButton}
-                onClick={handleBackToSignIn}
-                disabled={isLoading}
-              >
-                Back to Sign In
-              </button>
+              {!showForgotPasswordOtp && (
+                <button
+                  type="button"
+                  className={styles.backButton}
+                  onClick={handleBackToSignIn}
+                  disabled={isLoading}
+                >
+                  Back to Sign In
+                </button>
+              )}
             </form>
           </>
         ) : (
