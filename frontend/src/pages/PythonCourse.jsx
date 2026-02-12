@@ -7,6 +7,12 @@ import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
 
+// Import Python course badges
+import pythonBadge1 from "../assets/badges/Python/python-badge1.png";
+import pythonBadge2 from "../assets/badges/Python/python-badge2.png";
+import pythonBadge3 from "../assets/badges/Python/python-badge3.png";
+import pythonBadge4 from "../assets/badges/Python/python-badge4.png";
+
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 
@@ -174,9 +180,9 @@ const PythonCourse = () => {
       {/* Hero Section */}
       <section className="python-hero">
         <div className="python-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="python-hero-badge">
+            <span className="python-badge-text">BEGINNER</span>
+            <span className="python-badge-text">COURSE</span>
           </div>
           <h1 className="python-hero-title">Python</h1>
           <p className="python-hero-description">
@@ -287,6 +293,17 @@ const PythonCourse = () => {
               <span className="progress-value">
                 {userProgress.xpEarned} / {userProgress.totalXp}
               </span>
+            </div>
+          </div>
+
+          {/* Course Badges Section */}
+          <div className="progress-card">
+            <h4 className="progress-title">Course Badges</h4>
+            <div className="course-badges-grid">
+              <img src={pythonBadge1} alt="Python Stage 1" className="python-course-badge" />
+              <img src={pythonBadge2} alt="Python Stage 2" className="python-course-badge" />
+              <img src={pythonBadge3} alt="Python Stage 3" className="python-course-badge" />
+              <img src={pythonBadge4} alt="Python Stage 4" className="python-course-badge" />
             </div>
           </div>
         </div>

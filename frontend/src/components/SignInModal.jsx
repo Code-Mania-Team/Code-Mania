@@ -60,13 +60,20 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
+  const [showForgotPasswordOtp, setShowForgotPasswordOtp] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [resetPasswordError, setResetPasswordError] = useState('');
 
   const validatePassword = (pass) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(pass);
     const hasLowerCase = /[a-z]/.test(pass);
     const hasNumbers = /\d/.test(pass);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+    const hasSpecialChar = /[!@#$%^&*(),.?:{}|<>]/.test(pass);
 
     if (pass.length < minLength) {
       return 'Password must be at least 8 characters long';
@@ -215,6 +222,112 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     setOtp('');
   };
 
+  const handleForgotPassword = () => {
+    setIsForgotPasswordMode(true);
+    setLoginError('');
+  };
+
+  const handleBackToSignIn = () => {
+    setIsForgotPasswordMode(false);
+    setLoginError('');
+  };
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setLoginError('');
+    setResetPasswordError('');
+
+    try {
+      // STEP 1: Send OTP
+      if (!showForgotPasswordOtp && !showResetPassword) {
+        const normalizedEmail = (email || '').trim();
+        const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+
+        if (!normalizedEmail) {
+          setLoginError('Please enter your email.');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!emailIsValid) {
+          setLoginError('Please enter a valid email address.');
+          setIsLoading(false);
+          return;
+        }
+
+        setForgotPasswordEmail(normalizedEmail);
+
+        // TODO: Call backend to send OTP
+        setTimeout(() => {
+          setShowForgotPasswordOtp(true);
+          setLoginError('OTP sent! Check your email.');
+          setIsLoading(false);
+        }, 1000);
+        return;
+      }
+
+      // STEP 2: Verify OTP
+      if (showForgotPasswordOtp && !showResetPassword) {
+        if (!otp || otp.length !== 6) {
+          setLoginError('Please enter a valid 6-digit OTP.');
+          setIsLoading(false);
+          return;
+        }
+
+        // TODO: Verify OTP with backend
+        setTimeout(() => {
+          setShowResetPassword(true);
+          setShowForgotPasswordOtp(false);
+          setLoginError('');
+          setIsLoading(false);
+        }, 1000);
+        return;
+      }
+
+      // STEP 3: Reset Password
+      if (showResetPassword) {
+        if (newPassword !== confirmNewPassword) {
+          setResetPasswordError('Passwords do not match.');
+          setIsLoading(false);
+          return;
+        }
+
+        const validationError = validatePassword(newPassword);
+        if (validationError) {
+          setResetPasswordError(validationError);
+          setIsLoading(false);
+          return;
+        }
+
+        // TODO: Call backend reset password API
+        console.log('Resetting password for:', forgotPasswordEmail);
+
+        // After success
+        setTimeout(() => {
+          setShowResetPassword(false);
+          setIsForgotPasswordMode(false);
+          setNewPassword('');
+          setConfirmNewPassword('');
+          setOtp('');
+          setLoginError('Password successfully reset. You can now sign in.');
+          setIsLoading(false);
+        }, 1000);
+      }
+
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      setLoginError('Failed to process request. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToForgotPasswordEmail = () => {
+    setShowForgotPasswordOtp(false);
+    setOtp('');
+    setLoginError('');
+  };
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.signinModal} onClick={(e) => e.stopPropagation()}>
@@ -222,12 +335,19 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         <div className={styles.welcomeSection}>
           <img src={swordImage} alt="Sword" className={`${styles.pixelIcon} ${styles.pixelSword}`} />
-          <h2>{isSignUpMode ? 'Create your account' : 'Welcome, Adventurer!'}</h2>
+          <h2>
+            {isSignUpMode ? 'Create your account' : 
+             isForgotPasswordMode ? 'Reset Password' : 'Welcome, Adventurer!'}
+          </h2>
           <img src={shieldImage} alt="Shield" className={`${styles.pixelIcon} ${styles.pixelShield}`} />
         </div>
 
         <p className={styles.subtext}>
-          {isSignUpMode ? 'Start your adventure in Code Mania' : 'Sign in to continue your journey'}
+          {isSignUpMode ? 'Start your adventure in Code Mania' : 
+           isForgotPasswordMode ? 
+             (showResetPassword ? 'Set your new password' :
+              showForgotPasswordOtp ? 'Enter the OTP sent to your email' : 'Enter your email to reset password') 
+             : 'Sign in to continue your journey'}
         </p>
 
         {/* Google OAuth Button */}
@@ -244,7 +364,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           <span>or</span>
         </div>
 
-        {!isSignUpMode ? (
+        {!isSignUpMode && !isForgotPasswordMode ? (
           <>
 
             <form onSubmit={handleSubmit} className={styles.signinForm}>
@@ -325,7 +445,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 <p className={styles.errorText}>{loginError}</p>
               )}
 
-
               <p className={styles.signupHint}>
                 Don't have an account yet?{' '}
                 <button
@@ -340,7 +459,183 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                 >
                   Create one
                 </button>
+                <button
+                  type="button"
+                  className={styles.forgotPasswordButton}
+                  onClick={handleForgotPassword}
+                >
+                  Forgot password?
+                </button>
               </p>
+            </form>
+          </>
+        ) : isForgotPasswordMode ? (
+          <>
+
+            <form onSubmit={handleForgotPasswordSubmit} className={styles.signinForm}>
+              {!showForgotPasswordOtp && !showResetPassword ? (
+                // Step 1: Email input
+                <>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="forgot-email">Email</label>
+                    <input
+                      type="email"
+                      id="forgot-email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setLoginError(''); // Clear error when user types
+                      }}
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
+
+                  <button type="submit" className={styles.signinButton} disabled={isLoading}>
+                    {isLoading ? 'Sending...' : 'Send OTP'}
+                  </button>
+                </>
+              ) : showForgotPasswordOtp && !showResetPassword ? (
+                // Step 2: OTP input
+                <>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="forgot-otp">Enter OTP</label>
+                    <input
+                      type="text"
+                      id="forgot-otp"
+                      value={otp}
+                      onChange={(e) => {
+                        setOtp(e.target.value);
+                        setLoginError(''); // Clear error when user types
+                      }}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+
+                  <button type="submit" className={styles.signinButton} disabled={isLoading}>
+                    {isLoading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.backButton}
+                    onClick={handleBackToForgotPasswordEmail}
+                    disabled={isLoading}
+                  >
+                    Back to Email
+                  </button>
+                </>
+              ) : null}
+
+              {showResetPassword && (
+                <>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="new-password">New Password</label>
+                    <div className={styles.passwordInputContainer}>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        id="new-password"
+                        value={newPassword}
+                        onChange={(e) => {
+                          setNewPassword(e.target.value);
+                          setResetPasswordError('');
+                        }}
+                        placeholder="Enter new password"
+                        required
+                        className={styles.passwordInput}
+                      />
+                      <button 
+                        type="button" 
+                        className={styles.togglePasswordButton}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowPassword(!showPassword);
+                        }}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        <img 
+                          src={showPassword ? hidePasswordIcon : showPasswordIcon} 
+                          alt=""
+                          className={styles.togglePasswordIcon}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="confirm-new-password">Confirm New Password</label>
+                    <div className={styles.passwordInputContainer}>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        id="confirm-new-password"
+                        value={confirmNewPassword}
+                        onChange={(e) => {
+                          setConfirmNewPassword(e.target.value);
+                          setResetPasswordError('');
+                        }}
+                        placeholder="Confirm new password"
+                        required
+                        className={styles.passwordInput}
+                      />
+                      <button 
+                        type="button" 
+                        className={styles.togglePasswordButton}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowConfirmPassword(!showConfirmPassword);
+                        }}
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        <img 
+                          src={showConfirmPassword ? hidePasswordIcon : showPasswordIcon} 
+                          alt=""
+                          className={styles.togglePasswordIcon}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <button type="submit" className={styles.signinButton} disabled={isLoading}>
+                    {isLoading ? 'Resetting...' : 'Reset Password'}
+                  </button>
+
+                  {resetPasswordError && (
+                    <p className={styles.errorText}>{resetPasswordError}</p>
+                  )}
+
+                  <button
+                    type="button"
+                    className={styles.backButton}
+                    onClick={() => {
+                      setShowResetPassword(false);
+                      setShowForgotPasswordOtp(true);
+                      setResetPasswordError('');
+                    }}
+                    disabled={isLoading}
+                  >
+                    Back to OTP
+                  </button>
+                </>
+              )}
+
+              {loginError && (
+                <p className={styles.errorText}>{loginError}</p>
+              )}
+
+              {!showForgotPasswordOtp && !showResetPassword ? (
+                <button
+                  type="button"
+                  className={styles.backButton}
+                  onClick={handleBackToSignIn}
+                  disabled={isLoading}
+                >
+                  Back to Sign In
+                </button>
+              ) : null}
             </form>
           </>
         ) : (
@@ -435,7 +730,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     id="otp"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter the 6-digit OTP"
+                    placeholder="Enter 6-digit OTP"
                     required
                     maxLength="6"
                   />
@@ -463,7 +758,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   Back to email & password
                 </button>
               )}
-
 
               <p className={styles.signupHint}>
                 Already have an account?{' '}

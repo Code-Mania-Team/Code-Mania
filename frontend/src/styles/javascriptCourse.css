@@ -71,18 +71,23 @@
 }
 
 /* Module Icon - JavaScript Yellow */
-.javascript-course-page .module-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: rgba(255, 215, 0, 0.2);
-  border: 2px solid #FFD700;
-  border-radius: 0.5rem;
+.javascript-hero-badge {
   display: flex;
-  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   justify-content: center;
-  font-size: 1.5rem;
-  color: #FFD700;
-  font-weight: bold;
+}
+
+.javascript-badge-text {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.4rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 /* Completed Module Icon - Checked State */
@@ -137,4 +142,27 @@
   .module-title {
     font-size: 1.4rem;
   }
+}
+
+/* Course Badges Styles */
+.javascript-course-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.javascript-course-badge {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.javascript-course-badge:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

@@ -6,6 +6,12 @@ import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
 
+// Import C++ course badges
+import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
+import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
+import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
+import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
+
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const CppCourse = () => {
@@ -125,9 +131,9 @@ const CppCourse = () => {
       {/* Hero Section */}
       <section className="cpp-hero">
         <div className="cpp-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="cpp-hero-badge">
+            <span className="cpp-badge-text">BEGINNER</span>
+            <span className="cpp-badge-text">COURSE</span>
           </div>
           <h1 className="cpp-hero-title">C++</h1>
           <p className="cpp-hero-description">
@@ -218,6 +224,17 @@ const CppCourse = () => {
               <span className="progress-value">
                 {userProgress.xpEarned} / {userProgress.totalXp}
               </span>
+            </div>
+          </div>
+
+          {/* Course Badges Section */}
+          <div className="progress-card">
+            <h4 className="progress-title">Course Badges</h4>
+            <div className="course-badges-grid">
+              <img src={cppBadge1} alt="C++ Stage 1" className="cpp-course-badge" />
+              <img src={cppBadge2} alt="C++ Stage 2" className="cpp-course-badge" />
+              <img src={cppBadge3} alt="C++ Stage 3" className="cpp-course-badge" />
+              <img src={cppBadge4} alt="C++ Stage 4" className="cpp-course-badge" />
             </div>
           </div>
         </div>
