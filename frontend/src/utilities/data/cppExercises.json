@@ -8,15 +8,11 @@
       "This is where every C++ program starts.",
       "Let’s try printing a simple message together."
     ],
-    "description": "A C++ program follows a fixed structure that allows the compiler to understand and execute instructions correctly. Every C++ program begins with required header files, followed by the main function where program execution starts. Inside the main function, statements are executed sequentially from top to bottom. Understanding this structure is essential, because all future C++ concepts are built on it. In this lesson, you will learn how a basic C++ program is organized and how to display output using cout.",
+    "description": "Every C++ program follows a specific structure so the compiler knows how to build and run it. The line #include <iostream> tells the program to include the input-output stream library, which allows us to use cout to display text on the screen. Without it, the program would not recognize cout. The line using namespace std; lets us write cout instead of std::cout. Every C++ program must have a main() function because it is the entry point where execution begins. Inside main(), instructions run from top to bottom. The statement return 0; tells the system the program ended successfully. Understanding these parts is important because all C++ programs are built on this structure.",
     "task": "Write a C++ program that prints 'Hello, C++!' to the console.",
     "lessonExample": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Welcome to C++ City!\" << endl;\n    return 0;\n}",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
-    "hints": [
-      "iostream provides input and output functionality.",
-      "cout is used to display output on the screen.",
-      "Each statement must end with a semicolon."
-    ],
+    "requirements": { "mustInclude": ["iostream", "cout"] },
     "expectedOutput": "Hello, C++!"
   },
 
@@ -28,12 +24,7 @@
     "task": "Complete the cout statement so it prints 'Hello World!' to the console.",
     "lessonExample": "cout << \"Hello World!\" << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Hello, C++!\" << endl;\n    return 0;\n}",
-    "hints": [
-      "Text must be enclosed in double quotes.",
-      "Use the << operator to send output to cout.",
-      "endl moves the cursor to a new line."
-    ],
-    "requirements": { "mustInclude": ["cout"] },
+    "requirements": { "mustInclude": ["iostream", "cout"] },
     "expectedOutput": "Hello World!"
   },
 
@@ -50,10 +41,6 @@
     "task": "Add a comment above the code that prints 'Code runs!' to the console.",
     "lessonExample": "// This is a single-line comment\n/* This is a multi-line comment */\n\ncout << \"Code runs!\" << endl;",
     "startingCode": "// Write your comment here\ncout << \"Code runs!\" << endl;",
-    "hints": [
-      "Single-line comments start with //.",
-      "Multi-line comments are enclosed between /* and */."
-    ],
     "requirements": { "mustInclude": ["//", "cout"] },
     "expectedOutput": "Code runs!"
   },
@@ -71,10 +58,6 @@
     "task": "Print a triangle pattern using asterisks (*) with three rows.",
     "lessonExample": "cout << \"*\" << endl;\ncout << \"* *\" << endl;\ncout << \"* * *\" << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Each row should be printed on a separate line.",
-      "Use multiple cout statements."
-    ],
     "requirements": { "mustInclude": ["cout"] },
     "expectedOutput": "*\n* *\n* * *"
   },
@@ -92,10 +75,6 @@
     "task": "Declare two integer variables named 'age' and 'year', assign them values, and print each variable.",
     "lessonExample": "int age = 20;\nint year = 2024;\ncout << age << endl;\ncout << year << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Use int for whole numbers.",
-      "Assign values using the = operator."
-    ],
     "requirements": { "mustInclude": ["int", "cout"] },
     "expectedOutput": ""
   },
@@ -113,10 +92,6 @@
     "task": "Declare a double variable 'price' with value 9.99 and a bool variable 'isStudent' with value true, then print both.",
     "lessonExample": "double price = 9.99;\nbool isStudent = true;\ncout << price << endl;\ncout << isStudent << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "double stores decimal numbers.",
-      "bool stores true or false values."
-    ],
     "requirements": { "mustInclude": ["cout", "double", "bool"] },
     "expectedOutput": "9.99\n1"
   },
@@ -134,10 +109,6 @@
     "lessonExample": "const int DAYS_IN_WEEK = 7;\ncout << DAYS_IN_WEEK << endl;",
     "task": "Declare a constant integer 'DAYS_IN_WEEK' with value 7 and print it.",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Use const before the data type.",
-      "Constants must be initialized when declared."
-    ],
     "requirements": { "mustInclude": ["const", "cout"] },
     "expectedOutput": "7"
   },
@@ -154,10 +125,6 @@
     "lessonExample": "double d = 9.7;\nint x = (int)d;\ncout << x << endl;",
     "task": "Cast a double value 15.8 to an integer, then cast an integer 4 to a double and print both results.",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Use (type)value to cast.",
-      "Casting from double to int removes the decimal part."
-    ],
     "requirements": { "mustInclude": ["int", "cout"] },
     "expectedOutput": "9"
   },
@@ -175,10 +142,6 @@
     "task": "Using integer variables a and b with values 7 and 2, calculate a + b and print the result to the console.",
     "lessonExample": "int a = 7, b = 2;\ncout << a + b << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Use + to add values.",
-      "Expressions can be printed directly using cout."
-    ],
     "requirements": { "mustInclude": ["cout", "+"] },
     "expectedOutput": "8"
   },
@@ -196,10 +159,6 @@
     "task": "Compare two integers using three different comparison operators and print each result on a new line.",
     "lessonExample": "int x = 10, y = 10;\ncout << (x > y) << endl;\ncout << (x == y) << endl;\ncout << (x <= y) << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Comparison results are either 1 (true) or 0 (false).",
-      "Use different operators to compare values."
-    ],
     "requirements": { "mustInclude": ["cout", ">", "==", "<="] },
     "expectedOutput": "0\n1\n1"
   },
@@ -217,10 +176,6 @@
     "task": "Use logical AND (&&) to combine two boolean values true and false, then print the result.",
     "lessonExample": "bool a = true, b = false;\ncout << (a && b) << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "&& returns true only if both conditions are true.",
-      "Boolean values print as 1 or 0."
-    ],
     "requirements": { "mustInclude": ["cout", "&&"] },
     "expectedOutput": "0"
   },
@@ -238,10 +193,6 @@
     "task": "Use the += operator to add 3 to the variable a initialized to 5, then print the result.",
     "lessonExample": "int a = 5;\na += 3;\ncout << a << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "+= adds a value and assigns it in one step.",
-      "Other compound operators work similarly."
-    ],
     "requirements": { "mustInclude": ["cout", "+="] },
     "expectedOutput": "8"
   },
@@ -259,10 +210,6 @@
     "task": "Check if the variable 'age' (set to 18) is greater than or equal to 18, and print 'Adult' if true.",
     "lessonExample": "int age = 18;\nif (age >= 18) cout << \"Adult\" << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Conditions are written inside parentheses.",
-      "Code runs only if the condition evaluates to true."
-    ],
     "requirements": { "mustInclude": ["if", "cout"] },
     "expectedOutput": "Adult"
   },
@@ -297,10 +244,6 @@
     "task": "Use a for loop to print numbers 0 to 10.",
     "lessonExample": "for (int i = 0; i < 3; i++) cout << i << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Initialize the loop variable.",
-      "Increment the variable using i++."
-    ],
     "requirements": { "mustInclude": ["for", "cout"] },
     "expectedOutput": "0\n1\n2"
   },
@@ -318,10 +261,6 @@
     "task": "Use a while loop to print numbers 0 to 10.",
     "lessonExample": "int count = 0;\nwhile (count < 3) {\n  cout << count << endl;\n  count++;\n}",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Initialize the loop variable before the loop.",
-      "Update the variable inside the loop."
-    ],
     "requirements": { "mustInclude": ["while", "cout"] },
     "expectedOutput": "0\n1\n2"
   },
@@ -339,11 +278,6 @@
     "task": "Write a C++ program that defines a function to add two integers and prints the result of adding 5 and 7.",
     "lessonExample": "int add(int a, int b) {\n  return a + b;\n}\ncout << add(5, 7) << endl;",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "hints": [
-      "Define the function outside main.",
-      "Call the function inside main.",
-      "Use cout to display the result."
-    ],
     "requirements": { "mustInclude": ["cout"] },
     "expectedOutput": "12"
   }

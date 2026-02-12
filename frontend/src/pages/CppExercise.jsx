@@ -5,7 +5,6 @@ import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
-import XpNotification from "../components/XpNotification";
 import CodeTerminal from "../components/CodeTerminal";
 import TutorialPopup from "../components/TutorialPopup";
 import styles from "../styles/JavaScriptExercise.module.css";
@@ -27,7 +26,6 @@ const [currentExercise, setCurrentExercise] = useState(null);
 const [code, setCode] = useState("");
 const [output, setOutput] = useState("");
 const [showHelp, setShowHelp] = useState(false);
-const [showXpPanel, setShowXpPanel] = useState(false);
 const [showStageComplete, setShowStageComplete] = useState(false);
 const [, setXpEarned] = useState(0);
 const [showTutorial, setShowTutorial] = useState(false);
@@ -89,7 +87,6 @@ useEffect(() => {
     );
     setOutput("");
     setShowHelp(false);
-    setShowXpPanel(false);
     setShowStageComplete(forceStageComplete);
   }
 }, [exerciseId, location.search]);
@@ -189,16 +186,13 @@ setTimeout(() => {
 
 if (lessonInStage === 4) {
   setShowStageComplete(true);
-  setShowXpPanel(false);
 } else {
-  setShowXpPanel(true);
   setShowStageComplete(false);
 }
   } catch (error) {
     setOutput(
       `Error: ${error.message}\n>>> Program failed`
     );
-    setShowXpPanel(false);
     setShowStageComplete(false);
   }
 }, 500);
@@ -206,7 +200,6 @@ if (lessonInStage === 4) {
 
 const handleStageContinue = () => {
   setShowStageComplete(false);
-  setShowXpPanel(false);
   goToNextExercise();
 };
 

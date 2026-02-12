@@ -6,7 +6,6 @@ import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 import TutorialPopup from "../components/TutorialPopup";
 import StageCompleteModal from "../components/StageCompleteModal";
-import XpNotification from "../components/XpNotification";
 
 import styles from "../styles/JavaScriptExercise.module.css";
 import exercises from "../utilities/data/javascriptExercises.json";
@@ -67,7 +66,6 @@ const JavaScriptExercise = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
-  const [showXpPanel, setShowXpPanel] = useState(false);
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
@@ -181,7 +179,7 @@ const JavaScriptExercise = () => {
           })
         );
 
-        setShowXpPanel(true);
+        // XP is handled by Phaser engine
       }
     } catch (err) {
       setOutput(`❌ ${err.message}`);
@@ -267,12 +265,6 @@ const JavaScriptExercise = () => {
           />
         </div>
       </div>
-
-      <XpNotification
-        show={showXpPanel}
-        onClose={() => setShowXpPanel(false)}
-        onNext={goToNextExercise}
-      />
 
       <StageCompleteModal
         show={showStageComplete}

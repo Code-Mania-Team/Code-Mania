@@ -14,7 +14,6 @@
     ],
     "lessonExample": "console.log(\"Hello, JS!\");",
     "startingCode": "console.log();",
-    "hints": ["Use console.log()."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello, JS!"
   },
@@ -28,7 +27,6 @@
     "task": "Print 'Hello' and 'World!' on separate lines.",
     "lessonExample": "console.log(\"Hello\");\nconsole.log(\"World!\");",
     "startingCode": "console.log();",
-    "hints": ["Use console.log twice."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello\nWorld!",
     "grants": "torch"
@@ -43,7 +41,6 @@
     "task": "Create three variables named playerName, score, and isOnline. Assign them the values 'Nova', 120, and true. Then print all three variables to the console on separate lines.",
     "lessonExample": "let playerName = \"Nova\";\nlet score = 120;\nlet isOnline = true;\n\nconsole.log(playerName);\nconsole.log(score);\nconsole.log(isOnline);",
     "startingCode": "",
-    "hints": ["Use let to declare variables.", "Print each variable using console.log()."],
     "requirements": { "mustInclude": ["let", "console.log"] },
     "expectedOutput": "Nova\n120\ntrue"
   },
@@ -58,7 +55,6 @@
     "task": "Create three variables named userName, lives, and hasKey. Assign them the values 'Aria', 3, and false, respectively. Then print each variable on a separate line.",
     "lessonExample": "let userName = \"Aria\";\nlet lives = 3;\nlet hasKey = false;\n\nconsole.log(userName);\nconsole.log(lives);\nconsole.log(hasKey);",
     "startingCode": "",
-    "hints": ["Strings should be in quotes.", "Use console.log() to print each variable."],
     "requirements": { "mustInclude": ["let", "console.log"] },
     "expectedOutput": "Aria\n3\nfalse"
   },
@@ -72,7 +68,6 @@
     "task": "Create a function named `showMessage` that prints 'Welcome!' to the console. Then call this function twice to see the message printed two times.",
     "lessonExample": "function showMessage() {\n  console.log(\"Welcome!\");\n}\n\nshowMessage();\nshowMessage();",
     "startingCode": "",
-    "hints": ["Use the `function` keyword to define a function.", "Call the function by its name followed by parentheses `()`."],
     "requirements": { "mustInclude": ["function", "console.log"] },
     "expectedOutput": "Welcome!\nWelcome!",
     "grants": "key"
@@ -85,9 +80,8 @@
     "lessonHeader": "📦 Parameters",
     "description": "Parameters allow functions to receive input values. Instead of hardcoding data inside a function, you can pass arguments when calling it. This makes your functions more flexible and reusable. Parameters act like placeholders for real values that are provided later. In this lesson, you will pass a name into a function and use it to personalize a greeting.",
     "task": "Create greet(name) that prints 'Hello ' + name. Call with 'Jet'.",
-    "lessonExample": "function greet(name){console.log(\"Hello \"+name);} greet(\"Jet\");",
+    "lessonExample": "function greet(name) {\n  console.log(\"Hello \" + name);\n}\n\ngreet(\"Jet\");",
     "startingCode": "",
-    "hints": ["Call greet(\"Jet\");"],
     "requirements": { "mustInclude": ["function", "console.log"] },
     "expectedOutput": "Hello Jet"
   },
@@ -99,9 +93,8 @@
     "lessonHeader": "🔄 Return Values",
     "description": "Functions can send data back using the `return` keyword. A return value allows you to store or use the result of a function elsewhere in your program. Without `return`, a function only performs an action. With `return`, it produces a value. In this lesson, you'll create a function that calculates a product and returns the result.",
     "task": "Create multiply(x,y) returning product. Print multiply(4,5).",
-    "lessonExample": "function multiply(x,y){return x*y;} console.log(multiply(4,5));",
+    "lessonExample": "function multiply(x, y) {\n  return x * y;\n}\n\nconsole.log(multiply(4, 5));",
     "startingCode": "",
-    "hints": ["Use return."],
     "requirements": { "mustInclude": ["return", "console.log"] },
     "expectedOutput": "20"
   },
@@ -114,9 +107,8 @@
     "lessonHeader": "➡️ Arrow Functions",
     "description": "Arrow functions are a modern and shorter way to write functions in JavaScript. They use the `=>` syntax and are commonly used in modern applications. Arrow functions are especially useful for quick operations and callbacks. In this lesson, you'll rewrite a traditional function using arrow syntax.",
     "task": "Create arrow function welcome(user) printing 'Welcome ' + user. Call with 'Jet'.",
-    "lessonExample": "const welcome=user=>console.log(\"Welcome \"+user); welcome(\"Jet\");",
+    "lessonExample": "const welcome = (user) => {\n  console.log(\"Welcome \" + user);\n};\n\nwelcome(\"Jet\");",
     "startingCode": "",
-    "hints": ["Use => syntax."],
     "requirements": { "mustInclude": ["=>", "console.log"] },
     "expectedOutput": "Welcome Jet"
   },
@@ -128,9 +120,8 @@
     "lessonHeader": "📚 Arrays",
     "description": "Arrays allow you to store multiple values inside a single variable. Each value in an array has an index, starting from 0. Arrays are useful for managing lists of data like names, numbers, or items. In this lesson, you will create an array and access a specific item using its index.",
     "task": "Create fruits array and print second item.",
-    "lessonExample": "let fruits=[\"Apple\",\"Banana\",\"Orange\"]; console.log(fruits[1]);",
+    "lessonExample": "let fruits = [\"Apple\", \"Banana\", \"Orange\"];\n\nconsole.log(fruits[1]);",
     "startingCode": "",
-    "hints": ["Index starts at 0."],
     "requirements": { "mustInclude": ["[1]", "console.log"] },
     "expectedOutput": "Banana"
   },
@@ -142,9 +133,8 @@
     "lessonHeader": "🛠️ Array Methods",
     "description": "JavaScript provides built-in methods to manipulate arrays. Methods like `push()`, `pop()`, `shift()`, and `unshift()` allow you to add or remove items. These tools make arrays powerful and dynamic. In this lesson, you'll remove the last item of an array using `pop()`.",
     "task": "Create [1,2,3], remove last item using pop(), print array.",
-    "lessonExample": "let arr=[1,2,3]; arr.pop(); console.log(arr);",
+    "lessonExample": "let arr = [1, 2, 3];\n\narr.pop();\n\nconsole.log(arr);",
     "startingCode": "",
-    "hints": ["Use pop()."],
     "requirements": { "mustInclude": ["pop", "console.log"] },
     "expectedOutput": "1, 2"
   },
@@ -156,9 +146,8 @@
     "lessonHeader": "📦 Objects",
     "description": "Objects store data using key-value pairs. They are used to represent real-world entities like users, cars, or products. Each value is accessed using a key. Objects help organize related information into a single structure. In this lesson, you'll create an object and access one of its properties.",
     "task": "Create car with brand 'Tesla', year 2024. Print year.",
-    "lessonExample": "let car={brand:\"Tesla\",year:2024}; console.log(car.year);",
+    "lessonExample": "let car = {\n  brand: \"Tesla\",\n  year: 2024\n};\n\nconsole.log(car.year);",
     "startingCode": "",
-    "hints": ["Use {} and dot notation."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "2024"
   },
@@ -171,9 +160,8 @@
     "lessonHeader": "🔧 Object Methods",
     "description": "Objects can contain not only data but also functions. When a function is inside an object, it is called a method. Methods allow objects to perform actions. In this lesson, you'll create an object with a method and call it to execute its behavior.",
     "task": "Create robot with speak() printing 'Beep!'. Call it.",
-    "lessonExample": "let robot={speak(){console.log(\"Beep!\");}}; robot.speak();",
+    "lessonExample": "let robot = {\n  speak() {\n    console.log(\"Beep!\");\n  }\n};\n\nrobot.speak();",
     "startingCode": "",
-    "hints": ["Call robot.speak();"],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Beep!"
   },
@@ -185,9 +173,8 @@
     "lessonHeader": "🔍 DOM Selection",
     "description": "The DOM (Document Object Model) represents the structure of an HTML page. JavaScript can interact with the DOM to read or change content. Selecting elements allows you to target specific parts of a webpage. In this lesson, you'll use `document.getElementById()` to select an element and display its text.",
     "task": "Select element with id 'message' and print textContent.",
-    "lessonExample": "let elem=document.getElementById('message'); console.log(elem.textContent);",
+    "lessonExample": "let elem = document.getElementById('message');\n\nconsole.log(elem.textContent);",
     "startingCode": "",
-    "hints": ["Use document.getElementById()."],
     "requirements": { "mustInclude": ["document", "console.log"] },
     "expectedOutput": "Hello World!"
   },
@@ -199,9 +186,8 @@
     "lessonHeader": "✏️ DOM Modify",
     "description": "After selecting an element, JavaScript can modify its content. Changing `textContent` allows you to update what users see on the page. This makes web pages dynamic and interactive. In this lesson, you'll change the text of an HTML element.",
     "task": "Select h1 and change text to 'Hi!'.",
-    "lessonExample": "document.querySelector('h1').textContent='Hi!';",
+    "lessonExample": "let heading = document.querySelector('h1');\n\nheading.textContent = 'Hi!';",
     "startingCode": "",
-    "hints": ["Assign to textContent."],
     "requirements": { "mustInclude": ["document", "textContent"] },
     "expectedOutput": "Hi!"
   },
@@ -213,9 +199,8 @@
     "lessonHeader": "🖱️ Event Listeners",
     "description": "Event listeners allow JavaScript to respond to user actions like clicks, typing, or hovering. The `addEventListener()` method waits for an event and executes code when it happens. This is how websites become interactive. In this lesson, you'll respond to a button click.",
     "task": "Add click listener to button printing 'Clicked!'.",
-    "lessonExample": "document.querySelector('button').addEventListener('click',()=>console.log('Clicked!'));",
+    "lessonExample": "let button = document.querySelector('button');\n\nbutton.addEventListener('click', () => {\n  console.log('Clicked!');\n});",
     "startingCode": "",
-    "hints": ["Use addEventListener."],
     "requirements": { "mustInclude": ["addEventListener", "console.log"] },
     "expectedOutput": "Clicked!"
   },
@@ -228,9 +213,8 @@
     "lessonHeader": "🎨 Dynamic Styling",
     "description": "JavaScript can modify CSS styles dynamically. By accessing the `style` property of an element, you can change colors, sizes, or layout instantly. This allows visual changes without editing CSS files directly. In this lesson, you'll change the color of an element using JavaScript.",
     "task": "Select h1 and change color to red.",
-    "lessonExample": "document.querySelector('h1').style.color='red';",
+    "lessonExample": "let heading = document.querySelector('h1');\n\nheading.style.color = 'red';",
     "startingCode": "",
-    "hints": ["Use .style.color."],
     "requirements": { "mustInclude": ["style"] },
     "expectedOutput": "red"
   },
@@ -243,9 +227,8 @@
     "lessonHeader": "📝 JavaScript Final Exam",
     "description": "Final challenge.",
     "task": "Create function that adds two numbers and print result of 5 and 7.",
-    "lessonExample": "function sum(a,b){return a+b;} console.log(sum(5,7));",
+    "lessonExample": "function sum(a, b) {\n  return a + b;\n}\n\nconsole.log(sum(5, 7));",
     "startingCode": "// Solve exam here",
-    "hints": ["Use return and console.log."],
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "12"
   }

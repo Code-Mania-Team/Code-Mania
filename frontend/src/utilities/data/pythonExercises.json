@@ -17,7 +17,6 @@
     "task": "Print a welcome message to the terminal using the print() function.",
     "lessonExample": "print(\"Welcome to Python!\")",
     "startingCode": "print()",
-    "hints": ["Use print() to display output.", "Make sure your code runs without errors."],
     "requirements": { "mustInclude": ["print"] }
   },
   {
@@ -36,7 +35,6 @@
     "task": "Print 'Hello World!' to the terminal.",
     "lessonExample": "print(\"Hello World!\")",
     "startingCode": "print()",
-    "hints": ["Put your message inside the parentheses.", "Wrap text in quotes."],
     "requirements": { "mustInclude": ["print"] },
     "expectedOutput": "Hello World!",
     "grants": "pickaxe"
@@ -57,7 +55,6 @@
     "task": "Print the following pattern:\n*\n**\n***",
     "lessonExample": "print(\"*\\n**\\n***\")",
     "startingCode": "print()",
-    "hints": ["Use \\n for new lines.", "Type the pattern exactly."],
     "requirements": { "mustInclude": ["print"] },
     "expectedOutput": "*\n**\n***",
     "grants": "key"
@@ -78,7 +75,6 @@
     "task": "Print your initials, each on a new line.",
     "lessonExample": "print(\"J\")\nprint(\"P\")",
     "startingCode": "print()",
-    "hints": ["Use multiple print statements.", "Each initial on a new line."],
     "requirements": { "mustInclude": ["print"] },
     "expectedOutput": "J\nP"
   },
@@ -97,7 +93,6 @@
     "task": "Create a variable to store your hero's name and print it.",
     "lessonExample": "name = \"Jet\"\nprint(name)",
     "startingCode": "heroName = \"\"\nprint(heroName)",
-    "hints": ["Assign values using =.", "Use meaningful variable names."],
     "requirements": { "mustInclude": ["=", "print"] },
     "expectedOutput": "Jet",
     "grants": "key"
@@ -117,7 +112,6 @@
     "task": "Create a string variable with a greeting and print it with ' World' appended.",
     "lessonExample": "greeting = \"Hello\"\nprint(greeting + \" World\")",
     "startingCode": "greeting = \"\"\nprint(greeting + \" World\")",
-    "hints": ["Use + to concatenate strings.", "Wrap text in quotes."],
     "requirements": { "mustInclude": ["print", "+"] },
     "expectedOutput": "Hello World"
   },
@@ -136,7 +130,6 @@
     "task": "Create two numeric variables, add them, and print the result.",
     "lessonExample": "a = 5\nb = 3\nprint(a + b)",
     "startingCode": "a = \nb = \nprint(a + b)",
-    "hints": ["Assign numeric values.", "Use +, -, *, / for calculations."],
     "requirements": { "mustInclude": ["print", "+"] },
     "expectedOutput": "8"
   },
@@ -156,7 +149,6 @@
     "task": "Create a boolean variable indicating if you are a student and print it.",
     "lessonExample": "isStudent = True\nprint(isStudent)",
     "startingCode": "isStudent = \nprint(isStudent)",
-    "hints": ["Use True or False.", "Boolean values are case-sensitive."],
     "requirements": { "mustInclude": ["print"] },
     "expectedOutput": "True"
   },
@@ -175,7 +167,6 @@
     "task": "Create an if statement that checks if age is 18 or older and prints 'Adult' if true.",
     "lessonExample": "age = 18\nif age >= 18:\n    print(\"Adult\")",
     "startingCode": "age = \nif age >= 18:\n    print()",
-    "hints": ["Use if keyword.", "Indent the code inside if block."],
     "requirements": { "mustInclude": ["if", "print"] },
     "expectedOutput": "Adult"
   },
@@ -194,7 +185,6 @@
     "task": "Create an if-elif-else statement to categorize age into 'Adult', 'Teen', or 'Child'.",
     "lessonExample": "age = 16\nif age >= 18:\n    print(\"Adult\")\nelif age >= 13:\n    print(\"Teen\")\nelse:\n    print(\"Child\")",
     "startingCode": "age = \nif age >= 18:\n    print()\nelif age >= 13:\n    print()\nelse:\n    print()",
-    "hints": ["Use elif for middle conditions.", "Use else for default case."],
     "requirements": { "mustInclude": ["if", "elif", "else", "print"] },
     "expectedOutput": "Teen"
   },
@@ -213,14 +203,13 @@
     "task": "Compare two numbers and print whether the first is greater than the second.",
     "lessonExample": "a = 5\nb = 3\nprint(a > b)",
     "startingCode": "a = \nb = \nprint(a > b)",
-    "hints": ["Use comparison operators.", "print() the result."],
     "requirements": { "mustInclude": [">", "print"] },
     "expectedOutput": "True"
   },
   {
     "id": 12,
     "title": "Logical Operators",
-    "validationMode": "HYBRID", 
+    "validationMode": "HYBRID",
     "badgeKey": "PYTHON_STAGE_3",
     "dialogue": [
       "Combining conditions is a powerful skill.",
@@ -233,7 +222,6 @@
     "task": "Use logical operators to evaluate two boolean variables and print the result.",
     "lessonExample": "a = True\nb = False\nprint(a and b)",
     "startingCode": "a = \nb = \nprint(a and b)",
-    "hints": ["Use and/or/not.", "print() the result."],
     "requirements": { "mustInclude": ["and", "print"] },
     "expectedOutput": "False"
   },
@@ -252,7 +240,6 @@
     "task": "Use a for loop to print numbers from 0 to 2.",
     "lessonExample": "for i in range(3):\n    print(i)",
     "startingCode": "for i in range():\n    print(i)",
-    "hints": ["Use range() to define loop count.", "Indent the code inside the loop."],
     "requirements": { "mustInclude": ["for", "print"] },
     "expectedOutput": "0\n1\n2"
   },
@@ -271,7 +258,6 @@
     "task": "Use a while loop to print numbers from 0 to 2.",
     "lessonExample": "count = 0\nwhile count < 3:\n    print(count)\n    count += 1",
     "startingCode": "count = \nwhile count < :\n    print(count)\n    count += 1",
-    "hints": ["Initialize the counter.", "Use while with a condition."],
     "requirements": { "mustInclude": ["while", "print"] },
     "expectedOutput": "0\n1\n2"
   },
@@ -290,7 +276,6 @@
     "task": "Use range() to print numbers from 1 to 4.",
     "lessonExample": "for i in range(1, 5):\n    print(i)",
     "startingCode": "for i in range():\n    print(i)",
-    "hints": ["Use start and end values in range().", "Loop over the sequence."],
     "requirements": { "mustInclude": ["range", "print"] },
     "expectedOutput": "1\n2\n3\n4"
   },
@@ -310,7 +295,6 @@
     "task": "Use nested loops to print all pairs of numbers from 0 to 1.",
     "lessonExample": "for i in range(2):\n    for j in range(2):\n        print(i, j)",
     "startingCode": "for i in range():\n    for j in range():\n        print(i, j)",
-    "hints": ["Use a loop inside another loop.", "print() both counters."],
     "requirements": { "mustInclude": ["for", "print"] },
     "expectedOutput": "0 0\n0 1\n1 0\n1 1"
   },
@@ -331,7 +315,6 @@
     "task": "Create a function that takes two numbers as input, adds them together, and prints the result.",
     "lessonExample": "def add(a,b):\n    return a+b\nprint(add(5,7))",
     "startingCode": "# Solve the exam here",
-    "hints": ["Use variables, functions, loops, and conditionals.", "Test your code carefully."],
     "requirements": { "mustInclude": ["print"] },
     "expectedOutput": "12"
   }
