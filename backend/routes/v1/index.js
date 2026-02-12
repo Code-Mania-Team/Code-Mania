@@ -6,6 +6,7 @@ import homeRouter from './homeRoutes.js';
 import refreshRouter from './refreshRoute.js';
 import userGameDataRouter from './userGameDataRoutes.js';
 import forgotPasswordRouter from './forgotPasswordRoutes.js';
+import achievementsRouter from './achievementsRoutes.js';
 
 const v1 = new Router();
 
@@ -15,6 +16,7 @@ v1.use('/', userGameDataRouter);
 v1.use('/freedom-wall', freedomWallRouter);
 v1.use('/refresh', refreshRouter);
 v1.use('/forgot-password', forgotPasswordRouter);
+v1.use('/achievements', achievementsRouter);
 
 v1.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']

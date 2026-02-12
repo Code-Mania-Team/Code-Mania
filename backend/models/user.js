@@ -127,6 +127,7 @@ class User {
     }
 
     async delete(user_id) {
+        console.log("Model deleting user_id:", user_id);
         const { data } = await this.db
             .from("users")
             .delete()

@@ -168,14 +168,15 @@ class AccountController {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         console.log("character_id", profile?.character_id)
-
+        console.log("accesstoken", accessToken)
         return res.status(200).json({
             success: true,
             username: profile?.username || null,
             character_id: profile?.character_id,
             user_id: authUser.user_id,
-            //accessToken, // remove if using cookie-only
+            accessToken, // remove if using cookie-only
         });
+        
         } catch (err) {
         console.error("login error:", err);
         if (err?.message === 'Email not registered yet') {
@@ -328,6 +329,7 @@ class AccountController {
     // DELETE USER
     async deleteUser(req, res) {
         const userId = res.locals.user_id;
+        console.log("Model deleting user_id:", userId);
         if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
         try {
