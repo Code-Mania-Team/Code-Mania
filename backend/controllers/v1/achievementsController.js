@@ -5,6 +5,29 @@ class AchievementsController {
         this.achievements = new Achievements();
     }
 
+    async getAchievements(req, res){
+        try {
+            const userId = res.locals.user_id;
+            if (!userId) {
+                return res.status(401).json({ 
+                    success: false, 
+                    message: "User not authenticated" 
+                });
+            }
+            const achievements = await this.achievements.getUserAchievements(userId);
+            res.status(200).json({ 
+                success: true, 
+                message: "Achievements retrieved successfully", 
+                data: achievements 
+            });
+        } catch (error) {
+            console.error("getAchievements error:", error);
+            return res.status(500).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
     // Post a badge/achievement for a user
     async postBadge(req, res) {
         try {

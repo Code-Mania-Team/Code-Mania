@@ -45,20 +45,20 @@ class Achievements {
         return { alreadyCompleted: false, data };
     }
 
-    // Get user's achievement statistics
-    async getUserStats(userId) {
-        const { data, error } = await this.db
-            .from("users_achievements")
-            .select("achievement_id")
-            .eq("user_id", userId);
+    // // Get user's achievement statistics
+    // async getUserStats(userId) {
+    //     const { data, error } = await this.db
+    //         .from("users_achievements")
+    //         .select("achievement_id")
+    //         .eq("user_id", userId);
         
-        if (error) throw error;
+    //     if (error) throw error;
         
-        return {
-            totalCompleted: data ? data.length : 0,
-            completedIds: data ? data.map(item => item.achievement_id) : []
-        };
-    }
+    //     return {
+    //         totalCompleted: data ? data.length : 0,
+    //         completedIds: data ? data.map(item => item.achievement_id) : []
+    //     };
+    // }
 }
 
 export default Achievements;

@@ -120,6 +120,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
+    console.log("Form submitted");
     e.preventDefault();
     setIsLoading(true);
     setLoginError(''); // Clear previous login errors
@@ -141,6 +142,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
             return;
           }
           const user = await signUp(email, password);
+          console.log('Sign up response:', user);
           setShowOtpField(true);
         } else {
           const user = await verifyOtp(email, otp);
