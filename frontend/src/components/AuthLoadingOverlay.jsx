@@ -6,7 +6,11 @@ const AuthLoadingOverlay = () => {
   return (
     <div className="auth-loading-overlay">
       <div className="auth-loading-box">
-        <div className="spinner"></div>
+        <img 
+          src="/assets/loading-logo.gif" 
+          alt="Loading..." 
+          className="loading-logo"
+        />
         <p>Loading your adventure...</p>
       </div>
     </div>
