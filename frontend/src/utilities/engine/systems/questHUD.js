@@ -8,17 +8,24 @@ export default class QuestUI {
 
     const { width, height } = scene.scale;
 
-    this.panelLeft = width / 2 - 260;
-    this.panelTop = height / 2 - 220;
-    this.panelWidth = 520;
-    this.panelHeight = 440;
-    this.contentLeft = width / 2 - 230;
-    this.bodyBaseY = height / 2 - 140;
-    this.contentWidth = 460;
+    this.panelLeft = 50;
+    this.panelTop = 50;
+    this.panelWidth = width - 100;
+    this.panelHeight = height - 100;
+    this.contentLeft = 80;
+    this.bodyBaseY = 120;
+    this.contentWidth = width - 160;
     this.padding = 20;
     this.gap = 16;
     this.bodyScroll = 0;
     this.bodyScrollMax = 0;
+
+    // Scrollbar properties
+    this.scrollbarWidth = 8;
+    this.scrollbarX = this.contentLeft + this.contentWidth - this.scrollbarWidth - 5;
+    this.scrollbarMinY = this.bodyBaseY;
+    this.scrollbarHeight = 0;
+    this.scrollbarY = 0;
 
     // =========================
     // Container
@@ -54,10 +61,10 @@ export default class QuestUI {
     // =========================
     this.titleText = scene.add.text(
       width / 2,
-      height / 2 - 190,
+      90,
       "",
       {
-        fontSize: "26px",
+        fontSize: "32px",
         color: "#ffd37a",
         fontStyle: "bold"
       }
@@ -71,9 +78,9 @@ export default class QuestUI {
       this.bodyBaseY,
       "",
       {
-        fontSize: "18px",
+        fontSize: "20px",
         color: "#f5f0d6",
-        lineSpacing: 10,
+        lineSpacing: 12,
         wordWrap: { width: this.contentWidth }
       }
     );
@@ -83,16 +90,42 @@ export default class QuestUI {
     // =========================
     this.codeText = scene.add.text(
       this.contentLeft,
-      height / 2 + 40,
+      height - 150,
       "",
       {
         fontFamily: "monospace",
-        fontSize: "16px",
+        fontSize: "18px",
         color: "#a8ff60",
         backgroundColor: "#1e1e1e",
         padding: { left: 12, right: 12, top: 10, bottom: 10 },
         wordWrap: { width: this.contentWidth }
       }
+    );
+
+    // =========================
+    // Scrollbar Track
+    // =========================
+    this.scrollbarTrack = scene.add.graphics();
+    this.scrollbarTrack.fillStyle(0x4a3426, 0.8);
+    this.scrollbarTrack.fillRoundedRect(
+      this.scrollbarX,
+      this.scrollbarMinY,
+      this.scrollbarWidth,
+      200,
+      4
+    );
+
+    // =========================
+    // Scrollbar Thumb
+    // =========================
+    this.scrollbarThumb = scene.add.graphics();
+    this.scrollbarThumb.fillStyle(0x8b5e3c, 1);
+    this.scrollbarThumb.fillRoundedRect(
+      this.scrollbarX,
+      this.scrollbarMinY,
+      this.scrollbarWidth,
+      40,
+      4
     );
 
     this.bodyMaskGraphics = scene.add.graphics();
@@ -119,6 +152,9 @@ export default class QuestUI {
 
       this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
       this.bodyText.y = this.bodyBaseY - this.bodyScroll;
+      
+      // Update scrollbar thumb position
+      this.updateScrollbar();
     };
 
     scene.input.on("wheel", this.onWheel);
@@ -131,6 +167,8 @@ export default class QuestUI {
       this.titleText,
       this.bodyText,
       this.codeText,
+      this.scrollbarTrack,
+      this.scrollbarThumb,
       this.bodyMaskGraphics
     ]);
   }
@@ -203,6 +241,31 @@ export default class QuestUI {
 
     this.bodyScrollMax = Math.max(0, this.bodyText.getBounds().height - bodyMaskHeight);
 
+    // Update scrollbar visibility and positioning
+    if (this.bodyScrollMax > 0) {
+      this.scrollbarTrack.setVisible(true);
+      this.scrollbarThumb.setVisible(true);
+      
+      // Update track height to match the scrollable area
+      this.scrollbarTrack.clear();
+      this.scrollbarTrack.fillStyle(0x4a3426, 0.8);
+      this.scrollbarTrack.fillRoundedRect(
+        this.scrollbarX,
+        this.scrollbarMinY,
+        this.scrollbarWidth,
+        bodyMaskHeight,
+        4
+      );
+      
+      // Store the track height for use in updateScrollbar
+      this.scrollbarTrack.height = bodyMaskHeight;
+      
+      this.updateScrollbar();
+    } else {
+      this.scrollbarTrack.setVisible(false);
+      this.scrollbarThumb.setVisible(false);
+    }
+
     // Animate in
     this.container.setVisible(true);
     this.container.y = -500;
@@ -241,5 +304,37 @@ export default class QuestUI {
 
   toggle(quest) {
     this.visible ? this.hide() : this.showQuest(quest);
+  }
+
+  // =========================
+  // Update Scrollbar Position
+  // =========================
+  updateScrollbar() {
+    if (this.bodyScrollMax <= 0) return;
+
+    // Get the actual track height from the showQuest method
+    const trackHeight = this.scrollbarTrack.height || (this.panelHeight - 240);
+    const contentHeight = this.bodyText.getBounds().height;
+    const visibleHeight = trackHeight;
+    
+    // Calculate thumb height based on visible content ratio
+    const thumbHeight = Math.max(30, (visibleHeight / contentHeight) * visibleHeight);
+    
+    // Calculate scroll position (0 to 1)
+    const scrollRatio = this.bodyScroll / this.bodyScrollMax;
+    
+    // Calculate thumb Y position
+    const maxThumbY = this.scrollbarMinY + trackHeight - thumbHeight;
+    const thumbY = this.scrollbarMinY + (maxThumbY - this.scrollbarMinY) * scrollRatio;
+
+    this.scrollbarThumb.clear();
+    this.scrollbarThumb.fillStyle(0x8b5e3c, 1);
+    this.scrollbarThumb.fillRoundedRect(
+      this.scrollbarX,
+      thumbY,
+      this.scrollbarWidth,
+      thumbHeight,
+      4
+    );
   }
 }
