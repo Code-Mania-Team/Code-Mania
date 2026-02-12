@@ -189,18 +189,15 @@ const JavaScriptCourse = () => {
       {/* Hero Section */}
       <section className="javascript-hero">
         <div className="javascript-hero-content">
-          <div className="course-badge">
-            <span className="badge-text">BEGINNER</span>
-            <span className="badge-text">COURSE</span>
+          <div className="javascript-hero-badge">
+            <span className="javascript-badge-text">BEGINNER</span>
+            <span className="javascript-badge-text">COURSE</span>
           </div>
-          <h1 className="javascript-hero-title">JavaScript</h1>
+          <h1 className="javascript-hero-title">JavaScript ES6+</h1>
           <p className="javascript-hero-description">
-            Create interactive web experiences with JavaScript. Learn DOM
-            manipulation, events, and modern ES6+ features.
+            Create interactive web experiences with JavaScript. Learn DOM manipulation, events, and modern ES6+ features.
           </p>
-          <button className="start-learning-btn">
-            Start Learning for Free
-          </button>
+          <button className="start-learning-btn">Start Learning for Free</button>
         </div>
       </section>
 
