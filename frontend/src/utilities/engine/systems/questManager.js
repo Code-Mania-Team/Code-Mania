@@ -3,13 +3,8 @@ export default class QuestManager {
     this.scene = scene;
     this.quests = quests;
 
-<<<<<<< HEAD
-    const saved = JSON.parse(localStorage.getItem("completedQuests") || "[]");
-    saved.forEach(id => {
-=======
     this.completedQuestIds = new Set(completedQuestIds);
     this.completedQuestIds.forEach(id => {
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
       const q = this.getQuestById(id);
       if (q) q.completed = true;
     });
@@ -64,10 +59,7 @@ export default class QuestManager {
     if (!quest || quest.completed) return;
 
     quest.completed = true;
-<<<<<<< HEAD
-=======
     this.completedQuestIds.add(id);
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
     const completed = JSON.parse(localStorage.getItem("completedQuests") || "[]");
     if (!completed.includes(id)) {

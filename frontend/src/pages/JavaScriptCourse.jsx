@@ -5,17 +5,14 @@ import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
-<<<<<<< HEAD
 
 // Import JavaScript course badges
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
 import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
 import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
-=======
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
@@ -28,15 +25,8 @@ const JavaScriptCourse = () => {
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-<<<<<<< HEAD
-  const [completedExercises, setCompletedExercises] = useState([]);
-  const [showTutorial, setShowTutorial] = useState(false);
-
-  // Tutorial will be shown only when clicking Start button
-=======
   const [showTutorial, setShowTutorial] = useState(false);
   const [data, setData] = useState();
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
   /* ===============================
      LOAD PROGRESS (PYTHON LOGIC)
@@ -88,23 +78,6 @@ const JavaScriptCourse = () => {
     setIsModalOpen(false);
   };
 
-<<<<<<< HEAD
-  const handleStartExercise = (moduleId, exerciseName) => {
-    // Check if tutorial should be shown before starting first exercise
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    
-    if (isAuthenticated && !hasSeenTutorial) {
-      setShowTutorial(true);
-    }
-    
-    localStorage.setItem('hasTouchedCourse', 'true');
-    localStorage.setItem('lastCourseTitle', 'JavaScript');
-    localStorage.setItem('lastCourseRoute', '/learn/javascript');
-    const exercise = modules[moduleId - 1].exercises.find(e => e.name === exerciseName);
-    const globalExerciseId = (moduleId - 1) * 4 + exercise.id;
-    navigate(`/learn/javascript/exercise/${globalExerciseId}`);
-=======
   const userProgress = {
     name: user?.username || "Guest",
     level: 1,
@@ -133,7 +106,6 @@ const JavaScriptCourse = () => {
         completedQuests: Array.from(completedExercises),
       },
     });
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
   };
 
   const toggleModule = (moduleId) => {
@@ -155,43 +127,9 @@ const JavaScriptCourse = () => {
     return <Circle className="status-icon available" />;
   };
 
-<<<<<<< HEAD
-  // Calculate exercise status based on completed exercises
-  const getExerciseStatus = (moduleIndex, exercise) => {
-    // Calculate global exercise ID: (moduleIndex * 4) + exercise.id
-    const exerciseId = (moduleIndex * 4) + exercise.id;
-    
-    if (completedExercises.includes(exerciseId)) {
-      return "completed";
-    }
-    
-    // First exercise is always available
-    if (exerciseId === 1) {
-      return "available";
-    }
-    
-    // Check if previous exercise is completed
-    const previousExerciseId = exerciseId - 1;
-    if (completedExercises.includes(previousExerciseId)) {
-      return "available";
-    }
-    
-    return "locked";
-  };
-
-  // Update user progress based on completed exercises
-  const updatedUserProgress = {
-    exercisesCompleted: completedExercises.length,
-    totalExercises: 17,
-    xpEarned: completedExercises.length * 225, // 225 XP per exercise
-    totalXp: 3825
-  };
-
-=======
   /* ===============================
      COURSE STRUCTURE (UNCHANGED)
   =============================== */
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
   const modules = [
     {
       id: 1,
@@ -211,19 +149,11 @@ const JavaScriptCourse = () => {
       description:
         "Master functions, parameters, and understand variable scope in JavaScript.",
       exercises: [
-<<<<<<< HEAD
-        { id: 5, name: "Function Basics", status: "locked" },
-        { id: 6, name: "Parameters & Arguments", status: "locked" },
-        { id: 7, name: "Return Values", status: "locked" },
-        { id: 8, name: "Arrow Functions", status: "locked" }
-      ]
-=======
         { id: 5, name: "Function Basics" },
         { id: 6, name: "Parameters & Arguments" },
         { id: 7, name: "Return Values" },
         { id: 8, name: "Arrow Functions" },
       ],
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     },
     {
       id: 3,
@@ -231,19 +161,11 @@ const JavaScriptCourse = () => {
       description:
         "Learn to work with arrays and objects to store and manipulate complex data.",
       exercises: [
-<<<<<<< HEAD
-        { id: 9, name: "Arrays", status: "locked" },
-        { id: 10, name: "Array Methods", status: "locked" },
-        { id: 11, name: "Objects", status: "locked" },
-        { id: 12, name: "Object Methods", status: "locked" }
-      ]
-=======
         { id: 9, name: "Arrays" },
         { id: 10, name: "Array Methods" },
         { id: 11, name: "Objects" },
         { id: 12, name: "Object Methods" },
       ],
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     },
     {
       id: 4,
@@ -251,35 +173,19 @@ const JavaScriptCourse = () => {
       description:
         "Interact with web pages by manipulating the Document Object Model.",
       exercises: [
-<<<<<<< HEAD
-        { id: 13, name: "Selecting Elements", status: "locked" },
-        { id: 14, name: "Modifying Content", status: "locked" },
-        { id: 15, name: "Event Listeners", status: "locked" },
-        { id: 16, name: "Dynamic Styling", status: "locked" }
-      ]
-=======
         { id: 13, name: "Selecting Elements" },
         { id: 14, name: "Modifying Content" },
         { id: 15, name: "Event Listeners" },
         { id: 16, name: "Dynamic Styling" },
       ],
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     },
     {
       id: 5,
       title: "Examination",
-<<<<<<< HEAD
-      description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
-      exercises: [
-        { id: 17, name: "JavaScript Exam", status: "locked" }
-      ]
-    }
-=======
       description:
         "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
       exercises: [{ id: 17, name: "JavaScript Exam" }],
     },
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
   ];
 
   return (
@@ -435,17 +341,6 @@ const JavaScriptCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-<<<<<<< HEAD
-      
-      {/* Tutorial Popup */}
-      {showTutorial && (
-        <TutorialPopup 
-          open={showTutorial} 
-          onClose={() => {
-            setShowTutorial(false);
-            localStorage.setItem('hasSeenTutorial', 'true');
-          }} 
-=======
 
       {showTutorial && (
         <TutorialPopup
@@ -454,7 +349,6 @@ const JavaScriptCourse = () => {
             setShowTutorial(false);
             localStorage.setItem("hasSeenTutorial", "true");
           }}
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
         />
       )}
     </div>

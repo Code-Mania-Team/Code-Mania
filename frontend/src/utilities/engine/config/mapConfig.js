@@ -364,39 +364,11 @@ export const MAPS = {
       mapKey: "cpp_map3",
       mapJson: "/assets/maps/Cpp/cpp_map3.json",
       tilesets: [
-<<<<<<< HEAD
-        {
-          name: "pika_nos_in_tiles01_A5_2",
-          key: "pika_nos_in_tiles01_A5_2",
-          image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png"
-        },
-        {
-          name: "pika_nos_tiles02_B",
-          key: "pika_nos_tiles02_B",
-          image: "/assets/tilesets/Cpp/pika_nos_tiles02_B.png"
-        },
-        {
-          name: "MordernOuter_Outdoor",
-          key: "MordernOuter_Outdoor",
-          image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png"
-        },
-        {
-          name: "NightClub_A2",
-          key: "NightClub_A2",
-          image: "/assets/tilesets/Cpp/NightClub_A2.png"
-        },
-        {
-          name: "Commu-ditie3",
-          key: "Commu-ditie3",
-          image: "/assets/tilesets/Python/Commu-ditie3.png"
-        }
-=======
         { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" },
         { name: "pika_nos_tiles02_B", key: "pika_nos_tiles02_B", image: "/assets/tilesets/Cpp/pika_nos_tiles02_B.png" },
         { name: "MordernOuter_Outdoor", key: "MordernOuter_Outdoor", image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png" },
         { name: "NightClub_A2", key: "NightClub_A2", image: "/assets/tilesets/Cpp/NightClub_A2.png" },
         { name: "Commu-ditie3", key: "Commu-ditie3", image: "/assets/tilesets/Python/Commu-ditie3.png" }
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
       ],
       nextMap: "map4"
     },
@@ -412,7 +384,6 @@ export const MAPS = {
         { name: "MordernOuter_Outdoor", key: "MordernOuter_Outdoor", image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png" },
         { name: "BlackCom_Inside_B", key: "BlackCom_Inside_B", image: "/assets/tilesets/Cpp/BlackCom_Inside_B.png" }
       ],
-<<<<<<< HEAD
       nextMap: "map5"
     },
     map5: {
@@ -490,8 +461,6 @@ export const MAPS = {
           image: "/assets/tilesets/Cpp/pika_nos_tiles02_C.png"
         }
       ],
-=======
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
       nextMap: null
     }
   }

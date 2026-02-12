@@ -23,11 +23,8 @@ import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
 import QuestValidator from "../systems/questValidator";
-<<<<<<< HEAD
-=======
 import { postGameProgress } from "../../../services/postGameProgress";
 
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
@@ -40,12 +37,6 @@ export default class GameScene extends Phaser.Scene {
     
     // Map language names to MAPS keys
     this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
-<<<<<<< HEAD
-
-    // Map ID passed from previous scene, or fall back to localStorage, or default to map1
-    const storedMapId = localStorage.getItem("currentMapId");
-    this.currentMapId = data?.mapId || storedMapId || "map1";
-=======
 
     // Map ID passed from previous scene, or fall back to localStorage, or default to map1
     if (data?.exerciseId) {
@@ -56,7 +47,6 @@ export default class GameScene extends Phaser.Scene {
         localStorage.getItem("currentMapId") || "map1";
     }
 
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
     // Access mapData based on language
     this.mapData = MAPS[this.language][this.currentMapId];
@@ -200,14 +190,9 @@ export default class GameScene extends Phaser.Scene {
     });
 
   }
-<<<<<<< HEAD
-  onQuestComplete = (e) => {
-    const questId = e.detail?.questId;
-=======
   onQuestComplete = async (e) => {
     const questId = e.detail?.questId;
     console.log("questId", questId);
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     if (!questId) return;
 
     const quest = this.questManager.getQuestById(questId);
@@ -215,18 +200,13 @@ export default class GameScene extends Phaser.Scene {
 
     const gainedExp = quest.experience || 0;
 
-<<<<<<< HEAD
-=======
     console.log("LANGUAGE BEING SENT:", localStorage.getItem("lastCourseTitle"));
 
 
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     // 🎒 Grant ability (if any)
     if (quest.grants) {
       this.worldState.abilities.add(quest.grants);
     }
-<<<<<<< HEAD
-=======
     try {
       await postGameProgress({
         questId: quest.id,
@@ -240,7 +220,6 @@ export default class GameScene extends Phaser.Scene {
       console.error("❌ save failed", err);
     }
 
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
     // ✅ ALWAYS show quest completed toast
     this.questCompleteToast.show({

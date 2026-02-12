@@ -27,8 +27,6 @@ const PythonCourse = () => {
   const [showTutorial, setShowTutorial] = useState(false);
 
   // Tutorial will be shown only when clicking Start button
-<<<<<<< HEAD
-=======
   const { exerciseId } = useParams();
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
@@ -52,7 +50,6 @@ const PythonCourse = () => {
     loadProgress();
   }, [isAuthenticated]);
 
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
 
   const onOpenModal = () => {
     setIsModalOpen(true);
@@ -70,22 +67,6 @@ const PythonCourse = () => {
     }
   };
 
-<<<<<<< HEAD
-  const handleStartExercise = (moduleId, exerciseName) => {
-    // Check if tutorial should be shown before starting first exercise
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    
-    if (isAuthenticated && !hasSeenTutorial) {
-      setShowTutorial(true);
-    }
-    
-    localStorage.setItem('hasTouchedCourse', 'true');
-    localStorage.setItem('lastCourseTitle', 'Python');
-    localStorage.setItem('lastCourseRoute', '/learn/python');
-    const exerciseId = exerciseName.toLowerCase().replace(/\s+/g, '-');
-    navigate(`/learn/python/exercise/${moduleId}-${exerciseId}`);
-=======
   const getExerciseStatus = (exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
 
@@ -95,7 +76,6 @@ const PythonCourse = () => {
     }
 
     return "locked";
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
   };
 
   const handleStartExercise = (exerciseId) => {

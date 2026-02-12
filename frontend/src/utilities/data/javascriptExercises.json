@@ -12,15 +12,9 @@
       "\"Welcome to JavaScript Town.\"",
       "Something here once made everything alive."
     ],
-<<<<<<< HEAD
     "lessonExample": "console.log(\"Welcome to JavaScript!\")",
     "startingCode": "",
     "hints": ["Use console.log() to print output.", "Your code should run without errors."],
-=======
-    "lessonExample": "console.log(\"Hello, JS!\");",
-    "startingCode": "console.log();",
-    "hints": ["Use console.log()."],
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello, JS!"
   },
@@ -30,7 +24,6 @@
     "validationMode": "HYBRID",
     "experience": 100,
     "lessonHeader": "🖥️ Console Output",
-<<<<<<< HEAD
     "description": "When you are working with a programming language, you want to execute some logic and then see the output, or display the final output. Right?, In JavaScript, to display output,  The console.log()function can be used multiple times to print different outputs to the console in sequence.",
     "task": "Print 'Hello' on the first line and 'World!' on the second line using console.log().",
     "lessonExample": "console.log(\"Hello World!\")\nconsole.log(\"Welcome to JavaScript!\")",
@@ -42,13 +35,6 @@
     ],
     "startingCode": "",
     "hints": ["Put your message inside the parentheses.", "Remember to wrap text in quotes."],
-=======
-    "description": "Use console.log multiple times.",
-    "task": "Print 'Hello' and 'World!' on separate lines.",
-    "lessonExample": "console.log(\"Hello\");\nconsole.log(\"World!\");",
-    "startingCode": "console.log();",
-    "hints": ["Use console.log twice."],
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     "requirements": { "mustInclude": ["console.log"] },
     "expectedOutput": "Hello\nWorld!",
     "grants": "torch"
@@ -59,7 +45,6 @@
     "validationMode": "HYBRID",
     "experience": 100,
     "lessonHeader": "📦 Variables",
-<<<<<<< HEAD
     "description": "A variable in JavaScript is a named memory space that is used to store a value. A variable is like a container in which you can store any data or value. Use var, let, or const to create variables.",
     "task": "Create three variables named playerName, score, and isOnline. Assign them the values 'Nova', 120, and false. Then change isOnline to true and print all three variables to the console on separate lines.",
     "lessonExample": "let heroName = \"Jet\";\nlet heroLevel = 5;\n\nheroLevel = 6;\n\nconsole.log(heroName);\nconsole.log(heroLevel);",
@@ -80,15 +65,6 @@
       "For the first time, the town recognizes you."
     ]
 
-=======
-    "description": "Store values using let.",
-    "task": "Create playerName='Nova', score=120, isOnline=true. Print them.",
-    "lessonExample": "let playerName=\"Nova\";\nlet score=120;\nlet isOnline=true;",
-    "startingCode": "",
-    "hints": ["Use let.", "Print each variable."],
-    "requirements": { "mustInclude": ["let", "console.log"] },
-    "expectedOutput": "Nova\n120\ntrue"
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
   },
   {
     "id": 4,
@@ -97,7 +73,6 @@
     "experience": 100,
     "badgeKey": "JS_STAGE_1",
     "lessonHeader": "📊 Data Types",
-<<<<<<< HEAD
     "description": "In a programmer’s adventure, a variable is like a chest, and the data type is the magic that controls it. It decides what kind of treasure can be stored inside and how much space the chest has. Choosing the right data type keeps your journey safe and your program strong. JavaScript supports different data types such as strings, numbers, and booleans.",
     "task": "Create three variables named userName, lives, and hasKey. Assign them the values 'Aria', 3, and false. Print all three values to the console on separate lines.",
     "lessonExample": "//string data type\n let name = \"jet\"\n\n// number data type\nlet score = 100;\n\n// boolean data type\nlet isGameOver = false;\n\nconsole.log(score);\nconsole.log(isGameOver);",
@@ -111,22 +86,13 @@
       "mustInclude": ["let", "console.log"]
     },
     "expectedOutput": "Aria\n3\nfalse",
-    "badgeKey": "JS_STAGE_1",
+
     "dialogue": [
       "You start to see patterns in the town’s thoughts.",
       "Numbers. Truths. Words.",
       "Each idea has a different shape.",
       "Now you understand how the town thinks."
     ]
-=======
-    "description": "Strings, numbers, booleans.",
-    "task": "Create userName='Aria', lives=3, hasKey=false. Print them.",
-    "lessonExample": "let userName=\"Aria\";\nlet lives=3;\nlet hasKey=false;",
-    "startingCode": "",
-    "hints": ["Wrap strings in quotes."],
-    "requirements": { "mustInclude": ["let", "console.log"] },
-    "expectedOutput": "Aria\n3\nfalse"
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
   },
   {
     "id": 5,
@@ -134,25 +100,16 @@
     "validationMode": "HYBRID",
     "experience": 100,
     "lessonHeader": "🔧 Functions",
-<<<<<<< HEAD
     "description": "Functions are reusable code blocks designed to perform a particular task. At its core, a function is simply a way for the creator (you), to package a set of instructions that can be called at-will to do a task. Learn how to define and call functions in JavaScript.",
     "task": "Create a function named showMessage that prints 'Welcome!' to the console. Call the function twice.",
     "lessonExample": "// defining a function\nfunction greet() {\n  console.log(\"Hello!\");\n}\n\n// calling the function\ngreet();",
     "startingCode": "function showMessage() {\n  console.log(\"Welcome!\");\n}\n\n// call the function twice\nshowMessage();\nshowMessage();",    
     "hints": ["Use function keyword.", "Call the function after defining it."],
-=======
-    "description": "Define and call functions.",
-    "task": "Create showMessage() that prints 'Welcome!' and call it twice.",
-    "lessonExample": "function showMessage(){console.log(\"Welcome!\");}",
-    "startingCode": "",
-    "hints": ["Use function keyword."],
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     "requirements": { "mustInclude": ["function", "console.log"] },
     "expectedOutput": "Welcome!\nWelcome!",
     "grants": "key"
   },
   {
-<<<<<<< HEAD
     "id": 6,        
     "title": "Parameters & Arguments",
     "lessonHeader": "📦 Function Parameters",
@@ -161,18 +118,6 @@
     "lessonExample": "// function with a parameter\nfunction greet(name) {\n  console.log(\"Hello \" + name);\n}\n\n// calling the function with an argument\ngreet(\"Alex\");",
     "startingCode": "function greet(name) {\n  console.log(\"Hello \" + name);\n}\n\n// call the function here\ngreet(\"Jet\");",
     "hints": ["Define a parameter in the function.", "Use it inside console.log."],
-=======
-    "id": 6,
-    "title": "Parameters",
-    "validationMode": "HYBRID",
-    "experience": 100,
-    "lessonHeader": "📦 Parameters",
-    "description": "Pass arguments to functions.",
-    "task": "Create greet(name) that prints 'Hello ' + name. Call with 'Jet'.",
-    "lessonExample": "function greet(name){console.log(\"Hello \"+name);} greet(\"Jet\");",
-    "startingCode": "",
-    "hints": ["Call greet(\"Jet\");"],
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
     "requirements": { "mustInclude": ["function", "console.log"] },
     "expectedOutput": "Hello Jet"
   },
