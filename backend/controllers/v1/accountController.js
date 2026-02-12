@@ -196,17 +196,17 @@ class AccountController {
 
     async setUsernameAndCharacter(req, res) {
 
-        const { username, character_id } = req.body || {};
+        const { username, character_id, full_name } = req.body || {};
 
         const user_id = res.locals.user_id;
 
-        if (!user_id || !username) return res.status(400).json({ success: false, message: "User ID and username are required" });
+        if (!user_id || !username) return res.status(400).json({ success: false, message: "User ID and username are required (full name is optional)" });
 
 
 
         try {
 
-            const updated = await this.user.setUsernameandCharacter(user_id, username, character_id);
+            const updated = await this.user.setUsernameandCharacter(user_id, username, character_id, full_name);
 
             if (!updated) 
 
@@ -214,7 +214,7 @@ class AccountController {
 
                     success: false, 
 
-                    message: "Failed to set username and character" 
+                    message: "Failed to set username, character, and full name" 
 
                 });
 
@@ -230,7 +230,7 @@ class AccountController {
 
                 success: true,
 
-                message: "Username set successfully",
+                message: "Username, character, and full name set successfully",
 
                 accessToken, // frontend updates memory
 

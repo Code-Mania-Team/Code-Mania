@@ -82,13 +82,13 @@ class User {
     
 
     // ONE-TIME USERNAME SETUP
-    async setUsernameandCharacter(user_id, username, character_id) {
+    async setUsernameandCharacter(user_id, username, character_id, full_name) {
         const { data, error } = await this.db
             .from("users")
-            .update({ username, character_id })
+            .update({ username, character_id, full_name })
             .eq("user_id", user_id)
             .select();
-        console.log("SET USERNAME AND CHARACTER DATA:", data);
+     
         if (error) throw error;
         return data;
     }
