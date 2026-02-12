@@ -33,7 +33,7 @@ const CppCourse = () => {
     exercisesCompleted: 0,
     totalExercises: 16,
     xpEarned: 0,
-    totalXp: 3600
+    totalXp: 2600
   };
 
   const modules = [

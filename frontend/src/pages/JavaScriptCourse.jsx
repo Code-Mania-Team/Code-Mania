@@ -80,7 +80,7 @@ const JavaScriptCourse = () => {
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: data?.xpEarned || 0,
-    totalXp: 3600
+    totalXp: 2600
   };
 
   const handleStartExercise = (exerciseId) => {
