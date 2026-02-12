@@ -8,7 +8,7 @@ class GameData {
     async getUserGameData(user_id, programming_language) {
         const { data, error } = await this.db
             .from("users_game_data")
-            .select("exercise_id")
+            .select("exercise_id, xp_earned, programming_language")
             .eq("user_id", user_id)
             .eq("programming_language", programming_language);
 

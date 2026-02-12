@@ -23,6 +23,7 @@ class UserGameDataController {
             user_id,
             programming_language
             );
+            
 
             if (!Array.isArray(rows)) {
             rows = rows ? [rows] : [];

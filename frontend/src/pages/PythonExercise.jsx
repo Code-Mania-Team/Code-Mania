@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import {  useLocation } from "react-router-dom";
 
 import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
@@ -12,20 +12,19 @@ import styles from "../styles/PythonExercise.module.css";
 import { startGame } from "../utilities/engine/main.js";
 import pythonExercises from "../utilities/data/pythonExercises.json";
 import mobileFrame from "../assets/mobile.png";
+import useGetGameProgress from "../services/getGameProgress.js";
 
 const PythonExercise = ({ isAuthenticated }) => {
-  const { exerciseId } = useParams();
   const location = useLocation();
-  const completedQuests =
-  location.state?.completedQuests ?? [];
+  const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
+  const getGameProgress = useGetGameProgress();
+
 
   /* ===============================
      QUEST / LESSON STATE
   =============================== */
-  const [activeExerciseId, setActiveExerciseId] = useState(() => {
-    const id = Number(exerciseId);
-    return Number.isFinite(id) && id > 0 ? id : 1;
-  });
+  const [activeExerciseId, setActiveExerciseId] = useState(1);
+
   const [showTutorial, setShowTutorial] = useState(false);
 
   const activeExercise = useMemo(() => {
@@ -48,6 +47,23 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    const loadProgress = async () => {
+        const result = await getGameProgress("Python");
+        console.log("Loaded progress:", result);
+        if (result?.completedQuests) {
+          setDbCompletedQuests(result.completedQuests);
+
+          const nextExercise = result.completedQuests.length + 1;
+          setActiveExerciseId(nextExercise);
+        }
+
+      };
+
+      loadProgress();
+  }, []);
+
 
   /* =====================================================
      🔑 GLOBAL KEYBOARD INTERCEPT (PHASER SAFE)
@@ -94,11 +110,13 @@ const PythonExercise = ({ isAuthenticated }) => {
       setShowTutorial(true);
     }
 
-    // 🔥 THIS IS THE ONLY CORRECT WAY
+    if (!dbCompletedQuests) return;
+    console.log("🎯 Starting game with completed quests:", dbCompletedQuests);
+
     startGame({
       exerciseId: activeExerciseId,
-      parent: "phaser-container",
-      completedQuests,
+      completedQuests: dbCompletedQuests,
+      parent: "phaser-container"
     });
 
     const onQuestStarted = (e) => {
@@ -130,7 +148,7 @@ const PythonExercise = ({ isAuthenticated }) => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
     };
-  }, [activeExerciseId]);
+  }, [activeExerciseId, dbCompletedQuests]);
 
 
   /* ===============================

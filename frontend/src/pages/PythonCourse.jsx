@@ -12,7 +12,7 @@ const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v176793
 
 const PythonCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
   const [completedExercises, setCompletedExercises] = useState(new Set());
 
@@ -23,12 +23,15 @@ const PythonCourse = () => {
   // Tutorial will be shown only when clicking Start button
   const { exerciseId } = useParams();
   const numericExerciseId = Number(exerciseId);
+  const [data, setData] = useState();
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const loadProgress = async () => {
       try {
         const result = await getGameProgress("Python");
+
+        setData(result);
 
         if (result?.completedQuests) {
           setCompletedExercises(new Set(result.completedQuests));
@@ -82,22 +85,18 @@ const PythonCourse = () => {
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
     // 🔥 PASS THE REAL EXERCISE ID
-    navigate(`/learn/python/exercise/${exerciseId}`, {
-      state: {
-        completedQuests: Array.from(completedExercises),
-      },
-    });
+    navigate(`/learn/python/exercise/play`);
   };
 
 
   const userProgress = {
-    name: localStorage.getItem('username') || 'Your Name',
+    name: user?.username || "Guest",
     level: 1,
-    exercisesCompleted: 0,
+    exercisesCompleted: data?.completedQuests?.length || 0,
     totalExercises: 16,
     projectsCompleted: 0,
     totalProjects: 2,
-    xpEarned: 0,
+    xpEarned: data?.xpEarned || 0,
     totalXp: 3600
   };
 
