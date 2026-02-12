@@ -90,7 +90,7 @@ const PythonCourse = () => {
     localStorage.setItem("lastCourseTitle", "Python");
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
-    // 🔥 PASS THE REAL EXERCISE ID
+    // PASS THE REAL EXERCISE ID
     navigate(`/learn/python/exercise/play`);
   };
 
@@ -180,9 +180,9 @@ const PythonCourse = () => {
       {/* Hero Section */}
       <section className="python-hero">
         <div className="python-hero-content">
-          <div className="python-hero-badge">
-            <span className="python-badge-text">BEGINNER</span>
-            <span className="python-badge-text">COURSE</span>
+          <div className="course-badge">
+            <span className="badge-text">BEGINNER</span>
+            <span className="badge-text">COURSE</span>
           </div>
           <h1 className="python-hero-title">Python</h1>
           <p className="python-hero-description">

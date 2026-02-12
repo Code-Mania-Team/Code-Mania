@@ -8,6 +8,12 @@ import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 
+// Import JavaScript course badges
+import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
+import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
+import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
+import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
+
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -183,11 +189,11 @@ const JavaScriptCourse = () => {
       {/* Hero Section */}
       <section className="javascript-hero">
         <div className="javascript-hero-content">
-          <div className="javascript-hero-badge">
-            <span className="javascript-badge-text">BEGINNER</span>
-            <span className="javascript-badge-text">COURSE</span>
+          <div className="course-badge">
+            <span className="badge-text">BEGINNER</span>
+            <span className="badge-text">COURSE</span>
           </div>
-          <h1 className="javascript-hero-title">JavaScript ES6+</h1>
+          <h1 className="javascript-hero-title">JavaScript</h1>
           <p className="javascript-hero-description">
             Create interactive web experiences with JavaScript. Learn DOM
             manipulation, events, and modern ES6+ features.

@@ -131,9 +131,9 @@ const CppCourse = () => {
       {/* Hero Section */}
       <section className="cpp-hero">
         <div className="cpp-hero-content">
-          <div className="cpp-hero-badge">
-            <span className="cpp-badge-text">BEGINNER</span>
-            <span className="cpp-badge-text">COURSE</span>
+          <div className="course-badge">
+            <span className="badge-text">BEGINNER</span>
+            <span className="badge-text">COURSE</span>
           </div>
           <h1 className="cpp-hero-title">C++</h1>
           <p className="cpp-hero-description">
