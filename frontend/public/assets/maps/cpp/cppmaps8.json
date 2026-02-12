@@ -167,7 +167,7 @@
         {
          "columns":16,
          "firstgid":1,
-         "image":"ModernCity_A2.png",
+         "image":"..\/..\/tilesets\/Cpp\/ModernCity_A2.png",
          "imageheight":576,
          "imagewidth":768,
          "margin":0,
@@ -180,7 +180,7 @@
         {
          "columns":16,
          "firstgid":193,
-         "image":"SP_Outside_A2.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_A2.png",
          "imageheight":576,
          "imagewidth":768,
          "margin":0,
@@ -193,7 +193,7 @@
         {
          "columns":16,
          "firstgid":385,
-         "image":"SP_Outside_D.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_D.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
@@ -206,7 +206,7 @@
         {
          "columns":8,
          "firstgid":641,
-         "image":"SP_Outside_A5b.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_A5b.png",
          "imageheight":768,
          "imagewidth":384,
          "margin":0,
@@ -219,7 +219,7 @@
         {
          "columns":16,
          "firstgid":769,
-         "image":"SP_Outside_A3.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_A3.png",
          "imageheight":384,
          "imagewidth":768,
          "margin":0,
@@ -232,7 +232,7 @@
         {
          "columns":16,
          "firstgid":897,
-         "image":"SP_Outside_A3.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_A3.png",
          "imageheight":384,
          "imagewidth":768,
          "margin":0,
@@ -245,7 +245,7 @@
         {
          "columns":16,
          "firstgid":1025,
-         "image":"SP_Outside_A4.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_A4.png",
          "imageheight":720,
          "imagewidth":768,
          "margin":0,
@@ -258,7 +258,7 @@
         {
          "columns":16,
          "firstgid":1265,
-         "image":"FutsuCity_B.png",
+         "image":"..\/..\/tilesets\/Cpp\/FutsuCity_B.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
@@ -271,7 +271,7 @@
         {
          "columns":16,
          "firstgid":1521,
-         "image":"SP_Outside_B.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_B.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
@@ -284,7 +284,7 @@
         {
          "columns":16,
          "firstgid":1777,
-         "image":"ModernCity_C_Night_High.png",
+         "image":"..\/..\/tilesets\/Cpp\/ModernCity_C_Night_High.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
@@ -297,7 +297,7 @@
         {
          "columns":16,
          "firstgid":2033,
-         "image":"ModernCity_B.png",
+         "image":"..\/..\/tilesets\/Cpp\/ModernCity_B.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
@@ -310,7 +310,7 @@
         {
          "columns":16,
          "firstgid":2289,
-         "image":"pika_nos_in_tiles01_D.png",
+         "image":"..\/..\/tilesets\/Cpp\/pika_nos_in_tiles01_D.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
@@ -323,7 +323,7 @@
         {
          "columns":16,
          "firstgid":2545,
-         "image":"ModernCity_D.png",
+         "image":"..\/..\/tilesets\/Cpp\/ModernCity_D.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
@@ -336,7 +336,7 @@
         {
          "columns":16,
          "firstgid":2801,
-         "image":"FutsuCity_A4_mask.png",
+         "image":"..\/..\/tilesets\/Cpp\/FutsuCity_A4_mask.png",
          "imageheight":720,
          "imagewidth":768,
          "margin":0,
@@ -349,7 +349,7 @@
         {
          "columns":8,
          "firstgid":3041,
-         "image":"SP_Inside_A5.png",
+         "image":"..\/..\/tilesets\/Cpp\/SP_Inside_A5.png",
          "imageheight":768,
          "imagewidth":384,
          "margin":0,
