@@ -5,7 +5,7 @@
     "validationMode": "FUNDAMENTALS",
     "experience": 100,
     "lessonHeader": "🌐 Introduction to JavaScript",
-    "description": "JavaScript is a versatile, high-level programming language primarily used to make web pages interactive and dynamic. It allows developers to create engaging user interfaces, handle user input, and communicate with servers. JavaScript is an essential language for front-end web development, working alongside HTML and CSS. Originally developed in 1995 by Brendan Eich, JavaScript has grown to power websites, web apps, mobile apps, and even server-side applications with Node.js. With its widespread adoption, modern JavaScript supports advanced features such as object-oriented programming, asynchronous operations, and functional programming concepts.",
+    "description": "JavaScript is a versatile, high-level programming language primarily used to make web pages interactive and dynamic. It allows developers to create engaging user interfaces, handle user input, and communicate with servers. JavaScript is an essential language for front-end web development, working alongside HTML and CSS. Originally developed in 1995 by Brendan Eich, JavaScript has grown to power websites, web apps, mobile apps, and even server-side applications with Node.js. With its widespread adoption, modern JavaScript supports advanced features such as object-oriented programming, asynchronous operations, and functional programming concepts.\n\n Try:",
     "task": "Print 'Hello, JS!' using console.log().",
     "dialogue": [
       "A wooden sign creaks at the town gate.",
@@ -110,6 +110,7 @@
     "title": "Arrow Functions",
     "validationMode": "HYBRID",
     "experience": 100,
+    "badgeKey": "JS_STAGE_2",
     "lessonHeader": "➡️ Arrow Functions",
     "description": "Arrow functions are a modern and shorter way to write functions in JavaScript. They use the `=>` syntax and are commonly used in modern applications. Arrow functions are especially useful for quick operations and callbacks. In this lesson, you'll rewrite a traditional function using arrow syntax.",
     "task": "Create arrow function welcome(user) printing 'Welcome ' + user. Call with 'Jet'.",
@@ -130,7 +131,7 @@
     "lessonExample": "let fruits=[\"Apple\",\"Banana\",\"Orange\"]; console.log(fruits[1]);",
     "startingCode": "",
     "hints": ["Index starts at 0."],
-    "requirements": { "mustInclude": ["[]", "console.log"] },
+    "requirements": { "mustInclude": ["[1]", "console.log"] },
     "expectedOutput": "Banana"
   },
   {
@@ -145,7 +146,7 @@
     "startingCode": "",
     "hints": ["Use pop()."],
     "requirements": { "mustInclude": ["pop", "console.log"] },
-    "expectedOutput": "[1,2]"
+    "expectedOutput": "1, 2"
   },
   {
     "id": 11,
@@ -166,6 +167,7 @@
     "title": "Object Methods",
     "validationMode": "HYBRID",
     "experience": 100,
+    "badgeKey": "JS_STAGE_3",
     "lessonHeader": "🔧 Object Methods",
     "description": "Objects can contain not only data but also functions. When a function is inside an object, it is called a method. Methods allow objects to perform actions. In this lesson, you'll create an object with a method and call it to execute its behavior.",
     "task": "Create robot with speak() printing 'Beep!'. Call it.",
@@ -222,7 +224,7 @@
     "title": "Dynamic Styling",
     "validationMode": "HYBRID",
     "experience": 100,
-    "badgeKey": "JS_STAGE_2",
+    "badgeKey": "JS_STAGE_4",
     "lessonHeader": "🎨 Dynamic Styling",
     "description": "JavaScript can modify CSS styles dynamically. By accessing the `style` property of an element, you can change colors, sizes, or layout instantly. This allows visual changes without editing CSS files directly. In this lesson, you'll change the color of an element using JavaScript.",
     "task": "Select h1 and change color to red.",
