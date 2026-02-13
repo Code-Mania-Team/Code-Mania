@@ -5,6 +5,7 @@ const useUserPost = () => {
 
   const userPost = async (content) => {
     try {
+      console.log("Post content:", content);
       const response = await axiosPrivate.post(
         "/v1/freedom-wall/",
         { content },
