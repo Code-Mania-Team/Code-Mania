@@ -70,6 +70,55 @@
          "y":0
         }, 
         {
+         "draworder":"topdown",
+         "id":16,
+         "name":"triggers",
+         "objects":[
+                {
+                 "height":0,
+                 "id":5,
+                 "name":"exit",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"down"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"exit"
+                        }, 
+                        {
+                         "name":"required_quest",
+                         "type":"int",
+                         "value":15
+                        }, 
+                        {
+                         "name":"target_map",
+                         "type":"string",
+                         "value":"map15"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_exit"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":600,
+                 "y":37.3333333333333
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "data":[481, 482, 483, 484, 473, 474, 475, 2147484132, 2147484131, 2147484130, 2147484129, 147, 147, 147, 485, 486, 487, 485, 486, 487,
             10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 147, 147, 147, 10, 10, 10, 10, 10, 10,
             10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 147, 147, 147, 10, 10, 10, 10, 10, 10,
@@ -379,8 +428,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":16,
- "nextobjectid":5,
+ "nextlayerid":17,
+ "nextobjectid":6,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
