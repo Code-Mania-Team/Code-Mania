@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/Aboutpage.css';
-import laptopImg from '../assets/laptop1.png';
+const laptopImg = "https://res.cloudinary.com/daegpuoss/image/upload/v1770949053/laptop1_ejnkeg.png";
 
 const About = () => {
   return (

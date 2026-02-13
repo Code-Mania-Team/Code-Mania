@@ -2,12 +2,14 @@
 import React from "react";
 import "../styles/AuthLoadingOverlay.css";
 
+const loadinglogo = "https://res.cloudinary.com/daegpuoss/image/upload/v1770949020/loading-logo_dlsmca.gif";
+
 const AuthLoadingOverlay = () => {
   return (
     <div className="auth-loading-overlay">
       <div className="auth-loading-box">
         <img 
-          src="/assets/loading-logo.gif" 
+          src={loadinglogo} 
           alt="Loading..." 
           className="loading-logo"
         />
