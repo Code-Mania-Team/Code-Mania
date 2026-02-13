@@ -334,6 +334,8 @@ export default class GameScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(100);
 
+    this.createPlayerArrow();
+
     // 🧱 COLLISIONS
     this.mapLoader.collisionLayers.forEach(layer => {
       this.physics.add.collider(this.player, layer);
@@ -519,7 +521,6 @@ export default class GameScene extends Phaser.Scene {
     });
 
 
-
     // Help button (always available)
     this.helpButton = new HelpButton(this, () => {
       this.helpManager.openHelp();
@@ -538,6 +539,18 @@ export default class GameScene extends Phaser.Scene {
     this.spawnChestQuestIcons();
 
   }
+  createPlayerArrow() {
+    // Use one of your arrow sprites (we'll rotate it dynamically)
+    this.playerArrow = this.add.sprite(0, 0, "arrow_up");
+    this.playerArrow.setDepth(99);
+    this.playerArrow.play("arrow-up");
+
+    // Anchor center
+    this.playerArrow.setOrigin(0.5);
+
+    this.playerArrow.setVisible(false);
+  }
+
 
   resizeCamera(gameSize) {
     const cam = this.cameras.main;
@@ -626,7 +639,82 @@ export default class GameScene extends Phaser.Scene {
       ? `walk-${this.lastDirection}`
       : `idle-${this.lastDirection}`;
     this.player.anims.play(anim, true);
+    this.updatePlayerArrow();
+
   }
+
+  updatePlayerArrow() {
+    if (!this.playerArrow || !this.player) return;
+
+    const target = this.getCurrentPointerTarget();
+
+    if (!target) {
+      this.playerArrow.setVisible(false);
+      return;
+    }
+
+    // 📏 Distance from player to target
+    const distance = Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y,
+      target.x,
+      target.y
+    );
+
+    const hideDistance = 100; // 👈 adjust this value
+
+    // 🔥 Hide arrow if close enough
+    if (distance <= hideDistance) {
+      this.playerArrow.setVisible(false);
+      return;
+    }
+
+    this.playerArrow.setVisible(true);
+
+    const angle = Phaser.Math.Angle.Between(
+      this.player.x,
+      this.player.y,
+      target.x,
+      target.y
+    );
+
+    const radius = 40;
+
+    this.playerArrow.setPosition(
+      this.player.x + Math.cos(angle) * radius,
+      this.player.y + Math.sin(angle) * radius
+    );
+
+    this.playerArrow.setRotation(angle + Math.PI / 2);
+  }
+
+
+
+  getCurrentPointerTarget() {
+    // 1️⃣ If any exit requires a completed quest → point to it
+    const exitZone = this.mapExits?.getChildren()?.find(zone => {
+      const requiredQuest = zone.exitData?.requiredQuest;
+      if (!requiredQuest) return false;
+
+      const quest = this.questManager.getQuestById(Number(requiredQuest));
+      return quest && quest.completed;
+    });
+
+    if (exitZone) return exitZone;
+
+    // 2️⃣ Otherwise point to first incomplete NPC quest
+    const npc = this.npcs?.find(n => {
+      const quest = this.questManager.getQuestById(n.npcData.questId);
+      return quest && !quest.completed;
+    });
+
+    if (npc) return npc;
+
+    return null;
+  }
+
+
+
 
 
   spawnChestQuestIcons() {
