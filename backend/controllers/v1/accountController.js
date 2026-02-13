@@ -695,37 +695,41 @@ class AccountController {
 
 
     async logout(req, res) {
-
         try {
+        const userId = res.locals?.user_id;
 
-        const userId = res.locals.user_id;
-
-
-
-        await this.userToken.invalidateByUserId(userId);
-
-
-
-        res.clearCookie("refreshToken", {
-
-            httpOnly: true,
-
-            secure: process.env.NODE_ENV === "production",
-
-            sameSite: "strict",
-
-        });
-
-
-
-        return res.status(200).json({ success: true, message: "Logged out" });
-
-        } catch (err) {
-
-        return res.status(500).json({ success: false, message: "Logout failed" });
-
+        if (userId) {
+            await this.userToken.invalidateByUserId(userId);
         }
 
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        return res.status(200).json({ success: true, message: "Logged out" });
+        } catch (err) {
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        return res.status(200).json({ success: true, message: "Logged out" });
+        }
     }
 
 }
