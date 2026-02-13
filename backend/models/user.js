@@ -1,37 +1,20 @@
 import { supabase } from "../core/supabaseClient.js";
 
-
-
 class User {
-
     constructor() {
-
         this.db = supabase;
-
     }
-
-
-
     // Helper: find user by email
 
     async findByEmail(email) {
-
         const { data } = await this.db
-
             .from("users") // can be users table or temp_user (this should be temp_users with "s")
-
-            .select("user_id, password, provider") // just select what column is needed, user_id, password, username are not necessary
-
+            .select("user_id, email, password, provider") // 
             .eq("email", email)
-
             .maybeSingle();
-
         return data;
-
     }
-
-
-
+    
     async findByEmailAndPasswordHash(email, password) {
 
         const { data, error } = await this.db
@@ -166,25 +149,17 @@ class User {
 
     // ONE-TIME USERNAME SETUP
 
-    async setUsernameandCharacter(user_id, username, character_id) {
-
+    async setUsernameandCharacter(user_id, username, character_id, full_name) {
         const { data, error } = await this.db
-
             .from("users")
-
-            .update({ username, character_id })
-
+            .update({ username, character_id, full_name })
             .eq("user_id", user_id)
-
             .select();
-
-        console.log("SET USERNAME AND CHARACTER DATA:", data);
-
+     
         if (error) throw error;
-
         return data;
-
     }
+
 
 
 
@@ -228,6 +203,17 @@ class User {
 
     }
 
+    async updatePassword(email, hashedPassword) {
+        const { data, error } = await this.db
+            .from("users")
+            .update({ password: hashedPassword })
+            .eq("email", email)
+            .select()
+            .maybeSingle();
+
+        if (error) throw error;
+        return data;
+    }
 
 
     async delete(user_id) {

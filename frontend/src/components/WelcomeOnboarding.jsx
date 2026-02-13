@@ -16,6 +16,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [selectedCharacter, setSelectedCharacter] = useState(0);
   const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
   const [usernameError, setUsernameError] = useState('');
 
   const onBoardUsername = useOnBoardUsername();
@@ -36,7 +37,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
     },
     {
       type: 'username-input',
-      message: "Looking good! What should I call you?",
+      message: "Looking good! What's your full name?",
       progress: 66
     },
     {
@@ -75,7 +76,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
       // }
       try {
         // Save to backend
-        const res = await onBoardUsername(username, characters[selectedCharacter].id);
+        const res = await onBoardUsername(username, characters[selectedCharacter].id, fullName);
         console.log("onBoardUsername response:", res);
         if (res.success) {
           localStorage.setItem("username", username);
@@ -240,10 +241,23 @@ const WelcomeOnboarding = ({ onComplete }) => {
                   </div>
                 )}
               </div>
+              <div className={styles.inputWrapper}>
+                <input
+                  type="text"
+                  className={`${styles.usernameInput} ${usernameError ? styles.error : ''}`}
+                  placeholder="Enter full name"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    setUsernameError('');
+                  }}
+                  maxLength={30}
+                />
+              </div>
             </div>
           )}
 
-          {/* Final Welcome */}
+          {/* Welcome */}
           {currentStep === 2 && (
             <div className={styles.welcomeSection}>
               <div className={styles.characterDisplay}>

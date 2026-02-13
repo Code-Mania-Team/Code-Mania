@@ -59,6 +59,7 @@ class ForgotPasswordController {
             }
 
             const updated = await this.forgotPasswordService.resetPassword(email, newPassword);
+            
             return res.status(200).json({
                 success: true,
                 message: "Password reset successfully",

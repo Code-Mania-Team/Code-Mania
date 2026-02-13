@@ -58,6 +58,9 @@ class ForgotPasswordService {
         console.log("temp_user_id to delete:", otpEntry.temp_user_id);
         await this.forgotPassword.deleteById(otpEntry.temp_user_id);
         const updated = await this.user.updatePassword(email, hashedPassword);
+        console.log("this.user:", this.user);
+        console.log("typeof updatePassword:", typeof this.user.updatePassword);
+
 
         if (!updated) throw new Error("Failed to update password");
 
