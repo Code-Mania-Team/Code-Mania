@@ -5,13 +5,11 @@ import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
-import MobileControls from "../components/MobileControls";
 import TutorialPopup from "../components/TutorialPopup";
 
 import styles from "../styles/PythonExercise.module.css";
 import { startGame } from "../utilities/engine/main.js";
 import pythonExercises from "../utilities/data/pythonExercises.json";
-import mobileFrame from "../assets/mobile.png";
 import useGetGameProgress from "../services/getGameProgress.js";
 
 const PythonExercise = ({ isAuthenticated }) => {
@@ -285,22 +283,10 @@ const PythonExercise = ({ isAuthenticated }) => {
         <div className={styles["main-layout"]}>
           {/* ===== GAME ===== */}
           <div className={styles["game-container"]}>
-            <div className={styles["mobile-frame"]}>
-              <img
-                src={mobileFrame}
-                alt="Mobile Frame"
-                className={styles["mobile-frame-image"]}
-              />
-
-              <MobileControls />
-
-              <div className={styles["mobile-screen"]}>
-                <div
-                  id="phaser-container"
-                  className={styles["game-scene"]}
-                />
-              </div>
-            </div>
+            <div
+              id="phaser-container"
+              className={styles["game-scene"]}
+            />
           </div>
 
           {/* ===== TERMINAL ===== */}

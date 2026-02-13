@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link, Navigate } from "react-router-dom";
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
@@ -149,6 +149,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated, setIsAuthenticated, setUser } = useAuth();
   const [isNewUser, setIsNewUser] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -177,8 +178,9 @@ function App() {
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard";
 
-  // hide only footer on freedom wall
-  const hideFooterOnly = location.pathname === "/freedomwall";
+  // hide only footer on freedom wall and PageNotFound
+  const hideFooterOnly = location.pathname === "/freedomwall" || 
+    !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/welcome"].includes(location.pathname);
 
   return (
     <div className="app">
@@ -217,6 +219,12 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
+          <Route path="/welcome" element={isAuthenticated && isNewUser ? <WelcomeOnboarding onComplete={() => {
+            setIsNewUser(false);
+            localStorage.setItem('hasSeenOnboarding', 'true');
+            localStorage.setItem('hasCompletedOnboarding', 'true');
+            navigate('/dashboard');
+          }} /> : <Navigate to="/" replace />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
@@ -247,24 +255,6 @@ function App() {
           navigate('/dashboard');
         }}
       />
-      
-      {isAuthenticated && isNewUser && (
-        <Routes>
-          <Route 
-            path="/welcome" 
-            element={
-              <WelcomeOnboarding 
-                onComplete={() => {
-                  setIsNewUser(false);
-                  localStorage.setItem('hasSeenOnboarding', 'true');
-                  localStorage.setItem('hasCompletedOnboarding', 'true');
-                  navigate('/dashboard');
-                }} 
-              />
-            } 
-          />
-        </Routes>
-      )}
     </div>
   );
 }

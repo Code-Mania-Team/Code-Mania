@@ -416,7 +416,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     />
                   </button>
                 </div>
-                {passwordError && !showOtpField && (
+                {passwordError && (
                   <p className={styles.errorText}>{passwordError}</p>
                 )}
               </div>
@@ -717,8 +717,8 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     />
                   </button>
                 </div>
-                {passwordError && !showOtpField && (
-                  <p className={styles.errorText}>{passwordError}</p>
+                {confirmPasswordError && !showOtpField && (
+                  <p className={styles.errorText}>{confirmPasswordError}</p>
                 )}
               </div>
 
