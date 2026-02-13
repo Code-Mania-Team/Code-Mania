@@ -1,0 +1,97 @@
+.pagenotFound {
+  min-height: 100vh;
+    background: linear-gradient(0deg,rgba(34, 50, 87, 1) 0%, rgba(111, 144, 223, 1) 100%);
+
+}
+
+
+.notfound {
+    padding: 60px;
+    display: flex;
+    align-items: center;
+    
+    
+
+}
+
+.errorlaptop-image{
+    flex: 1;
+    position: relative;
+    text-align: center;
+}
+.errorlaptop-image img{
+    width: 100%;
+}
+.error-mess{
+    flex: 1.2;
+    display:inline-block;
+    margin-bottom: 50px;
+}
+.error-mess h1{
+    font-family: 'Press Start 2P', monospace;
+    color: #ffff00; 
+    font-size: 3rem;
+    margin-bottom:10px;
+    line-height: 1.1;
+}
+.error-mess p{
+     font-size: 1.5rem;
+    color: #cccccc;
+}
+.backhome-btn {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.backhome-link {
+  display: inline-block;
+  background: #0c0f29;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 30px;
+  border: 1px solid white;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.backhome-link:hover {
+  background: #5f8bfa;
+  color: #0c0f29;
+  transform: translateY(-2px);
+}
+
+@media (max-width:768px) {
+
+  .notfound{
+    flex-direction: column;
+    padding: 30px 20px;
+    text-align: center;
+  }
+    .errorlaptop-image img{
+    width: 90%;
+  }
+
+  .error-mess{
+    margin-bottom: 20px;
+  }
+
+  .error-mess h1{
+    font-size: 1.6rem;
+    line-height: 1.3;
+  }
+
+  .error-mess p{
+    font-size: 1rem;
+  }
+
+  .backhome-btn{
+    text-align: center;
+  }
+
+  .backhome-link{
+    padding: 10px 22px;
+    font-size: 0.9rem;
+  }
+
+}
