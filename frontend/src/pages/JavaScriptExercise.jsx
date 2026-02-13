@@ -105,7 +105,6 @@ const JavaScriptExercise = () => {
 
       setTerminalEnabled(true);
       setActiveQuestId(questId);
-      setActiveExerciseId(questId);
     };
 
     const onQuestComplete = (e) => {

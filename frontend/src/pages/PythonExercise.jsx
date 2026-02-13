@@ -125,7 +125,6 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       setTerminalEnabled(true);
       setActiveQuestId(questId);
-      setActiveExerciseId(questId);
     };
 
     const onQuestComplete = (e) => {
@@ -148,7 +147,7 @@ const PythonExercise = ({ isAuthenticated }) => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
     };
-  }, [activeExerciseId, dbCompletedQuests]);
+  }, [dbCompletedQuests]);
 
 
   /* ===============================
