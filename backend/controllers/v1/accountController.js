@@ -373,33 +373,52 @@ class AccountController {
 
 
     // GOOGLE LOGIN/SIGNUP
-
     async googleLogin(req, res) {
-
-        const { id, emails, provider } = req.user
-
-        const data = await this.accountService.googleLogin(id, emails[0].value, provider)
-
+        const { id, emails, provider } = req.user;
+        const data = await this.accountService.googleLogin(id, emails[0].value, provider);
         
-
         try {
-
             if (data) {
+                const accessToken = generateAccessToken({
+                    user_id: data.id,
+                    username: data.email
+                });
 
-                console.log(data)
+                const refreshToken = crypto.randomBytes(40).toString('hex');
+                const hashedRefresh = crypto.createHash('sha256').update(refreshToken).digest('hex');
 
-                res.redirect(`http://localhost:5173/learn?user_id=${data.id}`)
+                const existingUser = await this.userToken.findByUserId(data.id);
+                if (existingUser) {
+                    await this.userToken.update(data.id, hashedRefresh);
+                } else {
+                    await this.userToken.createUserToken(data.id, hashedRefresh);
+                }
 
-                // res.status(200).json({data})
+                const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
+                const cookieSecure = process.env.NODE_ENV === "production" && !isLocalhost;
+                const cookieSameSite = isLocalhost ? "lax" : "strict";
 
+                res.cookie('accessToken', accessToken, {
+                    httpOnly: true,
+                    secure: cookieSecure,
+                    sameSite: cookieSameSite,
+                    maxAge: 15 * 60 * 1000
+                });
+                res.cookie("refreshToken", refreshToken, {
+                    httpOnly: true,
+                    secure: cookieSecure,
+                    sameSite: cookieSameSite,
+                    maxAge: 30 * 24 * 60 * 60 * 1000,
+                });
+
+                return res.redirect(`http://localhost:5173/dashboard?success=true`);
+            } else {
+                return res.redirect(`http://localhost:5173/login?error=auth_failed`);
             }
-
         } catch (err) {
-
-            console.error(err)
-
+            console.error('Google login error:', err);
+            return res.redirect(`http://localhost:5173/login?error=server_error`);
         }
-
     }
 
 

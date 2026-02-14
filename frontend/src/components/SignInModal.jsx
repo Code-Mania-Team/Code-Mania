@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from '../styles/SignInModal.module.css';
 import { signUp } from '../services/signup';  // Import the signUp service
 import { verifyOtp } from '../services/verifyOtp';
-import { login } from '../services/login';
+import { login, loginWithGoogle } from '../services/login';
 
 const swordImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/sword_cnrdam.png';
 const shieldImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/shield_ykk5ek.png';
@@ -354,7 +354,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         <div className={styles.oauthButtons}>
           <OAuthButton
             isLoading={isLoading}
-            onClick={() => console.log('Google OAuth clicked')}
+            onClick={loginWithGoogle}
             icon={<GoogleIcon />}
             text="Continue with Google"
           />

@@ -171,6 +171,30 @@ function App() {
     navigate('/');
   };
 
+  // Check for Google OAuth callback or login errors
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const success = urlParams.get('success');
+    
+    if (error) {
+      console.log('OAuth error:', error);
+      setIsModalOpen(true);
+      return;
+    }
+    
+    if (success === 'true') {
+      console.log('OAuth successful');
+      // Small delay to ensure cookies are set
+      setTimeout(() => {
+        setIsAuthenticated(true);
+        setIsModalOpen(false);
+        navigate('/dashboard');
+      }, 500);
+      return;
+    }
+  }, [location.search, navigate, setIsAuthenticated, navigate]);
+
   // hide header/footer on exercise routes and dashboard
   const hideGlobalHeaderFooter = 
     location.pathname.startsWith("/learn/python/exercise") || 

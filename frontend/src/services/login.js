@@ -1,4 +1,5 @@
 import { axiosPublic } from "../api/axios";
+
 const login = async (email, password) => {
   try {
     const response = await axiosPublic.post(
@@ -29,4 +30,8 @@ const login = async (email, password) => {
   }
 };
 
-export { login };
+const loginWithGoogle = async () => {
+  window.location.href = "http://localhost:3000/v1/account/login/google"
+}
+
+export { login, loginWithGoogle };
