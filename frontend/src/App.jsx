@@ -20,6 +20,7 @@ import About from "./pages/About";
 import PageNotFound from "./pages/PageNotFound";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
+import ExamPage from "./pages/ExamPage";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -248,7 +249,8 @@ function App() {
     location.pathname.startsWith("/learn/python/exercise") || 
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
-    location.pathname === "/dashboard";
+    location.pathname === "/dashboard" ||
+    location.pathname.startsWith("/exam");
 
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" || 
@@ -293,6 +295,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
+          <Route path="/exam/:language" element={<ExamPage />} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<PageNotFound />} />

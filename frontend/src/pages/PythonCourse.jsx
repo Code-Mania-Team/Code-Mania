@@ -90,6 +90,12 @@ const PythonCourse = () => {
     localStorage.setItem("lastCourseTitle", "Python");
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
+    // Check if this is the Python Exam (exercise ID 17)
+    if (exerciseId === 17) {
+      navigate('/exam/python');
+      return;
+    }
+
     // PASS THE REAL EXERCISE ID
     navigate(`/learn/python/exercise/play`);
   };

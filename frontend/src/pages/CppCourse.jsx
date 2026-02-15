@@ -104,6 +104,7 @@ const CppCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
+
     // Check if tutorial should be shown before starting first exercise
     const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
@@ -115,6 +116,12 @@ const CppCourse = () => {
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'C++');
     localStorage.setItem('lastCourseRoute', '/learn/cpp');
+
+    if (exerciseId === 17) {
+      navigate('/exam/cpp');
+      return;
+    }
+
     navigate(`/learn/cpp/exercise/${moduleId}/${exerciseId}`);
   };
 

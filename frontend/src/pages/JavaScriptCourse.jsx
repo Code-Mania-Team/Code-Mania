@@ -101,6 +101,11 @@ const JavaScriptCourse = () => {
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
+    if (exerciseId === 17) {
+      navigate('/exam/javascript');
+      return;
+    }
+
     navigate(`/learn/javascript/exercise/play`);
   };
 
