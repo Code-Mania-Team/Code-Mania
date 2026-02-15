@@ -128,6 +128,38 @@ const Home = () => (
   </>
 );
 import axios from 'axios';
+// WelcomeOnboarding wrapper component
+const WelcomeOnboardingWrapper = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    // Check if user actually needs onboarding
+    if (user?.username) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
+  // Only show onboarding if user doesn't have username
+  if (user.username) {
+    return null;
+  }
+
+  return <WelcomeOnboarding onComplete={() => {
+    navigate('/dashboard');
+  }} />;
+};
+
 function App() {
   const { isLoading } = useAuth();
   const setCookie = async() => {
@@ -188,10 +220,24 @@ function App() {
     if (success === 'true') {
       console.log('OAuth successful');
       // Small delay to ensure cookies are set
-      setTimeout(() => {
+      setTimeout(async () => {
         setIsAuthenticated(true);
         setIsModalOpen(false);
-        navigate('/dashboard');
+
+        try {
+          const res = await axiosPublic.get("/v1/account");
+          const profile = res?.data?.data || null;
+          setUser(profile);
+
+          if (!profile?.username) {
+            navigate('/welcome');
+            return;
+          }
+
+          navigate('/dashboard');
+        } catch {
+          navigate('/');
+        }
       }, 500);
       return;
     }
@@ -247,12 +293,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
-          <Route path="/welcome" element={isAuthenticated && isNewUser ? <WelcomeOnboarding onComplete={() => {
-            setIsNewUser(false);
-            localStorage.setItem('hasSeenOnboarding', 'true');
-            localStorage.setItem('hasCompletedOnboarding', 'true');
-            navigate('/dashboard');
-          }} /> : <Navigate to="/" replace />} />
+          <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
