@@ -39,7 +39,7 @@ const CppCourse = () => {
     exercisesCompleted: 0,
     totalExercises: 16,
     xpEarned: 0,
-    totalXp: 3600
+    totalXp: 2600
   };
 
   const modules = [
@@ -49,9 +49,9 @@ const CppCourse = () => {
       description: "Set up your C++ environment and write your first program with basic output.",
       exercises: [
         { id: 1, name: "The Program", status: "available" },
-        { id: 2, name: "Basic Input", status: "available" },
-        { id: 3, name: "Comments", status: "available" },
-        { id: 4, name: "Basic Output", status: "available" }
+        { id: 2, name: "Basic Input", status: "locked" },
+        { id: 3, name: "Comments", status: "locked" },
+        { id: 4, name: "Basic Output", status: "locked" }
       ]
     },
     {
@@ -59,10 +59,10 @@ const CppCourse = () => {
       title: "Variables & Data Types",
       description: "Learn about different data types, variables, and how to work with them in C++.",
       exercises: [
-        { id: 5, name: "Variables", status: "available" },
-        { id: 6, name: "Data Types", status: "available" },
-        { id: 7, name: "Constants", status: "available" },
-        { id: 8, name: "Type Casting", status: "available" }
+        { id: 5, name: "Variables", status: "locked" },
+        { id: 6, name: "Data Types", status: "locked" },
+        { id: 7, name: "Constants", status: "locked" },
+        { id: 8, name: "Type Casting", status: "locked" }
       ]
     },
     {

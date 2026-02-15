@@ -186,7 +186,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-                         "value":1
+                         "value":13
                         }, 
                         {
                          "name":"target_map",

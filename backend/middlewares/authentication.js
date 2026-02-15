@@ -20,8 +20,15 @@ export default function authentication(req, res, next) {
             });
         }
 
+        req.user = {
+            user_id: decoded.user_id,
+            username: decoded.username,
+            role: decoded.role
+        };
+        
         res.locals.user_id = decoded.user_id;
         res.locals.username = decoded.username;
+        res.locals.role = decoded.role;
         next();
     });
 }

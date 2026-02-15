@@ -90,12 +90,8 @@ const PythonCourse = () => {
     localStorage.setItem("lastCourseTitle", "Python");
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
-    // 🔥 PASS THE REAL EXERCISE ID
-    navigate(`/learn/python/exercise/${exerciseId}`, {
-      state: {
-        completedQuests: Array.from(completedExercises),
-      },
-    });
+    // PASS THE REAL EXERCISE ID
+    navigate(`/learn/python/exercise/play`);
   };
 
 
@@ -107,7 +103,7 @@ const PythonCourse = () => {
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: data?.xpEarned || 0,
-    totalXp: 3600
+    totalXp: 2600
   };
 
   const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';

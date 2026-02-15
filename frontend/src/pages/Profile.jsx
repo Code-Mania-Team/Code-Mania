@@ -4,7 +4,7 @@ import styles from '../styles/Profile.module.css';
 
 import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'lucide-react';
 
-import profileBanner from '../assets/profile-banner.jpg';
+const profileBanner = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770453646/profile-banner_wuyk83.jpg';
 import { useDeleteAccount } from '../services/deleteAccount';
 import { useEditAccount } from '../services/editAccount';
 import useGetProfile from '../services/getProfile';

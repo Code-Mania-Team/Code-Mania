@@ -10,7 +10,7 @@ const Learn = () => {
     {
       id: 1,
       title: "Python",
-      description: "Learn programming fundamentals such as variables, control flow, and loops with the basics of Python.",
+      description: "Once the greatest programmer alive, you awaken without memory. Piece by piece, regain your mastery through Python.",
       image: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif",
       level: "Beginner",
       color: "#3CB371",
@@ -19,7 +19,7 @@ const Learn = () => {
     {
       id: 2,
       title: "C++",
-      description: "Master high-performance programming with C++. Learn about memory management and system-level coding.",
+      description: "Explore the City of C++, where you build structures, control systems, and power the engines that keep the city alive.",
       image: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif",
       level: "Beginner",
       color: "#5B8FB9",
@@ -28,7 +28,7 @@ const Learn = () => {
     {
       id: 3,
       title: "JavaScript",
-      description: "Begin learning intermediate JavaScript with data structures and modern web development techniques.",
+      description: "In a silent, shifting town, use JavaScript to control events and logic, revealing the hidden forces behind interactive reality.",
       image: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif",
       level: "Beginner",
       color: "#FFD700",

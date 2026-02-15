@@ -79,11 +79,18 @@ export default class QuestManager {
     );
 
     console.log("🏁 QUEST COMPLETED:", quest.title);
+    let exitTarget = null;
 
     this.scene.mapExits?.children?.iterate(zone => {
-      if (Number(zone.exitData?.requiredQuest) === id) {
-        zone.exitArrow?.setVisible(true);
-      }
+    if (Number(zone.exitData?.requiredQuest) === id) {
+      zone.exitArrow?.setVisible(true);
+      exitTarget = zone;
+    }
     });
+
+    // 🎯 Switch pointer to exit
+    if (exitTarget) {
+      this.scene.questPointer?.setTarget(exitTarget);
+    }
   }
 }

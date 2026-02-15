@@ -32,15 +32,8 @@ const login = async (email, password) => {
 
 };
 
-
-
-
 const loginWithGoogle = async () => {
-
-  await window.open("http://localhost:3000/v1/account/login/google", "_self")
-
+  window.location.href = "http://localhost:3000/v1/account/login/google"
 }
-
-
 
 export { login, loginWithGoogle };

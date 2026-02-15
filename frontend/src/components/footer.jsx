@@ -20,8 +20,8 @@ const Footer = () => {
             <div className="footer-company">
               <h4>COMPANY</h4>
               <ul>
-                <li><a href="#about">About</a></li>
-                <li><NavLink to="/community">Community</NavLink></li>
+                <li><NavLink to="/about">About</NavLink></li>
+                <li><NavLink to="/credits ">Credits</NavLink></li>
               </ul>
             </div>
           </div>

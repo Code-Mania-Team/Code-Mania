@@ -3,120 +3,120 @@
     "id": "python_first_signal",
     "language": "Python",
     "exerciseId": 1,
-    "title": "First Python Signal",
-    "description": "You sent your first Python command into the system. The journey has officially begun.",
+    "title": "Python Awakening",
+    "description": "You’ve begun your journey and restored the foundations of Python.",
     "badgeKey": "python-stage1"
   },
   {
     "id": "python_keeper_of_values",
     "language": "Python",
     "exerciseId": 2,
-    "title": "Python Data Keeper",
-    "description": "You learned how to store and manipulate data in Python. The system now remembers what matters.",
+    "title": "Keeper of the Core",
+    "description": "You now command variables, data, and truth.",
     "badgeKey": "python-stage2"
   },
   {
     "id": "python_decision_maker",
     "language": "Python",
     "exerciseId": 3,
-    "title": "Python Logic Master",
-    "description": "You mastered conditional logic in Python and learned how decisions shape program flow.",
+    "title": "Architect of Logic",
+    "description": "You shape program flow using conditions and logic.",
     "badgeKey": "python-stage3"
   },
   {
     "id": "python_cycle_breaker",
     "language": "Python",
     "exerciseId": 4,
-    "title": "Python Loop Expert",
-    "description": "You harnessed the power of loops in Python. Repetition and efficiency are now your allies.",
+    "title": "Master of Iteration",
+    "description": "You control repetition with loops and precision.",
     "badgeKey": "python-stage4"
   },
   {
     "id": "python_basics_mastered",
     "language": "Python",
     "exerciseId": 5,
-    "title": "Python Basics Mastered",
-    "description": "You uncovered every rule of Python basics. The foundation is complete, and deeper challenges await.",
+    "title": "Legend of Python",
+    "description": "You have mastered Python fundamentals.",
     "badgeKey": "python-stage4"
   },
   {
     "id": "cpp_first_signal",
     "language": "C++",
     "exerciseId": 1,
-    "title": "First C++ Signal",
-    "description": "You compiled your first C++ program. The journey into systems programming has begun.",
+    "title": "C++ Initiate",
+    "description": "Mastered program structure, output, and comments.",
     "badgeKey": "cpp-stage1"
   },
   {
     "id": "cpp_keeper_of_values",
     "language": "C++",
     "exerciseId": 2,
-    "title": "C++ Memory Keeper",
-    "description": "You learned how to manage memory and data types in C++. The system now respects your control.",
+    "title": "Data Handler",
+    "description": "Worked with variables, types, constants, and casting.",
     "badgeKey": "cpp-stage2"
   },
   {
     "id": "cpp_decision_maker",
     "language": "C++",
     "exerciseId": 3,
-    "title": "C++ Control Master",
-    "description": "You mastered flow control in C++ and learned how precise logic creates efficient programs.",
+    "title": "Logic Builder",
+    "description": "Applied operators and conditional statements.",
     "badgeKey": "cpp-stage3"
   },
   {
     "id": "cpp_cycle_breaker",
     "language": "C++",
     "exerciseId": 4,
-    "title": "C++ Iteration Expert",
-    "description": "You harnessed loops and iteration in C++. Performance and control are now your strengths.",
+    "title": "Flow Controller",
+    "description": "Controlled program flow using loops.",
     "badgeKey": "cpp-stage4"
   },
   {
     "id": "cpp_basics_mastered",
     "language": "C++",
     "exerciseId": 5,
-    "title": "C++ Basics Mastered",
-    "description": "You uncovered every rule of C++ basics. The foundation is complete, and advanced challenges await.",
+    "title": "C++ Architect",
+    "description": "Completed the full C++ fundamentals journey.",
     "badgeKey": "cpp-stage4"
   },
   {
     "id": "js_first_signal",
     "language": "JavaScript",
     "exerciseId": 1,
-    "title": "First Signal",
-    "description": "You sent your first message into the system. The journey has officially begun.",
+    "title": "JavaScript Apprentice",
+    "description": "Mastered variables and data types.",
     "badgeKey": "js-stage1"
   },
   {
     "id": "js_keeper_of_values",
     "language": "JavaScript",
     "exerciseId": 2,
-    "title": "Keeper of Values",
-    "description": "You learned how to store information and understand its form. The system now remembers what matters.",
+    "title": "Function Crafter",
+    "description": "Learned functions, returns, and arrow syntax.",
     "badgeKey": "js-stage2"
   },
   {
     "id": "js_decision_maker",
     "language": "JavaScript",
     "exerciseId": 3,
-    "title": "Decision Maker",
-    "description": "You mastered conditional paths and learned how logic determines outcomes.",
+    "title": "Object Engineer",
+    "description": "Built and used objects with methods.",
     "badgeKey": "js-stage3"
   },
   {
     "id": "js_cycle_breaker",
     "language": "JavaScript",
     "exerciseId": 4,
-    "title": "Cycle Breaker",
-    "description": "You harnessed repetition and control over iteration. Efficiency is now on your side.",
+    "title": "DOM Explorer",
+    "description": "Manipulated the DOM and handled events.",
     "badgeKey": "js-stage4"
   },
   {
     "id": "js_basics_mastered",
     "language": "JavaScript",
     "exerciseId": 5,
-    "title": "JavaScript Basics Mastered",
-    "description": "You uncovered every rule of the basics. The foundation is complete, and deeper challenges await.",
+    "title": "JavaScript Master",
+    "description": "Completed the full JavaScript journey.",
     "badgeKey": "js-stage4"
   }
 ]

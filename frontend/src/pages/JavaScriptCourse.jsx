@@ -5,14 +5,14 @@ import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
+import useAuth from "../hooks/useAxios";
+import useGetGameProgress from "../services/getGameProgress";
 
 // Import JavaScript course badges
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
 import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
 import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
-import useAuth from "../hooks/useAxios";
-import useGetGameProgress from "../services/getGameProgress";
 
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
@@ -86,7 +86,7 @@ const JavaScriptCourse = () => {
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: data?.xpEarned || 0,
-    totalXp: 3600
+    totalXp: 2600
   };
 
   const handleStartExercise = (exerciseId) => {
@@ -101,11 +101,7 @@ const JavaScriptCourse = () => {
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
-    navigate(`/learn/javascript/exercise/${exerciseId}`, {
-      state: {
-        completedQuests: Array.from(completedExercises),
-      },
-    });
+    navigate(`/learn/javascript/exercise/play`);
   };
 
   const toggleModule = (moduleId) => {
@@ -197,14 +193,11 @@ const JavaScriptCourse = () => {
             <span className="javascript-badge-text">BEGINNER</span>
             <span className="javascript-badge-text">COURSE</span>
           </div>
-          <h1 className="javascript-hero-title">JavaScript</h1>
+          <h1 className="javascript-hero-title">JavaScript ES6+</h1>
           <p className="javascript-hero-description">
-            Create interactive web experiences with JavaScript. Learn DOM
-            manipulation, events, and modern ES6+ features.
+            Create interactive web experiences with JavaScript. Learn DOM manipulation, events, and modern ES6+ features.
           </p>
-          <button className="start-learning-btn">
-            Start Learning for Free
-          </button>
+          <button className="start-learning-btn">Start Learning for Free</button>
         </div>
       </section>
 

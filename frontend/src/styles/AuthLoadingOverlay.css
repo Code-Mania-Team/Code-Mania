@@ -1,8 +1,7 @@
 .auth-loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(6px);
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,16 +14,20 @@
   font-family: 'Press Start 2P', cursive;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(255,255,255,0.2);
-  border-top: 5px solid #FFD700;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.loading-logo {
+  width: 120px;
+  height: 120px;
   margin: 0 auto 20px;
+  animation: pulse 0.8s ease-in-out infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }

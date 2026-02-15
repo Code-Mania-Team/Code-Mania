@@ -14,47 +14,26 @@ class User {
             .maybeSingle();
         return data;
     }
-    
+
     async findByEmailAndPasswordHash(email, password) {
-
         const { data, error } = await this.db
-
             .from("users")
-
             .select("user_id, username, email, full_name, profile_image, provider, created_at")
-
             .eq("email", email)
-
             .eq("password", password);
-
-
-
         if (error) throw error;
-
         const [result] = data || [];
-
         return result;
 
     }
 
-
-
     async create({ email, password, provider }) {
-
         const { data, error } = await this.db
-
             .from("users")
-
             .insert({ email, password, provider })
-
             .select("*")
-
             .maybeSingle();
-
-
-
         if (error) throw error;
-
         return data;
 
     }
@@ -62,9 +41,6 @@ class User {
 
 
     //comment for now baka mabago ulit
-
-    
-
     // async loginOtp(email, password) {
 
     //     const user = await this.findByEmail(email);
@@ -148,7 +124,6 @@ class User {
 
 
     // ONE-TIME USERNAME SETUP
-
     async setUsernameandCharacter(user_id, username, character_id, full_name) {
         const { data, error } = await this.db
             .from("users")
@@ -168,37 +143,22 @@ class User {
     // PROFILE
 
     async getProfile(user_id) {
-
         const { data } = await this.db
-
             .from("users")
-
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at")
-
+            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role")
             .eq("user_id", user_id)
-
             .single();
-
         return data;
 
     }
 
-
-
     async updateProfile(user_id, fields) {
-
         const { data } = await this.db
-
             .from("users")
-
             .update(fields)
-
             .eq("user_id", user_id)
-
             .select()
-
             .single();
-
         return data;
 
     }
@@ -217,21 +177,13 @@ class User {
 
 
     async delete(user_id) {
-
         const { data } = await this.db
-
             .from("users")
-
             .delete()
-
             .eq("user_id", user_id)
-
             .select()
-
             .single();
-
         return data;
-
     }
 
 }

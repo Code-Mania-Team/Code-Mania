@@ -1,32 +1,28 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 import TutorialPopup from "../components/TutorialPopup";
 import StageCompleteModal from "../components/StageCompleteModal";
-import XpNotification from "../components/XpNotification";
 import styles from "../styles/JavaScriptExercise.module.css";
 import exercises from "../utilities/data/javascriptExercises.json";
 import { startGame } from "../utilities/engine/main.js";
 import useAuth from "../hooks/useAxios";
 import { axiosPublic } from "../api/axios";
+import useGetGameProgress from "../services/getGameProgress.js";
 
 const JavaScriptExercise = () => {
-  const { exerciseId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
+  const getGameProgress = useGetGameProgress();
 
-  const completedQuests = location.state?.completedQuests ?? [];
 
   /* ===============================
      QUEST STATE (MATCH PYTHON)
   =============================== */
-  const [activeExerciseId, setActiveExerciseId] = useState(() => {
-    const id = Number(exerciseId);
-    return Number.isFinite(id) && id > 0 ? id : 1;
-  });
+  const [activeExerciseId, setActiveExerciseId] = useState(1);
 
   const activeExercise = useMemo(() => {
     return (
@@ -48,13 +44,27 @@ const JavaScriptExercise = () => {
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
 
+  useEffect(() => {
+      const loadProgress = async () => {
+          const result = await getGameProgress("JavaScript");
+          console.log("Loaded progress:", result);
+          if (result?.completedQuests) {
+            setDbCompletedQuests(result.completedQuests);
+
+            const nextExercise = result.completedQuests.length + 1;
+            setActiveExerciseId(nextExercise);
+          }
+        };
+  
+        loadProgress();
+    }, []);
+
   /* ===============================
      AUTH / UI
   =============================== */
   const [showTutorial, setShowTutorial] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
-  const [showXpPanel, setShowXpPanel] = useState(false);
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
@@ -80,10 +90,12 @@ const JavaScriptExercise = () => {
       setShowTutorial(true);
     }
 
+    if (!dbCompletedQuests) return;
+
     startGame({
       exerciseId: activeExerciseId,
       parent: "phaser-container",
-      completedQuests,
+      completedQuests: dbCompletedQuests,
     });
 
     const onQuestStarted = (e) => {
@@ -92,7 +104,6 @@ const JavaScriptExercise = () => {
 
       setTerminalEnabled(true);
       setActiveQuestId(questId);
-      setActiveExerciseId(questId);
     };
 
     const onQuestComplete = (e) => {
@@ -166,7 +177,7 @@ const JavaScriptExercise = () => {
           })
         );
 
-        setShowXpPanel(true);
+        // XP is handled by Phaser engine
       }
     } catch (err) {
       setOutput(`❌ ${err.message}`);
@@ -252,12 +263,6 @@ const JavaScriptExercise = () => {
           />
         </div>
       </div>
-
-      <XpNotification
-        show={showXpPanel}
-        onClose={() => setShowXpPanel(false)}
-        onNext={goToNextExercise}
-      />
 
       <StageCompleteModal
         show={showStageComplete}
