@@ -18,6 +18,8 @@ import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
 import PageNotFound from "./pages/PageNotFound";
+import Admin from "./pages/Admin";
+import ExerciseManager from "./pages/ExerciseManager";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -243,6 +245,8 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/welcome" element={isAuthenticated && isNewUser ? <WelcomeOnboarding onComplete={() => {
             setIsNewUser(false);
             localStorage.setItem('hasSeenOnboarding', 'true');

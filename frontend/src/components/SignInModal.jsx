@@ -174,7 +174,11 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         localStorage.removeItem('selectedCharacterIcon');
 
         const normalizedUsername = (user?.username || '').trim();
-        const needsOnboarding = !normalizedUsername;
+        const hasFullName = !!(user?.full_name && user?.full_name.trim());
+        const hasCharacterId = user?.character_id !== undefined && user?.character_id !== null;
+        
+        // User needs onboarding if they don't have username, full name, or character set up
+        const needsOnboarding = !normalizedUsername || !hasFullName || !hasCharacterId;
 
         const characterId = user?.character_id;
         if (characterId !== undefined && characterId !== null) {

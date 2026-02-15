@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../hooks/useAxios';
 
 const ProfileCard = ({ onSignInRequired }) => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   const userProgress = {
-    name: localStorage.getItem('username') || 'Your Name',
+    name: isAuthenticated ? (user?.full_name || user?.username || 'Your Name') : 'Guest',
     level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,
@@ -16,7 +18,6 @@ const ProfileCard = ({ onSignInRequired }) => {
   const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
 
   const handleViewProfile = () => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     if (isAuthenticated) {
       navigate('/profile');
     } else {

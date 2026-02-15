@@ -1,0 +1,399 @@
+.page {
+  min-height: 100vh;
+  background: radial-gradient(1200px 600px at 50% 0%, rgba(30, 60, 120, 0.25) 0%, rgba(7, 10, 20, 0) 60%),
+    linear-gradient(180deg, #071023 0%, #050913 100%);
+  color: #e7eefc;
+}
+
+/* Exercise Manager Styles */
+.exerciseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 16px;
+}
+
+.exerciseRow:last-child {
+  border-bottom: none;
+}
+
+.exerciseLeft {
+  flex: 1;
+}
+
+.exerciseTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #e7eefc;
+}
+
+.exerciseMeta {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.published {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.draft {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.exerciseDescription {
+  font-size: 14px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.exerciseActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.exerciseEditor {
+  width: 100%;
+  padding: 20px;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.exerciseEditor h3 {
+  margin: 0 0 20px 0;
+  color: #e7eefc;
+  font-size: 18px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroupFull {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  color: #e7eefc;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.formActions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.hero {
+  position: relative;
+  height: 320px;
+  background-image:
+    linear-gradient(180deg, rgba(5, 9, 19, 0.55) 100%),
+    url("/assets/admin.gif");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.heroContent {
+  text-align: center;
+  max-width: 900px;
+  padding: 0 18px;
+}
+
+.heroSubtitle {
+  font-size: 14px;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+}
+
+.heroTitle {
+  font-size: clamp(34px, 5vw, 56px);
+  margin: 0;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-family: 'Jersey 25', sans-serif;
+}
+
+.heroDescription {
+  margin: 10px 0 0;
+  font-size: 20px;
+  opacity: 0.88;
+  line-height: 1.6;
+}
+
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 16px 48px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  opacity: 0.95;
+}
+
+.title {
+  font-size: 22px;
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0 0 16px;
+  opacity: 0.8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e7eefc;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.cardTitle {
+  font-size: 12px;
+  opacity: 0.8;
+  margin: 0 0 8px;
+}
+
+.cardValue {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.cardSubtitle {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 860px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.panelTitle {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.panelSubtitle {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.divider {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.day {
+  width: 36px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.track {
+  flex: 1;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: rgba(255, 215, 0, 0.65);
+  border-radius: 999px;
+}
+
+.count {
+  width: 24px;
+  text-align: right;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.courseRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.courseName {
+  font-size: 13px;
+}
+
+.courseMeta {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.datasetRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.datasetRow:first-child {
+  border-top: none;
+}
+
+.datasetLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.datasetName {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 520px;
+}
+
+.datasetMeta {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.datasetActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.state {
+  padding: 24px;
+}

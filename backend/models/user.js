@@ -98,7 +98,7 @@ class User {
     async getProfile(user_id) {
         const { data } = await this.db
             .from("users")
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at")
+            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role")
             .eq("user_id", user_id)
             .single();
         return data;
