@@ -6,7 +6,7 @@ import { getExamData } from "../data/examData";
 
 const ExamPage = () => {
   const navigate = useNavigate();
-  const { language } = useParams(); // python, cpp, javascript
+  const { language } = useParams();
   const [examData, setExamData] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -15,8 +15,17 @@ const ExamPage = () => {
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [examCompleted, setExamCompleted] = useState(false);
 
+  // Map language to Cloudinary GIF
+  const languageBackgrounds = {
+    python: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/python_gclhhq.gif",
+    javascript: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/javascript_uenmcw.gif",
+    cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/cpp_your_cpp_gif.gif" // replace with actual C++ GIF
+  };
+
+  const heroBackground = languageBackgrounds[language] || languageBackgrounds.python;
+
   useEffect(() => {
-    const data = getExamData(language); // Fetch exam questions for this language
+    const data = getExamData(language); // Fetch exam questions
     setExamData(data);
     setCurrentQuestion(0);
     setSelectedAnswer(null);
@@ -25,30 +34,33 @@ const ExamPage = () => {
     setExamCompleted(false);
     setAnswers(new Array(data.questions.length).fill(null));
 
-    // Add class to body for exam styling
-    document.body.classList.add("exam-page");
-
+    // Add class to body for exam page styling
+    document.body.classList.add('exam-page');
+    
     return () => {
-      document.body.classList.remove("exam-page");
+      document.body.classList.remove('exam-page');
     };
   }, [language]);
 
   useEffect(() => {
     if (examCompleted) {
-      document.body.classList.add("exam-results");
+      document.body.classList.add('exam-results');
     } else {
-      document.body.classList.remove("exam-results");
+      document.body.classList.remove('exam-results');
     }
 
     return () => {
-      document.body.classList.remove("exam-results");
+      document.body.classList.remove('exam-results');
     };
   }, [examCompleted]);
 
   if (!examData) {
     return (
       <div className={styles.page}>
-        <section className={styles.hero}>
+        <section
+          className={styles.hero}
+          style={{ backgroundImage: `url('${heroBackground}')` }}
+        >
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>Loading Exam...</h1>
           </div>
@@ -76,7 +88,7 @@ const ExamPage = () => {
       setCorrectAnswers(correctAnswers + 1);
     }
 
-    // Auto-advance to next question or finish
+    // Auto-advance after short delay
     setTimeout(() => {
       if (currentQuestion < examData.questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
@@ -106,7 +118,7 @@ const ExamPage = () => {
 
   const calculateScore = () => {
     return examData.questions.reduce((total, q, i) => {
-      return total + (answers[i] === q.correctAnswer ? q.points : 0);
+      return total + (answers[i] === q.correctAnswer ? q.exp : 0);
     }, 0);
   };
 
@@ -125,9 +137,9 @@ const ExamPage = () => {
         <section
           className={styles.hero}
           style={{
-            backgroundImage: `url('/assets/${language}.gif')`,
+            backgroundImage: `url('${heroBackground}')`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundPosition: "center"
           }}
         >
           <div className={styles.heroContent}>
@@ -139,12 +151,6 @@ const ExamPage = () => {
             <div className={styles.resultsContainer}>
               <div className={styles.scoreDisplay}>
                 <div className={styles.percentage}>{percentage}%</div>
-                <div
-                  className={styles.resultStatus}
-                  style={{ color: passed ? "#10b981" : "#ef4444" }}
-                >
-                  {passed ? "PASSED" : "FAILED"}
-                </div>
               </div>
 
               <div className={styles.resultsDetails}>
@@ -153,8 +159,8 @@ const ExamPage = () => {
                 </p>
                 <p>
                   Score: {calculateScore()}/
-                  {examData.questions.reduce((sum, q) => sum + q.points, 0)}
-                  points
+                  {examData.questions.reduce((sum, q) => sum + q.exp, 0)}
+                  EXP
                 </p>
               </div>
 
@@ -180,9 +186,9 @@ const ExamPage = () => {
       <section
         className={styles.hero}
         style={{
-          backgroundImage: `url('/assets/${language}.gif')`,
+          backgroundImage: `url('${heroBackground}')`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "center"
         }}
       >
         <div className={styles.heroContent}>
@@ -199,7 +205,7 @@ const ExamPage = () => {
             <h2 className={styles.questionTitle}>
               Question {currentQuestion + 1}
             </h2>
-            <span className={styles.questionPoints}>{question.points} pts</span>
+            <span className={styles.questionPoints}>{question.exp} EXP</span>
           </div>
 
           <p className={styles.questionText}>{question.question}</p>
@@ -222,9 +228,7 @@ const ExamPage = () => {
                     type="radio"
                     name={`question-${currentQuestion}`}
                     checked={isSelected}
-                    onChange={() =>
-                      handleAnswerSelect(currentQuestion, index)
-                    }
+                    onChange={() => handleAnswerSelect(currentQuestion, index)}
                     disabled={showFeedback}
                     className={styles.optionInput}
                   />

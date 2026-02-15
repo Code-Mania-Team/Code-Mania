@@ -130,7 +130,7 @@
   height: 320px;
   background-image:
     linear-gradient(180deg, rgba(5, 9, 19, 0.55) 100%),
-    url("/assets/admin.gif");
+    url("https://res.cloudinary.com/daegpuoss/image/upload/v1771179248/admin_n6bbed.webp");
   background-size: cover;
   background-position: 0px -200px;
   display: flex;

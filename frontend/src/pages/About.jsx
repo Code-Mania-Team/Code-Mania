@@ -37,36 +37,36 @@ const About = () => {
             <div class="card">
                <div className="img"></div>
                 <div className="dev-info">
-                    <h2 className='dev-name'>Bodino, John Paul</h2>
-                    <h3 className="dev-pos">Backend Developer</h3>
+                    <h2 className='dev-name'>Padilla, Jet</h2>
+                    <h3 className="dev-pos">Frontend Developer / Digital Artist</h3>
+                </div>
+            </div>
+            <div class="card">
+               <div className="img"></div>
+                <div className="dev-info">
+                    <h2 className='dev-name'>Pano, Diether</h2>
+                    <h3 className="dev-pos">Full Stack Developer / Digital Artist</h3>
                 </div>
             </div>
             <div class="card">
                <div className="img"></div>
                 <div className="dev-info">
                     <h2 className='dev-name'>Bodino, John Paul</h2>
-                    <h3 className="dev-pos">Backend Developer</h3>
+                    <h3 className="dev-pos">Backend Developer / Database Developer</h3>
                 </div>
             </div>
             <div class="card">
                <div className="img"></div>
                 <div className="dev-info">
-                    <h2 className='dev-name'>Bodino, John Paul</h2>
-                    <h3 className="dev-pos">Backend Developer</h3>
+                    <h2 className='dev-name'>Dela Cruz, Wilster</h2>
+                    <h3 className="dev-pos">Backend Developer / Database Developer</h3>
                 </div>
             </div>
             <div class="card">
                <div className="img"></div>
                 <div className="dev-info">
-                    <h2 className='dev-name'>Bodino, John Paul</h2>
-                    <h3 className="dev-pos">Backend Developer</h3>
-                </div>
-            </div>
-            <div class="card">
-               <div className="img"></div>
-                <div className="dev-info">
-                    <h2 className='dev-name'>Bodino, John Paul</h2>
-                    <h3 className="dev-pos">Backend Developer</h3>
+                    <h2 className='dev-name'>Bracia, Genniesys</h2>
+                    <h3 className="dev-pos">Frontend Developer / Digital Artist</h3>
                 </div>
             </div>
             
