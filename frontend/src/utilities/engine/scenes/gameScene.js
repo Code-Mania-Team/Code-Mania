@@ -191,6 +191,10 @@ export default class GameScene extends Phaser.Scene {
       frameWidth: 48,
       frameHeight: 48
     });
+    this.load.audio("bgm-python", "/assets/audio/python.mp3");
+    this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
+    this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
+
 
   }
   onQuestComplete = async (e) => {
@@ -400,6 +404,32 @@ export default class GameScene extends Phaser.Scene {
         console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
       }
     });
+
+    // 🎵 Background music per language
+    const BGM_BY_LANGUAGE = {
+      Python: "bgm-python",
+      JavaScript: "bgm-javascript",
+      Cpp: "bgm-cpp"
+    };
+
+    const bgmKey = BGM_BY_LANGUAGE[this.language];
+
+    if (bgmKey) {
+      this.bgm = this.sound.add(bgmKey, {
+        loop: true,
+        volume: 0.5
+      });
+
+      this.bgm.play();
+    }
+
+    this.events.once("shutdown", () => {
+      if (this.bgm) {
+        this.bgm.stop();
+      }
+    });
+
+
 
     // 🔒 TERMINAL EVENTS
     window.addEventListener("code-mania:terminal-active", () => {

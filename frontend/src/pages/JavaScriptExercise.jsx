@@ -98,6 +98,7 @@ const JavaScriptExercise = () => {
       parent: "phaser-container",
       completedQuests: dbCompletedQuests,
     });
+    
 
     const onQuestStarted = (e) => {
       const questId = e.detail?.questId;
@@ -126,6 +127,12 @@ const JavaScriptExercise = () => {
     return () => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
+
+      if (window.game) {
+        window.game.sound.stopAll();
+        window.game.destroy(true);
+        window.game = null;
+      }
     };
   }, [activeExerciseId]);
 
