@@ -132,7 +132,7 @@
     linear-gradient(180deg, rgba(5, 9, 19, 0.55) 100%),
     url("/assets/admin.gif");
   background-size: cover;
-  background-position: center;
+  background-position: 0px -200px;
   display: flex;
   align-items: center;
   justify-content: center;

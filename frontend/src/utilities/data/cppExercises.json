@@ -3,11 +3,7 @@
     "id": 1,
     "title": "The Program",
     "lessonHeader": "🌆 Arrival at C++ City",
-    "dialogue": [
-      "Welcome to C++ City!",
-      "This is where every C++ program starts.",
-      "Let’s try printing a simple message together."
-    ],
+    "dialogue_id": 17,
     "description": "Every C++ program follows a specific structure so the compiler knows how to build and run it. The line #include <iostream> tells the program to include the input-output stream library, which allows us to use cout to display text on the screen. Without it, the program would not recognize cout. The line using namespace std; lets us write cout instead of std::cout. Every C++ program must have a main() function because it is the entry point where execution begins. Inside main(), instructions run from top to bottom. The statement return 0; tells the system the program ended successfully. Understanding these parts is important because all C++ programs are built on this structure.",
     "task": "Write a C++ program that prints 'Hello, C++!' to the console.",
     "lessonExample": "#include <iostream>\nusing namespace std;\nint main() {\n    cout << \"Welcome to C++ City!\" << endl;\n    return 0;\n}",
@@ -20,6 +16,7 @@
     "id": 2,
     "title": "Basic Input",
     "lessonHeader": "🖥️ Display Input",
+    "dialogue_id": 18,
     "description": "Learn the basic C++ syntax for printing text using cout.",
     "task": "Complete the cout statement so it prints 'Hello World!' to the console.",
     "lessonExample": "cout << \"Hello World!\" << endl;",
@@ -32,11 +29,7 @@
     "id": 3,
     "title": "Comments",
     "lessonHeader": "💬 Writing Comments",
-    "dialogue": [
-      "You’re doing great so far.",
-      "Comments help explain what code is doing.",
-      "Add one before printing the message."
-    ],
+    "dialogue_id": 19,
     "description": "Comments are used to explain code and make programs easier to understand. They are ignored by the compiler and do not affect program execution. Comments are especially useful when working on larger programs or when code needs to be read by others. C++ supports single-line comments using // and multi-line comments using /* */.",
     "task": "Add a comment above the code that prints 'Code runs!' to the console.",
     "lessonExample": "// This is a single-line comment\n/* This is a multi-line comment */\n\ncout << \"Code runs!\" << endl;",
@@ -49,11 +42,7 @@
     "id": 4,
     "title": "Basic Output",
     "lessonHeader": "🖨️ Display Output",
-    "dialogue": [
-      "Let’s make the output a little more interesting.",
-      "Each line you print appears on the screen.",
-      "Try building the pattern step by step."
-    ],
+    "dialogue_id": 20,
     "description": "Output formatting is an important part of programming. Using multiple cout statements allows you to control how text and symbols appear on the screen. Each cout statement can print text, symbols, or values, and endl is commonly used to move to a new line. In this lesson, you will practice using multiple output statements to display structured output.",
     "task": "Print a triangle pattern using asterisks (*) with three rows.",
     "lessonExample": "cout << \"*\" << endl;\ncout << \"* *\" << endl;\ncout << \"* * *\" << endl;",
@@ -66,11 +55,7 @@
     "id": 5,
     "title": "Variables",
     "lessonHeader": "📦 Variables in C++",
-    "dialogue": [
-      "Now we’ll start storing information.",
-      "Variables hold values while the program runs.",
-      "Declare them and print what they contain."
-    ],
+    "dialogue_id": 21,
     "description": "Variables are used to store data in memory so that it can be used and modified during program execution. Each variable has a data type that determines what kind of value it can hold, such as numbers or characters. Variables make programs flexible and dynamic by allowing values to change while the program is running.",
     "task": "Declare two integer variables named 'age' and 'year', assign them values, and print each variable.",
     "lessonExample": "int age = 20;\nint year = 2024;\ncout << age << endl;\ncout << year << endl;",
@@ -83,11 +68,7 @@
     "id": 6,
     "title": "Data Types",
     "lessonHeader": "📊 Data Types",
-    "dialogue": [
-      "Different values need different data types.",
-      "Choosing the right type is important.",
-      "Create the variables and display them."
-    ],
+    "dialogue_id": 22,
     "description": "Data types define what kind of data a variable can store and how much memory it uses. Choosing the correct data type is important for accuracy and performance. Common data types in C++ include int for integers, double for decimal values, bool for true or false values, and string for text.",
     "task": "Declare a double variable 'price' with value 9.99 and a bool variable 'isStudent' with value true, then print both.",
     "lessonExample": "double price = 9.99;\nbool isStudent = true;\ncout << price << endl;\ncout << isStudent << endl;",
@@ -100,11 +81,7 @@
     "id": 7,
     "title": "Constants",
     "lessonHeader": "🔒 System Locks & Constants",
-    "dialogue": [
-      "Some values should stay the same.",
-      "Constants help keep programs safe and clear.",
-      "Define one and print its value."
-    ],
+    "dialogue_id": 23,
     "description": "Constants are variables whose values cannot be changed after they are assigned. They are useful for values that should remain fixed throughout the program, such as configuration values, limits, or mathematical constants. Using constants helps prevent accidental changes and improves code reliability.",
     "lessonExample": "const int DAYS_IN_WEEK = 7;\ncout << DAYS_IN_WEEK << endl;",
     "task": "Declare a constant integer 'DAYS_IN_WEEK' with value 7 and print it.",
@@ -116,11 +93,8 @@
     "id": 8,
     "title": "Type Casting",
     "lessonHeader": "🔄 Data Conversion Systems",
-    "dialogue": [
-      "Sometimes values need to change form.",
-      "Type casting helps with that.",
-      "Convert the values and check the result."
-    ],
+    "dialogue_id": 24,
+    "experience": 100,
     "description": "Type casting is the process of converting a value from one data type to another. This is commonly needed when performing calculations that involve different types of data, such as converting decimal values to integers or vice versa. In C++, type casting allows programmers to explicitly control how values are converted, ensuring correct results and preventing unexpected behavior.",
     "lessonExample": "double d = 9.7;\nint x = (int)d;\ncout << x << endl;",
     "task": "Cast a double value 15.8 to an integer, then cast an integer 4 to a double and print both results.",
@@ -133,11 +107,8 @@
     "id": 9,
     "title": "Arithmetic Operators",
     "lessonHeader": "➕ City Calculations",
-    "dialogue": [
-      "Let’s work with some calculations.",
-      "Arithmetic operators handle basic math.",
-      "Add the numbers and print the answer."
-    ],
+    "dialogue_id": 25,
+    "experience": 100,
     "description": "Arithmetic operators are used to perform basic mathematical operations such as addition, subtraction, multiplication, division, and modulo. These operators allow programs to calculate values, update variables, and process numeric data efficiently. Understanding arithmetic operators is essential for building logic, calculations, and real-world applications.",
     "task": "Using integer variables a and b with values 7 and 2, calculate a + b and print the result to the console.",
     "lessonExample": "int a = 7, b = 2;\ncout << a + b << endl;",
@@ -150,11 +121,7 @@
     "id": 10,
     "title": "Comparison Operators",
     "lessonHeader": "⚖️ Decision Sensors",
-    "dialogue": [
-      "Programs often compare values.",
-      "These comparisons return true or false.",
-      "Try a few and see the results."
-    ],
+    "dialogue_id": 24,
     "description": "Comparison operators are used to compare two values and determine their relationship. These operators return a boolean result: true (1) or false (0). Comparison operators are commonly used in conditions, loops, and decision-making logic to control the flow of a program.",
     "task": "Compare two integers using three different comparison operators and print each result on a new line.",
     "lessonExample": "int x = 10, y = 10;\ncout << (x > y) << endl;\ncout << (x == y) << endl;\ncout << (x <= y) << endl;",
@@ -167,11 +134,7 @@
     "id": 11,
     "title": "Logical Operators",
     "lessonHeader": "🔀 Control Logic Systems",
-    "dialogue": [
-      "Some decisions use more than one condition.",
-      "Logical operators combine them.",
-      "Evaluate the expression and print the result."
-    ],
+    "dialogue_id": 25,
     "description": "Logical operators are used to combine or modify boolean expressions. They allow programs to evaluate multiple conditions at the same time and make more complex decisions. Common logical operators in C++ include AND (&&), OR (||), and NOT (!). These operators are essential for building advanced conditional logic.",
     "task": "Use logical AND (&&) to combine two boolean values true and false, then print the result.",
     "lessonExample": "bool a = true, b = false;\ncout << (a && b) << endl;",
@@ -184,11 +147,7 @@
     "id": 12,
     "title": "Assignment Operators",
     "lessonHeader": "📝 System Updates",
-    "dialogue": [
-      "Values can change as a program runs.",
-      "Assignment operators make updates easier.",
-      "Modify the variable and display it."
-    ],
+    "dialogue_id": 26,
     "description": "Assignment operators are used to assign and update values stored in variables. In addition to the basic assignment operator (=), C++ provides compound operators such as +=, -=, *=, and /=, which combine an operation with assignment. These operators help write cleaner and more efficient code.",
     "task": "Use the += operator to add 3 to the variable a initialized to 5, then print the result.",
     "lessonExample": "int a = 5;\na += 3;\ncout << a << endl;",
@@ -201,11 +160,7 @@
     "id": 13,
     "title": "If Statements",
     "lessonHeader": "🚦 Conditional Control",
-    "dialogue": [
-      "Now we’ll let the program make decisions.",
-      "If statements control what runs and when.",
-      "Check the condition and print the output."
-    ],
+    "dialogue_id": 27,
     "description": "If statements allow a program to execute specific code only when a given condition is true. This enables programs to react differently based on input or variable values. Conditional statements are fundamental to decision-making and control flow in C++ programs.",
     "task": "Check if the variable 'age' (set to 18) is greater than or equal to 18, and print 'Adult' if true.",
     "lessonExample": "int age = 18;\nif (age >= 18) cout << \"Adult\" << endl;",
@@ -218,11 +173,7 @@
     "id": 14,
     "title": "Switch Case",
     "lessonHeader": "🔁 Route Selection Systems",
-    "dialogue": [
-      "Sometimes one value leads to many choices.",
-      "Switch statements help organize them.",
-      "Match the value and print the result."
-    ],
+    "dialogue_id": 28,
     "description": "Switch statements provide a structured way to execute different blocks of code based on the value of a single variable. They are often used as an alternative to multiple if-else statements when checking many possible values. Switch cases improve readability and organization.",
     "task": "Use a switch statement to print 'Tue' when the variable 'day' is set to 2.",
     "lessonExample": "int day = 2;\nswitch(day) {\n  case 1: cout << \"Mon\"; break;\n  case 2: cout << \"Tue\"; break;\n}",
@@ -235,11 +186,7 @@
     "id": 15,
     "title": "For Loops",
     "lessonHeader": "🔁 Repeating Operations",
-    "dialogue": [
-      "Some tasks repeat a set number of times.",
-      "For loops handle this efficiently.",
-      "Use one to print the numbers."
-    ],
+    "dialogue_id": 29,
     "description": "For loops are used to repeat a block of code a specific number of times. They are commonly used when the number of iterations is known in advance. A for loop consists of initialization, condition checking, and iteration update, all in one statement.",
     "task": "Use a for loop to print numbers 0 to 10.",
     "lessonExample": "for (int i = 0; i < 3; i++) cout << i << endl;",
@@ -252,33 +199,12 @@
     "id": 16,
     "title": "While Loops",
     "lessonHeader": "🔁 Continuous Monitoring",
-    "dialogue": [
-      "Other tasks repeat until a condition changes.",
-      "While loops work well in those cases.",
-      "Print the values while the condition is true."
-    ],
+    "dialogue_id": 30,
     "description": "While loops repeatedly execute a block of code as long as a specified condition remains true. They are useful when the number of iterations is not known beforehand. Care must be taken to ensure the loop condition eventually becomes false to avoid infinite loops.",
     "task": "Use a while loop to print numbers 0 to 10.",
     "lessonExample": "int count = 0;\nwhile (count < 3) {\n  cout << count << endl;\n  count++;\n}",
     "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
     "requirements": { "mustInclude": ["while", "cout"] },
     "expectedOutput": "0\n1\n2"
-  },
-
-  {
-    "id": 17,
-    "title": "C++ Exam",
-    "lessonHeader": "🏙️ The Core Network",
-    "dialogue": [
-      "You’ve made it to the final challenge.",
-      "This will bring together everything you’ve learned.",
-      "Take your time and write a complete solution."
-    ],
-    "description": "This final assessment evaluates your understanding of C++ fundamentals, including variables, operators, conditions, loops, and functions. You are expected to combine multiple concepts into a working program. This lesson verifies your ability to write structured, readable, and functional C++ code.",
-    "task": "Write a C++ program that defines a function to add two integers and prints the result of adding 5 and 7.",
-    "lessonExample": "int add(int a, int b) {\n  return a + b;\n}\ncout << add(5, 7) << endl;",
-    "startingCode": "#include <iostream>\nusing namespace std;\nint main() {\n    return 0;\n}",
-    "requirements": { "mustInclude": ["cout"] },
-    "expectedOutput": "12"
   }
 ]

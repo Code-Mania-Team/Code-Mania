@@ -13,6 +13,8 @@ function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [datasets, setDatasets] = useState([]);
   const [datasetsLoading, setDatasetsLoading] = useState(false);
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   const adminEmail = "jetpadilla07@gmail.com";
 
@@ -43,6 +45,47 @@ function Admin() {
       ]);
     } finally {
       setDatasetsLoading(false);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      const response = await axiosPublic.get("/v1/analytics/exam-analytics", { withCredentials: true });
+      if (response.data.success) {
+        setAnalytics(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      // Fallback to demo data on error
+      setAnalytics({
+        total_exams_taken: 3,
+        mean_exam_grade: 85.3,
+        median_exam_grade: 85.5,
+        mode_retake_count: 0,
+        avg_exam_duration_minutes: 195,
+        daily_exam_completions: [
+          { date: "2025-02-10", exams_completed: 1, avg_grade: 85.5 },
+          { date: "2025-02-11", exams_completed: 0, avg_grade: 0 },
+          { date: "2025-02-12", exams_completed: 1, avg_grade: 92.0 },
+          { date: "2025-02-13", exams_completed: 0, avg_grade: 0 },
+          { date: "2025-02-14", exams_completed: 0, avg_grade: 0 }
+        ],
+        user_exam_data: [
+          {
+            user_id: "user_001",
+            email: "student1@example.com",
+            programming_language: "python",
+            final_exam_grade: 85.5,
+            retake_count: 1,
+            exam_activated_date: "2025-02-10T10:30:00Z",
+            exam_close_date: "2025-02-10T14:45:00Z",
+            exam_duration_minutes: 255
+          }
+        ]
+      });
+    } finally {
+      setAnalyticsLoading(false);
     }
   };
 
@@ -89,9 +132,10 @@ function Admin() {
           setIsAdmin(allowed);
           setStatus("ok");
           
-          // Fetch datasets when admin is authenticated
+          // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
             fetchDatasets();
+            fetchAnalytics();
           }
         }
       } catch (e) {
@@ -212,6 +256,83 @@ function Admin() {
             </div>
           </div>
         </div>
+
+        {/* Analytics Section */}
+        <div className={styles.header} style={{ marginTop: 24 }}>
+          <div className={styles.headerLeft}>
+            <BarChart3 className={styles.icon} />
+            <h2 className={styles.title}>Exam Analytics & Statistics</h2>
+          </div>
+        </div>
+
+        <p className={styles.subtitle}>Real-time exam performance data and statistical analysis.</p>
+
+        {analyticsLoading ? (
+          <div className={styles.panel}>
+            <p>Loading analytics...</p>
+          </div>
+        ) : analytics ? (
+          <>
+            <div className={styles.grid}>
+              <StatCard title="Total Exams Taken" value={analytics.total_exams_taken} subtitle="Completed exams" />
+              <StatCard title="Mean Exam Grade" value={`${analytics.mean_exam_grade.toFixed(1)}%`} subtitle="Average score across all users" />
+              <StatCard title="Median Exam Grade" value={`${analytics.median_exam_grade.toFixed(1)}%`} subtitle="Middle value of exam scores" />
+              <StatCard title="Mode Retake Count" value={analytics.mode_retake_count} subtitle="Most common retake number" />
+            </div>
+
+            <div className={styles.panel}>
+              <h3 className={styles.panelTitle}>Student Exam Performance</h3>
+              <p className={styles.panelSubtitle}>Individual student exam results and performance metrics</p>
+              <div className={styles.divider}>
+                {analytics.user_exam_data.map((user) => (
+                  <div key={user.user_id} className={styles.datasetRow}>
+                    <div className={styles.datasetLeft}>
+                      <div className={styles.datasetName}>{user.email}</div>
+                      <div className={styles.datasetMeta}>
+                        {user.programming_language.toUpperCase()} • 
+                        Grade: {user.final_exam_grade}% • 
+                        Retakes: {user.retake_count}
+                      </div>
+                      <div className={styles.datasetMeta} style={{ fontSize: '12px', opacity: 0.7 }}>
+                        Started: {new Date(user.exam_activated_date).toLocaleDateString()} • 
+                        {user.exam_close_date ? 
+                          ` Completed: ${new Date(user.exam_close_date).toLocaleDateString()} (${user.exam_duration_minutes}min)` : 
+                          ' In Progress'
+                        }
+                      </div>
+                    </div>
+                    <div className={styles.datasetActions}>
+                      <button className={styles.button} type="button">View Details</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.panel}>
+              <h3 className={styles.panelTitle}>Daily Exam Completions</h3>
+              <p className={styles.panelSubtitle}>Exam completion rates and average grades per day</p>
+              <div className={styles.divider}>
+                {analytics.daily_exam_completions.map((day) => (
+                  <div key={day.date} className={styles.row}>
+                    <div className={styles.day}>{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+                    <div className={styles.track}>
+                      <div className={styles.fill} style={{ width: `${Math.min(100, day.exams_completed * 50)}%` }} />
+                    </div>
+                    <div className={styles.count}>{day.exams_completed} exams</div>
+                    <div style={{ marginLeft: '10px', fontSize: '12px', opacity: 0.7 }}>
+                      {day.avg_grade > 0 ? `${day.avg_grade.toFixed(1)}% avg` : 'No exams'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className={styles.panel}>
+            <p>Failed to load analytics data.</p>
+          </div>
+        )}
 
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>

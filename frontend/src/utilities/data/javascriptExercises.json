@@ -7,11 +7,7 @@
     "lessonHeader": "🌐 Introduction to JavaScript",
     "description": "JavaScript is a versatile, high-level programming language primarily used to make web pages interactive and dynamic. It allows developers to create engaging user interfaces, handle user input, and communicate with servers. JavaScript is an essential language for front-end web development, working alongside HTML and CSS. Originally developed in 1995 by Brendan Eich, JavaScript has grown to power websites, web apps, mobile apps, and even server-side applications with Node.js. With its widespread adoption, modern JavaScript supports advanced features such as object-oriented programming, asynchronous operations, and functional programming concepts.\n\n Try:",
     "task": "Print 'Hello, JS!' using console.log().",
-    "dialogue": [
-      "A wooden sign creaks at the town gate.",
-      "\"Welcome to JavaScript Town.\"",
-      "Something here once made everything alive."
-    ],
+    "dialogue_id": 32,
     "lessonExample": "console.log(\"Hello, JS!\");",
     "startingCode": "console.log();",
     "requirements": { "mustInclude": ["console.log"] },
