@@ -32,7 +32,8 @@ class AchievementsController {
     async postBadge(req, res) {
         try {
             const userId = res.locals.user_id;
-            const { id: achievementId } = req.body;
+            const { achievementId } = req.body;
+            console.log("Received achievement ID:", achievementId);
 
             if (!userId) {
                 return res.status(401).json({ 

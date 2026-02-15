@@ -2,121 +2,166 @@
   {
     "id": "python_first_signal",
     "language": "Python",
-    "exerciseId": 1,
+    "exerciseId": 4,
     "title": "Python Awakening",
     "description": "You’ve begun your journey and restored the foundations of Python.",
-    "badgeKey": "python-stage1"
+    "badge": {
+      "assetKey": "badge-python-1",
+      "path": "src/assets/badges/Python/python-badge1.png"
+    }
   },
   {
     "id": "python_keeper_of_values",
     "language": "Python",
-    "exerciseId": 2,
+    "exerciseId": 8,
     "title": "Keeper of the Core",
     "description": "You now command variables, data, and truth.",
-    "badgeKey": "python-stage2"
+    "badge": {
+      "assetKey": "badge-python-2",
+      "path": "src/assets/badges/Python/python-badge2.png"
+    }
   },
   {
     "id": "python_decision_maker",
     "language": "Python",
-    "exerciseId": 3,
+    "exerciseId": 12,
     "title": "Architect of Logic",
     "description": "You shape program flow using conditions and logic.",
-    "badgeKey": "python-stage3"
+    "badge": {
+      "assetKey": "badge-python-3",
+      "path": "src/assets/badges/Python/python-badge3.png"
+    }
   },
   {
     "id": "python_cycle_breaker",
     "language": "Python",
-    "exerciseId": 4,
+    "exerciseId": 16,
     "title": "Master of Iteration",
     "description": "You control repetition with loops and precision.",
-    "badgeKey": "python-stage4"
+    "badge": {
+      "assetKey": "badge-python-4",
+      "path": "src/assets/badges/Python/python-badge4.png"
+    }
   },
   {
     "id": "python_basics_mastered",
     "language": "Python",
-    "exerciseId": 5,
+    "exerciseId": 17,
     "title": "Legend of Python",
     "description": "You have mastered Python fundamentals.",
-    "badgeKey": "python-stage4"
+    "badge": {
+      "assetKey": "badge-python-complete",
+      "path": "src/assets/badges/Python/completed-python.png"
+    }
   },
   {
     "id": "cpp_first_signal",
     "language": "C++",
-    "exerciseId": 1,
+    "exerciseId": 4,
     "title": "C++ Initiate",
     "description": "Mastered program structure, output, and comments.",
-    "badgeKey": "cpp-stage1"
+    "badge": {
+      "assetKey": "badge-cpp-1",
+      "path": "src/assets/badges/C++/cpp-badge1.png"
+    }
   },
   {
     "id": "cpp_keeper_of_values",
     "language": "C++",
-    "exerciseId": 2,
+    "exerciseId": 8,
     "title": "Data Handler",
     "description": "Worked with variables, types, constants, and casting.",
-    "badgeKey": "cpp-stage2"
+    "badge": {
+      "assetKey": "badge-cpp-2",
+      "path": "src/assets/badges/C++/cpp-badge2.png"
+    }
   },
   {
     "id": "cpp_decision_maker",
     "language": "C++",
-    "exerciseId": 3,
+    "exerciseId": 12,
     "title": "Logic Builder",
     "description": "Applied operators and conditional statements.",
-    "badgeKey": "cpp-stage3"
+    "badge": {
+      "assetKey": "badge-cpp-3",
+      "path": "src/assets/badges/C++/cpp-badge3.png"
+    }
   },
   {
     "id": "cpp_cycle_breaker",
     "language": "C++",
-    "exerciseId": 4,
+    "exerciseId": 16,
     "title": "Flow Controller",
     "description": "Controlled program flow using loops.",
-    "badgeKey": "cpp-stage4"
+    "badge": {
+      "assetKey": "badge-cpp-4",
+      "path": "src/assets/badges/C++/cpp-badge4.png"
+    }
   },
   {
     "id": "cpp_basics_mastered",
     "language": "C++",
-    "exerciseId": 5,
+    "exerciseId": 17,
     "title": "C++ Architect",
     "description": "Completed the full C++ fundamentals journey.",
-    "badgeKey": "cpp-stage4"
+    "badge": {
+      "assetKey": "badge-cpp-complete",
+      "path": "src/assets/badges/C++/completed-cpp.png"
+    }
   },
   {
     "id": "js_first_signal",
     "language": "JavaScript",
-    "exerciseId": 1,
+    "exerciseId": 4,
     "title": "JavaScript Apprentice",
     "description": "Mastered variables and data types.",
-    "badgeKey": "js-stage1"
+    "badge": {
+      "assetKey": "badge-js-1",
+      "path": "src/assets/badges/JavaScript/js-stage1.png"
+    }
   },
   {
     "id": "js_keeper_of_values",
     "language": "JavaScript",
-    "exerciseId": 2,
+    "exerciseId": 8,
     "title": "Function Crafter",
     "description": "Learned functions, returns, and arrow syntax.",
-    "badgeKey": "js-stage2"
+    "badge": {
+      "assetKey": "badge-js-2",
+      "path": "src/assets/badges/JavaScript/js-stage2.png"
+    }
   },
   {
     "id": "js_decision_maker",
     "language": "JavaScript",
-    "exerciseId": 3,
+    "exerciseId": 12,
     "title": "Object Engineer",
     "description": "Built and used objects with methods.",
-    "badgeKey": "js-stage3"
+    "badge": {
+      "assetKey": "badge-js-3",
+      "path": "src/assets/badges/JavaScript/js-stage3.png"
+    }
   },
   {
     "id": "js_cycle_breaker",
     "language": "JavaScript",
-    "exerciseId": 4,
+    "exerciseId": 16,
     "title": "DOM Explorer",
     "description": "Manipulated the DOM and handled events.",
-    "badgeKey": "js-stage4"
+    "badge": {
+      "assetKey": "badge-js-4",
+      "path": "src/assets/badges/JavaScript/js-stage4.png"
+    }
   },
   {
     "id": "js_basics_mastered",
     "language": "JavaScript",
-    "exerciseId": 5,
+    "exerciseId": 17,
     "title": "JavaScript Master",
     "description": "Completed the full JavaScript journey.",
-    "badgeKey": "js-stage4"
+    "badge": {
+      "assetKey": "badge-js-complete",
+      "path": "src/assets/badges/JavaScript/completed-javascript.png"
+    }
   }
 ]

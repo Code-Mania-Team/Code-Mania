@@ -168,6 +168,7 @@
   {
     "id": 13,
     "title": "Selecting Elements",
+    "htmlTemplate": "<h1 id='message'>Hello World!</h1>",
     "validationMode": "HYBRID",
     "experience": 100,
     "lessonHeader": "🔍 DOM Selection",
@@ -181,6 +182,7 @@
   {
     "id": 14,
     "title": "Modifying Content",
+    "htmlTemplate": "<h1>Hello World!</h1>",
     "validationMode": "HYBRID",
     "experience": 100,
     "lessonHeader": "✏️ DOM Modify",
@@ -194,6 +196,7 @@
   {
     "id": 15,
     "title": "Event Listeners",
+    "htmlTemplate": "<button>Click Me</button>",
     "validationMode": "HYBRID",
     "experience": 100,
     "lessonHeader": "🖱️ Event Listeners",
@@ -207,6 +210,7 @@
   {
     "id": 16,
     "title": "Dynamic Styling",
+    "htmlTemplate": "<h1>Hello</h1>",
     "validationMode": "HYBRID",
     "experience": 100,
     "badgeKey": "JS_STAGE_4",

@@ -1,19 +1,17 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
+import allQuests from "../utilities/data/javascriptExercises.json";
 
 /* ===============================
-   LANGUAGE FROM LOCALSTORAGE
+   LANGUAGE DETECTION
 =============================== */
+
 function getLanguageFromLocalStorage() {
   const title = (localStorage.getItem("lastCourseTitle") || "").toLowerCase();
-
-  if (title.includes("python")) return "python";
   if (title.includes("javascript")) return "javascript";
-  if (title.includes("java script")) return "javascript";
   if (title.includes("c++")) return "cpp";
-
   return "python";
 }
 
@@ -26,9 +24,7 @@ function getMonacoLang(lang) {
 function getStarterCode(lang) {
   switch (lang) {
     case "javascript":
-      return `// Write code below ❤️
-console.log("Hello world");`;
-
+      return `console.log("Hello world");`;
     case "cpp":
       return `#include <iostream>
 
@@ -36,18 +32,9 @@ int main() {
   std::cout << "Hello world" << std::endl;
   return 0;
 }`;
-
     default:
-      return `# Write code below ❤️
-print("Hello world")`;
+      return `print("Hello world")`;
   }
-}
-
-/* ===============================
-   QUEST BRIDGE
-=============================== */
-function getActiveQuestId() {
-  return Number(localStorage.getItem("activeQuestId"));
 }
 
 const InteractiveTerminal = () => {
@@ -59,144 +46,189 @@ const InteractiveTerminal = () => {
   const [isRunning, setIsRunning] = useState(false);
 
   const socketRef = useRef(null);
-  const waitingForInputRef = useRef(false);
-  const inputBufferRef = useRef("");
-
-  // ✅ FIX: output must be a ref (state is async)
+  const iframeRef = useRef(null);
   const outputRef = useRef("");
 
   /* ===============================
-     GAME PAUSE / RESUME
+     STAGE + QUEST DETECTION
   =============================== */
-  const handleEditorMount = (editor) => {
-    editor.onDidFocusEditorText(() => {
-      window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
-    });
 
-    editor.onDidBlurEditorText(() => {
-      window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
-    });
+  const activeModule = Number(localStorage.getItem("activeJSModule"));
+  const activeQuestId = Number(localStorage.getItem("activeQuestId"));
+
+  const isDOMStage = () => {
+    return language === "javascript" && activeModule === 4;
   };
+
+  const quest = allQuests.find(q => q.id === 14);
+  console.log("Active Quest:", quest);
+
+  const questHTML = quest?.htmlTemplate;
 
   /* ===============================
      TERMINAL HELPERS
   =============================== */
+
   const write = (text) => {
-    outputRef.current += text;           // ✅ FIX
-    setOutput(outputRef.current);         // keep UI in sync
+    outputRef.current += text;
+    setOutput(outputRef.current);
   };
 
   const resetTerminal = () => {
-    outputRef.current = "";               // ✅ FIX
+    outputRef.current = "";
     setOutput("");
-    waitingForInputRef.current = false;
-    inputBufferRef.current = "";
   };
 
   /* ===============================
-     START SESSION
+     DOCKER EXECUTION
   =============================== */
-  const handleRun = () => {
-    localStorage.setItem("lastSubmittedCode", code);
 
+  const runViaDocker = () => {
     if (socketRef.current) {
       socketRef.current.close();
     }
 
-    resetTerminal();
-    setIsRunning(true);
-
-    // ✅ FIX: remove trailing space
-    const socket = new WebSocket(
-      "wss://terminal.codemania.fun"
-    );
-
+    const socket = new WebSocket("wss://terminal.codemania.fun");
     socketRef.current = socket;
 
     socket.onopen = () => {
-      // write(`▶ Running ${language.toUpperCase()}\n`);
-      socket.send(
-        JSON.stringify({
-          language,
-          code
-        })
-      );
+      socket.send(JSON.stringify({ language, code }));
     };
 
     socket.onmessage = (e) => {
       write(e.data);
-
-      if (!e.data.endsWith("\n")) {
-        waitingForInputRef.current = true;
-      }
     };
 
     socket.onclose = () => {
-      console.log("🧨 SOCKET CLOSED");
       setIsRunning(false);
-      waitingForInputRef.current = false;
-
-      const questId = getActiveQuestId();
-      if (!questId) return;
-
-      // ✅ FIX: dispatch FINAL output
-      window.dispatchEvent(
-        new CustomEvent("code-mania:terminal-result", {
-          detail: {
-            questId,
-            output: outputRef.current,
-            error: null
-          }
-        })
-      );
-
-      console.log("📤 terminal-result dispatched", {
-        questId,
-        output: outputRef.current
-      });
     };
   };
 
   /* ===============================
-     INLINE STDIN
+     PRELOAD DOM (AUTO LOAD HTML)
   =============================== */
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      if (!waitingForInputRef.current || !socketRef.current) return;
 
-      if (e.key === "Enter") {
-        write("\n");
-        socketRef.current.send(
-          JSON.stringify({ stdin: inputBufferRef.current })
-        );
-        inputBufferRef.current = "";
-        waitingForInputRef.current = false;
-        e.preventDefault();
-        return;
-      }
+  const preloadDOM = () => {
+    if (!iframeRef.current) return;
 
-      if (e.key === "Backspace") {
-        inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-        outputRef.current = outputRef.current.slice(0, -1); // ✅ FIX
-        setOutput(outputRef.current);
-        e.preventDefault();
-        return;
-      }
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              background: white;
+              color: black;
+              font-family: Arial;
+              padding: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          ${questHTML}
+        </body>
+      </html>
+    `;
 
-      if (e.key.length === 1) {
-        inputBufferRef.current += e.key;
-        write(e.key);
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+    iframeRef.current.srcdoc = html;
+  };
 
   /* ===============================
-     RENDER (UNCHANGED)
+     RUN JS ON EXISTING DOM
   =============================== */
+
+  const runInIframe = () => {
+    if (!iframeRef.current) return;
+
+    const quest = allQuests.find(q => q.id === 14);
+
+    const questHTML = quest?.htmlTemplate
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              background: white;
+              color: black;
+              font-family: Arial;
+              padding: 20px;
+            }
+            pre {
+              background: #eee;
+              padding: 5px;
+            }
+          </style>
+        </head>
+        <body>
+
+          ${questHTML}
+
+          <hr />
+
+          <script>
+            const oldLog = console.log;
+            console.log = function(...args) {
+              const msg = args.join(" ");
+              const pre = document.createElement("pre");
+              pre.textContent = msg;
+              document.body.appendChild(pre);
+              oldLog.apply(console, args);
+            };
+
+            try {
+              ${code}
+            } catch (err) {
+              const pre = document.createElement("pre");
+              pre.style.color = "red";
+              pre.textContent = err;
+              document.body.appendChild(pre);
+            }
+          <\/script>
+
+        </body>
+      </html>
+    `;
+
+    iframeRef.current.srcdoc = html;
+  };
+
+
+
+  /* ===============================
+     AUTO PRELOAD WHEN DOM STAGE
+  =============================== */
+
+  useEffect(() => {
+    if (isDOMStage()) {
+      preloadDOM();
+    }
+  }, [activeQuestId, activeModule]);
+
+  /* ===============================
+     RUN HANDLER
+  =============================== */
+
+  const handleRun = () => {
+    resetTerminal();
+    setIsRunning(true);
+
+    if (isDOMStage()) {
+      setTimeout(() => {
+        runInIframe();
+        setIsRunning(false);
+      }, 50); // small delay ensures iframe is ready
+      return;
+    }
+
+    runViaDocker();
+  };
+
+  /* ===============================
+     RENDER
+  =============================== */
+
   return (
     <div className={styles["code-container"]}>
       <div className={styles["code-editor"]}>
@@ -205,7 +237,7 @@ const InteractiveTerminal = () => {
             {language === "cpp"
               ? "main.cpp"
               : language === "javascript"
-              ? "main.js"
+              ? "script.js"
               : "script.py"}
           </span>
 
@@ -225,22 +257,43 @@ const InteractiveTerminal = () => {
           theme="vs-dark"
           value={code}
           onChange={(v) => setCode(v ?? "")}
-          onMount={handleEditorMount}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
-            automaticLayout: true,
-            scrollBeyondLastLine: false
+            automaticLayout: true
           }}
         />
       </div>
 
-      <div className={styles["terminal"]}>
-        <div className={styles["terminal-header"]}>Terminal</div>
-        <div className={styles["terminal-content"]}>
-          <pre>{output || "▶ Output will appear here"}</pre>
+      {/* DOCKER TERMINAL */}
+      {!isDOMStage() && (
+        <div className={styles["terminal"]}>
+          <div className={styles["terminal-header"]}>Terminal</div>
+          <div className={styles["terminal-content"]}>
+            <pre>{output || "▶ Output will appear here"}</pre>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* DOM PREVIEW */}
+      {isDOMStage() && (
+        <div style={{ marginTop: "20px" }}>
+          <div className={styles["terminal-header"]}>
+            DOM Preview (Sandboxed)
+          </div>
+
+          <iframe
+            ref={iframeRef}
+            sandbox="allow-scripts"
+            style={{
+              width: "100%",
+              height: "300px",
+              background: "white",
+              border: "1px solid #333"
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

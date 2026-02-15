@@ -89,7 +89,9 @@ const JavaScriptCourse = () => {
     totalXp: 2600
   };
 
-  const handleStartExercise = (exerciseId) => {
+  // 🔥 Only showing modified parts — everything else stays the same
+
+  const handleStartExercise = (exerciseId, moduleId) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const authed = localStorage.getItem("isAuthenticated") === "true";
 
@@ -101,8 +103,12 @@ const JavaScriptCourse = () => {
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
+    // ✅ Store active JS module
+    localStorage.setItem("activeJSModule", moduleId);
+
     navigate(`/learn/javascript/exercise/play`);
   };
+
 
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
@@ -260,7 +266,7 @@ const JavaScriptCourse = () => {
                               <button
                                 className="start-btn"
                                 onClick={() =>
-                                  handleStartExercise(exercise.id)
+                                  handleStartExercise(exercise.id, module.id)
                                 }
                               >
                                 Start

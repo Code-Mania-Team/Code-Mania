@@ -19,11 +19,13 @@ import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import { BADGES } from "../config/badgeConfig";
+import achievementsData from "../../data/achievements.json";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
 import QuestValidator from "../systems/questValidator";
 import { postGameProgress } from "../../../services/postGameProgress";
+import { postAchievement } from "../../../services/postAchievement";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -231,14 +233,35 @@ export default class GameScene extends Phaser.Scene {
 
     // 🏅 ONLY show badge UI if quest has badge
     if (quest.badgeKey) {
-      const badge = BADGES[quest.badgeKey];
-      if (!badge) return;
+      const language = localStorage.getItem("lastCourseTitle") || "Python";
 
-      this.badgeUnlockPopup.show({
-        badgeKey: badge.key,
-        label: quest.title
-      });
+      const achievement = achievementsData.find(
+        a =>
+          a.exerciseId === Number(quest.id) &&
+          a.language === language
+      );
+
+      if (achievement) {
+        try {
+          await postAchievement({
+            achievementId: achievement.id   // ✅ ONLY THIS
+          });
+
+          console.log("🏆 Achievement sent:", achievement.id);
+        } catch (err) {
+          console.error("❌ Achievement save failed", err);
+        }
+      }
+
+      const badge = BADGES[quest.badgeKey];
+      if (badge) {
+        this.badgeUnlockPopup.show({
+          badgeKey: badge.key,
+          label: quest.title
+        });
+      }
     }
+
   };
 
   create() {
