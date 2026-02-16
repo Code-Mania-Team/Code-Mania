@@ -125,9 +125,55 @@
          "width":20,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":5,
+         "name":"player_spawn",
+         "objects":[
+                {
+                 "height":0,
+                 "id":1,
+                 "name":"player_spawn",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"player_spawn"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"player"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":133.333333333333,
+                 "y":173.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":2,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":-122.666666666667,
+                 "y":9.33333333333333
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":1,
+ "nextlayerid":6,
+ "nextobjectid":3,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
