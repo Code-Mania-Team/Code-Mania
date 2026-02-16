@@ -298,6 +298,10 @@ export default class QuestUI {
         this.container.setVisible(false);
         this.visible = false;
         this.bodyScroll = 0;
+        
+        // 🚫 Restore page scrolling when quest HUD is hidden
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
       }
     });
   }

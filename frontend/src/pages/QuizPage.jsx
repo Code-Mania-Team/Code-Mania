@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CheckCircle, XCircle } from "lucide-react";
-import styles from "../styles/ExamPage.module.css";
+import styles from "../styles/QuizPage.module.css";
 import { getExamData } from "../data/examData";
 
 const QuizPage = () => {
@@ -134,15 +134,13 @@ const QuizPage = () => {
           style={{
             backgroundImage: `url('${heroBackground}')`,
             backgroundSize: "cover",
-            backgroundPosition: "center"
+            backgroundPosition: "center",
+            minHeight: "100vh"
           }}
         >
           <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>Quiz Completed!</h1>
-            <p className={styles.heroDescription}>
-              You have completed the {quizData.examTitle}.
-            </p>
             <div className={styles.resultsContainer}>
+              <h1 className={styles.resultsTitle}>Quiz Completed!</h1>
               <div className={styles.scoreDisplay}>
                 <div className={styles.percentage}>{score.percentage}%</div>
               </div>
@@ -159,8 +157,7 @@ const QuizPage = () => {
               </div>
 
               <button
-                className={styles.button}
-                style={{ marginTop: "2rem", maxWidth: "300px" }}
+                className={styles.actionButton}
                 onClick={handleReturnToCourse}
               >
                 Back to Course
@@ -201,37 +198,35 @@ const QuizPage = () => {
           
           <div className={styles.optionsContainer}>
             {question.options.map((option, index) => (
-              <label key={index} className={`${styles.optionLabel} ${
-                selectedAnswer === index ? styles.selectedOption : ''
+              <div key={index} className={`${styles.option} ${
+                selectedAnswer === index ? styles.selected : ''
               } ${
                 showFeedback
                   ? index === question.correctAnswer
-                    ? styles.correctOption
+                    ? styles.correct
                     : selectedAnswer === index
-                    ? styles.wrongOption
+                    ? styles.incorrect
                     : ''
                   : ''
-              }`}>
-                <input
-                  type="radio"
-                  name="answer"
-                  className={styles.optionInput}
-                  checked={selectedAnswer === index}
-                  onChange={() => handleAnswerSelect(index)}
-                  disabled={showFeedback}
-                />
-                <div className={styles.optionContent}>
-                  <span className={styles.optionLetter}>{String.fromCharCode(65 + index)}</span>
-                  <span className={styles.optionText}>{option}</span>
-                  {showFeedback && index === question.correctAnswer && (
-                    <CheckCircle className={styles.feedbackIcon} />
-                  )}
-                  {showFeedback && selectedAnswer === index && index !== question.correctAnswer && (
-                    <XCircle className={styles.feedbackIcon} />
-                  )}
-                </div>
-              </label>
+              } ${
+                showFeedback ? styles.disabled : ''
+              }`} onClick={() => handleAnswerSelect(index)}>
+                <div className={styles.optionLetter}>{String.fromCharCode(65 + index)}</div>
+                <div className={styles.optionText}>{option}</div>
+                {showFeedback && index === question.correctAnswer && (
+                  <CheckCircle style={{ color: '#10b981', marginLeft: 'auto' }} />
+                )}
+                {showFeedback && selectedAnswer === index && index !== question.correctAnswer && (
+                  <XCircle style={{ color: '#ef4444', marginLeft: 'auto' }} />
+                )}
+              </div>
             ))}
+          </div>
+
+          <div className={styles.quizNavigation}>
+            <div className={styles.questionCounter}>
+              {currentQuestion + 1} / {quizData.questions.length}
+            </div>
           </div>
         </div>
       </div>
