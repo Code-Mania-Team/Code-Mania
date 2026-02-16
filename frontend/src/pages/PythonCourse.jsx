@@ -78,7 +78,7 @@ const PythonCourse = () => {
     return "locked";
   };
 
-  const handleStartExercise = (exerciseId) => {
+  const handleStartExercise = (exerciseId, exerciseType = null) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
 
@@ -90,13 +90,19 @@ const PythonCourse = () => {
     localStorage.setItem("lastCourseTitle", "Python");
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
-    // Check if this is the Python Exam (exercise ID 17)
-    if (exerciseId === 17) {
-      navigate('/exam/python');
+    // Handle different exercise types
+    if (exerciseType === "quiz" || (exerciseId >= 101 && exerciseId <= 104)) {
+      // Navigate to quiz page with quiz ID
+      navigate(`/quiz/python/${exerciseId}`);
       return;
     }
 
-    // PASS THE REAL EXERCISE ID
+    if (exerciseId === 17) {
+      navigate('/coding-exam/python');
+      return;
+    }
+
+    // Regular exercise
     navigate(`/learn/python/exercise/play`);
   };
 
@@ -123,7 +129,8 @@ const PythonCourse = () => {
         { id: 1, name: "Setting Up", status: "available" },
         { id: 2, name: "Hello World", status: "locked" },
         { id: 3, name: "Pattern", status: "locked" },
-        { id: 4, name: "Initials", status: "locked" }
+        { id: 4, name: "Initials", status: "locked" },
+        { id: 101, name: "Quiz: Hello World", status: "locked", type: "quiz" }
       ]
     },
     {
@@ -134,7 +141,8 @@ const PythonCourse = () => {
         { id: 5, name: "Variables", status: "locked" },
         { id: 6, name: "Strings", status: "locked" },
         { id: 7, name: "Numbers", status: "locked" },
-        { id: 8, name: "Booleans", status: "locked" }
+        { id: 8, name: "Booleans", status: "locked" },
+        { id: 102, name: "Quiz: Variables & Data Types", status: "locked", type: "quiz" }
       ]
     },
     {
@@ -145,7 +153,8 @@ const PythonCourse = () => {
         { id: 9, name: "If Statements", status: "locked" },
         { id: 10, name: "Else & Elif", status: "locked" },
         { id: 11, name: "Comparison", status: "locked" },
-        { id: 12, name: "Logical Operators", status: "locked" }
+        { id: 12, name: "Logical Operators", status: "locked" },
+        { id: 103, name: "Quiz: Control Flow", status: "locked", type: "quiz" }
       ]
     },
     {
@@ -156,7 +165,8 @@ const PythonCourse = () => {
         { id: 13, name: "For Loops", status: "locked" },
         { id: 14, name: "While Loops", status: "locked" },
         { id: 15, name: "Range Function", status: "locked" },
-        { id: 16, name: "Nested Loops", status: "locked" }
+        { id: 16, name: "Nested Loops", status: "locked" },
+        { id: 104, name: "Quiz: Loops", status: "locked", type: "quiz" }
       ]
     },
     {
@@ -164,7 +174,7 @@ const PythonCourse = () => {
       title: "Examination",
       description: "Test your Python knowledge. Complete all previous modules to unlock this exam.",
       exercises: [
-        { id: 17, name: "Python Exam", status: "locked" }
+        { id: 17, name: "Python Exam", status: "locked", type: "exam" }
       ]
     }
   ];
@@ -244,7 +254,7 @@ const PythonCourse = () => {
                             {status === "available" ? (
                               <button
                                 className="start-btn"
-                                onClick={() => handleStartExercise(exercise.id)}
+                                onClick={() => handleStartExercise(exercise.id, exercise.type)}
                               >
                                 Start
                               </button>

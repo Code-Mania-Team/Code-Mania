@@ -1,0 +1,64 @@
+{
+  "examAnswers": [
+    {
+      "id": 1,
+      "userId": "user123",
+      "examType": "python",
+      "questionId": 1,
+      "question": "Which function is used to display output in Python?",
+      "userAnswer": 1,
+      "correctAnswer": 1,
+      "isCorrect": true,
+      "expGained": 100,
+      "answeredAt": "2026-02-16T13:56:00.000Z"
+    },
+    {
+      "id": 2,
+      "userId": "user123",
+      "examType": "python",
+      "questionId": 2,
+      "question": "What is the correct way to assign a variable in Python?",
+      "userAnswer": 1,
+      "correctAnswer": 1,
+      "isCorrect": true,
+      "expGained": 100,
+      "answeredAt": "2026-02-16T13:56:30.000Z"
+    },
+    {
+      "id": 3,
+      "userId": "user123",
+      "examType": "python",
+      "questionId": 3,
+      "question": "What is the output of: print(2 + 3 * 2)?",
+      "userAnswer": 0,
+      "correctAnswer": 1,
+      "isCorrect": false,
+      "expGained": 0,
+      "answeredAt": "2026-02-16T13:57:00.000Z"
+    },
+    {
+      "id": 4,
+      "userId": "user456",
+      "examType": "cpp",
+      "questionId": 11,
+      "question": "Which of the following is a correct way to declare an integer in C++?",
+      "userAnswer": 0,
+      "correctAnswer": 0,
+      "isCorrect": true,
+      "expGained": 100,
+      "answeredAt": "2026-02-16T13:57:30.000Z"
+    },
+    {
+      "id": 5,
+      "userId": "user456",
+      "examType": "cpp",
+      "questionId": 12,
+      "question": "What does the '<<' operator do in: cout << \"Hi\"; ?",
+      "userAnswer": 2,
+      "correctAnswer": 1,
+      "isCorrect": false,
+      "expGained": 0,
+      "answeredAt": "2026-02-16T13:58:00.000Z"
+    }
+  ]
+}

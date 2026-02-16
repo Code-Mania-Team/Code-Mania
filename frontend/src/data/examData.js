@@ -25,16 +25,16 @@ const cppExam = {
   examTitle: "C++ Fundamentals Exam",
   examDescription: "Test your knowledge of C++ basics including variables, types, operators, and control flow.",
   questions: [
-    { id: 1, question: "Which of the following is a correct way to declare an integer in C++?", options: ["int x = 5;", "integer x = 5;", "x = int(5);", "declare int x = 5;"], correctAnswer: 0, exp: 100 },
-    { id: 2, question: "What does the '<<' operator do in: cout << \"Hi\"; ?", options: ["Left shift bits", "Insertion operator (output)", "Comparison", "Concatenation"], correctAnswer: 1, exp: 100 },
-    { id: 3, question: "Which header is required for using cout and cin?", options: ["<stdio.h>", "<iostream>", "<string>", "<math.h>"], correctAnswer: 1, exp: 100 },
-    { id: 4, question: "How do you write a single-line comment in C++?", options: ["# comment", "// comment", "<!-- comment -->", "/* comment */"], correctAnswer: 1, exp: 100 },
-    { id: 5, question: "Which loop is best when you know the number of iterations?", options: ["for", "while", "do-while", "foreach"], correctAnswer: 0, exp: 100 },
-    { id: 6, question: "What is the correct way to declare a constant in C++?", options: ["const int x = 10;", "constant int x = 10;", "final int x = 10;", "immutable int x = 10;"], correctAnswer: 0, exp: 100 },
-    { id: 7, question: "What is the output type of: sizeof(int)?", options: ["int", "size_t", "double", "bool"], correctAnswer: 1, exp: 100 },
-    { id: 8, question: "Which symbol is used to access members through a pointer?", options: [".", "->", "::", ":"], correctAnswer: 1, exp: 100 },
-    { id: 9, question: "What is the correct way to define a function in C++?", options: ["def foo()", "function foo()", "void foo() {}", "fn foo()"], correctAnswer: 2, exp: 100 },
-    { id: 10, question: "Which keyword is used to create a class in C++?", options: ["struct", "class", "object", "type"], correctAnswer: 1, exp: 100 }
+    { id: 11, question: "Which of the following is a correct way to declare an integer in C++?", options: ["int x = 5;", "integer x = 5;", "x = int(5);", "declare int x = 5;"], correctAnswer: 0, exp: 100 },
+    { id: 12, question: "What does the '<<' operator do in: cout << \"Hi\"; ?", options: ["Left shift bits", "Insertion operator (output)", "Comparison", "Concatenation"], correctAnswer: 1, exp: 100 },
+    { id: 13, question: "Which header is required for using cout and cin?", options: ["<stdio.h>", "<iostream>", "<string>", "<math.h>"], correctAnswer: 1, exp: 100 },
+    { id: 14, question: "How do you write a single-line comment in C++?", options: ["# comment", "// comment", "<!-- comment -->", "/* comment */"], correctAnswer: 1, exp: 100 },
+    { id: 15, question: "Which loop is best when you know the number of iterations?", options: ["for", "while", "do-while", "foreach"], correctAnswer: 0, exp: 100 },
+    { id: 16, question: "What is the correct way to declare a constant in C++?", options: ["const int x = 10;", "constant int x = 10;", "final int x = 10;", "immutable int x = 10;"], correctAnswer: 0, exp: 100 },
+    { id: 17, question: "What is the output type of: sizeof(int)?", options: ["int", "size_t", "double", "bool"], correctAnswer: 1, exp: 100 },
+    { id: 18, question: "Which symbol is used to access members through a pointer?", options: [".", "->", "::", ":"], correctAnswer: 1, exp: 100 },
+    { id: 19, question: "What is the correct way to define a function in C++?", options: ["def foo()", "function foo()", "void foo() {}", "fn foo()"], correctAnswer: 2, exp: 100 },
+    { id: 20, question: "Which keyword is used to create a class in C++?", options: ["struct", "class", "object", "type"], correctAnswer: 1, exp: 100 }
   ]
 };
 
@@ -44,16 +44,16 @@ const javascriptExam = {
   examTitle: "JavaScript Fundamentals Exam",
   examDescription: "Test your knowledge of JavaScript basics including variables, types, functions, and arrays.",
   questions: [
-    { id: 1, question: "Which keyword declares a block-scoped variable?", options: ["var", "let", "const", "both let and const"], correctAnswer: 3, exp: 100 },
-    { id: 2, question: "What is the output of: console.log(typeof null)?", options: ["null", "object", "undefined", "number"], correctAnswer: 1, exp: 100 },
-    { id: 3, question: "Which method converts a JSON string into an object?", options: ["JSON.parse()", "JSON.stringify()", "JSON.object()", "parse.JSON()"], correctAnswer: 0, exp: 100 },
-    { id: 4, question: "How do you write an arrow function that returns x + 1?", options: ["(x) => x + 1", "(x) -> x + 1", "function(x) => x + 1", "(x) => { x + 1 }"], correctAnswer: 0, exp: 100 },
-    { id: 5, question: "Which array method creates a new array with elements that pass a test?", options: ["map", "filter", "forEach", "reduce"], correctAnswer: 1, exp: 100 },
-    { id: 6, question: "What is the result of: '5' + 1 ?", options: ["6", "51", "NaN", "TypeError"], correctAnswer: 1, exp: 100 },
-    { id: 7, question: "Which statement is true about '==='?", options: ["It compares values only", "It compares values and types", "It converts types automatically", "It works only for numbers"], correctAnswer: 1, exp: 100 },
-    { id: 8, question: "Which keyword is used to handle errors?", options: ["catch", "try", "throw", "All of the above"], correctAnswer: 3, exp: 100 },
-    { id: 9, question: "What does Array.isArray([]) return?", options: ["true", "false", "undefined", "object"], correctAnswer: 0, exp: 100 },
-    { id: 10, question: "Which function converts a string to an integer?", options: ["Number()", "parseInt()", "toInt()", "Integer()"], correctAnswer: 1, exp: 100 }
+    { id: 21, question: "Which keyword declares a block-scoped variable?", options: ["var", "let", "const", "both let and const"], correctAnswer: 3, exp: 100 },
+    { id: 22, question: "What is the output of: console.log(typeof null)?", options: ["null", "object", "undefined", "number"], correctAnswer: 1, exp: 100 },
+    { id: 23, question: "Which method converts a JSON string into an object?", options: ["JSON.parse()", "JSON.stringify()", "JSON.object()", "parse.JSON()"], correctAnswer: 0, exp: 100 },
+    { id: 24, question: "How do you write an arrow function that returns x + 1?", options: ["(x) => x + 1", "(x) -> x + 1", "function(x) => x + 1", "(x) => { x + 1 }"], correctAnswer: 0, exp: 100 },
+    { id: 25, question: "Which array method creates a new array with elements that pass a test?", options: ["map", "filter", "forEach", "reduce"], correctAnswer: 1, exp: 100 },
+    { id: 26, question: "What is the result of: '5' + 1 ?", options: ["6", "51", "NaN", "TypeError"], correctAnswer: 1, exp: 100 },
+    { id: 27, question: "Which statement is true about '==='?", options: ["It compares values only", "It compares values and types", "It converts types automatically", "It works only for numbers"], correctAnswer: 1, exp: 100 },
+    { id: 28, question: "Which keyword is used to handle errors?", options: ["catch", "try", "throw", "All of the above"], correctAnswer: 3, exp: 100 },
+    { id: 29, question: "What does Array.isArray([]) return?", options: ["true", "false", "undefined", "object"], correctAnswer: 0, exp: 100 },
+    { id: 30, question: "Which function converts a string to an integer?", options: ["Number()", "parseInt()", "toInt()", "Integer()"], correctAnswer: 1, exp: 100 }
   ]
 };
 
