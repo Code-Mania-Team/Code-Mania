@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CheckCircle, XCircle, Play, RotateCcw, Lightbulb } from "lucide-react";
 import styles from "../styles/ExamPage.module.css";
 import { getCodingExamData } from "../data/codingExamData";
-import ExamCodeTerminal from "../components/ExamCodeTerminal";
+import CodeTerminal from "../components/CodeTerminal";
 
 const CodingExamPage = () => {
   const navigate = useNavigate();
@@ -247,7 +247,7 @@ const CodingExamPage = () => {
             
             {/* Right Column - Code Editor */}
             <div style={{ flex: '2', minWidth: '700px' }}>
-              <ExamCodeTerminal />
+              <CodeTerminal />
             </div>
           </div>
 
