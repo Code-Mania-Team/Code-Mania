@@ -7,33 +7,27 @@ import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
-
 // Import JavaScript course badges
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
 import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
 import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
 import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
-
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
-
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user} = useAuth();
   const getGameProgress = useGetGameProgress();
-
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [data, setData] = useState();
-
   /* ===============================
      LOAD PROGRESS (PYTHON LOGIC)
   =============================== */
   useEffect(() => {
     if (!isAuthenticated) return;
-
     const loadProgress = async () => {
       try {
         const result = await getGameProgress("JavaScript");
@@ -45,23 +39,18 @@ const JavaScriptCourse = () => {
         console.error("Failed to load JS progress", err);
       }
     };
-
     loadProgress();
   }, [isAuthenticated]);
-
   /* ===============================
      HELPERS (PYTHON LOGIC)
   =============================== */
   const getExerciseStatus = (exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
-
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
     }
-
     return "locked";
   };
-
   const handleViewProfile = () => {
     if (isAuthenticated) {
       navigate('/profile');
@@ -69,15 +58,12 @@ const JavaScriptCourse = () => {
       onOpenModal();
     }
   };
-
   const onOpenModal = () => {
     setIsModalOpen(true);
   };
-
   const onCloseModal = () => {
     setIsModalOpen(false);
   };
-
   const userProgress = {
     name: user?.username || "Guest",
     level: 1,
@@ -88,32 +74,25 @@ const JavaScriptCourse = () => {
     xpEarned: data?.xpEarned || 0,
     totalXp: 2600
   };
-
   const handleStartExercise = (exerciseId) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const authed = localStorage.getItem("isAuthenticated") === "true";
-
     if (authed && !hasSeenTutorial) {
       setShowTutorial(true);
     }
-
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
-
     if (exerciseId === 17) {
       navigate('/exam/javascript');
       return;
     }
-
     navigate(`/learn/javascript/exercise/play`);
   };
-
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
   const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
-
   const getStatusIcon = (status) => {
     if (status === "completed") {
       return (
@@ -127,7 +106,6 @@ const JavaScriptCourse = () => {
     if (status === "locked") return <Lock className="status-icon locked" />;
     return <Circle className="status-icon available" />;
   };
-
   /* ===============================
      COURSE STRUCTURE (UNCHANGED)
   =============================== */
@@ -188,7 +166,6 @@ const JavaScriptCourse = () => {
       exercises: [{ id: 17, name: "JavaScript Exam" }],
     },
   ];
-
   return (
     <div className="javascript-course-page">
       {/* Hero Section */}
@@ -205,7 +182,6 @@ const JavaScriptCourse = () => {
           <button className="start-learning-btn">Start Learning for Free</button>
         </div>
       </section>
-
       {/* Main Content */}
       <div className="javascript-content">
         {/* Modules Section */}
@@ -226,7 +202,6 @@ const JavaScriptCourse = () => {
                   <ChevronDown className="chevron-icon" />
                 )}
               </div>
-
               {expandedModule === module.id && (
                 <div className="module-content">
                   <p className="module-description">
@@ -238,12 +213,10 @@ const JavaScriptCourse = () => {
                         index > 0
                           ? module.exercises[index - 1].id
                           : null;
-
                       const status = getExerciseStatus(
                         exercise.id,
                         previousExerciseId
                       );
-
                       return (
                         <div
                           key={exercise.id}
@@ -259,7 +232,6 @@ const JavaScriptCourse = () => {
                               {exercise.name}
                             </span>
                           </div>
-
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
@@ -283,7 +255,6 @@ const JavaScriptCourse = () => {
             </div>
           ))}
         </div>
-
         {/* Sidebar */}
         <div className="sidebar">
           <div className="profile-card">
@@ -296,10 +267,8 @@ const JavaScriptCourse = () => {
             </div>
             <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
           </div>
-
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
@@ -309,7 +278,6 @@ const JavaScriptCourse = () => {
                 {userProgress.exercisesCompleted} / {userProgress.totalExercises}
               </span>
             </div>
-
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon xp"></div>
@@ -320,7 +288,6 @@ const JavaScriptCourse = () => {
               </span>
             </div>
           </div>
-
           {/* Course Badges Section */}
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
@@ -333,13 +300,11 @@ const JavaScriptCourse = () => {
           </div>
         </div>
       </div>
-
       <SignInModal
         isOpen={isModalOpen}
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-
       {showTutorial && (
         <TutorialPopup
           open={showTutorial}
@@ -352,5 +317,4 @@ const JavaScriptCourse = () => {
     </div>
   );
 };
-
 export default JavaScriptCourse;

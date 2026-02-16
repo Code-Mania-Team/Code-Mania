@@ -12,7 +12,6 @@
   z-index: 1000;
   backdrop-filter: blur(5px);
 }
-
 /* Modal Container */
 .signinModal {
   background: linear-gradient(145deg, #0f172a, #1e293b);
@@ -24,7 +23,6 @@
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 /* Close Button */
 .closeModal {
   position: absolute;
@@ -40,40 +38,34 @@
   padding: 0.25rem;
   border-radius: 4px;
 }
-
 .closeModal:hover {
   color: white;
   background: rgba(255, 255, 255, 0.1);
 }
-
 /* Welcome Section */
 .welcomeSection {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.6rem;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   color: #fff;
   margin-bottom: 2rem;
   text-align: center;
 }
-
 .pixelIcon {
   width: 40px;
   height: 40px;
   object-fit: contain;
 }
-
 .pixelSword {
   transform: rotate(-15deg);
 }
-
 .pixelShield {
   transform: rotate(15deg);
 }
-
 .subtext {
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 0.65rem;
   background: linear-gradient(90deg, #007bff, #7f00ff);
   background-clip: text;
@@ -82,27 +74,23 @@
   margin-bottom: 2rem;
   text-align: center;
 }
-
 /* Form Elements */
 .signinForm {
   width: 100%;
 }
-
 .formGroup {
   width: 100%;
   margin-bottom: 1rem;
 }
-
 .formGroup label {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.8rem;
   color: #94a3b8;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
   letter-spacing: 0.3px;
 }
-
 /* Password Input Container */
 .passwordInputContainer {
   position: relative;
@@ -110,7 +98,6 @@
   align-items: center;
   width: 100%;
 }
-
 .passwordInput {
   width: 100%;
   padding: 0.75rem 2.5rem 0.75rem 1rem;
@@ -118,12 +105,11 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.95rem;
   transition: all 0.2s ease;
   outline: none;
 }
-
 .togglePasswordButton {
   position: absolute;
   right: 0.75rem;
@@ -141,23 +127,21 @@
   width: 28px;
   height: 28px;
 }
-
 .togglePasswordButton:hover {
   background: rgba(255, 255, 255, 0.1);
 }
-
 .togglePasswordIcon {
   width: 20px;
   height: 20px;
   object-fit: contain;
-  filter: invert(70%) sepia(13%) saturate(1000%) hue-rotate(180deg) brightness(90%) contrast(90%);
+  filter: invert(70%) sepia(13%) saturate(1000%) hue-rotate(180deg)
+    brightness(90%) contrast(90%);
   transition: filter 0.2s ease;
 }
-
 .togglePasswordButton:hover .togglePasswordIcon {
-  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(200%) contrast(100%);
+  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(180deg)
+    brightness(200%) contrast(100%);
 }
-
 /* Error message styling */
 .errorText {
   color: #f87171; /* Red-400 */
@@ -167,22 +151,24 @@
   font-weight: 500;
   animation: fadeIn 0.2s ease-in-out;
 }
-
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
 /* Add red border to invalid inputs */
 input:invalid {
   border-color: #f87171 !important;
 }
-
 /* Show red border only after user interaction */
 input:not(:placeholder-shown):not(:focus):invalid {
   border-color: #f87171 !important;
 }
-
 /* Regular input styles */
 .formGroup input[type="email"],
 .formGroup input[type="password"],
@@ -193,21 +179,18 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.95rem;
   transition: all 0.2s ease;
   outline: none;
 }
-
 .formGroup input:focus {
   border-color: #7f00ff;
   box-shadow: 0 0 0 2px rgba(127, 0, 255, 0.2);
 }
-
 .formGroup input::placeholder {
   color: #64748b;
 }
-
 /* Remember Me */
 .rememberMe {
   display: flex;
@@ -216,11 +199,10 @@ input:not(:placeholder-shown):not(:focus):invalid {
   font-size: 0.85rem;
   color: #94a3b8;
   margin: 1.5rem 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   cursor: pointer;
   user-select: none;
 }
-
 .rememberMe input[type="checkbox"] {
   width: 16px;
   height: 16px;
@@ -229,7 +211,6 @@ input:not(:placeholder-shown):not(:focus):invalid {
   accent-color: #7f00ff;
   flex-shrink: 0;
 }
-
 /* Buttons */
 .signinButton {
   width: 100%;
@@ -238,26 +219,25 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border: none;
   border-radius: 12px;
   color: white;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 0.7rem;
   letter-spacing: 0.05em;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
   text-transform: uppercase;
   margin-top: 1rem;
 }
-
 .signinButton:hover {
   transform: scale(1.01);
   opacity: 0.9;
 }
-
 .signinButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
   transform: none;
 }
-
 .forgotPasswordButton {
   width: 100%;
   background: transparent;
@@ -266,18 +246,16 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border-radius: 8px;
   padding: 0.9rem 1rem;
   margin-top: 1rem;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
 .forgotPasswordButton:hover {
   background: rgba(255, 255, 255, 0.05);
   color: white;
   border-color: rgba(255, 255, 255, 0.2);
 }
-
 .backButton {
   width: 100%;
   background: transparent;
@@ -286,18 +264,15 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border-radius: 8px;
   padding: 0.9rem;
   margin-top: 0.75rem;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
 .backButton:hover {
   background: rgba(255, 255, 255, 0.05);
   color: white;
 }
-
-
 /* Modal Container */
 .signinModal {
   background: linear-gradient(145deg, #0f172a, #1e293b);
@@ -315,26 +290,21 @@ input:not(:placeholder-shown):not(:focus):invalid {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
-
 /* Webkit (Chrome, Safari, etc.) scrollbar styling */
 .signinModal::-webkit-scrollbar {
   width: 6px;
 }
-
 .signinModal::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 3px;
 }
-
 .signinModal::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
 }
-
 .signinModal::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.3);
 }
-
 /* Ensure the modal content takes full width and height */
 .signinForm {
   width: 100%;
@@ -342,92 +312,82 @@ input:not(:placeholder-shown):not(:focus):invalid {
   overflow-y: auto;
   padding-right: 8px; /* Add padding to prevent content from being hidden behind scrollbar */
 }
-
 /* Style the scrollbar for the form */
 .signinForm::-webkit-scrollbar {
   width: 4px;
 }
-
 .signinForm::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .signinForm::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
-
 /* For Firefox */
 .signinForm {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
-
 /* OTP Sent Message */
 .otpSent {
   text-align: center;
   padding: 1rem 0;
 }
-
 .otpSent h2 {
   color: white;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 1.2rem;
   margin-bottom: 1rem;
 }
-
 .otpSent p {
   color: #94a3b8;
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 0.5rem;
 }
-
 .emailHighlight {
   color: #7f00ff;
   font-weight: 500;
 }
-
 .otpNote {
   color: #64748b;
   font-size: 0.75rem;
   margin-top: 0.5rem;
   font-style: italic;
 }
-
 /* Signup Hint */
 .signupHint {
   margin-top: 1.5rem;
   font-size: 0.7rem;
   color: #aaa;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   text-align: center;
 }
-
 .signupLinkButton {
   background: #020617;
   border-radius: 999px;
   border: none;
   padding: 0.4rem 0.9rem;
   color: #f9fafb;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
   margin-left: 0.5rem;
   margin-top: 10px;
   width: 300px;
   height: 40px;
 }
-
 .signupLinkButton:hover {
   background: #020617;
   box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.5);
   transform: translateY(-1px);
 }
-
 /* OAuth Buttons */
 .oauthButtons {
   display: flex;
@@ -436,7 +396,6 @@ input:not(:placeholder-shown):not(:focus):invalid {
   margin: 20px 0;
   width: 100%;
 }
-
 .oauthButton {
   display: flex;
   align-items: center;
@@ -454,23 +413,19 @@ input:not(:placeholder-shown):not(:focus):invalid {
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-
 .oauthButton:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
-
 .oauthButton:active {
   transform: translateY(0);
   background: #f1f5f9;
 }
-
 .oauthButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
   transform: none;
 }
-
 .oauthIcon {
   display: flex;
   align-items: center;
@@ -479,7 +434,6 @@ input:not(:placeholder-shown):not(:focus):invalid {
   width: 20px;
   height: 20px;
 }
-
 /* Divider */
 .divider {
   display: flex;
@@ -490,25 +444,21 @@ input:not(:placeholder-shown):not(:focus):invalid {
   font-size: 14px;
   font-weight: 500;
 }
-
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid #e2e8f0;
 }
-
 .divider span {
   padding: 0 12px;
   position: relative;
   top: -1px;
 }
-
 /* Password Input Wrapper */
 .passwordInputWrapper {
   position: relative;
 }
-
 .passwordToggle {
   position: absolute;
   right: 10px;
@@ -523,7 +473,6 @@ input:not(:placeholder-shown):not(:focus):invalid {
   align-items: center;
   justify-content: center;
 }
-
 .passwordToggle:hover {
   color: white;
 }

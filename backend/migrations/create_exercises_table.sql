@@ -21,24 +21,19 @@ CREATE TABLE IF NOT EXISTS exercises (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_by UUID REFERENCES auth.users(id)
 );
-
 -- Create index for faster queries
 CREATE INDEX idx_exercises_course_status ON exercises(course, status);
 CREATE INDEX idx_exercises_course_order ON exercises(course, order_index);
-
 -- RLS (Row Level Security) policies
 ALTER TABLE exercises ENABLE ROW LEVEL SECURITY;
-
 -- Allow authenticated users to read published exercises
 CREATE POLICY "Read published exercises" ON exercises
     FOR SELECT USING (status = 'published');
-
 -- Allow admin users full access
 CREATE POLICY "Admin full access" ON exercises
     FOR ALL USING (
         auth.jwt() ->> 'role' = 'admin'
     );
-
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -47,7 +42,6 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
-
 -- Trigger to automatically update updated_at
 CREATE TRIGGER update_exercises_updated_at 
     BEFORE UPDATE ON exercises 

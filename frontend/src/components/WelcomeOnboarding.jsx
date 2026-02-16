@@ -10,7 +10,6 @@ const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
 const characterIcon4 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 import { useOnBoardUsername } from '../services/setUsername';
-
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -18,9 +17,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
   const [usernameError, setUsernameError] = useState('');
-
   const onBoardUsername = useOnBoardUsername();
-
   // Character options (you can add more character sprites here)
   const characters = [
     { id: 0, name: 'Nova', sprite: char1Preview, icon: characterIcon1, color: '#ff6b6b' },
@@ -28,7 +25,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
     { id: 2, name: 'Flux', sprite: char3Preview, icon: characterIcon3, color: '#95e1d3' },
     { id: 3, name: 'Zephyr', sprite: char4Preview, icon: characterIcon4, color: '#8aa6ff' },
   ];
-
   const steps = [
     {
       type: 'character-selection',
@@ -46,16 +42,13 @@ const WelcomeOnboarding = ({ onComplete }) => {
       progress: 100
     }
   ];
-
   useEffect(() => {
     // Animate progress bar
     const timer = setTimeout(() => {
       setProgress(steps[currentStep].progress);
     }, 100);
-
     return () => clearTimeout(timer);
   }, [currentStep]);
-
   const handleContinue =  async (e) => {
     e.preventDefault();
     // Validate username on step 1
@@ -83,34 +76,28 @@ const WelcomeOnboarding = ({ onComplete }) => {
           localStorage.setItem("needsUsername", "false");
           localStorage.setItem('selectedCharacter', characters[selectedCharacter].id);
           localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
-
           window.dispatchEvent(new CustomEvent('characterUpdated', {
             detail: { characterIcon: characters[selectedCharacter].icon }
           }));
-            
         }
-
       } catch (error) {
         setUsernameError("Username already taken or invalid");
         return;
       }
       setUsernameError('');
     }
-
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       onComplete();
     }
   };
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
       setUsernameError('');
     }
   };
-
   const handleCharacterChange = (direction) => {
     if (direction === 'next') {
       setSelectedCharacter((prev) => (prev + 1) % characters.length);
@@ -118,7 +105,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
       setSelectedCharacter((prev) => (prev - 1 + characters.length) % characters.length);
     }
   };
-
   const getMessage = () => {
     let message = steps[currentStep].message;
     if (currentStep === 2 && username) {
@@ -126,7 +112,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
     }
     return message;
   };
-
   return (
     <div className={styles.overlay}>
       <div className={styles.container}>
@@ -146,7 +131,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
             ></div>
           </div>
         </div>
-
         {/* Computer Mascot with Speech Bubble */}
         <div className={styles.mascotSection}>
           <div className={styles.mascot}>
@@ -161,7 +145,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <p>{getMessage()}</p>
           </div>
         </div>
-
         {/* Main Content Area */}
         <div className={styles.mainContent}>
           {/* Character Selection */}
@@ -199,7 +182,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
               </button>
             </div>
           )}
-
           {/* Username Input */}
           {currentStep === 1 && (
             <div className={styles.usernameSection}>
@@ -256,7 +238,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
               </div>
             </div>
           )}
-
           {/* Welcome */}
           {currentStep === 2 && (
             <div className={styles.welcomeSection}>
@@ -281,7 +262,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
             </div>
           )}
         </div>
-
         {/* Continue Button */}
         <button className={styles.continueButton} onClick={handleContinue}>
           Continue
@@ -290,5 +270,4 @@ const WelcomeOnboarding = ({ onComplete }) => {
     </div>
   );
 };
-
 export default WelcomeOnboarding;

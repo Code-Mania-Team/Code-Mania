@@ -4,12 +4,10 @@ import styles from '../styles/SignInModal.module.css';
 import { signUp } from '../services/signup';  // Import the signUp service
 import { verifyOtp } from '../services/verifyOtp';
 import { login, loginWithGoogle } from '../services/login';
-
 const swordImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/sword_cnrdam.png';
 const shieldImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/shield_ykk5ek.png';
 const showPasswordIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/view_yj1elw.png';
 const hidePasswordIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/hide_apyeec.png';
-
 const OAuthButton = ({ isLoading, onClick, icon, text }) => (
   <button 
     type="button" 
@@ -23,7 +21,6 @@ const OAuthButton = ({ isLoading, onClick, icon, text }) => (
     {text}
   </button>
 );
-
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24">
     <path 
@@ -44,8 +41,6 @@ const GoogleIcon = () => (
     />
   </svg>
 );
-
-
 const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,14 +62,12 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [resetPasswordError, setResetPasswordError] = useState('');
-
   const validatePassword = (pass) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(pass);
     const hasLowerCase = /[a-z]/.test(pass);
     const hasNumbers = /\d/.test(pass);
     const hasSpecialChar = /[!@#$%^&*(),.?:{}|<>]/.test(pass);
-
     if (pass.length < minLength) {
       return 'Password must be at least 8 characters long';
     }
@@ -92,7 +85,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     }
     return '';
   };
-
   const handlePasswordChange = (e) => {
     const newPassword = e.target.value;
     setPassword(newPassword);
@@ -105,7 +97,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
       }
     }
   };
-
   const handleConfirmPasswordChange = (e) => {
     const newConfirmPassword = e.target.value;
     setConfirmPassword(newConfirmPassword);
@@ -115,14 +106,11 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
       setConfirmPasswordError('');
     }
   };
-
   if (!isOpen) return null;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setLoginError(''); // Clear previous login errors
-    
     try {
       if (isSignUpMode) {
         // SIGN UP flow with OTP
@@ -166,20 +154,15 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           setIsLoading(false);
           return;
         }
-
         const user = await login(normalizedEmail, password);
-
         // Prevent stale avatar from previous account when switching users
         localStorage.removeItem('selectedCharacter');
         localStorage.removeItem('selectedCharacterIcon');
-
         const normalizedUsername = (user?.username || '').trim();
         const hasFullName = !!(user?.full_name && user?.full_name.trim());
         const hasCharacterId = user?.character_id !== undefined && user?.character_id !== null;
-        
         // User needs onboarding if they don't have username, full name, or character set up
         const needsOnboarding = !normalizedUsername || !hasFullName || !hasCharacterId;
-
         const characterId = user?.character_id;
         if (characterId !== undefined && characterId !== null) {
           localStorage.setItem('selectedCharacter', String(characterId));
@@ -187,7 +170,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         } else {
           window.dispatchEvent(new CustomEvent('characterUpdated'));
         }
-
         if (normalizedUsername) {
           localStorage.setItem('username', normalizedUsername);
           localStorage.setItem('needsUsername', 'false');
@@ -196,7 +178,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         } else {
           localStorage.setItem('needsUsername', 'true');
         }
-
         onSignInSuccess(needsOnboarding);
         onClose();
         return; // Exit early after successful login
@@ -207,7 +188,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         error?.response?.data?.message ||
         error?.response?.data?.error ||
         error?.message;
-
       if (backendMessage) {
         setLoginError(String(backendMessage));
       } else {
@@ -216,52 +196,42 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     } finally {
       setIsLoading(false);
     }
-
     e.stopPropagation();
     return false;
   };
-
   const handleBackToEmailPassword = () => {
     setShowOtpField(false);
     setOtp('');
   };
-
   const handleForgotPassword = () => {
     setIsForgotPasswordMode(true);
     setLoginError('');
   };
-
   const handleBackToSignIn = () => {
     setIsForgotPasswordMode(false);
     setLoginError('');
   };
-
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setLoginError('');
     setResetPasswordError('');
-
     try {
       // STEP 1: Send OTP
       if (!showForgotPasswordOtp && !showResetPassword) {
         const normalizedEmail = (email || '').trim();
         const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-
         if (!normalizedEmail) {
           setLoginError('Please enter your email.');
           setIsLoading(false);
           return;
         }
-
         if (!emailIsValid) {
           setLoginError('Please enter a valid email address.');
           setIsLoading(false);
           return;
         }
-
         setForgotPasswordEmail(normalizedEmail);
-
         // TODO: Call backend to send OTP
         setTimeout(() => {
           setShowForgotPasswordOtp(true);
@@ -270,7 +240,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         }, 1000);
         return;
       }
-
       // STEP 2: Verify OTP
       if (showForgotPasswordOtp && !showResetPassword) {
         if (!otp || otp.length !== 6) {
@@ -278,7 +247,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           setIsLoading(false);
           return;
         }
-
         // TODO: Verify OTP with backend
         setTimeout(() => {
           setShowResetPassword(true);
@@ -288,7 +256,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         }, 1000);
         return;
       }
-
       // STEP 3: Reset Password
       if (showResetPassword) {
         if (newPassword !== confirmNewPassword) {
@@ -296,17 +263,14 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           setIsLoading(false);
           return;
         }
-
         const validationError = validatePassword(newPassword);
         if (validationError) {
           setResetPasswordError(validationError);
           setIsLoading(false);
           return;
         }
-
         // TODO: Call backend reset password API
         console.log('Resetting password for:', forgotPasswordEmail);
-
         // After success
         setTimeout(() => {
           setShowResetPassword(false);
@@ -318,25 +282,21 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           setIsLoading(false);
         }, 1000);
       }
-
     } catch (error) {
       console.error('Forgot password error:', error);
       setLoginError('Failed to process request. Please try again.');
       setIsLoading(false);
     }
   };
-
   const handleBackToForgotPasswordEmail = () => {
     setShowForgotPasswordOtp(false);
     setOtp('');
     setLoginError('');
   };
-
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.signinModal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeModal} onClick={onClose}>&times;</button>
-
         <div className={styles.welcomeSection}>
           <img src={swordImage} alt="Sword" className={`${styles.pixelIcon} ${styles.pixelSword}`} />
           <h2>
@@ -345,7 +305,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           </h2>
           <img src={shieldImage} alt="Shield" className={`${styles.pixelIcon} ${styles.pixelShield}`} />
         </div>
-
         <p className={styles.subtext}>
           {isSignUpMode ? 'Start your adventure in Code Mania' : 
            isForgotPasswordMode ? 
@@ -353,7 +312,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
               showForgotPasswordOtp ? 'Enter the OTP sent to your email' : 'Enter your email to reset password') 
              : 'Sign in to continue your journey'}
         </p>
-
         {/* Google OAuth Button */}
         <div className={styles.oauthButtons}>
           <OAuthButton
@@ -363,14 +321,11 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
             text="Continue with Google"
           />
         </div>
-
         <div className={styles.divider}>
           <span>or</span>
         </div>
-
         {!isSignUpMode && !isForgotPasswordMode ? (
           <>
-
             <form onSubmit={handleSubmit} className={styles.signinForm}>
               <div className={styles.formGroup}>
                 <label htmlFor="email">Email</label>
@@ -387,7 +342,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   disabled={showOtpField}
                 />
               </div>
-
               <div className={styles.formGroup}>
                 <label htmlFor="password">Password</label>
                 <div className={styles.passwordInputContainer}>
@@ -424,7 +378,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   <p className={styles.errorText}>{passwordError}</p>
                 )}
               </div>
-
               <div className={styles.rememberMe}>
                 <input
                   type="checkbox"
@@ -440,15 +393,12 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   Remember me
                 </label>
               </div>
-
               <button type="submit" className={styles.signinButton} disabled={isLoading}>
                 {isLoading ? 'Processing...' : 'Continue'}
               </button>
-
               {loginError && (
                 <p className={styles.errorText}>{loginError}</p>
               )}
-
               <p className={styles.signupHint}>
                 Don't have an account yet?{' '}
                 <button
@@ -475,7 +425,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           </>
         ) : isForgotPasswordMode ? (
           <>
-
             <form onSubmit={handleForgotPasswordSubmit} className={styles.signinForm}>
               {!showForgotPasswordOtp && !showResetPassword ? (
                 // Step 1: Email input
@@ -494,7 +443,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                       required
                     />
                   </div>
-
                   <button type="submit" className={styles.signinButton} disabled={isLoading}>
                     {isLoading ? 'Sending...' : 'Send OTP'}
                   </button>
@@ -517,11 +465,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                       required
                     />
                   </div>
-
                   <button type="submit" className={styles.signinButton} disabled={isLoading}>
                     {isLoading ? 'Verifying...' : 'Verify OTP'}
                   </button>
-
                   <button
                     type="button"
                     className={styles.backButton}
@@ -532,7 +478,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   </button>
                 </>
               ) : null}
-
               {showResetPassword && (
                 <>
                   <div className={styles.formGroup}>
@@ -568,7 +513,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                       </button>
                     </div>
                   </div>
-
                   <div className={styles.formGroup}>
                     <label htmlFor="confirm-new-password">Confirm New Password</label>
                     <div className={styles.passwordInputContainer}>
@@ -602,15 +546,12 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                       </button>
                     </div>
                   </div>
-
                   <button type="submit" className={styles.signinButton} disabled={isLoading}>
                     {isLoading ? 'Resetting...' : 'Reset Password'}
                   </button>
-
                   {resetPasswordError && (
                     <p className={styles.errorText}>{resetPasswordError}</p>
                   )}
-
                   <button
                     type="button"
                     className={styles.backButton}
@@ -625,11 +566,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   </button>
                 </>
               )}
-
               {loginError && (
                 <p className={styles.errorText}>{loginError}</p>
               )}
-
               {!showForgotPasswordOtp && !showResetPassword ? (
                 <button
                   type="button"
@@ -644,7 +583,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           </>
         ) : (
           <>
-
             <form onSubmit={handleSubmit} className={styles.signinForm}>
               <div className={styles.formGroup}>
                 <label htmlFor="signup-email">Email</label>
@@ -657,7 +595,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   required
                 />
               </div>
-
               <div className={styles.formGroup}>
                 <label htmlFor="signup-password">Password</label>
                 <div className={styles.passwordInputContainer}>
@@ -691,7 +628,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   <p className={styles.errorText}>{passwordError}</p>
                 )}
               </div>
-
               <div className={styles.formGroup}>
                 <label htmlFor="confirm-password">Confirm Password</label>
                 <div className={styles.passwordInputContainer}>
@@ -725,7 +661,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   <p className={styles.errorText}>{confirmPasswordError}</p>
                 )}
               </div>
-
               {showOtpField && (
                 <div className={styles.formGroup}>
                   <label htmlFor="otp">Enter OTP</label>
@@ -741,7 +676,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   <p className={styles.otpNote}>We've sent a 6-digit OTP to your email</p>
                 </div>
               )}
-
               <button type="submit" className={styles.signinButton} disabled={isLoading}>
                 {isLoading
                   ? showOtpField
@@ -751,7 +685,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     ? 'Verify OTP'
                     : 'Send Verification Code'}
               </button>
-
               {showOtpField && (
                 <button
                   type="button"
@@ -762,7 +695,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   Back to email & password
                 </button>
               )}
-
               <p className={styles.signupHint}>
                 Already have an account?{' '}
                 <button
@@ -785,5 +717,4 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     </div>
   );
 };
-
 export default SignInModal;

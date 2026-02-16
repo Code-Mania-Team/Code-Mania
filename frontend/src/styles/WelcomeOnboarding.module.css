@@ -11,7 +11,6 @@
   z-index: 9999;
   animation: fadeIn 0.3s ease-in;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -20,7 +19,6 @@
     opacity: 1;
   }
 }
-
 .container {
   width: 100%;
   max-width: 1024px;
@@ -32,7 +30,6 @@
   padding: 2rem;
   position: relative;
 }
-
 /* Progress Section */
 .progressSection {
   width: 100%;
@@ -43,7 +40,6 @@
   padding: 0;
   margin-bottom: 1rem;
 }
-
 .backButton {
   background: transparent;
   border: none;
@@ -54,16 +50,13 @@
   transition: color 0.3s ease;
   min-width: 60px;
 }
-
 .backButton:hover {
   color: rgba(255, 255, 255, 0.9);
 }
-
 .backButton:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
-
 .progressBar {
   flex: 1;
   height: 6px;
@@ -72,7 +65,6 @@
   overflow: hidden;
   position: relative;
 }
-
 .progressFill {
   height: 100%;
   background: linear-gradient(90deg, #a8ff35 0%, #7ed321 100%);
@@ -80,7 +72,6 @@
   transition: width 0.5s ease;
   box-shadow: 0 0 10px rgba(168, 255, 53, 0.5);
 }
-
 /* Mascot Section */
 .mascotSection {
   display: flex;
@@ -88,17 +79,14 @@
   gap: 1rem;
   margin-top: 2rem;
 }
-
 .mascot {
   flex-shrink: 0;
 }
-
 .computerImage {
   width: 80px;
   height: 80px;
   filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
 }
-
 /* Speech Bubble */
 .speechBubble {
   background: linear-gradient(135deg, #1e2a4a 0%, #2a3b5c 100%);
@@ -110,7 +98,6 @@
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.4s ease-out;
 }
-
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -121,7 +108,6 @@
     transform: translateX(0);
   }
 }
-
 .speechArrow {
   position: absolute;
   left: -10px;
@@ -132,15 +118,13 @@
   border-bottom: 8px solid transparent;
   border-right: 10px solid #1e2a4a;
 }
-
 .speechBubble p {
   margin: 0;
   color: #ffffff;
   font-size: 1rem;
   line-height: 1.5;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
-
 /* Main Content Area */
 .mainContent {
   flex: 1;
@@ -151,7 +135,6 @@
   max-width: 600px;
   margin: 2rem 0;
 }
-
 /* Character Selection */
 .characterSelection {
   display: flex;
@@ -160,7 +143,6 @@
   gap: 2rem;
   width: 100%;
 }
-
 .arrowButton {
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.2);
@@ -175,20 +157,17 @@
   align-items: center;
   justify-content: center;
 }
-
 .arrowButton:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
   transform: scale(1.05);
 }
-
 .characterDisplay {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
 }
-
 .characterSprite {
   width: 128px;
   height: 128px;
@@ -198,29 +177,26 @@
   position: relative;
   animation: bounce 2s ease-in-out infinite;
 }
-
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
     transform: translateY(-10px);
   }
 }
-
 .spriteImage {
   height: 100%;
   image-rendering: pixelated;
   object-fit: contain;
 }
-
 .characterShadow {
   width: 80px;
   height: 20px;
   background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5) 0%, transparent 70%);
   border-radius: 50%;
 }
-
 /* Username Section */
 .usernameSection {
   display: flex;
@@ -229,12 +205,10 @@
   gap: 2rem;
   width: 100%;
 }
-
 .inputWrapper {
   width: 100%;
   max-width: 400px;
 }
-
 .usernameInput {
   width: 100%;
   padding: 1rem 1.5rem;
@@ -243,33 +217,42 @@
   border-radius: 8px;
   color: #ffffff;
   font-size: 1.1rem;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   text-align: center;
   transition: all 0.3s ease;
 }
-
 .usernameInput:focus {
   outline: none;
   border-color: #00d4ff;
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
-
 .usernameInput::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
-
 .usernameInput.error {
   border-color: #ff4757;
   animation: shake 0.5s ease;
 }
-
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
 }
-
 .errorMessage {
   display: flex;
   align-items: center;
@@ -281,11 +264,9 @@
   background: rgba(255, 71, 87, 0.1);
   border-radius: 6px;
 }
-
 .errorIcon {
   font-size: 1rem;
 }
-
 /* Welcome Section */
 .welcomeSection {
   display: flex;
@@ -293,13 +274,12 @@
   align-items: center;
   gap: 1rem;
 }
-
 /* Continue Button */
 .continueButton {
   background: linear-gradient(90deg, #00d4ff 0%, #0099ff 100%);
   border: none;
   border-radius: 8px;
-  font-family: 'Press Start 2P', monospace;
+  font-family: "Press Start 2P", monospace;
   padding: 1rem 3rem;
   color: #ffffff;
   font-size: 1.1rem;
@@ -310,38 +290,31 @@
   text-transform: capitalize;
   margin-bottom: 2rem;
 }
-
 .continueButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6);
 }
-
 .continueButton:active {
   transform: translateY(0);
 }
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
     padding: 1.5rem 1rem;
   }
-
   .mascotSection {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
   }
-
   .computerImage {
     width: 70px;
     height: 70px;
   }
-
   .speechBubble {
     padding: 1rem 1.25rem;
     max-width: 100%;
   }
-
   .speechArrow {
     left: 50%;
     top: -8px;
@@ -351,67 +324,54 @@
     border-bottom: 8px solid #1e2a4a;
     border-top: none;
   }
-
   .speechBubble p {
     font-size: 0.95rem;
     text-align: center;
   }
-
   .characterSprite {
     width: 100px;
     height: 100px;
   }
-
   .arrowButton {
     width: 45px;
     height: 45px;
     font-size: 1.5rem;
   }
-
   .usernameInput {
     font-size: 1rem;
     padding: 0.875rem 1.25rem;
   }
-
   .continueButton {
     padding: 0.875rem 2.5rem;
     font-size: 1rem;
   }
 }
-
 @media (max-width: 480px) {
   .container {
     padding: 1rem 0.75rem;
   }
-
   .computerImage {
     width: 60px;
     height: 60px;
   }
-
   .speechBubble {
     padding: 0.875rem 1rem;
   }
-
   .speechBubble p {
     font-size: 0.875rem;
   }
-
   .characterSprite {
     width: 80px;
     height: 80px;
   }
-
   .characterSelection {
     gap: 1rem;
   }
-
   .arrowButton {
     width: 40px;
     height: 40px;
     font-size: 1.25rem;
   }
-
   .continueButton {
     padding: 0.75rem 2rem;
     font-size: 0.95rem;

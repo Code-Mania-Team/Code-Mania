@@ -2,12 +2,9 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Instagram, Twitter, Github, Youtube, Linkedin } from 'lucide-react';
 import "../App.css";
-
 const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
-
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -25,9 +22,7 @@ const Footer = () => {
               </ul>
             </div>
           </div>
-
           <div className="footer-columns">
-
             <div className="footer-column">
               <h4>LEARN</h4>
               <ul>
@@ -36,7 +31,6 @@ const Footer = () => {
                 <li><a href="/learn/javascript">JavaScript</a></li>
               </ul>
             </div>
-
             <div className="footer-column">
               <h4>TEAM</h4>
               <ul>
@@ -49,12 +43,10 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
         <div className="footer-bottom">
           <div className="footer-legal">
             <span>© 2025 Code Mania. All rights reserved.</span>
           </div>
-          
           <div className="footer-socials">
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
               <Github size={20} />
@@ -65,5 +57,4 @@ const Footer = () => {
     </footer>
   );
 };
-
 export default Footer;

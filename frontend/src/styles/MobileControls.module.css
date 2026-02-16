@@ -4,7 +4,6 @@
   pointer-events: none;
   touch-action: none;
 }
-
 .hit {
   pointer-events: auto;
   position: absolute;
@@ -14,12 +13,10 @@
   margin: 0;
   border-radius: 999px;
 }
-
 /*
   These hit areas are aligned to the current mobile.png artwork.
   They can be fine-tuned later when you add the button animations.
 */
-
 .up,
 .down,
 .left,
@@ -27,27 +24,22 @@
   width: clamp(42px, 12vw, 60px);
   height: clamp(42px, 12vw, 60px);
 }
-
 .up {
   left: 17.5%;
   top: 66%;
 }
-
 .down {
   left: 18.5%;
   top: 75%;
 }
-
 .left {
   left: 6.5%;
   top: 70.5%;
 }
-
 .right {
   left: 29.5%;
   top: 70.5%;
 }
-
 .interact {
   width: clamp(74px, 18vw, 110px);
   height: clamp(74px, 18vw, 110px);

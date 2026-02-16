@@ -5,43 +5,34 @@ import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
-
 // Import C++ course badges
 import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
 import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
 import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
 import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
-
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
-
 const CppCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-
   // Tutorial will be shown only when clicking Start button
-
   // Set course info when component loads
   useEffect(() => {
     localStorage.setItem('lastCourseTitle', 'C++');
     localStorage.setItem('lastCourseRoute', '/learn/cpp');
   }, []);
-
   const onOpenModal = () => {
     setIsModalOpen(true);
   };
-
   const onCloseModal = () => {
     setIsModalOpen(false);
   };
-
   const userProgress = {
     exercisesCompleted: 0,
     totalExercises: 16,
     xpEarned: 0,
     totalXp: 2600
   };
-
   const modules = [
     {
       id: 1,
@@ -96,35 +87,26 @@ const CppCourse = () => {
       ]
     }
   ];
-
   const navigate = useNavigate();
-
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
-
   const handleStartExercise = (moduleId, exerciseId) => {
-
     // Check if tutorial should be shown before starting first exercise
     const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    
     if (isAuthenticated && !hasSeenTutorial) {
       setShowTutorial(true);
     }
-    
     localStorage.setItem('hasTouchedCourse', 'true');
     localStorage.setItem('lastCourseTitle', 'C++');
     localStorage.setItem('lastCourseRoute', '/learn/cpp');
-
     if (exerciseId === 17) {
       navigate('/exam/cpp');
       return;
     }
-
     navigate(`/learn/cpp/exercise/${moduleId}/${exerciseId}`);
   };
-
   const getStatusIcon = (status) => {
     if (status === "completed") {
       return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
@@ -132,7 +114,6 @@ const CppCourse = () => {
     if (status === "locked") return <Lock className="status-icon locked" />;
     return <Circle className="status-icon available" />;
   };
-
   return (
     <div className="cpp-course-page">
       {/* Hero Section */}
@@ -149,7 +130,6 @@ const CppCourse = () => {
           <button className="start-learning-btn">Start Learning for Free</button>
         </div>
       </section>
-
       {/* Main Content */}
       <div className="cpp-content">
         {/* Modules Section */}
@@ -170,7 +150,6 @@ const CppCourse = () => {
                   <ChevronDown className="chevron-icon" />
                 )}
               </div>
-
               {expandedModule === module.id && (
                 <div className="module-content">
                   <p className="module-description">{module.description}</p>
@@ -205,14 +184,11 @@ const CppCourse = () => {
             </div>
           ))}
         </div>
-
         {/* Sidebar */}
         <div className="sidebar">
           <ProfileCard onSignInRequired={onOpenModal} />
-
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
@@ -222,7 +198,6 @@ const CppCourse = () => {
                 {userProgress.exercisesCompleted} / {userProgress.totalExercises}
               </span>
             </div>
-
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon xp"></div>
@@ -233,7 +208,6 @@ const CppCourse = () => {
               </span>
             </div>
           </div>
-
           {/* Course Badges Section */}
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
@@ -246,13 +220,11 @@ const CppCourse = () => {
           </div>
         </div>
       </div>
-      
       <SignInModal 
         isOpen={isModalOpen}
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-      
       {/* Tutorial Popup */}
       {showTutorial && (
         <TutorialPopup 
@@ -266,5 +238,4 @@ const CppCourse = () => {
     </div>
   );
 };
-
 export default CppCourse;

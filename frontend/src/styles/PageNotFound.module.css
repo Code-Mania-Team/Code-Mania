@@ -4,51 +4,47 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(0deg,rgba(34, 50, 87, 1) 0%, rgba(111, 144, 223, 1) 100%);
+  background: linear-gradient(
+    0deg,
+    rgba(34, 50, 87, 1) 0%,
+    rgba(111, 144, 223, 1) 100%
+  );
   overflow: hidden;
   z-index: 9999;
 }
-
 .notFound {
   padding: 60px;
   display: flex;
   align-items: center;
 }
-
 .errorLaptopImage {
   flex: 1;
   position: relative;
   text-align: center;
 }
-
 .errorLaptopImage img {
   width: 100%;
 }
-
 .errorMess {
   flex: 1.2;
   display: inline-block;
   margin-bottom: 50px;
 }
-
 .errorMess h1 {
-  font-family: 'Press Start 2P', monospace;
-  color: #ffff00; 
+  font-family: "Press Start 2P", monospace;
+  color: #ffff00;
   font-size: 3rem;
   margin-bottom: 10px;
   line-height: 1.1;
 }
-
 .errorMess p {
   font-size: 1.5rem;
   color: #cccccc;
 }
-
 .backHomeBtn {
   margin-top: 20px;
   text-align: left;
 }
-
 .backHomeLink {
   display: inline-block;
   background: #0c0f29;
@@ -60,41 +56,33 @@
   font-weight: 600;
   transition: 0.2s ease;
 }
-
 .backHomeLink:hover {
   background: #5f8bfa;
   color: #0c0f29;
   transform: translateY(-2px);
 }
-
-@media (max-width:768px) {
+@media (max-width: 768px) {
   .notFound {
     flex-direction: column;
     padding: 30px 20px;
     text-align: center;
   }
-  
   .errorLaptopImage img {
     width: 90%;
   }
-
   .errorMess {
     margin-bottom: 20px;
   }
-
   .errorMess h1 {
     font-size: 1.6rem;
     line-height: 1.3;
   }
-
   .errorMess p {
     font-size: 1rem;
   }
-
   .backHomeBtn {
     text-align: center;
   }
-
   .backHomeLink {
     padding: 10px 22px;
     font-size: 0.9rem;

@@ -6,39 +6,30 @@ import SignInModal from "../components/SignInModal";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
-
 // Import Python course badges
 import pythonBadge1 from "../assets/badges/Python/python-badge1.png";
 import pythonBadge2 from "../assets/badges/Python/python-badge2.png";
 import pythonBadge3 from "../assets/badges/Python/python-badge3.png";
 import pythonBadge4 from "../assets/badges/Python/python-badge4.png";
-
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
-
-
 const PythonCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
   const [completedExercises, setCompletedExercises] = useState(new Set());
-
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-
   // Tutorial will be shown only when clicking Start button
   const { exerciseId } = useParams();
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
   useEffect(() => {
     if (!isAuthenticated) return;
-
     const loadProgress = async () => {
       try {
         const result = await getGameProgress("Python");
-
         setData(result);
-
         if (result?.completedQuests) {
           setCompletedExercises(new Set(result.completedQuests));
         }
@@ -46,19 +37,14 @@ const PythonCourse = () => {
         console.error("Failed to load game progress", err);
       }
     };
-
     loadProgress();
   }, [isAuthenticated]);
-
-
   const onOpenModal = () => {
     setIsModalOpen(true);
   };
-
   const onCloseModal = () => {
     setIsModalOpen(false);
   };
-
   const handleViewProfile = () => {
     if (isAuthenticated) {
       navigate('/profile');
@@ -66,41 +52,31 @@ const PythonCourse = () => {
       onOpenModal();
     }
   };
-
   const getExerciseStatus = (exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
-
     // unlock next exercise if previous is completed
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
     }
-
     return "locked";
   };
-
   const handleStartExercise = (exerciseId) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-
     if (isAuthenticated && !hasSeenTutorial) {
       setShowTutorial(true);
     }
-
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "Python");
     localStorage.setItem("lastCourseRoute", "/learn/python");
-
     // Check if this is the Python Exam (exercise ID 17)
     if (exerciseId === 17) {
       navigate('/exam/python');
       return;
     }
-
     // PASS THE REAL EXERCISE ID
     navigate(`/learn/python/exercise/play`);
   };
-
-
   const userProgress = {
     name: user?.username || "Guest",
     level: 1,
@@ -111,9 +87,7 @@ const PythonCourse = () => {
     xpEarned: data?.xpEarned || 0,
     totalXp: 2600
   };
-
   const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
-
   const modules = [
     {
       id: 1,
@@ -168,11 +142,9 @@ const PythonCourse = () => {
       ]
     }
   ];
-
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
-
   const getStatusIcon = (status) => {
     if (status === "completed") {
       return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
@@ -180,7 +152,6 @@ const PythonCourse = () => {
     if (status === "locked") return <Lock className="status-icon locked" />;
     return <Circle className="status-icon available" />;
   };
-
   return (
     <div className="python-course-page">
       {/* Hero Section */}
@@ -197,7 +168,6 @@ const PythonCourse = () => {
           <button className="start-learning-btn">Start Learning for Free</button>
         </div>
       </section>
-
       {/* Main Content */}
       <div className="python-content">
         {/* Modules Section */}
@@ -218,7 +188,6 @@ const PythonCourse = () => {
                   <ChevronDown className="chevron-icon" />
                 )}
               </div>
-
               {expandedModule === module.id && (
                 <div className="module-content">
                   <p className="module-description">{module.description}</p>
@@ -226,9 +195,7 @@ const PythonCourse = () => {
                     {module.exercises.map((exercise, index) => {
                       const previousExercise =
                         index > 0 ? module.exercises[index - 1].id : null;
-
                       const status = getExerciseStatus(exercise.id, previousExercise);
-
                       return (
                         <div key={exercise.id} className={`exercise-item ${status}`}>
                           <div className="exercise-info">
@@ -239,7 +206,6 @@ const PythonCourse = () => {
                             )}
                             <span className="exercise-name">{exercise.name}</span>
                           </div>
-
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
@@ -257,14 +223,12 @@ const PythonCourse = () => {
                         </div>
                       );
                     })}
-
                   </div>
                 </div>
               )}
             </div>
           ))}
         </div>
-
         {/* Sidebar */}
         <div className="sidebar">
           <div className="profile-card">
@@ -277,10 +241,8 @@ const PythonCourse = () => {
             </div>
             <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
           </div>
-
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
@@ -290,7 +252,6 @@ const PythonCourse = () => {
                 {userProgress.exercisesCompleted} / {userProgress.totalExercises}
               </span>
             </div>
-
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon xp"></div>
@@ -301,7 +262,6 @@ const PythonCourse = () => {
               </span>
             </div>
           </div>
-
           {/* Course Badges Section */}
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
@@ -314,13 +274,11 @@ const PythonCourse = () => {
           </div>
         </div>
       </div>
-      
       <SignInModal 
         isOpen={isModalOpen}
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-      
       {/* Tutorial Popup */}
       {showTutorial && (
         <TutorialPopup 
@@ -334,5 +292,4 @@ const PythonCourse = () => {
     </div>
   );
 };
-
 export default PythonCourse;

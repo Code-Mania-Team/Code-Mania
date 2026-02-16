@@ -1,16 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import "../styles/Tutorialpopup.css";
-
 export default function TutorialOverlay({ open, onClose }) {
   const sectionsRef = useRef([]);
   const [visibleSections, setVisibleSections] = useState([]);
-
   useEffect(() => {
     if (!open) return;
-
     // Emit tutorial open event to pause the game
     window.dispatchEvent(new CustomEvent('code-mania:tutorial-open'));
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -24,20 +20,16 @@ export default function TutorialOverlay({ open, onClose }) {
       },
       { threshold: 0.3 }
     );
-
     sectionsRef.current.forEach((section) => {
       if (section) observer.observe(section);
     });
-
     return () => {
       observer.disconnect();
       // Emit tutorial close event to resume the game
       window.dispatchEvent(new CustomEvent('code-mania:tutorial-close'));
     };
   }, [open]);
-
   if (!open) return null;
-
   return (
     <div className="tutorial-overlay">
       <div className="tutorial-container">
@@ -54,7 +46,6 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-image">
                 <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453739/welcome-tutorial_mpega0.png" alt="Welcome Tutorial" />
               </div>
-
               <div className="section-text">
                 <h2>Welcome to Code Mania</h2>
                 <p>
@@ -62,7 +53,6 @@ export default function TutorialOverlay({ open, onClose }) {
                 </p>
               </div>
             </section>
-
             {/* SECTION 2 */}
             <section
               className={`tutorial-section scroll-section reversed ${
@@ -74,7 +64,6 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-image">
                 <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453737/welcome-controls_cxskmf.png" alt="Character Controls" />
               </div>
-
               <div className="section-text">
                 <h2>Character Controls</h2>
                 <p>
@@ -82,7 +71,6 @@ export default function TutorialOverlay({ open, onClose }) {
                 </p>
               </div>
             </section>
-
             {/* SECTION 3 */}
             <section
               className={`tutorial-section scroll-section ${
@@ -94,7 +82,6 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-image">
                 <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453738/welcome-mechanics_a8axyq.png" alt="Game Mechanics" />
               </div>
-
               <div className="section-text">
                 <h2>Game Mechanics</h2>
                 <p>
@@ -102,7 +89,6 @@ export default function TutorialOverlay({ open, onClose }) {
                 </p>
               </div>
             </section>
-
             {/* SECTION 4 */}
             <section
               className={`tutorial-section scroll-section reversed ${
@@ -114,7 +100,6 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-image">
                 <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770578515/welcome-achievement_l6rcbx.png" alt="Advanced Features" />
               </div>
-
               <div className="section-text">
                 <h2>Achievement System</h2>
                 <p>
@@ -122,7 +107,6 @@ export default function TutorialOverlay({ open, onClose }) {
                 </p>
               </div>
             </section>
-
             {/* SECTION 5 */}
             <section
               className={`tutorial-section scroll-section ${
@@ -134,7 +118,6 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-image">
                 <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770575075/welcome-exam_xi8wve.png" alt="Final Exam" />
               </div>
-
               <div className="section-text">
                 <h2>Final Exam</h2>
                 <p>
@@ -142,7 +125,6 @@ export default function TutorialOverlay({ open, onClose }) {
                 </p>
               </div>
             </section>
-
             {/* SECTION 6 */}
             <section
               className={`tutorial-section scroll-section reversed ${
@@ -154,7 +136,6 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-image">
                 <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453720/welcome-leaderboard_lbvloc.jpg" alt="Competition" />
               </div>
-
               <div className="section-text">
                 <h2>Competition</h2>
                 <p>
@@ -162,7 +143,6 @@ export default function TutorialOverlay({ open, onClose }) {
                 </p>
               </div>
             </section>
-
             {/* Let's Go Button */}
             <button className="lets-go-button" onClick={onClose}>
               Let's Go!

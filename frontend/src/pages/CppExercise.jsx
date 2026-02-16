@@ -17,7 +17,6 @@ import exercises from "../utilities/data/cppExercises.json";
 // import { initPhaserGame } from "../utilities/engine/main.js";
 import useAuth from "../hooks/useAxios";
 import { axiosPublic } from "../api/axios";
-
 const CppExercise = () => {
 const { exerciseId } = useParams();
 const navigate = useNavigate();
@@ -29,7 +28,6 @@ const [showHelp, setShowHelp] = useState(false);
 const [showStageComplete, setShowStageComplete] = useState(false);
 const [, setXpEarned] = useState(0);
 const [showTutorial, setShowTutorial] = useState(false);
-
 // === Dialogue System ===
 const dialogues = [
 "Use the hints if you get stuck. For now, just complete what the exercise asks."
@@ -37,30 +35,24 @@ const dialogues = [
 const [currentDialogue, setCurrentDialogue] = useState(0);
 const [displayedText, setDisplayedText] = useState("");
 const [isTyping, setIsTyping] = useState(false);
-
 // Load exercise data when route changes
 useEffect(() => {
   const searchParams = new URLSearchParams(location.search);
   const forceStageComplete = searchParams.get("stageComplete") === "1";
-
   // Check if tutorial should be shown for new accounts
   const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  
   if (isAuthenticated && !hasSeenTutorial) {
     setShowTutorial(true);
   }
-
   if (exerciseId) {
     const id = parseInt(exerciseId.split("-")[0], 10);
     if (isNaN(id)) {
       console.error('Invalid exercise ID');
       return;
     }
-    
     // Set language for game scene
     localStorage.setItem("lastCourseTitle", "C++");
-    
     // Set mapId based on current exercise number
     let mapId;
     if (id === 1) {
@@ -73,13 +65,11 @@ useEffect(() => {
       mapId = "map2"; // Default to map2 for exercises 4+
     }
     localStorage.setItem("currentMapId", mapId);
-    
     const exercise = exercises.find((ex) => ex.id === id);
     if (!exercise) {
       console.error(`Exercise with ID ${id} not found`);
       return;
     }
-    
     setCurrentExercise(exercise);
     setCode(
       exercise.startingCode ||
@@ -90,7 +80,6 @@ useEffect(() => {
     setShowStageComplete(forceStageComplete);
   }
 }, [exerciseId, location.search]);
-
 const stageNumber = currentExercise ? Math.floor((currentExercise.id - 1) / 4) + 1 : 1;
 const lessonInStage = currentExercise ? ((currentExercise.id - 1) % 4) + 1 : 1;
 const cppStageBadges = [cppStage1Badge, cppStage2Badge, cppStage3Badge, cppStage4Badge];
@@ -105,7 +94,6 @@ const debugStageNumber = (() => {
   return Number.isFinite(n) ? n : null;
 })();
 const displayStageNumber = debugStageNumber ?? stageNumber;
-
 // Navigation functions
 const goToNextExercise = () => {
 if (!currentExercise) return;
@@ -116,7 +104,6 @@ const exerciseSlug = nextExercise.title.toLowerCase().replace(/\s+/g, "-");
 navigate(`/learn/cpp/exercise/${nextId}-${exerciseSlug}`);
 }
 };
-
 const goToPrevExercise = () => {
 if (!currentExercise) return;
 const prevId = currentExercise.id - 1;
@@ -126,27 +113,22 @@ const exerciseSlug = prevExercise.title.toLowerCase().replace(/\s+/g, "-");
 navigate(`/learn/cpp/exercise/${prevId}-${exerciseSlug}`);
 }
 };
-
 // Auto typing dialogue
 useEffect(() => {
 handleNextDialogue();
 }, []);
-
 useEffect(() => {
   const game = initPhaserGame("phaser-container");
-
   return () => {
     if (game) game.cleanup();
   };
 }, [exerciseId]); // Restart game when exerciseId changes
-
 const handleNextDialogue = () => {
   if (isTyping) return;
   const nextText = dialogues[currentDialogue];
   if (!nextText) return;
   setIsTyping(true);
   setDisplayedText("");
-
   let index = 0;
   const interval = setInterval(() => {
     setDisplayedText(nextText.slice(0, index));
@@ -160,7 +142,6 @@ const handleNextDialogue = () => {
     }
   }, 40); // typing speed
 };
-
 const handleRunCode = () => {
 setOutput("Running cpp...\n");
 setTimeout(() => {
@@ -172,18 +153,14 @@ setTimeout(() => {
       logs.push(args.join(" "));
       originalLog(...args);
     };
-
     // Execute the code (in a real app, you'd send this to a backend)
     eval(code);
-
     // Restore console.log
     console.log = originalLog;
-
     const resultText = logs.length > 0
       ? `${logs.join("\n")}\n`
       : "Program ran successfully.\n";
     setOutput(resultText);
-
 if (lessonInStage === 4) {
   setShowStageComplete(true);
 } else {
@@ -197,19 +174,15 @@ if (lessonInStage === 4) {
   }
 }, 500);
 };
-
 const handleStageContinue = () => {
   setShowStageComplete(false);
   goToNextExercise();
 };
-
 // --- Auth modal setup ---
 const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
-
 const handleOpenModal = () => setIsSignInModalOpen(true);
 const handleCloseModal = () => setIsSignInModalOpen(false);
-
 const handleSignInSuccess = () => {
 axiosPublic
   .get("/v1/account")
@@ -217,13 +190,11 @@ axiosPublic
     const ok = res?.data?.success === true;
     const profile = res?.data?.data;
     const hasUserId = Boolean(profile && profile.user_id);
-
     if (ok && hasUserId) {
       setUser(profile);
       setIsAuthenticated(true);
       return;
     }
-
     setUser(null);
     setIsAuthenticated(false);
   })
@@ -234,7 +205,6 @@ axiosPublic
 window.dispatchEvent(new Event('authchange'));
 setIsSignInModalOpen(false);
 };
-
 return (
 <div className={styles["javascript-exercise-page"]}>
 <div className={styles["scroll-background"]}></div>
@@ -250,7 +220,6 @@ onClose={handleCloseModal}
 onSignInSuccess={handleSignInSuccess}
 />
 )}
-
 <div className={styles["codex-fullscreen"]}>
 <ProgressBar
 currentLesson={lessonInStage}
@@ -258,7 +227,6 @@ totalLessons={4}
 title={currentExercise?.lessonHeader || " C++ Basics"}
 variant={isExam ? "titleOnly" : "full"}
 />
-
 <div className={styles["main-layout"]}>
 {/* Left Side */}
 <div className={styles["game-container"]}>
@@ -275,7 +243,6 @@ imageRendering: "pixelated"
 </div>
 </div>
 </div>
-
 {/* Right Side */}
 <CodeTerminal
 language="cpp"
@@ -283,9 +250,7 @@ code={code}
 onRunCode={handleRunCode}
 runUnlocked={true}
 />
-
 </div>
-
 <StageCompleteModal
 show={showStageComplete}
 stageNumber={displayStageNumber}
@@ -294,9 +259,7 @@ badgeSrc={cppStageBadges[displayStageNumber - 1]}
 onContinue={handleStageContinue}
 onClose={() => setShowStageComplete(false)}
 />
-
 </div>
-
 {/* Tutorial Popup */}
 {showTutorial && (
 <TutorialPopup 
@@ -310,5 +273,4 @@ setShowTutorial(false);
   </div>
 );
 };
-
 export default CppExercise;

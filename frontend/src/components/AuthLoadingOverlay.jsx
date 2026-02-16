@@ -1,9 +1,7 @@
 // components/AuthLoadingOverlay.jsx
 import React from "react";
 import "../styles/AuthLoadingOverlay.css";
-
 const loadinglogo = "https://res.cloudinary.com/daegpuoss/image/upload/v1770949020/loading-logo_dlsmca.gif";
-
 const AuthLoadingOverlay = () => {
   return (
     <div className="auth-loading-overlay">
@@ -18,5 +16,4 @@ const AuthLoadingOverlay = () => {
     </div>
   );
 };
-
 export default AuthLoadingOverlay;

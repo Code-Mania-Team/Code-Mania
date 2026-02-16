@@ -5,7 +5,6 @@ import useAuth from "../hooks/useAxios";
 import { BarChart3, Database } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
-
 function Admin() {
   const navigate = useNavigate();
   const [status, setStatus] = useState("loading");
@@ -15,9 +14,7 @@ function Admin() {
   const [datasetsLoading, setDatasetsLoading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
-
   const adminEmail = "jetpadilla07@gmail.com";
-
   const fetchDatasets = async () => {
     setDatasetsLoading(true);
     try {
@@ -47,7 +44,6 @@ function Admin() {
       setDatasetsLoading(false);
     }
   };
-
   const fetchAnalytics = async () => {
     setAnalyticsLoading(true);
     try {
@@ -88,7 +84,6 @@ function Admin() {
       setAnalyticsLoading(false);
     }
   };
-
   const demo = {
     totalUsers: 92,
     newUsers7d: 7,
@@ -110,15 +105,12 @@ function Admin() {
     ],
     datasets: [],
   };
-
   useEffect(() => {
     let cancelled = false;
-
     const load = async () => {
       try {
         const res = await axiosPublic.get("/v1/account", { withCredentials: true });
         const p = res?.data?.data || null;
-
         if (!cancelled) {
           setProfile(p);
           const ok = res?.data?.success === true;
@@ -127,11 +119,9 @@ function Admin() {
             setStatus("unauthenticated");
             return;
           }
-
           const allowed = (p?.role === "admin") && (p?.email === adminEmail);
           setIsAdmin(allowed);
           setStatus("ok");
-          
           // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
             fetchDatasets();
@@ -144,18 +134,14 @@ function Admin() {
         }
       }
     };
-
     load();
-
     return () => {
       cancelled = true;
     };
   }, []);
-
   if (status === "loading") {
     return <AuthLoadingOverlay />;
   }
-
   if (status === "unauthenticated") {
     return (
       <div className={styles.state}>
@@ -165,7 +151,6 @@ function Admin() {
       </div>
     );
   }
-
   if (status === "error") {
     return (
       <div className={styles.state}>
@@ -175,7 +160,6 @@ function Admin() {
       </div>
     );
   }
-
   if (!isAdmin) {
     return (
       <div className={styles.state}>
@@ -188,7 +172,6 @@ function Admin() {
       </div>
     );
   }
-
   const StatCard = ({ title, value, subtitle }) => (
     <div className={styles.card}>
       <div className={styles.cardTitle}>{title}</div>
@@ -196,7 +179,6 @@ function Admin() {
       {subtitle ? <div className={styles.cardSubtitle}>{subtitle}</div> : null}
     </div>
   );
-
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
@@ -207,7 +189,6 @@ function Admin() {
           </p>
         </div>
       </section>
-
       <section className={styles.section}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
@@ -216,16 +197,13 @@ function Admin() {
           </div>
           <button className={styles.button} type="button" onClick={() => navigate("/")}>Back to site</button>
         </div>
-
         <p className={styles.subtitle}>Simple dashboard (demo values for now).</p>
-
         <div className={styles.grid}>
           <StatCard title="Total Users" value={demo.totalUsers} subtitle="Demo numbers" />
           <StatCard title="New Users (7 days)" value={demo.newUsers7d} subtitle="Demo numbers" />
           <StatCard title="Active Users (7 days)" value={demo.activeUsers7d} subtitle="Demo numbers" />
           <StatCard title="Total Courses Started" value={demo.totalCoursesStarted} subtitle="Demo numbers" />
         </div>
-
         <div className={styles.panels}>
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>Users Overview</h3>
@@ -242,7 +220,6 @@ function Admin() {
               ))}
             </div>
           </div>
-
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>Course Analytics</h3>
             <p className={styles.panelSubtitle}>Starts per course</p>
@@ -256,7 +233,6 @@ function Admin() {
             </div>
           </div>
         </div>
-
         {/* Analytics Section */}
         <div className={styles.header} style={{ marginTop: 24 }}>
           <div className={styles.headerLeft}>
@@ -264,9 +240,7 @@ function Admin() {
             <h2 className={styles.title}>Exam Analytics & Statistics</h2>
           </div>
         </div>
-
         <p className={styles.subtitle}>Real-time exam performance data and statistical analysis.</p>
-
         {analyticsLoading ? (
           <div className={styles.panel}>
             <p>Loading analytics...</p>
@@ -279,7 +253,6 @@ function Admin() {
               <StatCard title="Median Exam Grade" value={`${analytics.median_exam_grade.toFixed(1)}%`} subtitle="Middle value of exam scores" />
               <StatCard title="Mode Retake Count" value={analytics.mode_retake_count} subtitle="Most common retake number" />
             </div>
-
             <div className={styles.panel}>
               <h3 className={styles.panelTitle}>Student Exam Performance</h3>
               <p className={styles.panelSubtitle}>Individual student exam results and performance metrics</p>
@@ -308,7 +281,6 @@ function Admin() {
                 ))}
               </div>
             </div>
-
             <div className={styles.panel}>
               <h3 className={styles.panelTitle}>Daily Exam Completions</h3>
               <p className={styles.panelSubtitle}>Exam completion rates and average grades per day</p>
@@ -333,7 +305,6 @@ function Admin() {
             <p>Failed to load analytics data.</p>
           </div>
         )}
-
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>
             <Database className={styles.icon} />
@@ -341,9 +312,7 @@ function Admin() {
           </div>
           <button className={styles.button} type="button" onClick={() => alert("Next: Create dataset")}>Create Dataset</button>
         </div>
-
         <p className={styles.subtitle}>Manage course exercise datasets.</p>
-
         {datasetsLoading ? (
           <div className={styles.panel}>
             <p>Loading datasets...</p>
@@ -376,5 +345,4 @@ function Admin() {
     </div>
   );
 }
-
 export default Admin;
