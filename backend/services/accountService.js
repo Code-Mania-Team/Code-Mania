@@ -49,9 +49,9 @@ class AccountService {
     return authUser;
   }
   async googleLogin(id, email, provider) {
-    const emailExist = await this.user.findByEmail(email);
+    const userExist = await this.user.findByEmail(email);
     const hashedPassword = encryptPassword(id + email);
-    if (!emailExist) {
+    if (!userExist) {
       //Signup
       const newUser = await this.user.create({
         email: email,
@@ -64,15 +64,15 @@ class AccountService {
       };
     }
     if (
-      emailExist &&
-      emailExist.password == hashedPassword &&
-      emailExist.provider == provider
+      userExist &&
+      userExist.password == hashedPassword &&
+      userExist.provider == provider
     ) {
       //Login. Provider must check if it has a value of google (optional)
       console.log("EMAIL: Logged-in success");
       return {
-        id: emailExist.user_id,
-        message: "Logged in.",
+        id: userExist.user_id,
+        username: userExist.username,
       };
     }
   }

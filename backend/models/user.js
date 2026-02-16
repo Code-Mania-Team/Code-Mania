@@ -7,7 +7,7 @@ class User {
   async findByEmail(email) {
     const { data } = await this.db
       .from("users") // can be users table or temp_user (this should be temp_users with "s")
-      .select("user_id, email, password, provider") // just select what column is needed, user_id, password, username are not necessary
+      .select("user_id, email, username, password, provider") // just select what column is needed, user_id, password, username are not necessary
       .eq("email", email)
       .maybeSingle();
     return data;

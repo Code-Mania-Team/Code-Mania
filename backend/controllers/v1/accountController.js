@@ -213,17 +213,21 @@ class AccountController {
           user_id: data.id,
           username: data.email,
         });
+
         const refreshToken = crypto.randomBytes(40).toString("hex");
         const hashedRefresh = crypto
           .createHash("sha256")
           .update(refreshToken)
           .digest("hex");
+
         const existingUser = await this.userToken.findByUserId(data.id);
+
         if (existingUser) {
           await this.userToken.update(data.id, hashedRefresh);
         } else {
           await this.userToken.createUserToken(data.id, hashedRefresh);
         }
+
         const isLocalhost =
           req.hostname === "localhost" ||
           req.hostname === "127.0.0.1" ||
@@ -243,6 +247,13 @@ class AccountController {
           sameSite: cookieSameSite,
           maxAge: 30 * 24 * 60 * 60 * 1000,
         });
+
+        // if (data.username) {
+        //   return res.redirect(
+        //     `http://localhost:5173/dashboard?me=${data.username}`,
+        //   );
+        // }
+
         return res.redirect(`http://localhost:5173/dashboard?success=true`);
       } else {
         return res.redirect(`http://localhost:5173/login?error=auth_failed`);

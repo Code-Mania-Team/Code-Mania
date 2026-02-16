@@ -5,6 +5,7 @@ import Header from '../components/header';
 import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import styles from '../styles/Dashboard.module.css';
 import useAuth from "../hooks/useAxios";
+import { axiosPublic } from '../api/axios';
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -17,7 +18,8 @@ const Dashboard = ({ onSignOut }) => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(0);
   const [characterIcon, setCharacterIcon] = useState(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, setIsAuthenticated, setUser } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [hasTouchedCourse] = useState(() => {
     return localStorage.getItem('hasTouchedCourse') === 'true';
@@ -60,6 +62,47 @@ const Dashboard = ({ onSignOut }) => {
         : '#3CB371';
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const success = urlParams.get('success');
+    
+    if (error) {
+      console.log('OAuth error:', error);
+      setIsModalOpen(true);
+      return;
+    }
+    
+    if (success === 'true') {
+      console.log('OAuth successful');
+      // Small delay to ensure cookies are set
+      setTimeout(async () => {
+        setIsAuthenticated(true);
+        setIsModalOpen(false);
+
+        try {
+          const res = await axiosPublic.get("/v1/account");
+          const profile = res?.data?.data || null;
+          console.log(profile)
+          setUser(profile);
+
+          if (!profile?.username) {
+            navigate('/welcome');
+            return;
+          }
+          
+          localStorage.setItem('selectedCharacter', String(profile.character_id));
+          localStorage.setItem('username', profile.username);
+          localStorage.setItem('needsUsername', 'false');
+          localStorage.setItem('hasSeenOnboarding', 'true');
+          localStorage.setItem('hasCompletedOnboarding', 'true');
+
+          navigate('/dashboard');
+        } catch {
+          navigate('/');
+        }
+      }, 500);
+      // return;
+    }
     const iconByCharacterId = {
       0: characterIcon1,
       1: characterIcon0,
@@ -126,7 +169,7 @@ const Dashboard = ({ onSignOut }) => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('characterUpdated', handleCharacterUpdate);
     };
-  }, []);
+  }, [location.search, navigate, setIsAuthenticated]);
 
   const handleOnboardingComplete = () => {
     console.log('Onboarding completed');

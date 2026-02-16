@@ -207,42 +207,49 @@ function App() {
   };
 
   // Check for Google OAuth callback or login errors
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get('error');
-    const success = urlParams.get('success');
+  // useEffect(() => {
+  //   const urlParams = new URLSearchParams(window.location.search);
+  //   const error = urlParams.get('error');
+  //   const success = urlParams.get('success');
     
-    if (error) {
-      console.log('OAuth error:', error);
-      setIsModalOpen(true);
-      return;
-    }
+  //   if (error) {
+  //     console.log('OAuth error:', error);
+  //     setIsModalOpen(true);
+  //     return;
+  //   }
     
-    if (success === 'true') {
-      console.log('OAuth successful');
-      // Small delay to ensure cookies are set
-      setTimeout(async () => {
-        setIsAuthenticated(true);
-        setIsModalOpen(false);
+  //   if (success === 'true') {
+  //     console.log('OAuth successful');
+  //     // Small delay to ensure cookies are set
+  //     setTimeout(async () => {
+  //       setIsAuthenticated(true);
+  //       setIsModalOpen(false);
 
-        try {
-          const res = await axiosPublic.get("/v1/account");
-          const profile = res?.data?.data || null;
-          setUser(profile);
+  //       try {
+  //         const res = await axiosPublic.get("/v1/account");
+  //         const profile = res?.data?.data || null;
+  //         console.log(profile)
+  //         setUser(profile);
 
-          if (!profile?.username) {
-            navigate('/welcome');
-            return;
-          }
+  //         if (!profile?.username) {
+  //           navigate('/welcome');
+  //           return;
+  //         }
+          
+  //         localStorage.setItem('selectedCharacter', String(profile.character_id));
+  //         localStorage.setItem('username', profile.username);
+  //         localStorage.setItem('needsUsername', 'false');
+  //         localStorage.setItem('hasSeenOnboarding', 'true');
+  //         localStorage.setItem('hasCompletedOnboarding', 'true');
 
-          navigate('/dashboard');
-        } catch {
-          navigate('/');
-        }
-      }, 500);
-      return;
-    }
-  }, [location.search, navigate, setIsAuthenticated, navigate]);
+  //         navigate('/dashboard');
+  //       } catch {
+  //         navigate('/');
+  //       }
+  //     }, 500);
+  //     return;
+  //   }
+  // }, [location.search, navigate, setIsAuthenticated, navigate]);
 
   // hide header/footer on exercise routes and dashboard
   const hideGlobalHeaderFooter = 
