@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "../styles/StageCompleteModal.module.css";
+
 const StageCompleteModal = ({
   show,
   stageNumber = 1,
@@ -9,6 +10,7 @@ const StageCompleteModal = ({
   onClose,
 }) => {
   if (!show) return null;
+
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
       <div className={styles.modal}>
@@ -27,6 +29,7 @@ const StageCompleteModal = ({
             Great work. Take a quick breather—then continue to the next stage.
           </p>
         </div>
+
         {badgeSrc && (
           <div className={styles.badgeWrap}>
             <img
@@ -36,6 +39,7 @@ const StageCompleteModal = ({
             />
           </div>
         )}
+
         <div className={styles.actions}>
           <button type="button" className={styles.continueBtn} onClick={onContinue}>
             Continue
@@ -48,4 +52,5 @@ const StageCompleteModal = ({
     </div>
   );
 };
+
 export default StageCompleteModal;

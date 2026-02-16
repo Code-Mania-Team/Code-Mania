@@ -2,8 +2,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import styles from "../styles/Learn.module.css";
+
 const Learn = () => {
   const navigate = useNavigate();
+
   const courses = [
     {
       id: 1,
@@ -33,6 +35,7 @@ const Learn = () => {
       route: "/learn/javascript"
     }
   ];
+
   return (
     <div className={styles.page}>
       {/* Hero Section with Background Image */}
@@ -45,6 +48,7 @@ const Learn = () => {
           </p>
         </div>
       </section>
+
       {/* Courses Section */}
       <section className={styles.section}>
         <div className={styles.header}>
@@ -54,6 +58,7 @@ const Learn = () => {
         <p className={styles.subtitle}>
           Master programming languages from the ground up. Perfect for beginners looking to build a strong foundation in coding and problem-solving.
         </p>
+
         <div className={styles.grid}>
           {courses.map((course) => (
             <div key={course.id} className={styles.card}>
@@ -87,4 +92,5 @@ const Learn = () => {
     </div>
   );
 };
+
 export default Learn;

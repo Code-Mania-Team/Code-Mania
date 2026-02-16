@@ -1,4 +1,5 @@
 import axios from "axios";
+
 const gameAxios = axios.create({
   baseURL: "http://localhost:3000",
   withCredentials: true,
@@ -7,6 +8,7 @@ const gameAxios = axios.create({
     "Content-Type": "application/json",
   },
 });
+
 // OPTIONAL: simple 401 retry (NO React)
 gameAxios.interceptors.response.use(
   (res) => res,
@@ -23,6 +25,7 @@ gameAxios.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  },
+  }
 );
+
 export default gameAxios;

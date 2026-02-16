@@ -7,24 +7,26 @@
   justify-content: center;
   z-index: 9999;
 }
+
 .auth-loading-box {
   text-align: center;
   color: white;
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
 }
+
 .loading-logo {
   width: 120px;
   height: 120px;
   margin: 0 auto 20px;
   animation: pulse 0.8s ease-in-out infinite;
 }
+
 @keyframes pulse {
-  0%,
-  100% {
+  0%, 100% { 
     transform: scale(1);
     opacity: 1;
   }
-  50% {
+  50% { 
     transform: scale(1.1);
     opacity: 0.8;
   }

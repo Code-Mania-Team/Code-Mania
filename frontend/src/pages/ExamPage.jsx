@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CheckCircle, XCircle } from "lucide-react";
 import styles from "../styles/ExamPage.module.css";
 import { getExamData } from "../data/examData";
+
 const ExamPage = () => {
   const navigate = useNavigate();
   const { language } = useParams();
@@ -13,13 +14,16 @@ const ExamPage = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [examCompleted, setExamCompleted] = useState(false);
+
   // Map language to Cloudinary GIF
   const languageBackgrounds = {
     python: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/python_gclhhq.gif",
     javascript: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/javascript_uenmcw.gif",
     cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/cpp_your_cpp_gif.gif" // replace with actual C++ GIF
   };
+
   const heroBackground = languageBackgrounds[language] || languageBackgrounds.python;
+
   useEffect(() => {
     const data = getExamData(language); // Fetch exam questions
     setExamData(data);
@@ -29,22 +33,27 @@ const ExamPage = () => {
     setCorrectAnswers(0);
     setExamCompleted(false);
     setAnswers(new Array(data.questions.length).fill(null));
+
     // Add class to body for exam page styling
     document.body.classList.add('exam-page');
+    
     return () => {
       document.body.classList.remove('exam-page');
     };
   }, [language]);
+
   useEffect(() => {
     if (examCompleted) {
       document.body.classList.add('exam-results');
     } else {
       document.body.classList.remove('exam-results');
     }
+
     return () => {
       document.body.classList.remove('exam-results');
     };
   }, [examCompleted]);
+
   if (!examData) {
     return (
       <div className={styles.page}>
@@ -59,20 +68,26 @@ const ExamPage = () => {
       </div>
     );
   }
+
   const heroTitle = `${examData.examTitle || `${examData.title} Exam`}`;
   const heroDescription =
     examData.examDescription ||
     "Complete the questions below to see how well you know the material!";
+
   const question = examData.questions[currentQuestion];
+
   const handleAnswerSelect = (questionIndex, optionIndex) => {
     setSelectedAnswer(optionIndex);
     setShowFeedback(true);
+
     const newAnswers = [...answers];
     newAnswers[questionIndex] = optionIndex;
     setAnswers(newAnswers);
+
     if (optionIndex === examData.questions[questionIndex].correctAnswer) {
       setCorrectAnswers(correctAnswers + 1);
     }
+
     // Auto-advance after short delay
     setTimeout(() => {
       if (currentQuestion < examData.questions.length - 1) {
@@ -84,6 +99,7 @@ const ExamPage = () => {
       }
     }, 1500);
   };
+
   const handleNextQuestion = () => {
     if (currentQuestion < examData.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
@@ -91,6 +107,7 @@ const ExamPage = () => {
       setShowFeedback(false);
     }
   };
+
   const handlePreviousQuestion = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
@@ -98,12 +115,15 @@ const ExamPage = () => {
       setShowFeedback(false);
     }
   };
+
   const calculateScore = () => {
     return examData.questions.reduce((total, q, i) => {
       return total + (answers[i] === q.correctAnswer ? q.exp : 0);
     }, 0);
   };
+
   const totalQuestions = examData.questions.length;
+
   // Show results after exam completed
   if (examCompleted) {
     const totalCorrect = answers.filter(
@@ -111,6 +131,7 @@ const ExamPage = () => {
     ).length;
     const percentage = Math.round((totalCorrect / totalQuestions) * 100);
     const passed = percentage >= 70;
+
     return (
       <div className={styles.page}>
         <section
@@ -126,10 +147,12 @@ const ExamPage = () => {
             <p className={styles.heroDescription}>
               You have completed the {heroTitle}.
             </p>
+
             <div className={styles.resultsContainer}>
               <div className={styles.scoreDisplay}>
                 <div className={styles.percentage}>{percentage}%</div>
               </div>
+
               <div className={styles.resultsDetails}>
                 <p>
                   Correct Answers: {totalCorrect}/{totalQuestions}
@@ -140,6 +163,7 @@ const ExamPage = () => {
                   EXP
                 </p>
               </div>
+
               <button
                 className={styles.button}
                 style={{ marginTop: "2rem", maxWidth: "300px" }}
@@ -155,6 +179,7 @@ const ExamPage = () => {
       </div>
     );
   }
+
   return (
     <div className={styles.page}>
       {/* Hero/Header */}
@@ -172,6 +197,7 @@ const ExamPage = () => {
           <p className={styles.heroDescription}>{heroDescription}</p>
         </div>
       </section>
+
       {/* Exam Section */}
       <section className={styles.section}>
         <div className={styles.questionContainer}>
@@ -181,13 +207,16 @@ const ExamPage = () => {
             </h2>
             <span className={styles.questionPoints}>{question.exp} EXP</span>
           </div>
+
           <p className={styles.questionText}>{question.question}</p>
+
           <div className={styles.optionsContainer}>
             {question.options.map((option, index) => {
               const isSelected = selectedAnswer === index;
               const isCorrect = index === question.correctAnswer;
               const showCorrect = showFeedback && isCorrect;
               const showWrong = showFeedback && isSelected && !isCorrect;
+
               return (
                 <label
                   key={index}
@@ -230,4 +259,5 @@ const ExamPage = () => {
     </div>
   );
 };
+
 export default ExamPage;

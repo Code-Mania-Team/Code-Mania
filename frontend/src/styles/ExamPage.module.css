@@ -1,39 +1,41 @@
 .page {
   width: 100%;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   color: white;
 }
+
 /* Remove main-content padding top for exam pages */
 :global(body.exam-page) :global(.main-content) {
   padding-top: 0;
 }
+
 /* Hero/Header */
 .hero {
   position: relative;
   width: 100%;
-  background: url("/assets/python.gif") center/cover no-repeat;
+  background: url('/assets/python.gif') center/cover no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 :global(body.exam-results) .hero {
   min-height: 100vh;
 }
+
 /* During answering, keep the hero compact so users don't need to scroll */
 :global(body.exam-page):not(:global(body.exam-results)) .hero {
   height: 350px;
 }
+
 .hero::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.3),
-    rgba(0, 0, 0, 0.6)
-  );
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
   z-index: 1;
 }
+
 .heroContent {
   position: relative;
   z-index: 2;
@@ -44,35 +46,41 @@
   align-items: center;
   justify-content: center;
 }
+
 .heroContentInner {
   max-width: 800px;
   padding: 2rem;
 }
+
 .heroSubtitle {
-  font-family: "VT323", monospace;
+  font-family: 'VT323', monospace;
   font-size: 1.5rem;
   color: #e2e8f0;
 }
+
 .heroTitle {
-  font-family: "Jersey 25", sans-serif;
+  font-family: 'Jersey 25', sans-serif;
   font-size: 3rem;
   margin: 0.5rem 0;
-  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
+  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
 }
+
 .heroDescription {
-  font-family: "VT323", monospace;
+  font-family: 'VT323', monospace;
   font-size: 1.2rem;
   color: #e2e8f0;
   max-width: 700px;
   margin: 0 auto;
 }
+
 /* Exam Section */
 .section {
   background: #0f172a;
   padding: 3rem 2rem;
 }
+
 .questionContainer {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
   padding: 1.5rem; /* reduced from 2rem */
@@ -80,108 +88,127 @@
   margin: 2rem auto; /* some vertical spacing */
   min-height: auto; /* remove fixed height */
 }
+
 .questionHeader {
   display: flex;
   justify-content: space-between;
   margin-bottom: 1rem;
 }
+
 .questionTitle {
-  font-family: "Jersey 25", sans-serif;
+  font-family: 'Jersey 25', sans-serif;
   font-size: 1.8rem;
   color: white;
 }
+
 .questionPoints {
-  font-family: "Press Start 2P";
+  font-family: 'Press Start 2P';
   font-size: 1rem;
-  color: #3cb371;
+  color: #3CB371;
   font-weight: bold;
 }
+
 .questionText {
   font-size: 1.2rem;
   margin-bottom: 1.5rem;
   color: #e2e8f0;
 }
+
 /* Options */
 .optionsContainer {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
+
 .optionLabel {
   display: flex;
   align-items: center;
   padding: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255,255,255,0.1);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255,255,255,0.02);
 }
+
 .optionLabel:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.05);
 }
+
 .optionInput {
   display: none;
 }
+
 .optionContent {
   display: flex;
   align-items: center;
   gap: 1rem;
   width: 100%;
 }
+
 .optionLetter {
   width: 2rem;
   height: 2rem;
-  font-family: "Press Start 2P";
-  background: rgba(255, 255, 255, 0.1);
+  font-family: 'Press Start 2P';
+  background: rgba(255,255,255,0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
 }
+
 .optionLabel:has(input:checked) .optionLetter {
-  background: #3cb371;
+  background: #3CB371;
 }
+
 .optionText {
   flex: 1;
 }
+
 /* Feedback */
 .correctOption {
   background: rgba(16, 185, 129, 0.2) !important;
   border-color: #10b981 !important;
 }
+
 .wrongOption {
   background: rgba(239, 68, 68, 0.2) !important;
   border-color: #ef4444 !important;
 }
+
 .feedbackIcon {
   width: 1.5rem;
   height: 1.5rem;
   margin-left: auto;
 }
+
 /* Navigation */
 .examNavigation {
   display: flex;
   justify-content: space-between;
   margin-top: 2rem;
 }
+
 .navButton {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
   color: white;
   cursor: pointer;
 }
+
 .submitButton {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
-  background: #3cb371;
+  background: #3CB371;
   color: white;
   border: none;
   cursor: pointer;
 }
+
 /* Results */
 .resultsContainer {
   margin-top: 2rem;
@@ -197,24 +224,28 @@
   align-items: center;
   justify-content: center;
 }
+
 .percentage {
-  font-family: "Press Start 2P";
+  font-family: 'Press Start 2P';
   font-size: 5rem;
   color: white;
   line-height: 1;
   margin: 0.25rem 0 0.5rem;
 }
+
 .resultStatus {
   font-size: 2rem;
   font-weight: bold;
   margin-top: 0.25rem;
 }
+
 .resultsDetails {
   margin-top: 1rem;
   color: #e2e8f0;
   display: grid;
   gap: 0.5rem;
 }
+
 .button {
   width: 100%;
   background: #2563eb;
@@ -223,11 +254,9 @@
   padding: 0.75rem 1.25rem;
   border-radius: 0.6rem;
   cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
+
 .button:hover {
   background: #1d4ed8;
   transform: translateY(-1px);

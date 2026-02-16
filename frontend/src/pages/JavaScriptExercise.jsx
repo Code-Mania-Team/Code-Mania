@@ -6,28 +6,35 @@ import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 import TutorialPopup from "../components/TutorialPopup";
 import StageCompleteModal from "../components/StageCompleteModal";
+
 import styles from "../styles/JavaScriptExercise.module.css";
 import exercises from "../utilities/data/javascriptExercises.json";
 import { startGame } from "../utilities/engine/main.js";
 import useAuth from "../hooks/useAxios";
 import { axiosPublic } from "../api/axios";
 import useGetGameProgress from "../services/getGameProgress.js";
+
 const JavaScriptExercise = () => {
   const navigate = useNavigate();
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
   const getGameProgress = useGetGameProgress();
+
+
   /* ===============================
      QUEST STATE (MATCH PYTHON)
   =============================== */
   const [activeExerciseId, setActiveExerciseId] = useState(1);
+
   const activeExercise = useMemo(() => {
     return (
       exercises.find(e => e.id === activeExerciseId) ||
       exercises[0]
     );
   }, [activeExerciseId]);
+
   const [activeQuestId, setActiveQuestId] = useState(null);
   const [terminalEnabled, setTerminalEnabled] = useState(false);
+
   /* ===============================
      TERMINAL STATE
   =============================== */
@@ -37,25 +44,31 @@ const JavaScriptExercise = () => {
   );
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+
   useEffect(() => {
       const loadProgress = async () => {
           const result = await getGameProgress("JavaScript");
           console.log("Loaded progress:", result);
           if (result?.completedQuests) {
             setDbCompletedQuests(result.completedQuests);
+
             const nextExercise = result.completedQuests.length + 1;
             setActiveExerciseId(nextExercise);
           }
         };
+  
         loadProgress();
     }, []);
+
   /* ===============================
      AUTH / UI
   =============================== */
   const [showTutorial, setShowTutorial] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
+
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
+
   /* ===============================
      NORMALIZE (SAME AS PYTHON)
   =============================== */
@@ -66,44 +79,56 @@ const JavaScriptExercise = () => {
       .map(line => line.trim())
       .join("\n")
       .trim();
+
   /* ===============================
      PHASER INIT + EVENTS
   =============================== */
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const authed = localStorage.getItem("isAuthenticated") === "true";
+
     if (authed && !hasSeenTutorial) {
       setShowTutorial(true);
     }
+
     if (!dbCompletedQuests) return;
+
     startGame({
       exerciseId: activeExerciseId,
       parent: "phaser-container",
       completedQuests: dbCompletedQuests,
     });
+
     const onQuestStarted = (e) => {
       const questId = e.detail?.questId;
       if (!questId) return;
+
       setTerminalEnabled(true);
       setActiveQuestId(questId);
     };
+
     const onQuestComplete = (e) => {
       const questId = e.detail?.questId;
       if (!questId) return;
+
       const scene = window.game?.scene?.keys?.GameScene;
       scene?.questManager?.completeQuest(questId);
+
       if (scene) {
         scene.playerCanMove = true;
         scene.gamePausedByTerminal = false;
       }
     };
+
     window.addEventListener("code-mania:quest-started", onQuestStarted);
     window.addEventListener("code-mania:quest-complete", onQuestComplete);
+
     return () => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
     };
   }, [activeExerciseId]);
+
   /* ===============================
      UPDATE CODE ON QUEST CHANGE
   =============================== */
@@ -113,26 +138,35 @@ const JavaScriptExercise = () => {
       setOutput("");
     }
   }, [activeExerciseId]);
+
   /* ===============================
      RUN CODE (FIXED)
   =============================== */
   const handleRunCode = () => {
     if (!terminalEnabled || isRunning) return;
+
     setIsRunning(true);
     setOutput("Running...");
+
     try {
       const logs = [];
       const originalLog = console.log;
+
       console.log = (...args) => {
         logs.push(args.join(" "));
         originalLog(...args);
       };
+
       eval(code);
+
       console.log = originalLog;
+
       const rawOutput = logs.join("\n");
       setOutput(rawOutput);
+
       const expected = normalize(activeExercise.expectedOutput);
       const actual = normalize(rawOutput);
+
       if (
         expected &&
         actual === expected &&
@@ -143,6 +177,7 @@ const JavaScriptExercise = () => {
             detail: { questId: activeExercise.id }
           })
         );
+
         // XP is handled by Phaser engine
       }
     } catch (err) {
@@ -154,6 +189,7 @@ const JavaScriptExercise = () => {
       );
     }
   };
+
   /* ===============================
      AUTH
   =============================== */
@@ -171,9 +207,11 @@ const JavaScriptExercise = () => {
         setUser(null);
         setIsAuthenticated(false);
       });
+
     window.dispatchEvent(new Event("authchange"));
     setIsSignInModalOpen(false);
   };
+
   /* ===============================
      NAVIGATION
   =============================== */
@@ -185,6 +223,7 @@ const JavaScriptExercise = () => {
       setShowStageComplete(true);
     }
   };
+
   return (
     <div className={styles["javascript-exercise-page"]}>
       <Header
@@ -192,6 +231,7 @@ const JavaScriptExercise = () => {
         onOpenModal={() => setIsSignInModalOpen(true)}
         user={user}
       />
+
       {isSignInModalOpen && (
         <SignInModal
           isOpen
@@ -199,16 +239,19 @@ const JavaScriptExercise = () => {
           onSignInSuccess={handleSignInSuccess}
         />
       )}
+
       <div className={styles["codex-fullscreen"]}>
         <ProgressBar
           currentLesson={activeExercise.id}
           totalLessons={exercises.length}
           title="🌐 JavaScript Basics"
         />
+
         <div className={styles["main-layout"]}>
           <div className={styles["game-container"]}>
             <div id="phaser-container" className={styles["game-scene"]} />
           </div>
+
           <CodeTerminal
             language="javascript"
             code={code}
@@ -221,12 +264,14 @@ const JavaScriptExercise = () => {
           />
         </div>
       </div>
+
       <StageCompleteModal
         show={showStageComplete}
         languageLabel="JavaScript"
         onContinue={goToNextExercise}
         onClose={() => setShowStageComplete(false)}
       />
+
       {showTutorial && (
         <TutorialPopup
           open={showTutorial}
@@ -239,4 +284,5 @@ const JavaScriptExercise = () => {
     </div>
   );
 };
+
 export default JavaScriptExercise;

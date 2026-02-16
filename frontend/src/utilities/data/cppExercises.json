@@ -11,6 +11,7 @@
     "requirements": { "mustInclude": ["iostream", "cout"] },
     "expectedOutput": "Hello, C++!"
   },
+
   {
     "id": 2,
     "title": "Basic Input",
@@ -23,6 +24,7 @@
     "requirements": { "mustInclude": ["iostream", "cout"] },
     "expectedOutput": "Hello World!"
   },
+
   {
     "id": 3,
     "title": "Comments",
@@ -35,6 +37,7 @@
     "requirements": { "mustInclude": ["//", "cout"] },
     "expectedOutput": "Code runs!"
   },
+
   {
     "id": 4,
     "title": "Basic Output",
@@ -47,6 +50,7 @@
     "requirements": { "mustInclude": ["cout"] },
     "expectedOutput": "*\n* *\n* * *"
   },
+
   {
     "id": 5,
     "title": "Variables",
@@ -59,6 +63,7 @@
     "requirements": { "mustInclude": ["int", "cout"] },
     "expectedOutput": ""
   },
+
   {
     "id": 6,
     "title": "Data Types",
@@ -71,6 +76,7 @@
     "requirements": { "mustInclude": ["cout", "double", "bool"] },
     "expectedOutput": "9.99\n1"
   },
+
   {
     "id": 7,
     "title": "Constants",
@@ -96,6 +102,7 @@
     "requirements": { "mustInclude": ["int", "cout"] },
     "expectedOutput": "9"
   },
+
   {
     "id": 9,
     "title": "Arithmetic Operators",
@@ -109,6 +116,7 @@
     "requirements": { "mustInclude": ["cout", "+"] },
     "expectedOutput": "8"
   },
+
   {
     "id": 10,
     "title": "Comparison Operators",
@@ -121,6 +129,7 @@
     "requirements": { "mustInclude": ["cout", ">", "==", "<="] },
     "expectedOutput": "0\n1\n1"
   },
+
   {
     "id": 11,
     "title": "Logical Operators",
@@ -133,6 +142,7 @@
     "requirements": { "mustInclude": ["cout", "&&"] },
     "expectedOutput": "0"
   },
+
   {
     "id": 12,
     "title": "Assignment Operators",
@@ -145,6 +155,7 @@
     "requirements": { "mustInclude": ["cout", "+="] },
     "expectedOutput": "8"
   },
+
   {
     "id": 13,
     "title": "If Statements",
@@ -157,6 +168,7 @@
     "requirements": { "mustInclude": ["if", "cout"] },
     "expectedOutput": "Adult"
   },
+
   {
     "id": 14,
     "title": "Switch Case",
@@ -169,6 +181,7 @@
     "requirements": { "mustInclude": ["switch", "cout"] },
     "expectedOutput": "Tue"
   },
+
   {
     "id": 15,
     "title": "For Loops",
@@ -181,6 +194,7 @@
     "requirements": { "mustInclude": ["for", "cout"] },
     "expectedOutput": "0\n1\n2"
   },
+
   {
     "id": 16,
     "title": "While Loops",

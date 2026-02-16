@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/Aboutpage.css';
 const laptopImg = "https://res.cloudinary.com/daegpuoss/image/upload/v1770949053/laptop1_ejnkeg.png";
+
 const About = () => {
   return (
     <div className="about-page">                                                  
@@ -68,9 +69,16 @@ const About = () => {
                     <h3 className="dev-pos">Frontend Developer / Digital Artist</h3>
                 </div>
             </div>
+            
+            
         </div>
+        
+        
       </section>
+               
+
     </div>
   );
 };
+
 export default About;

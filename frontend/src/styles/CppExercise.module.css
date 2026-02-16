@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Press+Start+2P&display=swap");
+
 /* Scroll Background */
 .scroll-background {
   position: fixed;
@@ -9,6 +10,7 @@
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
   z-index: -1;
 }
+
 /* Fullscreen base */
 .cpp-exercise-page {
   min-height: 100vh;
@@ -18,6 +20,7 @@
   color: #e2e8f0;
   font-family: "Fira Code", monospace;
 }
+
 .codex-fullscreen {
   flex: 1;
   display: flex;
@@ -27,6 +30,7 @@
   padding: 1rem 0;
   align-items: center;
 }
+
 /* Lesson Progress */
 .lesson-progress {
   text-align: left;
@@ -38,12 +42,14 @@
   background: #1e293b;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
+
 .lesson-stage {
   color: #60a5fa;
   margin-bottom: 1rem;
   font-size: 1rem;
   font-family: "Press Start 2P", cursive;
 }
+
 .progress-bar {
   width: 100%;
   height: 10px;
@@ -52,6 +58,7 @@
   margin: 0.5rem 0;
   overflow: hidden;
 }
+
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #3b82f6, #60a5fa);
@@ -59,11 +66,13 @@
   transition: width 0.5s ease;
   box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
+
 .progress-text {
   color: #94a3b8;
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
+
 /* Main layout */
 .main-layout {
   display: flex;
@@ -74,6 +83,7 @@
   min-height: 60vh;
   align-items: stretch;
 }
+
 /* Scroll Container */
 .scroll-container {
   position: relative;
@@ -85,30 +95,36 @@
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
+
 .scroll-content {
   position: relative;
   z-index: 2;
   color: #e2e8f0;
   line-height: 1.6;
 }
+
 .scroll-content h2 {
   color: #60a5fa;
   margin-bottom: 1rem;
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
   font-size: 1.5rem;
 }
+
 .scroll-content p {
   margin-bottom: 1rem;
   font-size: 0.95rem;
 }
+
 .scroll-content ul {
   margin: 1rem 0;
   padding-left: 1.5rem;
 }
+
 .scroll-content li {
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
+
 .code-example {
   background: #0f172a;
   border-left: 4px solid #3b82f6;
@@ -117,16 +133,18 @@
   border-radius: 0 4px 4px 0;
   overflow-x: auto;
 }
+
 .code-example pre {
   margin: 0;
-  font-family: "Fira Code", monospace;
+  font-family: 'Fira Code', monospace;
   font-size: 0.85rem;
   line-height: 1.5;
   color: #e2e8f0;
 }
+
 .show-scroll-btn {
   padding: 12px 24px;
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
   font-size: 16px;
   color: #fff;
   background-color: #3b82f6;
@@ -142,6 +160,7 @@
   overflow: hidden;
   z-index: 1;
 }
+
 /* Game container - Left side */
 .game-container {
   flex: 1;
@@ -149,6 +168,7 @@
   display: flex;
   flex-direction: column;
 }
+
 .game-preview {
   background: #111827;
   border-radius: 8px;
@@ -158,6 +178,7 @@
   flex-direction: column;
   min-height: 300px;
 }
+
 /* === Game Scene Styles === */
 .game-scene {
   position: relative;
@@ -179,12 +200,14 @@
   background: #1a1a1a;
   flex-grow: 1;
 }
+
 .game-bg {
   width: 100%;
   height: 100%;
   object-fit: cover;
   image-rendering: pixelated;
 }
+
 .game-character {
   position: absolute;
   bottom: 20%;
@@ -192,6 +215,7 @@
   width: 80px;
   image-rendering: pixelated;
 }
+
 /* === Dialogue Box === */
 .dialogue-box {
   background: rgba(0, 0, 0, 0.85);
@@ -208,14 +232,17 @@
   align-items: center;
   justify-content: center;
 }
+
 .dialogue-box:hover {
   background: rgba(0, 0, 0, 0.9);
 }
+
 .dialogue-text {
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
 }
+
 /* Code container - Right side */
 .code-container {
   flex: 1;
@@ -225,11 +252,13 @@
   flex-direction: column;
   gap: 1rem;
 }
+
 .code-editor,
 .terminal {
   flex: 1;
   min-height: 300px;
 }
+
 /* Code Editor */
 .code-editor {
   background: #1e1e1e;
@@ -239,6 +268,7 @@
   overflow: hidden;
   height: 100%;
 }
+
 .editor-header {
   background-color: #252526;
   color: #d4d4d4;
@@ -248,6 +278,7 @@
   padding: 0.6rem 1rem;
   border-bottom: 1px solid #333;
 }
+
 .run-btn {
   display: flex;
   align-items: center;
@@ -264,18 +295,22 @@
   justify-content: center;
   font-family: "Fira Code", monospace;
 }
+
 .run-btn:hover:not(:disabled) {
   background-color: #2563eb;
   transform: translateY(-1px);
 }
+
 .run-btn:active:not(:disabled) {
   transform: translateY(1px);
 }
+
 .run-btn:disabled {
   background-color: #64748b;
   cursor: not-allowed;
   opacity: 0.7;
 }
+
 .code-box {
   flex: 1;
   background: #1e1e1e;
@@ -290,9 +325,11 @@
   tab-size: 2;
   overflow-y: auto;
 }
+
 .code-box:focus {
   outline: none;
 }
+
 /* Help Section */
 .help-section {
   width: 95%;
@@ -301,10 +338,9 @@
   background: #1e293b;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
 .help-header {
   background: #1e40af;
   color: white;
@@ -316,16 +352,20 @@
   font-weight: 500;
   transition: background-color 0.2s ease;
 }
+
 .help-header:hover {
   background: #1e3a8a;
 }
+
 .help-arrow {
   transition: transform 0.3s ease;
   font-size: 0.8em;
 }
+
 .help-arrow.open {
   transform: rotate(180deg);
 }
+
 .help-content {
   padding: 1.5rem;
   background: #1e293b;
@@ -333,33 +373,38 @@
   line-height: 1.6;
   border-top: 1px solid #334155;
 }
+
 .help-title {
   color: #60a5fa;
   margin-top: 0;
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
+
 .help-content h4 {
   color: #93c5fd;
   margin: 1.5rem 0 0.75rem;
   font-size: 1rem;
 }
+
 .help-content pre {
   background: #0f172a;
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
-  font-family: "Fira Code", monospace;
+  font-family: 'Fira Code', monospace;
   font-size: 0.9rem;
   line-height: 1.5;
   color: #e2e8f0;
   margin: 0.75rem 0;
   border-left: 3px solid #3b82f6;
 }
+
 .help-content p {
   margin: 0.75rem 0;
   color: #e2e8f0;
 }
+
 /* Terminal */
 .terminal {
   background: #1e1e1e;
@@ -368,6 +413,7 @@
   flex-direction: column;
   overflow: hidden;
 }
+
 .terminal-header {
   background: #252526;
   color: #d4d4d4;
@@ -376,6 +422,7 @@
   font-family: "Fira Code", monospace;
   border-bottom: 1px solid #333;
 }
+
 .terminal-body {
   padding: 1rem;
   color: #d4d4d4;
@@ -386,6 +433,7 @@
   background: #1e1e1e;
   line-height: 1.5;
 }
+
 .terminal-line {
   display: flex;
   align-items: flex-start;
@@ -393,17 +441,20 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
 .prompt {
   color: #4ade80;
   margin-right: 0.5rem;
   user-select: none;
 }
+
 .terminal-output {
   white-space: pre-wrap;
   word-break: break-word;
   margin-bottom: 0.5rem;
   color: #e2e8f0;
 }
+
 .cursor {
   display: inline-block;
   width: 0.5rem;
@@ -412,15 +463,12 @@
   animation: blink 1s infinite;
   vertical-align: middle;
 }
+
 @keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
+
 /* =============== HELP / HINT SECTION =============== */
 .help-title {
   width: 95%;
@@ -432,6 +480,7 @@
   border-bottom: 1px solid #1e293b;
   padding-bottom: 0.25rem;
 }
+
 .help-section {
   width: 95%;
   max-width: 1600px;
@@ -442,6 +491,7 @@
   background-color: #1c1e22;
   font-family: "Fira Code", monospace;
 }
+
 .help-header {
   background-color: #2a2d31;
   color: #e5e7eb;
@@ -454,24 +504,29 @@
   font-size: 0.9rem;
   transition: background 0.2s ease;
 }
+
 .help-header:hover {
   background-color: #35383d;
 }
+
 .help-arrow {
   font-size: 0.8rem;
   opacity: 0.8;
 }
+
 .help-content {
   background-color: #1f2125;
   padding: 1rem 1.2rem;
   border-top: 1px solid #2d2f34;
   animation: fadeIn 0.25s ease;
 }
+
 .help-content p {
   margin: 0.6rem 0;
   color: #e2e8f0;
   line-height: 1.6;
 }
+
 .help-content code {
   background: #2e2f35;
   padding: 0.15rem 0.4rem;
@@ -479,6 +534,7 @@
   color: #93c5fd;
   font-size: 0.9em;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -489,41 +545,50 @@
     transform: translateY(0);
   }
 }
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .codex-grid {
     flex-direction: column;
     gap: 1rem;
   }
+
   .code-container,
   .game-container {
     width: 100%;
     min-width: auto;
   }
+
   .lesson-progress {
     padding: 1rem 1.2rem;
   }
 }
+
 @media (max-width: 768px) {
   .codex-grid {
     width: 100%;
     padding: 0 0.5rem;
     gap: 0.8rem;
   }
+
   .codex-fullscreen {
     padding: 0.5rem 0;
   }
+
   .game-preview,
   .code-editor,
   .terminal {
     min-height: 250px;
   }
+
   .terminal-body {
     padding: 0.75rem;
   }
+
   .lesson-stage {
     font-size: 0.6rem;
   }
+
   .progress-text {
     font-size: 0.7rem;
   }

@@ -4,13 +4,7 @@
   min-height: 100vh;
   background: #0f172a;
   color: white;
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,12 +12,15 @@
   position: relative;
   overflow: hidden;
 }
+
+
 .leaderboard-page > * {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 768px;
 }
+
 .leaderboard-header {
   display: flex;
   flex-direction: column;
@@ -34,12 +31,14 @@
   position: relative;
   padding-top: 1.5rem;
 }
+
 .leaderboard-header h1 {
   font-size: 3rem;
   font-weight: 700;
   margin: 0;
-  font-family: "Jersey 25", sans-serif;
+  font-family: 'Jersey 25', sans-serif;
 }
+
 .trophy-container {
   position: relative;
   width: 5rem;
@@ -49,14 +48,16 @@
   justify-content: center;
   margin-bottom: 0.5rem;
 }
+
 .trophy-icon {
   width: 100%;
   height: 100%;
   object-fit: contain;
   z-index: 1;
 }
+
 .trophy-container::before {
-  content: "";
+  content: '';
   position: absolute;
   width: 100%;
   height: 100%;
@@ -65,12 +66,9 @@
   opacity: 0.8;
   z-index: 0;
 }
+
 .leaderboard-container {
-  background: linear-gradient(
-    135deg,
-    rgba(15, 15, 15, 0.5),
-    rgba(30, 30, 30, 0.5)
-  );
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.5), rgba(30, 30, 30, 0.5));
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
@@ -78,6 +76,7 @@
   margin-top: 1rem;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
+
 .leaderboard-tabs {
   display: flex;
   gap: 0.5rem;
@@ -85,6 +84,7 @@
   border-bottom: 1px solid #ffffff;
   padding-bottom: 0.75rem;
 }
+
 .tab {
   background: none;
   border: none;
@@ -95,33 +95,37 @@
   font-size: 0.9rem;
   transition: all 0.2s;
 }
+
 .tab:hover {
   background: #1f1f1f;
   color: #e5e7eb;
 }
+
 .tab.active {
   background: #7c3aed;
   color: white;
 }
+
 .leaderboard-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
+
 .leaderboard-card {
   display: flex;
   align-items: center;
   background: #1a1a1a;
   border-radius: 0.75rem;
   padding: 1rem;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .leaderboard-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
 .player-rank {
   width: 2.5rem;
   text-align: center;
@@ -129,6 +133,7 @@
   font-size: 1.1rem;
   color: #9ca3af;
 }
+
 .rank-badge {
   display: flex;
   align-items: center;
@@ -139,10 +144,12 @@
   background: #2d2d2d;
   color: #e5e7eb;
 }
+
 .rank-badge.top-three {
   background: #7c3aed;
   color: white;
 }
+
 .player-avatar {
   width: 2.5rem;
   height: 2.5rem;
@@ -150,19 +157,23 @@
   margin: 0 1rem 0 0.5rem;
   object-fit: cover;
 }
+
 .player-info {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
+
 .player-name {
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
+
 .player-score {
   font-size: 0.85rem;
   color: #9ca3af;
 }
+
 /* Responsive Design */
 @media (min-width: 641px) and (max-width: 1024px) {
   .leaderboard-container {
@@ -170,17 +181,21 @@
     margin: 0 auto;
   }
 }
+
 @media (max-width: 640px) {
   .leaderboard-page {
     padding: 1rem;
   }
+  
   .leaderboard-container {
     padding: 1rem;
   }
+  
   .leaderboard-tabs {
     overflow-x: auto;
     padding-bottom: 0.5rem;
   }
+  
   .leaderboard-tabs::-webkit-scrollbar {
     display: none;
   }

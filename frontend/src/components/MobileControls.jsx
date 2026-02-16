@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "../styles/MobileControls.module.css";
+
 const MobileControls = () => {
   const sendMove = (dx, dy) => {
     if (typeof window === "undefined") return;
@@ -9,15 +10,19 @@ const MobileControls = () => {
       })
     );
   };
+
   const stopMove = () => sendMove(0, 0);
+
   const handleDirDown = (dx, dy) => (e) => {
     e.preventDefault();
     sendMove(dx, dy);
   };
+
   const handleDirUp = (e) => {
     e.preventDefault();
     stopMove();
   };
+
   const handleAction = (e) => {
     e.preventDefault();
     if (typeof window === "undefined") return;
@@ -27,6 +32,7 @@ const MobileControls = () => {
       })
     );
   };
+
   return (
     <div className={styles.wrapper}>
       <button
@@ -74,4 +80,5 @@ const MobileControls = () => {
     </div>
   );
 };
+
 export default MobileControls;

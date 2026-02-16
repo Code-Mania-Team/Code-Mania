@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
 import { ArrowLeft, Plus, Edit, Trash2, Save, X, Eye, EyeOff } from "lucide-react";
 import styles from "../styles/Admin.module.css";
+
 const ExerciseManager = () => {
   const { course } = useParams();
   const navigate = useNavigate();
@@ -11,9 +12,11 @@ const ExerciseManager = () => {
   const [editingExercise, setEditingExercise] = useState(null);
   const [creatingNew, setCreatingNew] = useState(false);
   const [formData, setFormData] = useState({});
+
   useEffect(() => {
     fetchExercises();
   }, [course]);
+
   const fetchExercises = async () => {
     setLoading(true);
     try {
@@ -29,6 +32,7 @@ const ExerciseManager = () => {
       setLoading(false);
     }
   };
+
   const handleEdit = (exercise) => {
     setEditingExercise(exercise.id);
     setFormData({
@@ -37,6 +41,7 @@ const ExerciseManager = () => {
       requirements: JSON.stringify(exercise.requirements, null, 2)
     });
   };
+
   const handleCreateNew = () => {
     setCreatingNew(true);
     setFormData({
@@ -58,6 +63,7 @@ const ExerciseManager = () => {
       order_index: exercises.length + 1
     });
   };
+
   const handleSave = async () => {
     try {
       const processedData = {
@@ -65,6 +71,7 @@ const ExerciseManager = () => {
         dialogue: JSON.parse(formData.dialogue),
         requirements: JSON.parse(formData.requirements)
       };
+
       let response;
       if (creatingNew) {
         response = await axiosPublic.post("/v1/admin/exercises", processedData, {
@@ -75,6 +82,7 @@ const ExerciseManager = () => {
           withCredentials: true
         });
       }
+
       if (response.data.success) {
         await fetchExercises();
         setEditingExercise(null);
@@ -86,6 +94,7 @@ const ExerciseManager = () => {
       alert("Error saving exercise. Please check your JSON formatting.");
     }
   };
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this exercise?")) {
       try {
@@ -99,11 +108,13 @@ const ExerciseManager = () => {
       }
     }
   };
+
   const handleCancel = () => {
     setEditingExercise(null);
     setCreatingNew(false);
     setFormData({});
   };
+
   const toggleStatus = async (exercise) => {
     const newStatus = exercise.status === 'published' ? 'draft' : 'published';
     try {
@@ -116,6 +127,7 @@ const ExerciseManager = () => {
       console.error("Error toggling status:", error);
     }
   };
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -127,6 +139,7 @@ const ExerciseManager = () => {
       </div>
     );
   }
+
   return (
     <div className={styles.page}>
       <section className={styles.section}>
@@ -148,9 +161,11 @@ const ExerciseManager = () => {
             New Exercise
           </button>
         </div>
+
         <p className={styles.subtitle}>
           Manage {course} exercises. Total: {exercises.length} exercises
         </p>
+
         <div className={styles.panel}>
           {creatingNew && (
             <div className={styles.exerciseEditor}>
@@ -163,6 +178,7 @@ const ExerciseManager = () => {
               />
             </div>
           )}
+
           {exercises.map((exercise) => (
             <div key={exercise.id} className={styles.exerciseRow}>
               {editingExercise === exercise.id ? (
@@ -229,10 +245,12 @@ const ExerciseManager = () => {
     </div>
   );
 };
+
 const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
   return (
     <div className={styles.formGrid}>
       <div className={styles.formGroup}>
@@ -243,6 +261,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           onChange={(e) => handleChange('exercise_id', parseInt(e.target.value))}
         />
       </div>
+
       <div className={styles.formGroup}>
         <label>Title</label>
         <input
@@ -251,6 +270,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           onChange={(e) => handleChange('title', e.target.value)}
         />
       </div>
+
       <div className={styles.formGroup}>
         <label>Validation Mode</label>
         <select
@@ -262,6 +282,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           <option value="OUTPUT">Output</option>
         </select>
       </div>
+
       <div className={styles.formGroup}>
         <label>Experience Points</label>
         <input
@@ -270,6 +291,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           onChange={(e) => handleChange('experience', parseInt(e.target.value))}
         />
       </div>
+
       <div className={styles.formGroup}>
         <label>Status</label>
         <select
@@ -280,6 +302,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           <option value="published">Published</option>
         </select>
       </div>
+
       <div className={styles.formGroup}>
         <label>Order Index</label>
         <input
@@ -288,6 +311,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           onChange={(e) => handleChange('order_index', parseInt(e.target.value))}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Lesson Header</label>
         <input
@@ -296,6 +320,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           onChange={(e) => handleChange('lesson_header', e.target.value)}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Description</label>
         <textarea
@@ -304,6 +329,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           rows={3}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Task</label>
         <textarea
@@ -312,6 +338,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           rows={2}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Lesson Example</label>
         <textarea
@@ -320,6 +347,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           rows={3}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Starting Code</label>
         <textarea
@@ -328,6 +356,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           rows={3}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Expected Output</label>
         <input
@@ -336,6 +365,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           onChange={(e) => handleChange('expected_output', e.target.value)}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Grants</label>
         <input
@@ -344,6 +374,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           onChange={(e) => handleChange('grants', e.target.value)}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Dialogue (JSON)</label>
         <textarea
@@ -353,6 +384,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           style={{ fontFamily: 'monospace' }}
         />
       </div>
+
       <div className={styles.formGroupFull}>
         <label>Requirements (JSON)</label>
         <textarea
@@ -362,6 +394,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           style={{ fontFamily: 'monospace' }}
         />
       </div>
+
       <div className={styles.formActions}>
         <button className={styles.button} type="button" onClick={onSave}>
           <Save size={16} style={{ marginRight: 4 }} />
@@ -380,4 +413,5 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
     </div>
   );
 };
+
 export default ExerciseManager;
