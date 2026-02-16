@@ -7,7 +7,7 @@ const ProfileCard = ({ onSignInRequired }) => {
   const { user, isAuthenticated } = useAuth();
 
   const userProgress = {
-    name: isAuthenticated ? (user?.full_name || user?.username || 'Your Name') : 'Guest',
+    name: isAuthenticated ? (user?.full_name) : 'Guest',
     level: 1,
     exercisesCompleted: 0,
     totalExercises: 16,
