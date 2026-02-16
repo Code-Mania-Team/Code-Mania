@@ -188,13 +188,13 @@
         {
          "columns":16,
          "firstgid":897,
-         "image":"..\/Downloads\/Code-Mania-fixthebranch\/Code-Mania-fixthebranch\/frontend\/public\/assets\/tilesets\/Cpp\/pika_nos_tiles02_B.png",
+         "image":"..\/..\/tilesets\/Cpp\/pika_nos_tiles02_B.png",
          "imageheight":768,
          "imagewidth":768,
          "margin":0,
          "name":"pika_nos_tiles02_B",
          "spacing":0,
-         "tilecount":0,
+         "tilecount":256,
          "tileheight":48,
          "tilewidth":48
         }],
