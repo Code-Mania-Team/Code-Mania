@@ -1,9 +1,15 @@
 import User from "../models/user.js";
+
 import TempUser from "../models/tempUser.js";
+
 import { encryptPassword } from "../utils/hash.js";
+
 import { generateOtp, sendOtpEmail } from "../utils/otp.js";
 
+
+
 class AccountService {
+
     constructor() {
         this.user = new User();
         this.tempUser = new TempUser();
@@ -26,7 +32,12 @@ class AccountService {
             expiry_time: expiresAt.toISOString(),
         });
 
-        await sendOtpEmail(email, otp);
+        // await sendOtpEmail(email, otp);
+        await sendOtpEmail({
+            toEmail: email,
+            otp,
+            type: "signup"
+        });
         return record;
     }
 
@@ -38,7 +49,6 @@ class AccountService {
         if (new Date(otpEntry.expiry_time) < new Date()) throw new Error("OTP expired");
 
         await this.tempUser.markVerified(otpEntry.temp_user_id);
-
         const newUser = await this.user.create({
             email: otpEntry.email,
             password: otpEntry.password,
@@ -50,7 +60,8 @@ class AccountService {
 
     async loginWithPassword(email, password) {
         const user = await this.user.findByEmail(email);
-        if (!user || !user.email) throw new Error("Email not registered yet");
+        if (!user || !user.email) 
+            throw new Error("Email not registered yet");
 
         const hashedPassword = encryptPassword(password);
         const authUser = await this.user.findByEmailAndPasswordHash(email, hashedPassword);
@@ -60,11 +71,11 @@ class AccountService {
     async googleLogin(id, email, provider) {
         const emailExist = await this.user.findByEmail(email)
         const hashedPassword = encryptPassword(id + email)
-    
+
         if (!emailExist) {
             //Signup
             const newUser = await this.user.create({ 
-            email: email,
+                email: email,
                 password: hashedPassword,
                 provider: provider
             })
@@ -87,3 +98,4 @@ class AccountService {
 }
 
 export default AccountService;
+

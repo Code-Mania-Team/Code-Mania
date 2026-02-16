@@ -12,23 +12,35 @@ class RefreshController {
         try {
             const refreshToken = req.cookies.refreshToken;
             if (!refreshToken) {
-                return res.status(401).json({ success: false, message: "No refresh token" });
+                return res.status(401).json({ 
+                    success: false, 
+                    message: "No refresh token" 
+                });
             }
+
             const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
             const user = await this.user.getUserById(decoded.user_id);
             if (!user) {
-                return res.status(404).json({ success: false, message: "User not found" });
+                return res.status(404).json({ 
+                    success: false, 
+                    message: "User not found" 
+                });
             }
             const newAccessToken = generateAccessToken({
                 id: user.id,
                 username: user.username
             });
+
             return res.status(200).json({
                 success: true,
                 accessToken: newAccessToken
             });
+
         } catch (err) {
-            return res.status(401).json({ success: false, message: "Invalid refresh token" });
+            return res.status(401).json({ 
+                success: false, 
+                message: "Invalid refresh token" 
+            });
         }
     }
 };

@@ -6,6 +6,7 @@ export const generateAccessToken = (user) => {
     const payload = {
         user_id: user.user_id || user.id,
         username: user.username || user.email,
+        role: user.role,
     };
 
     // Short-lived token, e.g., 15 minutes

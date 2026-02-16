@@ -23,6 +23,7 @@ const { exerciseId } = useParams();
 const navigate = useNavigate();
 const location = useLocation();
 const [currentExercise, setCurrentExercise] = useState(null);
+
 const [code, setCode] = useState("");
 const [output, setOutput] = useState("");
 const [showHelp, setShowHelp] = useState(false);
