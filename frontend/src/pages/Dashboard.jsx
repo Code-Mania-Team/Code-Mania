@@ -90,7 +90,7 @@ const Dashboard = ({ onSignOut }) => {
             return;
           }
           
-          localStorage.setItem('selectedCharacter', String(profile.character_id));
+          localStorage.setItem('selectedCharacter', profile.character_id);
           localStorage.setItem('username', profile.username);
           localStorage.setItem('needsUsername', 'false');
           localStorage.setItem('hasSeenOnboarding', 'true');
@@ -199,7 +199,7 @@ const Dashboard = ({ onSignOut }) => {
 
   return (
     <div className={styles.container}>
-      {showOnboarding && <WelcomeOnboarding onComplete={handleOnboardingComplete} />}
+      {/* {showOnboarding && <WelcomeOnboarding onComplete={handleOnboardingComplete} />} */}
       <Header 
         isAuthenticated={isAuthenticated}
         onOpenModal={() => {}}
