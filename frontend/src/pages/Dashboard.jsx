@@ -188,12 +188,22 @@ const Dashboard = ({ onSignOut }) => {
         <div className={styles['left-section']}>
 
           {!hasTouchedCourse ? (
-            <button
-              className={styles.getStartedBtn}
-              onClick={() => navigate('/learn')}
-            >
-              Get Started
-            </button>
+            <div className={styles.welcomeFirstCardInline}>
+              <div className={styles.welcomeFirstSprite}>
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" alt="Computer" className={styles.welcomeFirstSpriteImg} />
+              </div>
+              <h1 className={styles.welcomeFirstTitle}>Welcome to Code Mania!</h1>
+              <p className={styles.welcomeFirstSubtitle}>
+                Your coding journey awaits!, Choose a language to start learning.
+              </p>
+              <button
+                type="button"
+                className={styles.getStartedBtn}
+                onClick={() => navigate('/learn')}
+              >
+                Get Started
+              </button>
+            </div>
           ) : (
             <>
               <h2 className={styles['section-title']}>
