@@ -79,8 +79,8 @@ class AccountController {
             // 8. Set cookies
             res.cookie('accessToken', accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'Strict',
+                secure: false,
+                sameSite: 'none',
                 maxAge: 1 * 60 * 1000, // 1 minute for testing
                 //maxAge: 24 * 60 * 60 * 1000
 
@@ -88,9 +88,9 @@ class AccountController {
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: false,
                 //sameSite: 'lax', 
-                sameSite: 'strict',
+                sameSite: 'none',
                 maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
                 //domain: 'localhost' // Explicit domain for cross-origin
 
@@ -198,18 +198,18 @@ class AccountController {
 
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
+                secure: false,
                 //sameSite: "lax", // Changed from "strict" to "lax"
-                sameSite: "strict",
+                sameSite: "none",
                 //maxAge: 1 * 60 * 1000, // 1 minute for testing
                 maxAge: 24 * 60 * 60 * 1000
                 });
 
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
+                secure: false,
                 //sameSite: "lax", // Changed from "strict" to "lax"
-                sameSite: "strict",
+                sameSite: "none",
                 maxAge: 30 * 24 * 60 * 60 * 1000,
                 //domain: 'localhost' // Explicit domain for cross-origin
             });
@@ -269,14 +269,14 @@ class AccountController {
 
                 res.cookie('accessToken', accessToken, {
                     httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: cookieSameSite,
+                    secure: false,
+                    sameSite: "none",
                     maxAge: 15 * 60 * 1000
                 });
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: cookieSameSite,
+                    secure: false,
+                    sameSite: "none",
                     maxAge: 30 * 24 * 60 * 60 * 1000,
                 });
 
@@ -338,15 +338,15 @@ class AccountController {
 
                 res.cookie("accessToken", accessToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "strict",
+                    secure: false,
+                    sameSite: "none",
                     maxAge: 24 * 60 * 60 * 1000
                 });
 
                 res.cookie("refreshToken", newRefreshToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "strict",
+                    secure: false,
+                    sameSite: "none",
                     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
                     //domain: process.env.NODE_ENV === "production" ? undefined : 'localhost'
                 });
@@ -443,8 +443,8 @@ class AccountController {
 
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
+                secure: false,
+                sameSite: "none",
                 maxAge: 24 * 60 * 60 * 1000
                 });
 
@@ -488,15 +488,15 @@ class AccountController {
             // Clear refresh token cookie
             res.clearCookie("refreshToken", 
                 { httpOnly: true, 
-                  secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
+                  secure: false, 
+                  sameSite: "none" 
             });
 
             
              res.clearCookie("accessToken", 
                 { httpOnly: true, 
-                  secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
+                  secure: false, 
+                  sameSite: "none" 
             });
 
             return res.status(200).json({ 
@@ -526,14 +526,14 @@ class AccountController {
             }
             res.clearCookie("accessToken", {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
+                secure: false,
+                sameSite: "none",
             });
 
             res.clearCookie("refreshToken", {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
+                secure: false,
+                sameSite: "none",
             });
 
             return res.status(200).json({ 
