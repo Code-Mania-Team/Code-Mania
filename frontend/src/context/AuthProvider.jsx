@@ -13,17 +13,23 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuth = async () => {
       try {
+        console.log(" AUTH: Checking authentication status...");
         const response = await axiosPrivate.get("/v1/account");
+        console.log(" AUTH: Auth check response:", response?.data?.success ? "success" : "failed");
+        
         if (mounted && response?.data?.success) {
           const profile = response.data.data;
           if (profile?.user_id) {
+            console.log(" AUTH: User authenticated:", profile.user_id);
             setUser(profile);
             setIsAuthenticated(true);
           } else {
+            console.log(" AUTH: No user_id in response");
             setUser(null);
             setIsAuthenticated(false);
           }
         } else {
+          console.log(" AUTH: Auth check failed - no success response");
           setUser(null);
           setIsAuthenticated(false);
         }

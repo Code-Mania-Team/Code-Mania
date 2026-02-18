@@ -23,7 +23,7 @@ class AccountService {
 
         const otp = generateOtp();
         const hashedPassword = encryptPassword(password);
-        const expiresAt = new Date(Date.now() + 60 * 1000);
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
         const record = await this.tempUser.upsertByEmail({
             email,

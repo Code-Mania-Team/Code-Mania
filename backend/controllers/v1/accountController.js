@@ -81,8 +81,8 @@ class AccountController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'Strict',
-                maxAge: 1 * 60 * 1000, // 1 minute for testing
-                //maxAge: 24 * 60 * 60 * 1000
+                //maxAge: 1 * 60 * 1000, // 1 minute for testing
+                maxAge: 24 * 60 * 60 * 1000
 
             });
 
@@ -117,6 +117,7 @@ class AccountController {
     async setUsernameAndCharacter(req, res) {
         const { username, character_id, full_name } = req.body || {};
         const user_id = res.locals.user_id;
+        const role = res.locals.role;
         if (!user_id || !username) return res.status(400).json({ 
             success: false, 
             message: "User ID and username are required (full name is optional)" 
@@ -132,7 +133,7 @@ class AccountController {
                 });
             // Generate new access token (split approach)
 
-            const accessToken = generateAccessToken({ user_id, username, role: profile?.role });
+            const accessToken = generateAccessToken({ user_id, username, role: role });
             return res.status(200).json({
                 success: true,
                 message: "Username, character, and full name set successfully",
@@ -341,6 +342,7 @@ class AccountController {
                     secure: process.env.NODE_ENV === "production",
                     sameSite: "strict",
                     maxAge: 24 * 60 * 60 * 1000
+                    //maxAge: 1 * 60 * 1000, // 1 minute for testing
                 });
 
                 res.cookie("refreshToken", newRefreshToken, {
@@ -446,6 +448,7 @@ class AccountController {
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
                 maxAge: 24 * 60 * 60 * 1000
+                //maxAge: 1 * 60 * 1000, // 1 minute for testing
                 });
 
             return res.status(200).json({

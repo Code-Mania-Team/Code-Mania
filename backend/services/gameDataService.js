@@ -1,4 +1,4 @@
-import GameData from "../models/gameData.js";
+import GameData from "../models/leaderboard.js";
 
 class GameDataService {
     constructor() {
