@@ -5,35 +5,37 @@ export default class QuestCompleteToast {
 
     const marginX = 16;
     const marginY = 16;
+    this.isShowing = false;
 
-    // start off-screen (left)
+
+    // Start off-screen (left)
     this.container = scene.add
       .container(-320, marginY)
       .setDepth(10000)
       .setAlpha(0)
       .setScrollFactor(0);
 
-    // background
+    // Background
     this.bg = scene.add
       .rectangle(0, 0, 260, 48, 0x000000, 0.85)
       .setOrigin(0, 0)
       .setStrokeStyle(2, 0x00ff88);
 
-    // title
+    // Title
     this.titleText = scene.add.text(10, 6, "QUEST COMPLETED", {
       fontSize: "13px",
       fontStyle: "bold",
       color: "#00ff88"
     });
 
-    // subtitle (quest title)
+    // Subtitle (quest title)
     this.subtitle = scene.add.text(10, 24, "", {
       fontSize: "12px",
       color: "#ffffff",
       wordWrap: { width: 150 }
     });
 
-    // ⭐ EXP text (right-aligned, optional)
+    // ⭐ EXP text
     this.expText = scene.add
       .text(230, 24, "", {
         fontSize: "12px",
@@ -45,9 +47,13 @@ export default class QuestCompleteToast {
       .setOrigin(1, 0)
       .setVisible(false);
 
-    // 🏅 BADGE icon (far right)
+    /**
+     * IMPORTANT FIX:
+     * Never create image with null texture.
+     * Use a guaranteed loaded texture (quest_icon is already preloaded).
+     */
     this.badgeIcon = scene.add
-      .image(235, 24, null)
+      .image(235, 24, "quest_icon") // Safe placeholder texture
       .setDisplaySize(24, 24)
       .setOrigin(0.5)
       .setVisible(false);
@@ -70,67 +76,53 @@ export default class QuestCompleteToast {
    * @param {number} data.exp
    */
   show({ title = "", badgeKey = null, exp = 0 }) {
+    console.log("🎉 Showing QuestCompleteToast:", { title, badgeKey, exp });
+    if (this.isShowing) return;
+    this.isShowing = true;
+
     this.subtitle.setText(title);
 
-    // 🏅 Badge
     if (badgeKey && this.scene.textures.exists(badgeKey)) {
-      this.badgeIcon
-        .setTexture(badgeKey)
-        .setVisible(true);
+      this.badgeIcon.setTexture(badgeKey);
+      this.badgeIcon.setVisible(true);
     } else {
       this.badgeIcon.setVisible(false);
     }
 
-    // ⭐ EXP
     if (exp > 0) {
       this.expText
         .setText(`+${exp} XP`)
         .setVisible(true);
 
-      // shift left if badge exists
       this.expText.x = this.badgeIcon.visible ? 180 : 230;
     } else {
       this.expText.setVisible(false);
     }
 
-    // kill previous tweens
     this.scene.tweens.killTweensOf(this.container);
 
-    // reset position
-    this.container
-      .setX(-320)
-      .setAlpha(0);
+    this.container.setX(-320).setAlpha(0);
 
-    // slide in
     this.scene.tweens.add({
       targets: this.container,
       x: this.targetX,
       alpha: 1,
       duration: 300,
-      ease: "Back.Out",
-      onComplete: () => {
-        // subtle EXP pop
-        if (exp > 0) {
-          this.expText.setScale(1.4);
-          this.scene.tweens.add({
-            targets: this.expText,
-            scale: 1,
-            duration: 250,
-            ease: "Back.Out"
-          });
-        }
-      }
+      ease: "Back.Out"
     });
 
-    // slide out
     this.scene.time.delayedCall(2000, () => {
       this.scene.tweens.add({
         targets: this.container,
         x: -320,
         alpha: 0,
         duration: 400,
-        ease: "Sine.easeIn"
+        ease: "Sine.easeIn",
+        onComplete: () => {
+          this.isShowing = false;
+        }
       });
     });
   }
+
 }

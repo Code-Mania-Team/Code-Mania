@@ -5,6 +5,9 @@ import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
+import useGetExercises from "../services/getExercise";
+import useGetGameProgress from "../services/getGameProgress";
+import useAuth from "../hooks/useAxios";
 
 // Import C++ course badges
 import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
@@ -12,130 +15,167 @@ import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
 import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
 import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
 
-const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
+const checkmarkIcon =
+  "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const CppCourse = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const getExercises = useGetExercises();
+  const getGameProgress = useGetGameProgress();
+
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [completedExercises, setCompletedExercises] = useState(new Set());
+  const [modules, setModules] = useState([]);
+  const [data, setData] = useState();
 
-  // Tutorial will be shown only when clicking Start button
-
-  // Set course info when component loads
+  /* ===============================
+     FETCH C++ EXERCISES (UNCHANGED)
+  =============================== */
   useEffect(() => {
-    localStorage.setItem('lastCourseTitle', 'C++');
-    localStorage.setItem('lastCourseRoute', '/learn/cpp');
+    const fetchData = async () => {
+      try {
+        const exercises = await getExercises(2); // 2 = C++
+
+        if (!exercises) return;
+
+        const groupedModules = [
+          {
+            id: 1,
+            title: "C++ Basics",
+            description: "Learn the fundamentals of C++.",
+            exercises: [],
+          },
+          {
+            id: 2,
+            title: "Variables & Data Types",
+            description: "Understand C++ variables and types.",
+            exercises: [],
+          },
+          {
+            id: 3,
+            title: "Control Flow",
+            description: "Master conditionals and logic.",
+            exercises: [],
+          },
+          {
+            id: 4,
+            title: "Loops",
+            description: "Work with repetition structures.",
+            exercises: [],
+          },
+          {
+            id: 5,
+            title: "Examination",
+            description:
+              "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
+            exercises: [{ id: 17, title: "C++ Exam" }],
+          },
+        ];
+
+        exercises.forEach((exercise) => {
+          if (exercise.id >= 17 && exercise.id <= 20)
+            groupedModules[0].exercises.push(exercise);
+          else if (exercise.id >= 21 && exercise.id <= 24)
+            groupedModules[1].exercises.push(exercise);
+          else if (exercise.id >= 25 && exercise.id <= 28)
+            groupedModules[2].exercises.push(exercise);
+          else if (exercise.id >= 29 && exercise.id <= 32)
+            groupedModules[3].exercises.push(exercise);
+        });
+
+        setModules(groupedModules);
+      } catch (err) {
+        console.error("Failed to fetch C++ exercises", err);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const onOpenModal = () => {
-    setIsModalOpen(true);
-  };
+  /* ===============================
+     LOAD C++ PROGRESS (FIXED)
+  =============================== */
+  useEffect(() => {
+    if (!isAuthenticated) return;
 
-  const onCloseModal = () => {
-    setIsModalOpen(false);
-  };
+    const loadProgress = async () => {
+      try {
+        const result = await getGameProgress("C++");
+        setData(result);
 
-  const userProgress = {
-    exercisesCompleted: 0,
-    totalExercises: 16,
-    xpEarned: 0,
-    totalXp: 2600
-  };
+        if (result?.completedQuests) {
+          setCompletedExercises(new Set(result.completedQuests));
+        }
+      } catch (err) {
+        console.error("Failed to load C++ progress", err);
+      }
+    };
 
-  const modules = [
-    {
-      id: 1,
-      title: "Getting Started",
-      description: "Set up your C++ environment and write your first program with basic output.",
-      exercises: [
-        { id: 1, name: "The Program", status: "available" },
-        { id: 2, name: "Basic Input", status: "locked" },
-        { id: 3, name: "Comments", status: "locked" },
-        { id: 4, name: "Basic Output", status: "locked" }
-      ]
-    },
-    {
-      id: 2,
-      title: "Variables & Data Types",
-      description: "Learn about different data types, variables, and how to work with them in C++.",
-      exercises: [
-        { id: 5, name: "Variables", status: "locked" },
-        { id: 6, name: "Data Types", status: "locked" },
-        { id: 7, name: "Constants", status: "locked" },
-        { id: 8, name: "Type Casting", status: "locked" }
-      ]
-    },
-    {
-      id: 3,
-      title: "Operators & Expressions",
-      description: "Master arithmetic, comparison, and logical operators in C++.",
-      exercises: [
-        { id: 9, name: "Arithmetic Operators", status: "locked" },
-        { id: 10, name: "Comparison Operators", status: "locked" },
-        { id: 11, name: "Logical Operators", status: "locked" },
-        { id: 12, name: "Assignment Operators", status: "locked" }
-      ]
-    },
-    {
-      id: 4,
-      title: "Control Flow",
-      description: "Learn to control program flow with conditional statements and loops.",
-      exercises: [
-        { id: 13, name: "If Statements", status: "locked" },
-        { id: 14, name: "Switch Case", status: "locked" },
-        { id: 15, name: "For Loops", status: "locked" },
-        { id: 16, name: "While Loops", status: "locked" }
-      ]
-    },
-    {
-      id: 5,
-      title: "Examination",
-      description: "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
-      exercises: [
-        { id: 17, name: "C++ Exam", status: "locked" }
-      ]
+    loadProgress();
+  }, [isAuthenticated]);
+
+  /* ===============================
+     HELPERS
+  =============================== */
+  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+    if (completedExercises.has(exerciseId)) return "completed";
+
+    if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
+      return "available";
     }
-  ];
 
-  const navigate = useNavigate();
+    return "locked";
+  };
 
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
+    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+    const authed = localStorage.getItem("isAuthenticated") === "true";
 
-    // Check if tutorial should be shown before starting first exercise
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    
-    if (isAuthenticated && !hasSeenTutorial) {
+    if (authed && !hasSeenTutorial) {
       setShowTutorial(true);
     }
-    
-    localStorage.setItem('hasTouchedCourse', 'true');
-    localStorage.setItem('lastCourseTitle', 'C++');
-    localStorage.setItem('lastCourseRoute', '/learn/cpp');
 
-    if (exerciseId === 17) {
-      navigate('/exam/cpp');
-      return;
-    }
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "C++");
+    localStorage.setItem("lastCourseRoute", "/learn/cpp");
 
     navigate(`/learn/cpp/exercise/${moduleId}/${exerciseId}`);
   };
 
   const getStatusIcon = (status) => {
     if (status === "completed") {
-      return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
+      return (
+        <img
+          src={checkmarkIcon}
+          alt="Completed"
+          className="status-icon completed"
+        />
+      );
     }
-    if (status === "locked") return <Lock className="status-icon locked" />;
+    if (status === "locked")
+      return <Lock className="status-icon locked" />;
     return <Circle className="status-icon available" />;
   };
 
+  const userProgress = {
+    exercisesCompleted: data?.completedQuests?.length || 0,
+    totalExercises: 16,
+    xpEarned: data?.xpEarned || 0,
+    totalXp: 2600,
+  };
+
+  /* ===============================
+     RENDER
+  =============================== */
   return (
     <div className="cpp-course-page">
-      {/* Hero Section */}
       <section className="cpp-hero">
         <div className="cpp-hero-content">
           <div className="cpp-hero-badge">
@@ -144,19 +184,19 @@ const CppCourse = () => {
           </div>
           <h1 className="cpp-hero-title">C++</h1>
           <p className="cpp-hero-description">
-            Build high-performance applications with C++. Learn memory management, pointers, and system-level programming.
+            Build high-performance applications with C++.
           </p>
-          <button className="start-learning-btn">Start Learning for Free</button>
+          <button className="start-learning-btn">
+            Start Learning for Free
+          </button>
         </div>
       </section>
 
-      {/* Main Content */}
       <div className="cpp-content">
-        {/* Modules Section */}
         <div className="modules-section">
           {modules.map((module) => (
             <div key={module.id} className="module-card">
-              <div 
+              <div
                 className="module-header"
                 onClick={() => toggleModule(module.id)}
               >
@@ -173,32 +213,58 @@ const CppCourse = () => {
 
               {expandedModule === module.id && (
                 <div className="module-content">
-                  <p className="module-description">{module.description}</p>
+                  <p className="module-description">
+                    {module.description}
+                  </p>
+
                   <div className="exercises-list">
-                    {module.exercises.map((exercise) => (
-                      <div key={exercise.id} className={`exercise-item ${exercise.status}`}>
-                        <div className="exercise-info">
-                          {module.id !== 5 && (
-                            <span className="exercise-number">Exercise {exercise.id}</span>
-                          )}
-                          <span className="exercise-name">{exercise.name}</span>
+                    {module.exercises.map((exercise, index) => {
+                      const previousExerciseId =
+                        index > 0
+                          ? module.exercises[index - 1].id
+                          : null;
+
+                      const status = getExerciseStatus(
+                        exercise.id,
+                        previousExerciseId
+                      );
+
+                      return (
+                        <div
+                          key={exercise.id}
+                          className={`exercise-item ${status}`}
+                        >
+                          <div className="exercise-info">
+                            {module.id !== 5 && (
+                              <span className="exercise-number">
+                                EXERCISE {index + 1}
+                              </span>
+                            )}
+                            <span className="exercise-name">
+                              {exercise.title}
+                            </span>
+                          </div>
+
+                          <div className="exercise-status">
+                            {status === "available" ? (
+                              <button
+                                className="start-btn"
+                                onClick={() =>
+                                  handleStartExercise(
+                                    module.id,
+                                    exercise.id
+                                  )
+                                }
+                              >
+                                Start
+                              </button>
+                            ) : (
+                              getStatusIcon(status)
+                            )}
+                          </div>
                         </div>
-                        <div className="exercise-status">
-                          {exercise.status === "available" ? (
-                            <button 
-                              className="start-btn"
-                              onClick={() => handleStartExercise(module.id, exercise.id)}
-                            >
-                              Start
-                            </button>
-                          ) : (
-                            <button className="locked-btn" disabled>
-                              {getStatusIcon(exercise.status)}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -206,20 +272,20 @@ const CppCourse = () => {
           ))}
         </div>
 
-        {/* Sidebar */}
         <div className="sidebar">
-          <ProfileCard onSignInRequired={onOpenModal} />
+          <ProfileCard onSignInRequired={() => setIsModalOpen(true)} />
 
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
+
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
                 <span>Exercises</span>
               </div>
               <span className="progress-value">
-                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
+                {userProgress.exercisesCompleted} /
+                {userProgress.totalExercises}
               </span>
             </div>
 
@@ -229,12 +295,12 @@ const CppCourse = () => {
                 <span>XP Earned</span>
               </div>
               <span className="progress-value">
-                {userProgress.xpEarned} / {userProgress.totalXp}
+                {userProgress.xpEarned} /
+                {userProgress.totalXp}
               </span>
             </div>
           </div>
 
-          {/* Course Badges Section */}
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
@@ -246,21 +312,19 @@ const CppCourse = () => {
           </div>
         </div>
       </div>
-      
-      <SignInModal 
+
+      <SignInModal
         isOpen={isModalOpen}
-        onClose={onCloseModal}
-        onSignInSuccess={onCloseModal}
+        onClose={() => setIsModalOpen(false)}
       />
-      
-      {/* Tutorial Popup */}
+
       {showTutorial && (
-        <TutorialPopup 
-          open={showTutorial} 
+        <TutorialPopup
+          open={showTutorial}
           onClose={() => {
             setShowTutorial(false);
-            localStorage.setItem('hasSeenTutorial', 'true');
-          }} 
+            localStorage.setItem("hasSeenTutorial", "true");
+          }}
         />
       )}
     </div>

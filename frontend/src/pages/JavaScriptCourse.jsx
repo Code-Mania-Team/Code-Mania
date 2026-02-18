@@ -7,6 +7,7 @@ import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
+import useGetExercises from "../services/getExercise";
 
 // Import JavaScript course badges
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
@@ -21,12 +22,46 @@ const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user} = useAuth();
   const getGameProgress = useGetGameProgress();
+  const getExercises = useGetExercises();
+  const [modules, setModules] = useState([]);
 
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [data, setData] = useState();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const exercises = await getExercises(3); // JS
+
+      const groupedModules = [
+        { id: 1, title: "JavaScript Basics", description: "Learn the fundamentals of JavaScript.", exercises: [] },
+        { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
+        { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
+        { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
+        { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam" }],
+    },
+      ];
+
+      exercises.forEach((exercise) => {
+        if (exercise.id >= 33 && exercise.id <= 36)
+          groupedModules[0].exercises.push(exercise);
+        else if (exercise.id >= 37 && exercise.id <= 40)
+          groupedModules[1].exercises.push(exercise);
+        else if (exercise.id >= 41 && exercise.id <= 44)
+          groupedModules[2].exercises.push(exercise);
+        else if (exercise.id >= 45 && exercise.id <= 48)
+          groupedModules[3].exercises.push(exercise);
+      });
+
+
+      setModules(groupedModules);
+    };
+
+    fetchData();
+  }, []);
+
 
   /* ===============================
      LOAD PROGRESS (PYTHON LOGIC)
@@ -89,7 +124,9 @@ const JavaScriptCourse = () => {
     totalXp: 2600
   };
 
-  const handleStartExercise = (exerciseId) => {
+  // 🔥 Only showing modified parts — everything else stays the same
+
+  const handleStartExercise = (exerciseId, moduleId) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const authed = localStorage.getItem("isAuthenticated") === "true";
 
@@ -101,13 +138,12 @@ const JavaScriptCourse = () => {
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
-    if (exerciseId === 17) {
-      navigate('/exam/javascript');
-      return;
-    }
+    // ✅ Store active JS module
+    localStorage.setItem("activeJSModule", moduleId);
 
-    navigate(`/learn/javascript/exercise/play`);
+    navigate(`/learn/javascript/exercise/${exerciseId}`);
   };
+
 
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
@@ -131,63 +167,63 @@ const JavaScriptCourse = () => {
   /* ===============================
      COURSE STRUCTURE (UNCHANGED)
   =============================== */
-  const modules = [
-    {
-      id: 1,
-      title: "JavaScript Basics",
-      description:
-        "Get started with JavaScript fundamentals and write your first interactive code.",
-      exercises: [
-        { id: 1, name: "Introduction" },
-        { id: 2, name: "Console Output" },
-        { id: 3, name: "Variables" },
-        { id: 4, name: "Data Types" },
-      ],
-    },
-    {
-      id: 2,
-      title: "Functions & Scope",
-      description:
-        "Master functions, parameters, and understand variable scope in JavaScript.",
-      exercises: [
-        { id: 5, name: "Function Basics" },
-        { id: 6, name: "Parameters & Arguments" },
-        { id: 7, name: "Return Values" },
-        { id: 8, name: "Arrow Functions" },
-      ],
-    },
-    {
-      id: 3,
-      title: "Arrays & Objects",
-      description:
-        "Learn to work with arrays and objects to store and manipulate complex data.",
-      exercises: [
-        { id: 9, name: "Arrays" },
-        { id: 10, name: "Array Methods" },
-        { id: 11, name: "Objects" },
-        { id: 12, name: "Object Methods" },
-      ],
-    },
-    {
-      id: 4,
-      title: "DOM Manipulation",
-      description:
-        "Interact with web pages by manipulating the Document Object Model.",
-      exercises: [
-        { id: 13, name: "Selecting Elements" },
-        { id: 14, name: "Modifying Content" },
-        { id: 15, name: "Event Listeners" },
-        { id: 16, name: "Dynamic Styling" },
-      ],
-    },
-    {
-      id: 5,
-      title: "Examination",
-      description:
-        "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
-      exercises: [{ id: 17, name: "JavaScript Exam" }],
-    },
-  ];
+  // const modules = [
+  //   {
+  //     id: 1,
+  //     title: "JavaScript Basics",
+  //     description:
+  //       "Get started with JavaScript fundamentals and write your first interactive code.",
+  //     exercises: [
+  //       { id: 1, name: "Introduction" },
+  //       { id: 2, name: "Console Output" },
+  //       { id: 3, name: "Variables" },
+  //       { id: 4, name: "Data Types" },
+  //     ],
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Functions & Scope",
+  //     description:
+  //       "Master functions, parameters, and understand variable scope in JavaScript.",
+  //     exercises: [
+  //       { id: 5, name: "Function Basics" },
+  //       { id: 6, name: "Parameters & Arguments" },
+  //       { id: 7, name: "Return Values" },
+  //       { id: 8, name: "Arrow Functions" },
+  //     ],
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Arrays & Objects",
+  //     description:
+  //       "Learn to work with arrays and objects to store and manipulate complex data.",
+  //     exercises: [
+  //       { id: 9, name: "Arrays" },
+  //       { id: 10, name: "Array Methods" },
+  //       { id: 11, name: "Objects" },
+  //       { id: 12, name: "Object Methods" },
+  //     ],
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "DOM Manipulation",
+  //     description:
+  //       "Interact with web pages by manipulating the Document Object Model.",
+  //     exercises: [
+  //       { id: 13, name: "Selecting Elements" },
+  //       { id: 14, name: "Modifying Content" },
+  //       { id: 15, name: "Event Listeners" },
+  //       { id: 16, name: "Dynamic Styling" },
+  //     ],
+  //   },
+  //   {
+  //     id: 5,
+  //     title: "Examination",
+  //     description:
+  //       "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
+  //     exercises: [{ id: 17, name: "JavaScript Exam" }],
+  //   },
+  // ];
 
   return (
     <div className="javascript-course-page">
@@ -252,11 +288,11 @@ const JavaScriptCourse = () => {
                           <div className="exercise-info">
                             {module.id !== 5 && (
                               <span className="exercise-number">
-                                Exercise {exercise.id}
+                                EXERCISE {index + 1}
                               </span>
                             )}
                             <span className="exercise-name">
-                              {exercise.name}
+                              {exercise.title}
                             </span>
                           </div>
 
@@ -265,7 +301,7 @@ const JavaScriptCourse = () => {
                               <button
                                 className="start-btn"
                                 onClick={() =>
-                                  handleStartExercise(exercise.id)
+                                  handleStartExercise(exercise.id, module.id)
                                 }
                               >
                                 Start

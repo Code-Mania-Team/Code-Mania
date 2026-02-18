@@ -4,12 +4,12 @@ class User {
     constructor() {
         this.db = supabase;
     }
+    // Helper: find user by email
 
-    // Helper: find a verified user by email (used for login)
     async findByEmail(email) {
         const { data } = await this.db
             .from("users") // can be users table or temp_user (this should be temp_users with "s")
-            .select("user_id, email, password, provider") // just select what column is needed, user_id, password, username are not necessary
+            .select("user_id, email, password, provider") // 
             .eq("email", email)
             .maybeSingle();
         return data;
@@ -21,10 +21,10 @@ class User {
             .select("user_id, username, email, full_name, profile_image, provider, created_at")
             .eq("email", email)
             .eq("password", password);
-
         if (error) throw error;
         const [result] = data || [];
         return result;
+
     }
 
     async create({ email, password, provider }) {
@@ -33,53 +33,95 @@ class User {
             .insert({ email, password, provider })
             .select("*")
             .maybeSingle();
-
         if (error) throw error;
         return data;
+
     }
 
+
+
     //comment for now baka mabago ulit
-    
     // async loginOtp(email, password) {
+
     //     const user = await this.findByEmail(email);
+
     //     if (!user) throw new Error("Email not registered");
 
+
+
     //     const hashedPassword = encryptPassword(password);
+
     //     if (hashedPassword !== user.password) throw new Error("Incorrect password");
 
+
+
     //     const otp = generateOtp();
+
     //     const expiresAt = new Date(Date.now() + 1000 * 60); // 1 min
 
+
+
     //     await this.db.from("temp_user").upsert(
+
     //         {
+
     //             email,
+
     //             otp,
+
     //             expiry_time: expiresAt.toISOString(),
+
     //             is_verified: false,
+
     //             created_at: new Date().toISOString()
+
     //         },
+
     //         { onConflict: "email" }
+
     //     );
+
+
 
     //     await sendOtpEmail(email, otp, false);
+
     //     return user;
+
     // }
+
+
 
     // // GENERATE OTP AND OVERWRITE PREVIOUS
+
     // async generateAndSendOtp(user_id, email, isNewUser = true) {
+
     //     const code = generateOtp();
+
     //     const expiry_time = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
 
+
+
     //     // Upsert OTP (overwrite previous)
+
     //     await this.db.from("otp").upsert(
+
     //         { user_id, code, is_verified: false, expiry_time },
+
     //         { onConflict: ["user_id"] }
+
     //     );
 
+
+
     //     await sendOtpEmail(email, code, isNewUser);
+
     // }
 
+
+
     
+
+
 
     // ONE-TIME USERNAME SETUP
     async setUsernameandCharacter(user_id, username, character_id, full_name) {
@@ -94,7 +136,12 @@ class User {
     }
 
 
+
+
+
+
     // PROFILE
+
     async getProfile(user_id) {
         const { data } = await this.db
             .from("users")
@@ -102,6 +149,7 @@ class User {
             .eq("user_id", user_id)
             .single();
         return data;
+
     }
 
     async updateProfile(user_id, fields) {
@@ -112,7 +160,21 @@ class User {
             .select()
             .single();
         return data;
+
     }
+
+    async updatePassword(email, hashedPassword) {
+        const { data, error } = await this.db
+            .from("users")
+            .update({ password: hashedPassword })
+            .eq("email", email)
+            .select()
+            .maybeSingle();
+
+        if (error) throw error;
+        return data;
+    }
+
 
     async delete(user_id) {
         const { data } = await this.db
@@ -123,6 +185,10 @@ class User {
             .single();
         return data;
     }
+
 }
 
+
+
 export default User;
+

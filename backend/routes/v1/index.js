@@ -8,6 +8,9 @@ import userGameDataRouter from './userGameDataRoutes.js';
 import exercisesRouter from './exercisesRoutes.js';
 import adminRouter from './adminRoutes.js';
 import metricsRouter from './metricsRoutes.js';
+import forgotPasswordRouter from './forgotPasswordRoutes.js';
+import achievementsRouter from './achievementsRoutes.js';
+import {exercisesRouter, publicExerciseRouter} from './exercisesRoutes.js';
 
 const v1 = new Router();
 
@@ -19,6 +22,10 @@ v1.use('/refresh', refreshRouter);
 v1.use('/', exercisesRouter);
 v1.use('/admin', adminRouter);
 v1.use('/metrics', metricsRouter);
+v1.use('/forgot-password', forgotPasswordRouter);
+v1.use('/achievements', achievementsRouter);
+v1.use('/admin', exercisesRouter);
+v1.use('/', publicExerciseRouter);
 
 v1.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']

@@ -4,7 +4,7 @@ import User from "../../models/user.js";
 
 import AccountService from "../../services/accountService.js";
 
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/token.js";
+import { generateAccessToken } from "../../utils/token.js";
 
 import UserToken from "../../models/userToken.js";
 
@@ -64,7 +64,9 @@ class AccountController {
 
             });
 
+
         }
+
 
     }
 
@@ -75,6 +77,7 @@ class AccountController {
     // =========================
 
     async verifyOtp(req, res) {
+
 
         try {
 
@@ -184,13 +187,17 @@ class AccountController {
 
         } catch (err) {
 
+
         console.error("verifyOtp error:", err);
 
         return res.status(500).json({ success: false, message: err.message });
 
         }
 
+
     }
+
+
 
 
 
@@ -210,7 +217,9 @@ class AccountController {
 
             if (!updated) 
 
+
                 return res.status(400).json({ 
+
 
                     success: false, 
 
@@ -228,6 +237,7 @@ class AccountController {
 
             return res.status(200).json({
 
+
                 success: true,
 
                 message: "Username, character, and full name set successfully",
@@ -236,19 +246,25 @@ class AccountController {
 
             });
 
+
         } catch (err) {
+
 
             console.error("setUsername error:", err);
 
+
             return res.status(500).json({ success: false, message: err.message });
 
+
         }
+
 
     }
 
 
 
     async login(req, res) {
+
 
         try {
 
@@ -354,6 +370,7 @@ class AccountController {
 
         });
 
+
         } catch (err) {
 
         console.error("login error:", err);
@@ -430,6 +447,7 @@ class AccountController {
     // =========================
 
     async refresh(req, res) {
+
 
         try {
 
@@ -547,6 +565,7 @@ class AccountController {
 
         }
 
+
     }
 
 
@@ -555,15 +574,21 @@ class AccountController {
 
     // PROFILE & other methods remain mostly unchanged
 
+
     async profile(req, res) {
+
 
         try {
 
+
             const token = req.cookies.accessToken || 
+
 
                     req.headers.authorization?.replace('Bearer ', '');
 
+
             const userId = res.locals.user_id;
+
 
             const data = await this.user.getProfile(userId);
 
@@ -575,25 +600,35 @@ class AccountController {
 
         } catch (err) {
 
+
             console.error("profile error:", err);
 
             return res.status(500).json({ success: false, message: err.message });
 
         }
 
+
     }
+
+
 
 
 
     async updateProfile(req, res) {
 
+
         const { username, full_name } = req.body || {};
+
 
         console.log("UPDATE PROFILE", username, full_name);
 
+
         const userId = res.locals.user_id;
 
+
         const currentUsername = res.locals.username;
+
+
 
 
 
@@ -607,7 +642,9 @@ class AccountController {
 
         try {
 
+
             const updated = await this.user.updateProfile(userId, { username, full_name });
+
 
             if (!updated) {
 
@@ -627,9 +664,12 @@ class AccountController {
 
             const accessToken = generateAccessToken({
 
+
                 user_id: userId,
 
+
                 username: tokenUsername,
+
 
                 });
 
@@ -639,31 +679,45 @@ class AccountController {
 
             res.cookie("accessToken", accessToken, {
 
+
                 httpOnly: true,
+
 
                 secure: process.env.NODE_ENV === "production",
 
+
                 sameSite: "strict",
 
+
                 maxAge: 15 * 60 * 1000,
+
 
                 });
 
 
 
+
+
             return res.status(200).json({
+
 
                 success: true,
 
+
                 message: "Profile updated successfully",
+
 
                 full_name: updated?.full_name,
 
+
                 accessToken // frontend updates memory if present
+
 
             });
 
+
         } catch (err) {
+
 
             console.error("updateProfile error:", err);
 
@@ -671,11 +725,15 @@ class AccountController {
 
         }
 
+
     }
 
 
 
+
+
     // DELETE USER
+
 
     async deleteUser(req, res) {
 
@@ -686,6 +744,7 @@ class AccountController {
 
 
         try {
+
 
             const deleted = await this.user.delete(userId);
 
@@ -703,10 +762,9 @@ class AccountController {
 
         } catch (err) {
 
+
             console.error("deleteUser error:", err);
-
             return res.status(500).json({ success: false, message: err.message });
-
         }
 
     }
@@ -715,46 +773,36 @@ class AccountController {
 
     async logout(req, res) {
         try {
-        const userId = res.locals?.user_id;
+            const userId = res.locals?.user_id;
 
-        if (userId) {
-            await this.userToken.invalidateByUserId(userId);
-        }
+            if (userId) {
+                await this.userToken.invalidateByUserId(userId);
+            }
+            res.clearCookie("accessToken", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+            });
 
-        res.clearCookie("accessToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+            });
 
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
+            return res.status(200).json({ 
+                success: true, 
+                message: "Logged out" 
+            });
 
-        return res.status(200).json({ success: true, message: "Logged out" });
         } catch (err) {
-        res.clearCookie("accessToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
-
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
-
-        return res.status(200).json({ success: true, message: "Logged out" });
+            return res.status(500).json({ 
+                success: false, 
+                message: "Logout failed" 
+            });
         }
     }
-
 }
-
-
-
 
 
 export default AccountController;

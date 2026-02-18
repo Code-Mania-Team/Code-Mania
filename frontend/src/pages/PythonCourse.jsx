@@ -6,6 +6,7 @@ import SignInModal from "../components/SignInModal";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
+import useGetExercises from "../services/getExercise";
 
 // Import Python course badges
 import pythonBadge1 from "../assets/badges/Python/python-badge1.png";
@@ -20,6 +21,8 @@ const PythonCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
+  const getExercises = useGetExercises();
+  const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
 
   const [expandedModule, setExpandedModule] = useState(1);
@@ -49,6 +52,38 @@ const PythonCourse = () => {
 
     loadProgress();
   }, [isAuthenticated]);
+
+
+  useEffect(() => {
+      const fetchData = async () => {
+        const exercises = await getExercises(1); // PY
+        console.log("Fetched exercises:", exercises);
+  
+        const groupedModules = [
+          { id: 1, title: "Hello World", description: "Learn how to write your first line of Python by printing messages to the terminal.", exercises: []},
+          { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: []},
+          { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: []},
+          { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: []},
+          { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "Python Exam", status: "locked" }]}
+        ];
+  
+        exercises.forEach((exercise) => {
+          if (exercise.id >= 1 && exercise.id <= 4)
+            groupedModules[0].exercises.push(exercise);
+          else if (exercise.id >= 5 && exercise.id <= 8)
+            groupedModules[1].exercises.push(exercise);
+          else if (exercise.id >= 9 && exercise.id <= 12)
+            groupedModules[2].exercises.push(exercise);
+          else if (exercise.id >= 13 && exercise.id <= 16)
+            groupedModules[3].exercises.push(exercise);
+        });
+  
+  
+        setModules(groupedModules);
+      };
+  
+      fetchData();
+    }, []);
 
 
   const onOpenModal = () => {
@@ -90,20 +125,9 @@ const PythonCourse = () => {
     localStorage.setItem("lastCourseTitle", "Python");
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
-    // Handle different exercise types
-    if (exerciseType === "quiz" || (exerciseId >= 101 && exerciseId <= 104)) {
-      // Navigate to quiz page with quiz ID
-      navigate(`/quiz/python/${exerciseId}`);
-      return;
-    }
+    // PASS THE REAL EXERCISE ID
+    navigate(`/learn/python/exercise/${exerciseId}`);
 
-    if (exerciseId === 17) {
-      navigate('/coding-exam/python');
-      return;
-    }
-
-    // Regular exercise
-    navigate(`/learn/python/exercise/play`);
   };
 
 
@@ -120,64 +144,6 @@ const PythonCourse = () => {
 
   const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
 
-  const modules = [
-    {
-      id: 1,
-      title: "Hello World",
-      description: "Learn how to write your first line of Python by printing messages to the terminal.",
-      exercises: [
-        { id: 1, name: "Setting Up", status: "available" },
-        { id: 2, name: "Hello World", status: "locked" },
-        { id: 3, name: "Pattern", status: "locked" },
-        { id: 4, name: "Initials", status: "locked" },
-        { id: 101, name: "Quiz: Hello World", status: "locked", type: "quiz" }
-      ]
-    },
-    {
-      id: 2,
-      title: "Variables & Data Types",
-      description: "Understand how to store and manipulate data using variables in Python.",
-      exercises: [
-        { id: 5, name: "Variables", status: "locked" },
-        { id: 6, name: "Strings", status: "locked" },
-        { id: 7, name: "Numbers", status: "locked" },
-        { id: 8, name: "Booleans", status: "locked" },
-        { id: 102, name: "Quiz: Variables & Data Types", status: "locked", type: "quiz" }
-      ]
-    },
-    {
-      id: 3,
-      title: "Control Flow",
-      description: "Master conditional statements and decision-making in your programs.",
-      exercises: [
-        { id: 9, name: "If Statements", status: "locked" },
-        { id: 10, name: "Else & Elif", status: "locked" },
-        { id: 11, name: "Comparison", status: "locked" },
-        { id: 12, name: "Logical Operators", status: "locked" },
-        { id: 103, name: "Quiz: Control Flow", status: "locked", type: "quiz" }
-      ]
-    },
-    {
-      id: 4,
-      title: "Loops",
-      description: "Learn how to repeat code efficiently using for and while loops.",
-      exercises: [
-        { id: 13, name: "For Loops", status: "locked" },
-        { id: 14, name: "While Loops", status: "locked" },
-        { id: 15, name: "Range Function", status: "locked" },
-        { id: 16, name: "Nested Loops", status: "locked" },
-        { id: 104, name: "Quiz: Loops", status: "locked", type: "quiz" }
-      ]
-    },
-    {
-      id: 5,
-      title: "Examination",
-      description: "Test your Python knowledge. Complete all previous modules to unlock this exam.",
-      exercises: [
-        { id: 17, name: "Python Exam", status: "locked", type: "exam" }
-      ]
-    }
-  ];
 
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
@@ -244,10 +210,10 @@ const PythonCourse = () => {
                           <div className="exercise-info">
                             {module.id !== 5 && (
                               <span className="exercise-number">
-                                Exercise {exercise.id}
+                                EXERCISE {index + 1}
                               </span>
                             )}
-                            <span className="exercise-name">{exercise.name}</span>
+                            <span className="exercise-name">{exercise.title}</span>
                           </div>
 
                           <div className="exercise-status">
