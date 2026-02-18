@@ -20,6 +20,8 @@ class UserGameDataController {
             req.query.programming_language
         );
 
+        console.log("Language requested:", programming_language_id)
+
         if (!Number.isFinite(programming_language_id)) {
             return res.status(400).json({
             success: false,
