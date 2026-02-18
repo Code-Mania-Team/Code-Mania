@@ -15,6 +15,9 @@ function Admin() {
   const [datasetsLoading, setDatasetsLoading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [metrics, setMetrics] = useState(null);
+  const [metricsLoading, setMetricsLoading] = useState(false);
+  const [metricsError, setMetricsError] = useState('');
 
   const adminEmail = "jetpadilla07@gmail.com";
 
@@ -89,6 +92,26 @@ function Admin() {
     }
   };
 
+  const fetchMetrics = async () => {
+    setMetricsLoading(true);
+    setMetricsError('');
+    try {
+      const response = await axiosPublic.get('/v1/metrics/admin-summary', { withCredentials: true });
+      if (response.data?.success) {
+        setMetrics(response.data.data || null);
+      } else {
+        setMetrics(null);
+        setMetricsError(response.data?.message || 'Failed to fetch metrics');
+      }
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+      setMetrics(null);
+      setMetricsError(error?.response?.data?.message || error?.message || 'Failed to fetch metrics');
+    } finally {
+      setMetricsLoading(false);
+    }
+  };
+
   const demo = {
     totalUsers: 92,
     newUsers7d: 7,
@@ -134,8 +157,8 @@ function Admin() {
           
           // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
-            fetchDatasets();
-            fetchAnalytics();
+            // fetchDatasets();
+            fetchMetrics();
           }
         }
       } catch (e) {
@@ -147,8 +170,15 @@ function Admin() {
 
     load();
 
+    const metricsInterval = setInterval(() => {
+      if (!cancelled) {
+        fetchMetrics();
+      }
+    }, 10000);
+
     return () => {
       cancelled = true;
+      clearInterval(metricsInterval);
     };
   }, []);
 
@@ -220,10 +250,9 @@ function Admin() {
         <p className={styles.subtitle}>Simple dashboard (demo values for now).</p>
 
         <div className={styles.grid}>
-          <StatCard title="Total Users" value={demo.totalUsers} subtitle="Demo numbers" />
-          <StatCard title="New Users (7 days)" value={demo.newUsers7d} subtitle="Demo numbers" />
-          <StatCard title="Active Users (7 days)" value={demo.activeUsers7d} subtitle="Demo numbers" />
-          <StatCard title="Total Courses Started" value={demo.totalCoursesStarted} subtitle="Demo numbers" />
+          <StatCard title="Total Users" value={metricsLoading ? '…' : (metrics?.totalUsers ?? demo.totalUsers)} />
+          <StatCard title="New Users (7 days)" value={metricsLoading ? '…' : (metrics?.newUsers7d ?? demo.newUsers7d)} />
+          <StatCard title="Total Courses Started" value={metricsLoading ? '…' : (metrics?.totalCoursesStarted ?? demo.totalCoursesStarted)} />
         </div>
 
         <div className={styles.panels}>
@@ -267,72 +296,6 @@ function Admin() {
 
         <p className={styles.subtitle}>Real-time exam performance data and statistical analysis.</p>
 
-        {analyticsLoading ? (
-          <div className={styles.panel}>
-            <p>Loading analytics...</p>
-          </div>
-        ) : analytics ? (
-          <>
-            <div className={styles.grid}>
-              <StatCard title="Total Exams Taken" value={analytics.total_exams_taken} subtitle="Completed exams" />
-              <StatCard title="Mean Exam Grade" value={`${analytics.mean_exam_grade.toFixed(1)}%`} subtitle="Average score across all users" />
-              <StatCard title="Median Exam Grade" value={`${analytics.median_exam_grade.toFixed(1)}%`} subtitle="Middle value of exam scores" />
-              <StatCard title="Mode Retake Count" value={analytics.mode_retake_count} subtitle="Most common retake number" />
-            </div>
-
-            <div className={styles.panel}>
-              <h3 className={styles.panelTitle}>Student Exam Performance</h3>
-              <p className={styles.panelSubtitle}>Individual student exam results and performance metrics</p>
-              <div className={styles.divider}>
-                {analytics.user_exam_data.map((user) => (
-                  <div key={user.user_id} className={styles.datasetRow}>
-                    <div className={styles.datasetLeft}>
-                      <div className={styles.datasetName}>{user.email}</div>
-                      <div className={styles.datasetMeta}>
-                        {user.programming_language.toUpperCase()} • 
-                        Grade: {user.final_exam_grade}% • 
-                        Retakes: {user.retake_count}
-                      </div>
-                      <div className={styles.datasetMeta} style={{ fontSize: '12px', opacity: 0.7 }}>
-                        Started: {new Date(user.exam_activated_date).toLocaleDateString()} • 
-                        {user.exam_close_date ? 
-                          ` Completed: ${new Date(user.exam_close_date).toLocaleDateString()} (${user.exam_duration_minutes}min)` : 
-                          ' In Progress'
-                        }
-                      </div>
-                    </div>
-                    <div className={styles.datasetActions}>
-                      <button className={styles.button} type="button">View Details</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.panel}>
-              <h3 className={styles.panelTitle}>Daily Exam Completions</h3>
-              <p className={styles.panelSubtitle}>Exam completion rates and average grades per day</p>
-              <div className={styles.divider}>
-                {analytics.daily_exam_completions.map((day) => (
-                  <div key={day.date} className={styles.row}>
-                    <div className={styles.day}>{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
-                    <div className={styles.track}>
-                      <div className={styles.fill} style={{ width: `${Math.min(100, day.exams_completed * 50)}%` }} />
-                    </div>
-                    <div className={styles.count}>{day.exams_completed} exams</div>
-                    <div style={{ marginLeft: '10px', fontSize: '12px', opacity: 0.7 }}>
-                      {day.avg_grade > 0 ? `${day.avg_grade.toFixed(1)}% avg` : 'No exams'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className={styles.panel}>
-            <p>Failed to load analytics data.</p>
-          </div>
-        )}
 
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>
