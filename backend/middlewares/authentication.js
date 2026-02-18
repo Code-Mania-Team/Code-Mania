@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import UserToken from "../models/userToken.js";
 
 export default function authentication(req, res, next) {
     const token =
@@ -12,11 +13,30 @@ export default function authentication(req, res, next) {
         });
     }
 
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decoded) => {
         if (err) {
             return res.status(401).json({
                 success: false,
                 message: "Invalid or expired token",
+            });
+        }
+
+        // Check if user still has valid refresh token in database
+        try {
+            const userToken = new UserToken();
+            const tokenRecord = await userToken.findByUserId(decoded.user_id);
+            
+            // If no token record or token is null (invalidated), deny access
+            if (!tokenRecord || !tokenRecord.token) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Session expired. Please login again.",
+                });
+            }
+        } catch (dbError) {
+            return res.status(500).json({
+                success: false,
+                message: "Authentication error",
             });
         }
 
