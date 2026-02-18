@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
@@ -8,61 +9,33 @@ import TutorialPopup from "../components/TutorialPopup";
 import StageCompleteModal from "../components/StageCompleteModal";
 
 import styles from "../styles/JavaScriptExercise.module.css";
-import exercises from "../utilities/data/javascriptExercises.json";
 import { startGame } from "../utilities/engine/main.js";
+
 import useAuth from "../hooks/useAxios";
 import { axiosPublic } from "../api/axios";
 import useGetGameProgress from "../services/getGameProgress.js";
+import useGetExerciseById from "../services/getExerciseById";
+import useGetNextExercise from "../services/getNextExcercise.js";
 
 const JavaScriptExercise = () => {
   const navigate = useNavigate();
-  const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
+  const { exerciseId } = useParams();
+  const activeExerciseId = Number(exerciseId);
+
   const getGameProgress = useGetGameProgress();
+  const getExerciseById = useGetExerciseById();
+  const getNextExercise = useGetNextExercise();
 
+  const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
+  const [activeExercise, setActiveExercise] = useState(null);
 
-  /* ===============================
-     QUEST STATE (MATCH PYTHON)
-  =============================== */
-  const [activeExerciseId, setActiveExerciseId] = useState(1);
-
-  const activeExercise = useMemo(() => {
-    return (
-      exercises.find(e => e.id === activeExerciseId) ||
-      exercises[0]
-    );
-  }, [activeExerciseId]);
-
-  const [activeQuestId, setActiveQuestId] = useState(null);
   const [terminalEnabled, setTerminalEnabled] = useState(false);
-
-  /* ===============================
-     TERMINAL STATE
-  =============================== */
   const [code, setCode] = useState(
-    activeExercise?.startingCode ||
-      `// Write code below ❤️\n\nconsole.log("Hello, World!")`
+    `// Write code below ❤️\n\nconsole.log("Hello, World!")`
   );
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
 
-  useEffect(() => {
-      const loadProgress = async () => {
-          const result = await getGameProgress("JavaScript");
-          console.log("Loaded progress:", result);
-          if (result?.completedQuests) {
-            setDbCompletedQuests(result.completedQuests);
-
-            const nextExercise = result.completedQuests.length + 1;
-            setActiveExerciseId(nextExercise);
-          }
-        };
-  
-        loadProgress();
-    }, []);
-
-  /* ===============================
-     AUTH / UI
-  =============================== */
   const [showTutorial, setShowTutorial] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [showStageComplete, setShowStageComplete] = useState(false);
@@ -70,42 +43,109 @@ const JavaScriptExercise = () => {
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
   /* ===============================
-     NORMALIZE (SAME AS PYTHON)
-  =============================== */
-  const normalize = (text = "") =>
-    text
-      .replace(/\r\n/g, "\n")
-      .split("\n")
-      .map(line => line.trim())
-      .join("\n")
-      .trim();
-
-  /* ===============================
-     PHASER INIT + EVENTS
+     LOAD EXERCISE (MATCH PYTHON)
   =============================== */
   useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
-    const authed = localStorage.getItem("isAuthenticated") === "true";
+    const fetchExercise = async () => {
+      try {
+        const quest = await getExerciseById(activeExerciseId);
+        setActiveExercise(quest);
+      } catch (err) {
+        if (err.response?.status === 403) {
+          const redirectId = err.response.data?.redirectTo;
+          if (redirectId) {
+            navigate(`/learn/javascript/exercise/${redirectId}`);
+            return;
+          }
+        }
 
-    if (authed && !hasSeenTutorial) {
-      setShowTutorial(true);
+        if (err.response?.status === 404 || err.response?.status === 400) {
+          navigate("/learn/javascript/exercise/1");
+          return;
+        }
+
+        console.error(err);
+      }
+    };
+
+    fetchExercise();
+  }, [activeExerciseId]);
+
+  /* ===============================
+     LOAD PROGRESS
+  =============================== */
+  useEffect(() => {
+    const loadProgress = async () => {
+      const result = await getGameProgress("JavaScript");
+      if (result?.completedQuests) {
+        setDbCompletedQuests(result.completedQuests);
+      }
+    };
+
+    loadProgress();
+  }, []);
+
+  /* ===============================
+     RESET TERMINAL ON EXERCISE CHANGE
+  =============================== */
+  useEffect(() => {
+    setTerminalEnabled(false);
+
+    if (activeExercise?.startingCode) {
+      setCode(activeExercise.startingCode);
+      setOutput("");
     }
+  }, [activeExerciseId, activeExercise]);
 
-    if (!dbCompletedQuests) return;
+  /* ===============================
+     NEXT EXERCISE LISTENER
+  =============================== */
+  useEffect(() => {
+    const onRequestNext = async (e) => {
+      const currentId = e.detail?.exerciseId;
+      if (!currentId) return;
+
+      const next = await getNextExercise(currentId);
+
+      if (!next) {
+        setShowStageComplete(true);
+        return;
+      }
+
+      navigate(`/learn/javascript/exercise/${next.id}`);
+    };
+
+    window.addEventListener(
+      "code-mania:request-next-exercise",
+      onRequestNext
+    );
+
+    return () => {
+      window.removeEventListener(
+        "code-mania:request-next-exercise",
+        onRequestNext
+      );
+    };
+  }, []);
+
+  /* ===============================
+     PHASER INIT (MATCH PYTHON)
+  =============================== */
+  useEffect(() => {
+    if (!activeExercise) return;
 
     startGame({
       exerciseId: activeExerciseId,
-      parent: "phaser-container",
+      quest: activeExercise,
       completedQuests: dbCompletedQuests,
+      parent: "phaser-container"
     });
-    
 
     const onQuestStarted = (e) => {
       const questId = e.detail?.questId;
       if (!questId) return;
 
       setTerminalEnabled(true);
-      setActiveQuestId(questId);
     };
 
     const onQuestComplete = (e) => {
@@ -127,28 +167,20 @@ const JavaScriptExercise = () => {
     return () => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
-
-      if (window.game) {
-        window.game.sound.stopAll();
-        window.game.destroy(true);
-        window.game = null;
-      }
     };
-  }, [activeExerciseId]);
+  }, [activeExercise, dbCompletedQuests]);
 
   /* ===============================
-     UPDATE CODE ON QUEST CHANGE
+     RUN CODE
   =============================== */
-  useEffect(() => {
-    if (activeExercise?.startingCode) {
-      setCode(activeExercise.startingCode);
-      setOutput("");
-    }
-  }, [activeExerciseId]);
+  const normalize = (text = "") =>
+    text
+      .replace(/\r\n/g, "\n")
+      .split("\n")
+      .map((line) => line.trim())
+      .join("\n")
+      .trim();
 
-  /* ===============================
-     RUN CODE (FIXED)
-  =============================== */
   const handleRunCode = () => {
     if (!terminalEnabled || isRunning) return;
 
@@ -174,18 +206,12 @@ const JavaScriptExercise = () => {
       const expected = normalize(activeExercise.expectedOutput);
       const actual = normalize(rawOutput);
 
-      if (
-        expected &&
-        actual === expected &&
-        activeQuestId === activeExercise.id
-      ) {
+      if (expected && actual === expected) {
         window.dispatchEvent(
           new CustomEvent("code-mania:quest-complete", {
             detail: { questId: activeExercise.id }
           })
         );
-
-        // XP is handled by Phaser engine
       }
     } catch (err) {
       setOutput(`❌ ${err.message}`);
@@ -219,17 +245,7 @@ const JavaScriptExercise = () => {
     setIsSignInModalOpen(false);
   };
 
-  /* ===============================
-     NAVIGATION
-  =============================== */
-  const goToNextExercise = () => {
-    const nextId = activeExercise.id + 1;
-    if (nextId <= exercises.length) {
-      navigate(`/learn/javascript/exercise/${nextId}`);
-    } else {
-      setShowStageComplete(true);
-    }
-  };
+  if (!activeExercise) return null;
 
   return (
     <div className={styles["javascript-exercise-page"]}>
@@ -250,7 +266,7 @@ const JavaScriptExercise = () => {
       <div className={styles["codex-fullscreen"]}>
         <ProgressBar
           currentLesson={activeExercise.id}
-          totalLessons={exercises.length}
+          totalLessons={activeExercise.totalExercises || 1}
           title="🌐 JavaScript Basics"
         />
 
@@ -275,7 +291,6 @@ const JavaScriptExercise = () => {
       <StageCompleteModal
         show={showStageComplete}
         languageLabel="JavaScript"
-        onContinue={goToNextExercise}
         onClose={() => setShowStageComplete(false)}
       />
 

@@ -141,7 +141,7 @@ const JavaScriptCourse = () => {
     // ✅ Store active JS module
     localStorage.setItem("activeJSModule", moduleId);
 
-    navigate(`/learn/javascript/exercise/play`);
+    navigate(`/learn/javascript/exercise/${exerciseId}`);
   };
 
 
