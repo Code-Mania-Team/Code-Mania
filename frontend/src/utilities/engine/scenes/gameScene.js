@@ -35,6 +35,7 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.exerciseId = data.exerciseId;
     this.quest = data.quest || null;
+    console.log("🚀 QUEST:", this.quest);
     this.completedQuestIds = new Set(data.completedQuests || []);
 
     const storedLanguage =

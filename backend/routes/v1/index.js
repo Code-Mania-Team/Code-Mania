@@ -10,11 +10,12 @@ import metricsRouter from './metricsRoutes.js';
 import forgotPasswordRouter from './forgotPasswordRoutes.js';
 import achievementsRouter from './achievementsRoutes.js';
 import {exercisesRouter, publicExerciseRouter} from './exercisesRoutes.js';
+import leaderboardRouter from './leaderboardRoutes.js';
 
 const v1 = new Router();
-
 v1.use('/account', accountRouter);
 v1.use('/', homeRouter);
+v1.use('/leaderboard', leaderboardRouter);
 v1.use('/', userGameDataRouter);
 v1.use('/freedom-wall', freedomWallRouter);
 v1.use('/refresh', refreshRouter);

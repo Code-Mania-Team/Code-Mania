@@ -1,6 +1,11 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import { axiosPrivate } from "../api/axios";
 
+const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
+const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
+const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
+const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
+
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -17,6 +22,33 @@ export const AuthProvider = ({ children }) => {
         if (mounted && response?.data?.success) {
           const profile = response.data.data;
           if (profile?.user_id) {
+            const nextUsername = profile?.username || '';
+            const nextFullName = profile?.full_name || '';
+            if (nextUsername) localStorage.setItem('username', nextUsername);
+            if (nextFullName) localStorage.setItem('fullName', nextFullName);
+
+            const nextCharacterId =
+              profile?.character_id === null || profile?.character_id === undefined
+                ? null
+                : Number(profile.character_id);
+
+            if (nextCharacterId !== null && !Number.isNaN(nextCharacterId)) {
+              localStorage.setItem('selectedCharacter', String(nextCharacterId));
+              const expectedIcon = {
+                0: characterIcon1,
+                1: characterIcon0,
+                2: characterIcon2,
+                3: characterIcon3,
+              }[nextCharacterId] || null;
+
+              if (expectedIcon) {
+                localStorage.setItem('selectedCharacterIcon', expectedIcon);
+              } else {
+                localStorage.removeItem('selectedCharacterIcon');
+              }
+            }
+
+            window.dispatchEvent(new Event('characterUpdated'));
             setUser(profile);
             setIsAuthenticated(true);
           } else {
