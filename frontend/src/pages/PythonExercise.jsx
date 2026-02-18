@@ -203,7 +203,7 @@ const PythonExercise = ({ isAuthenticated }) => {
     setOutput("Running...");
 
     try {
-      const res = await fetch("http://localhost:3000/v1/run", {
+      const res = await fetch("https://code-mania-production.up.railway.app/v1/run", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

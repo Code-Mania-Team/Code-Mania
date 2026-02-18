@@ -4,7 +4,7 @@ const useGetAllPosts = () => {
   const getAllPosts = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:3000/v1/",
+        "https://code-mania-production.up.railway.app/v1/",
         {
           headers: {
             apikey: import.meta.env.VITE_API_KEY,

@@ -164,7 +164,7 @@ function App() {
   const { isLoading } = useAuth();
   const setCookie = async() => {
     try {
-      await axios.get('http://localhost:3000/set-cookies', {
+      await axios.get('https://code-mania-production.up.railway.app/set-cookies', {
         withCredentials: true
       })
       console.log('Cookies setup successfully.')
@@ -173,7 +173,7 @@ function App() {
   // setCookie();
   const getCookies = async () => {
     try {
-      await axios.get('http://localhost:3000/get-cookies', {
+      await axios.get('https://code-mania-production.up.railway.app/get-cookies', {
         withCredentials: true
       })
       console.log('Cookies sent to server.')
