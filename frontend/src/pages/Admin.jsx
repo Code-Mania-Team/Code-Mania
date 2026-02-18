@@ -18,6 +18,7 @@ function Admin() {
   const [metrics, setMetrics] = useState(null);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [metricsError, setMetricsError] = useState('');
+  const [metricsInFlight, setMetricsInFlight] = useState(false);
 
   const adminEmail = "jetpadilla07@gmail.com";
 
@@ -93,6 +94,8 @@ function Admin() {
   };
 
   const fetchMetrics = async () => {
+    if (metricsInFlight) return;
+    setMetricsInFlight(true);
     setMetricsLoading(true);
     setMetricsError('');
     try {
@@ -109,6 +112,7 @@ function Admin() {
       setMetricsError(error?.response?.data?.message || error?.message || 'Failed to fetch metrics');
     } finally {
       setMetricsLoading(false);
+      setMetricsInFlight(false);
     }
   };
 
@@ -170,15 +174,8 @@ function Admin() {
 
     load();
 
-    const metricsInterval = setInterval(() => {
-      if (!cancelled) {
-        fetchMetrics();
-      }
-    }, 10000);
-
     return () => {
       cancelled = true;
-      clearInterval(metricsInterval);
     };
   }, []);
 
@@ -244,7 +241,10 @@ function Admin() {
             <BarChart3 className={styles.icon} />
             <h2 className={styles.title}>Analytics</h2>
           </div>
-          <button className={styles.button} type="button" onClick={() => navigate("/")}>Back to site</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className={styles.button} type="button" onClick={fetchMetrics} disabled={metricsLoading}>Refresh</button>
+            <button className={styles.button} type="button" onClick={() => navigate("/")}>Back to site</button>
+          </div>
         </div>
 
         <p className={styles.subtitle}>Simple dashboard (demo values for now).</p>

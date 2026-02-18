@@ -5,6 +5,7 @@ import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
+import MobileControls from "../components/MobileControls";
 import TutorialPopup from "../components/TutorialPopup";
 
 import styles from "../styles/PythonExercise.module.css";
@@ -272,10 +273,21 @@ const PythonExercise = ({ isAuthenticated }) => {
         <div className={styles["main-layout"]}>
           {/* ===== GAME ===== */}
           <div className={styles["game-container"]}>
-            <div
-              id="phaser-container"
-              className={styles["game-scene"]}
-            />
+            <div className={styles["mobile-frame"]}>
+              <img
+                alt="Mobile Frame"
+                className={styles["mobile-frame-image"]}
+              />
+
+              <MobileControls />
+
+              <div className={styles["mobile-screen"]}>
+                <div
+                  id="phaser-container"
+                  className={styles["game-scene"]}
+                />
+              </div>
+            </div>
           </div>
 
           {/* ===== TERMINAL ===== */}

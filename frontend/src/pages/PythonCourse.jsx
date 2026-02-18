@@ -113,7 +113,7 @@ const PythonCourse = () => {
     return "locked";
   };
 
-  const handleStartExercise = (exerciseId, exerciseType = null) => {
+  const handleStartExercise = (exerciseId) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
 
@@ -143,6 +143,7 @@ const PythonCourse = () => {
   };
 
   const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
+
 
 
   const toggleModule = (moduleId) => {
@@ -220,7 +221,7 @@ const PythonCourse = () => {
                             {status === "available" ? (
                               <button
                                 className="start-btn"
-                                onClick={() => handleStartExercise(exercise.id, exercise.type)}
+                                onClick={() => handleStartExercise(exercise.id)}
                               >
                                 Start
                               </button>

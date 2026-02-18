@@ -405,7 +405,7 @@ class ExerciseController {
                     message: "Authentication required"
                 });
             }
-            
+
             if (!questId || typeof output !== "string") {
                 return res.status(400).json({
                     success: false,
@@ -520,6 +520,13 @@ class ExerciseController {
 
             // 6️⃣ Add XP
             await this.exerciseModel.addXp(userId, quest.experience);
+
+            if (quest.achievements_id) {
+                await this.exerciseModel.grantAchievement(
+                    userId,
+                    quest.achievements_id
+                );
+            }
 
             return res.status(200).json({
                 success: true,

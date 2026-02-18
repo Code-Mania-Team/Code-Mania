@@ -345,6 +345,16 @@ class ExerciseModel {
         });
     }
 
+    async grantAchievement(userId, achievementId) {
+        await this.db
+            .from('users_achievements')
+            .insert({
+                user_id: userId,
+                achievement_id: achievementId,
+                created_at: new Date().toISOString()
+            });
+    }
+
 }
 
 export default ExerciseModel;
