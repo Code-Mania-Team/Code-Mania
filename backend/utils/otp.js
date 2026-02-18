@@ -257,6 +257,10 @@ function resetTemplate(otp) {
  * Send OTP email
  */
 export async function sendOtpEmail({ toEmail, otp, type }) {
+  console.log("🔧 EMAIL: Setting up transporter...");
+  console.log("🔧 EMAIL: BREVO_USER:", process.env.BREVO_USER ? "exists" : "missing");
+  console.log("🔧 EMAIL: BREVO_PASS:", process.env.BREVO_PASS ? "exists" : "missing");
+  
   const transporter = nodemailer.createTransport({
     host: "smtp-relay.brevo.com",
     port: 587,
@@ -267,12 +271,22 @@ export async function sendOtpEmail({ toEmail, otp, type }) {
     }
   });
 
+  console.log("🔧 EMAIL: Attempting SMTP connection...");
+  try {
+    await transporter.verify();
+    console.log("✅ EMAIL: SMTP connection successful!");
+  } catch (verifyError) {
+    console.error("❌ EMAIL: SMTP connection failed:", verifyError);
+    throw new Error("Email service connection failed: " + verifyError.message);
+  }
+
   let template;
   if (type === "signup") template = signupTemplate(otp);
   else if (type === "reset") template = resetTemplate(otp);
   else throw new Error("Invalid OTP type");
 
-  return transporter.sendMail({
+  console.log("📧 EMAIL: Sending email to:", toEmail);
+  const result = await transporter.sendMail({
     from: `"Code Mania" <maniacode08@gmail.com>`,
     to: toEmail,
     subject: template.subject,
@@ -285,4 +299,7 @@ export async function sendOtpEmail({ toEmail, otp, type }) {
       }
     ]
   });
+  
+  console.log("✅ EMAIL: Email sent successfully:", result.messageId);
+  return result;
 }
