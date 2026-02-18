@@ -390,29 +390,20 @@ const Profile = ({ onSignOut }) => {
 
 
   const handleSignOut = () => {
-
+    console.log("🔴 PROFILE: Logout button clicked");
     setIsSignOutConfirmOpen(true);
-
   };
-
 
 
   const handleConfirmSignOut = () => {
-
+    console.log("🔴 PROFILE: Confirm logout button clicked");
     if (onSignOut) {
-
+      console.log("🔴 PROFILE: Calling onSignOut function");
       onSignOut();
-
     }
-
     setIsSignOutConfirmOpen(false);
-
-    // Optionally redirect to home page after sign out
-
-    window.location.href = '/';
-
+    // Don't redirect here - let App.jsx handle navigation
   };
-
 
 
   const handleCancelSignOut = () => {

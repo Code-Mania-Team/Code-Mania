@@ -28,6 +28,7 @@ class AccountController {
                 data: { email: response?.email, isNewUser: true }
             });
         } catch (err) {
+            console.error("FULL ERROR in requestOtp:", err);
             return res.status(400).json({
                 success: false,
                 message: err.message === "email" ? "Email already exists" : err.message || "Failed to process OTP request",
