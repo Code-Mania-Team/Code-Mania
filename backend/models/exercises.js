@@ -22,7 +22,8 @@ class ExerciseModel {
                 programming_language_id,
                 dialogue_id,
                 grants,
-                badgeKey
+                badgeKey,
+                mapKey
             } = exerciseData;
 
             const { data, error } = await this.db
@@ -42,6 +43,7 @@ class ExerciseModel {
                     dialogue_id,
                     grants,
                     badgeKey,
+                    mapKey,
                     created_at: new Date().toISOString()
                 }])
                 .select()
@@ -58,6 +60,80 @@ class ExerciseModel {
             throw error;
         }
     }
+
+    async getNextExercise(languageId, currentOrder) {
+        const { data, error } = await this.db
+            .from("quests")
+            .select("*")
+            .eq("programming_language_id", languageId)
+            .gt("order_index", currentOrder)
+            .order("order_index", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error getting next exercise:", error);
+            throw error;
+        }
+
+        return data || null;
+    }
+
+
+    async getLatestUnlockedQuest(userId, languageId) {
+        // 1️⃣ Get all completed quests for this language
+        const { data: completed, error } = await this.db
+            .from('users_game_data')
+            .select(`
+                exercise_id,
+                quests (
+                    id,
+                    order_index,
+                    programming_language_id
+                )
+            `)
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error("Error fetching completed quests:", error);
+            throw error;
+        }
+
+        // Filter only this language
+        const completedForLanguage = (completed || [])
+            .filter(q => q.quests?.programming_language_id === languageId);
+
+        // 2️⃣ If no completed → unlock first quest only
+        if (completedForLanguage.length === 0) {
+            const { data: first } = await this.db
+                .from('quests')
+                .select('*')
+                .eq('programming_language_id', languageId)
+                .order('order_index', { ascending: true })
+                .limit(1)
+                .single();
+
+            return first;
+        }
+
+        // 3️⃣ Find highest completed order
+        const maxOrder = Math.max(
+            ...completedForLanguage.map(q => q.quests.order_index)
+        );
+
+        // 4️⃣ Unlock next quest
+        const { data: next } = await this.db
+            .from('quests')
+            .select('*')
+            .eq('programming_language_id', languageId)
+            .eq('order_index', maxOrder + 1)
+            .maybeSingle();
+
+        return next; // can be null if finished
+    }
+
+
+
 
     // Get all exercises
     async getAllExercises() {
@@ -100,7 +176,7 @@ class ExerciseModel {
                     )
                 `)
                 .eq('id', id)
-                .single();
+                .maybeSingle();
 
             if (error) {
                 console.error('Error getting exercise by ID:', error);
@@ -224,6 +300,50 @@ class ExerciseModel {
             throw error;
         }
     }
+
+    async isQuestCompleted(userId, questId) {
+        const { data } = await this.db
+            .from('users_game_data')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('exercise_id', questId)
+            .maybeSingle();
+
+        return !!data;
+    }
+
+    async getPreviousQuest(currentQuest) {
+        if (!currentQuest.order_index) return null;
+
+        const { data } = await this.db
+            .from('quests')
+            .select('*')
+            .eq('programming_language_id', currentQuest.programming_language_id)
+            .lt('order_index', currentQuest.order_index)
+            .order('order_index', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        return data;
+    }
+
+    async markQuestComplete(userId, questId) {
+        await this.db
+            .from('users_game_data')
+            .insert({
+                user_id: userId,
+                exercise_id: questId,
+                created_at: new Date().toISOString()
+            });
+    }
+
+    async addXp(userId, xp) {
+        await this.db.rpc('increment_xp', {
+            user_id_input: userId,
+            xp_input: xp
+        });
+    }
+
 }
 
 export default ExerciseModel;

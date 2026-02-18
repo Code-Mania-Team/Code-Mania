@@ -126,7 +126,8 @@ const PythonCourse = () => {
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
     // PASS THE REAL EXERCISE ID
-    navigate(`/learn/python/exercise/play`);
+    navigate(`/learn/python/exercise/${exerciseId}`);
+
   };
 
 

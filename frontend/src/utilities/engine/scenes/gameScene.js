@@ -33,47 +33,39 @@ export default class GameScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.completedQuestIds = new Set(data.completedQuests || [])
-    console.log("NIGGA",data);
-    // Use the last course title from localStorage if available
-    const storedLanguage = localStorage.getItem("lastCourseTitle") || "Python";
-    
-    // Map language names to MAPS keys
+    this.exerciseId = data.exerciseId;
+    this.quest = data.quest || null;
+    this.completedQuestIds = new Set(data.completedQuests || []);
+
+    const storedLanguage =
+      localStorage.getItem("lastCourseTitle") || "Python";
+
     this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
 
-    // Map ID passed from previous scene, or fall back to localStorage, or default to map1
-    if (data?.exerciseId) {
-      this.currentMapId = `map${data.exerciseId}`;
+    if (!this.quest || !this.quest.map_id) {
+      console.error("❌ Quest missing or invalid. Using fallback map1.");
+      this.currentMapId = "map1";
     } else {
-      // fallback only (free roam / dev mode)
-      this.currentMapId =
-        localStorage.getItem("currentMapId") || "map1";
+      this.currentMapId = this.quest.map_id; // ✅ CORRECT FIELD
     }
 
+    this.mapData = MAPS[this.language]?.[this.currentMapId];
 
-    // Access mapData based on language
-    this.mapData = MAPS[this.language][this.currentMapId];
+    if (!this.mapData) {
+      console.error("❌ Map not found:", {
+        language: this.language,
+        mapId: this.currentMapId
+      });
+    }
 
     this.playerCanMove = true;
-    this.helpShownThisSession = false;
     this.gamePausedByTerminal = false;
-    // this.openedChests = new Set(
-    //   JSON.parse(localStorage.getItem("openedChests") || "[]")
-    // );
-
-    // const savedAbilities = JSON.parse(
-    //   localStorage.getItem("abilities") || "[]"
-    // );
-    // this.worldState = {
-    //   abilities: new Set(savedAbilities)
-    // };
-    this.worldState = {
-      abilities: new Set()
-    };
-
+    this.worldState = { abilities: new Set() };
     this.openedChests = new Set();
-
   }
+
+
+
 
   setupLayerSwitching() {
     // Get the layer references
@@ -527,9 +519,10 @@ export default class GameScene extends Phaser.Scene {
     this.questHUD = new QuestHUD(this);
     this.questManager = new QuestManager(
       this,
-      QUESTS_BY_LANGUAGE[this.language],
+      [this.quest],
       this.completedQuestIds
     );
+
 
     this.dialogueManager = new DialogueManager(this);
     this.cutsceneManager = new CutsceneManager(this);
@@ -815,10 +808,9 @@ export default class GameScene extends Phaser.Scene {
         npc.body.immovable = true;
 
         npc.npcData = {
-          questId: Number(
-            obj.properties?.find(p => p.name === "quest_id")?.value
-          )
+          questId: this.exerciseId
         };
+
 
         // ✅ THIS WAS MISSING
         this.npcs.push(npc);
@@ -1312,12 +1304,17 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
 
     this.cameras.main.once("camerafadeoutcomplete", () => {
-    localStorage.setItem("currentMapId", targetMap);
 
-    this.scene.start("GameScene", {
-      mapId: targetMap
+      if (!this.quest.completed) return;
+
+      // Tell React to navigate
+      window.dispatchEvent(
+        new CustomEvent("code-mania:request-next-exercise", {
+          detail: { exerciseId: this.exerciseId }
+        })
+      );
+
     });
 
-    });
   }
 }

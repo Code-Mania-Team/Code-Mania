@@ -13,7 +13,8 @@ export default class QuestManager {
   }
 
   getQuestById(id) {
-    return this.quests.find(q => q.id === id);
+    if (!this.quests) return null;
+    return this.quests.find(q => q && q.id === id) || null;
   }
 
   startQuest(id) {

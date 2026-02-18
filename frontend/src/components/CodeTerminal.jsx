@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
 import allQuests from "../utilities/data/javascriptExercises.json";
+import useValidateExercise from "../services/validateExercise";
 
 /* ===============================
    LANGUAGE DETECTION
@@ -37,7 +38,7 @@ int main() {
   }
 }
 
-const InteractiveTerminal = () => {
+const InteractiveTerminal = ({disabled}) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
 
@@ -55,6 +56,7 @@ const InteractiveTerminal = () => {
 
   const activeModule = Number(localStorage.getItem("activeJSModule"));
   const activeQuestId = Number(localStorage.getItem("activeQuestId"));
+  const validateExercise = useValidateExercise();
 
   const isDOMStage = () => {
     return language === "javascript" && activeModule === 4;
@@ -91,18 +93,39 @@ const InteractiveTerminal = () => {
     const socket = new WebSocket("wss://terminal.codemania.fun");
     socketRef.current = socket;
 
+    let fullOutput = "";
+
     socket.onopen = () => {
       socket.send(JSON.stringify({ language, code }));
     };
 
     socket.onmessage = (e) => {
+      fullOutput += e.data;
       write(e.data);
     };
 
-    socket.onclose = () => {
+    socket.onclose = async () => {
       setIsRunning(false);
+
+      try {
+        const result = await validateExercise(activeQuestId, fullOutput, code);
+
+        if (result?.success) {
+          window.dispatchEvent(
+            new CustomEvent("code-mania:quest-complete", {
+              detail: { questId: activeQuestId }
+            })
+          );
+        } else {
+          write("\n\n❌ " + (result?.message || "Validation failed"));
+        }
+
+      } catch (err) {
+        write("\n\n❌ Validation server error");
+      }
     };
   };
+
 
   /* ===============================
      PRELOAD DOM (AUTO LOAD HTML)
@@ -211,6 +234,10 @@ const InteractiveTerminal = () => {
   =============================== */
 
   const handleRun = () => {
+    if (disabled) {
+      write("\n\n🔒 Talk to the NPC to accept the quest first.");
+      return;
+    }
     resetTerminal();
     setIsRunning(true);
 
@@ -244,7 +271,7 @@ const InteractiveTerminal = () => {
           <button
             className={styles["submit-btn"]}
             onClick={handleRun}
-            disabled={isRunning}
+            disabled={isRunning || disabled}
           >
             <Play size={16} />
             {isRunning ? "Running..." : "Run"}

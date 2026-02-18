@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {  useLocation } from "react-router-dom";
+import {  useLocation, useParams, useNavigate } from "react-router-dom";
 
 import Header from "../components/header";
 import SignInModal from "../components/SignInModal";
@@ -10,35 +10,82 @@ import TutorialPopup from "../components/TutorialPopup";
 
 import styles from "../styles/PythonExercise.module.css";
 import { startGame } from "../utilities/engine/main.js";
-import pythonExercises from "../utilities/data/pythonExercises.json";
 import mobileFrame from "../assets/mobile.png";
 import useGetGameProgress from "../services/getGameProgress.js";
+import useGetExerciseById from "../services/getExerciseById";
+import useGetNextExercise from "../services/getNextExcercise.js";
+
 
 const PythonExercise = ({ isAuthenticated }) => {
   const location = useLocation();
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
   const getGameProgress = useGetGameProgress();
+  const getExerciseById = useGetExerciseById();
+  const getNextExercise = useGetNextExercise();
+  const { exerciseId } = useParams();
+  const activeExerciseId = Number(exerciseId);
+  const [pythonExercises, setPythonExercises] = useState([]);
+  const navigate = useNavigate();
+
+
+
 
 
   /* ===============================
      QUEST / LESSON STATE
   =============================== */
-  const [activeExerciseId, setActiveExerciseId] = useState(1);
 
   const [showTutorial, setShowTutorial] = useState(false);
 
-  const activeExercise = useMemo(() => {
-    return (
-      pythonExercises.find(e => e.id === activeExerciseId) ||
-      pythonExercises[0]
-    );
+  const [activeExercise, setActiveExercise] = useState(null);
+
+  useEffect(() => {
+    const fetchExercise = async () => {
+      try {
+        const quest = await getExerciseById(activeExerciseId);
+        setActiveExercise(quest);
+
+      } catch (err) {
+
+        // 🔒 Locked → redirect
+        if (err.response?.status === 403) {
+          const redirectId = err.response.data?.redirectTo;
+          console.log(err.response)
+          if (redirectId) {
+            navigate(`/learn/python/exercise/${redirectId}`);
+            return;
+          }
+        }
+
+        // ❌ Not found → redirect safely
+        if (err.response?.status === 404) {
+          navigate("/learn/python/exercise/1");
+          return;
+        }
+
+        if (err.response?.status === 400) {
+          navigate("/learn/python/exercise/1");
+          return;
+        }
+
+        console.error(err);
+      }
+    };
+
+    fetchExercise();
   }, [activeExerciseId]);
+
 
   /* ===============================
      TERMINAL STATE
   =============================== */
   const [terminalEnabled, setTerminalEnabled] = useState(false);
-  const [activeQuestId, setActiveQuestId] = useState(null);
+
+  useEffect(() => {
+    setTerminalEnabled(false);
+  }, [activeExerciseId]);
+
+
 
   const [code, setCode] = useState(
     activeExercise?.startingCode ||
@@ -49,20 +96,28 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    const loadProgress = async () => {
-        const result = await getGameProgress("Python");
-        console.log("Loaded progress:", result);
-        if (result?.completedQuests) {
-          setDbCompletedQuests(result.completedQuests);
+    const onRequestNext = async (e) => {
+      const currentId = e.detail?.exerciseId;
+      if (!currentId) return;
 
-          const nextExercise = result.completedQuests.length + 1;
-          setActiveExerciseId(nextExercise);
-        }
+      const next = await getNextExercise(currentId);
 
-      };
+      if (!next) {
+        console.log("🎉 Course finished");
+        navigate("/learn/python/completed");
+        return;
+      }
 
-      loadProgress();
+      navigate(`/learn/python/exercise/${next.id}`);
+    };
+
+    window.addEventListener("code-mania:request-next-exercise", onRequestNext);
+
+    return () => {
+      window.removeEventListener("code-mania:request-next-exercise", onRequestNext);
+    };
   }, []);
+
 
 
   /* =====================================================
@@ -112,9 +167,13 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     if (!dbCompletedQuests) return;
     console.log("🎯 Starting game with completed quests:", dbCompletedQuests);
+    console.log("Active Exercise:", activeExercise);
+
+    if (!activeExercise) return;
 
     startGame({
       exerciseId: activeExerciseId,
+      quest: activeExercise,
       completedQuests: dbCompletedQuests,
       parent: "phaser-container"
     });
@@ -124,7 +183,6 @@ const PythonExercise = ({ isAuthenticated }) => {
       if (!questId) return;
 
       setTerminalEnabled(true);
-      setActiveQuestId(questId);
     };
 
     const onQuestComplete = (e) => {
@@ -147,7 +205,7 @@ const PythonExercise = ({ isAuthenticated }) => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
     };
-  }, [dbCompletedQuests]);
+  }, [activeExercise,dbCompletedQuests]);
 
 
   /* ===============================
@@ -178,74 +236,6 @@ const PythonExercise = ({ isAuthenticated }) => {
     }
 
     return { ok: true };
-  };
-
-  const normalize = (text = "") =>
-    text
-      .replace(/\r\n/g, "\n")
-      .split("\n")
-      .map(line => line.trim())
-      .join("\n")
-      .trim();
-
-  const handleRunCode = async () => {
-    if (!terminalEnabled || isRunning) return;
-
-    const validation = validateRequirements(
-      code,
-      activeExercise.requirements
-    );
-
-    if (!validation.ok) {
-      setOutput(validation.message);
-      return;
-    }
-
-    setIsRunning(true);
-    setOutput("Running...");
-
-    try {
-      const res = await fetch("http://localhost:3000/v1/run", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: "hotdog"
-        },
-        body: JSON.stringify({
-          language: "python",
-          code
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.error) {
-        setOutput(data.error);
-        return;
-      }
-
-      const rawOutput = data.output ?? "";
-      setOutput(rawOutput);
-
-      const expected = normalize(activeExercise.expectedOutput);
-      const actual = normalize(rawOutput);
-
-      if (
-        expected &&
-        actual === expected &&
-        activeQuestId === activeExercise.id
-      ) {
-        window.dispatchEvent(
-          new CustomEvent("code-mania:quest-complete", {
-            detail: { questId: activeExercise.id }
-          })
-        );
-      }
-    } catch {
-      setOutput("❌ Error connecting to server");
-    } finally {
-      setIsRunning(false);
-    }
   };
 
   /* ===============================
@@ -306,7 +296,6 @@ const PythonExercise = ({ isAuthenticated }) => {
           <CodeTerminal
             code={code}
             onCodeChange={setCode}
-            onRun={handleRunCode}
             output={output}
             isRunning={isRunning}
             showRunButton={terminalEnabled}

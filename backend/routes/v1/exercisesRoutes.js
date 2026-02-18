@@ -18,12 +18,25 @@ publicExerciseRouter.get(
 
 publicExerciseRouter.get(
   "/exercises/:id",
+  authentication,
   exerciseController.getExerciseById.bind(exerciseController)
 );
 
 publicExerciseRouter.get(
   "/exercises/programming-language/:programming_language_id",
   exerciseController.getExercisesByLanguage.bind(exerciseController)
+);
+
+publicExerciseRouter.post(
+  "/exercises/validate",
+  authentication,
+  exerciseController.validateExercise.bind(exerciseController)
+);
+
+publicExerciseRouter.get(
+  "/exercises/:id/next",
+  authentication,
+  exerciseController.getNextExercise.bind(exerciseController)
 );
 
 
