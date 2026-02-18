@@ -251,7 +251,6 @@ function App() {
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard" ||
-    location.pathname.startsWith("/exam") ||
     location.pathname.startsWith("/quiz") ||
     location.pathname.startsWith("/coding-exam");
 

@@ -132,11 +132,11 @@ class AccountController {
                 });
             // Generate new access token (split approach)
 
-            const accessToken = generateAccessToken({ user_id, username, role: profile?.role });
+            const accessToken = generateAccessToken({ user_id, username, role: res.locals.role });
             return res.status(200).json({
                 success: true,
                 message: "Username, character, and full name set successfully",
-                //accessToken, // frontend updates memory
+                accessToken,
             });
 
         } catch (err) {
