@@ -3,6 +3,8 @@ import path from "path";
 
 const crownPath = path.resolve(process.cwd(), "public", "crown.png");
 
+console.log("brevo credentials:", process.env.BREVO_USER, process.env.BREVO_PASS);
+
 /**
  * Generate numeric OTP
  */
