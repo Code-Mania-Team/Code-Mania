@@ -39,6 +39,12 @@ publicExerciseRouter.get(
   exerciseController.getNextExercise.bind(exerciseController)
 );
 
+publicExerciseRouter.get(
+  "/exercises/programming-language/:programming_language_id/latest",
+  authentication,
+  exerciseController.getLatestUnlocked.bind(exerciseController)
+);
+
 
 // ---------------- ADMIN ROUTES ----------------
 // apply middleware ONLY to admin router

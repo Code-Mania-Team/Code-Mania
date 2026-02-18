@@ -34,19 +34,27 @@ const PythonCourse = () => {
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      setCompletedExercises(new Set());
+      setData(null);
+      return;
+    }
 
     const loadProgress = async () => {
       try {
-        const result = await getGameProgress("Python");
+        const result = await getGameProgress(1);
+
+        if (!result) return; // handles 401 returning null
 
         setData(result);
 
-        if (result?.completedQuests) {
-          setCompletedExercises(new Set(result.completedQuests));
-        }
+        setCompletedExercises(
+          new Set(result.completedQuests || [])
+        );
+
       } catch (err) {
         console.error("Failed to load game progress", err);
+        setCompletedExercises(new Set());
       }
     };
 

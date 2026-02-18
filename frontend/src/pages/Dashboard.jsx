@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/footer';
 import Header from '../components/header';
 import styles from '../styles/Dashboard.module.css';
 import useAuth from "../hooks/useAxios";
+import useLatestUnlockedExercise from "../services/useLatestUnlockedExercise";
+import useLearningProgress from "../services/useLearningProgress";
+import useProfileSummary from "../services/useProfileSummary";
 
-// Character icons from Cloudinary
+// Character icons
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
 const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
 const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
@@ -13,13 +16,46 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const Dashboard = ({ onSignOut }) => {
   const navigate = useNavigate();
-  const [progress] = useState(0);
-  const [characterIcon, setCharacterIcon] = useState(null);
   const { isAuthenticated } = useAuth();
+  const [characterIcon, setCharacterIcon] = useState(null);
 
-  const [hasTouchedCourse] = useState(() => {
-    return localStorage.getItem('hasTouchedCourse') === 'true';
-  });
+  const hasTouchedCourse =
+    localStorage.getItem('hasTouchedCourse') === 'true';
+
+  const lastCourseTitle =
+    localStorage.getItem('lastCourseTitle') || "Python";
+
+  const languageIdMap = {
+    Python: 1,
+    "C++": 2,
+    JavaScript: 3
+  };
+
+  const currentLanguageId = languageIdMap[lastCourseTitle];
+
+  // ✅ Hooks at top level
+  const { exercise: nextExercise } =
+    useLatestUnlockedExercise(currentLanguageId);
+
+  const { progress: learningProgress } =
+    useLearningProgress();
+
+  const { totalXp, badgeCount, loading: summaryLoading } =
+  useProfileSummary();
+
+  // Compute progress only once
+  const currentProgress = useMemo(() => {
+    if (!learningProgress) return null;
+    return learningProgress.find(
+      p => p.programming_language_id === currentLanguageId
+    );
+  }, [learningProgress, currentLanguageId]);
+
+  const progressPercent = currentProgress?.percentage || 0;
+  const completedCount = currentProgress?.completed || 0;
+  const totalCount = currentProgress?.total || 0;
+  const level = Math.floor(totalXp / 500);
+
   const [userStats, setUserStats] = useState({
     name: 'User',
     level: 0,
@@ -28,28 +64,28 @@ const Dashboard = ({ onSignOut }) => {
     badges: 0,
   });
 
-  const [currentCourse] = useState(() => {
-    const lastCourseTitle = localStorage.getItem('lastCourseTitle');
-    const exerciseTitles = {
-      'Python': 'Setting Up',
-      'C++': 'The Program',
-      'JavaScript': 'Introduction'
-    };
-    return {
-      name: lastCourseTitle,
-      nextExercise: exerciseTitles[lastCourseTitle] || 'Start Learning',
-      progress: 0
-    };
-  });
+  const exerciseTitles = {
+    Python: 'Setting Up',
+    'C++': 'The Program',
+    JavaScript: 'Introduction'
+  };
+
+  const currentCourse = {
+    name: lastCourseTitle,
+    nextExercise: exerciseTitles[lastCourseTitle] || 'Start Learning'
+  };
 
   const lastCourseRoute = localStorage.getItem('lastCourseRoute');
   const courseRoute = lastCourseRoute || `/learn`;
+
   const courseGifs = {
     Python: 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif',
     'C++': 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/c_atz4sx.gif',
     JavaScript: 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif',
   };
+
   const courseGif = courseGifs[currentCourse.name] || courseGifs.Python;
+
   const courseAccentColor =
     currentCourse.name === 'C++'
       ? '#5B8FB9'
@@ -66,39 +102,34 @@ const Dashboard = ({ onSignOut }) => {
     };
 
     const loadCharacterIcon = () => {
-      const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
-      const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
+      const storedCharacterIdRaw =
+        localStorage.getItem('selectedCharacter');
+      const storedCharacterId =
+        storedCharacterIdRaw === null
+          ? null
+          : Number(storedCharacterIdRaw);
+
       if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
-        const storedIcon = localStorage.getItem('selectedCharacterIcon');
+        const storedIcon =
+          localStorage.getItem('selectedCharacterIcon');
         setCharacterIcon(storedIcon || null);
         return;
       }
 
-      const expectedIcon = iconByCharacterId[storedCharacterId] || null;
+      const expectedIcon =
+        iconByCharacterId[storedCharacterId] || null;
+
       if (expectedIcon) {
         localStorage.setItem('selectedCharacterIcon', expectedIcon);
       } else {
         localStorage.removeItem('selectedCharacterIcon');
       }
+
       setCharacterIcon(expectedIcon);
     };
 
     loadCharacterIcon();
 
-    const handleStorageChange = (e) => {
-      if (e.key === 'selectedCharacterIcon' || e.key === 'selectedCharacter') {
-        loadCharacterIcon();
-      }
-    };
-
-    const handleCharacterUpdate = () => {
-      loadCharacterIcon();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('characterUpdated', handleCharacterUpdate);
-
-    // Load username from localStorage
     const savedUsername = localStorage.getItem('username');
     if (savedUsername) {
       setUserStats(prev => ({
@@ -106,19 +137,14 @@ const Dashboard = ({ onSignOut }) => {
         name: savedUsername
       }));
     }
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('characterUpdated', handleCharacterUpdate);
-    };
   }, []);
-
 
   const handleSignOut = () => {
     if (onSignOut) {
       onSignOut();
       return;
     }
+
     localStorage.removeItem('username');
     localStorage.removeItem('selectedCharacter');
     localStorage.removeItem('selectedCharacterIcon');
@@ -127,20 +153,12 @@ const Dashboard = ({ onSignOut }) => {
 
   return (
     <div className={styles.container}>
-      <Header 
+      <Header
         isAuthenticated={isAuthenticated}
         onOpenModal={() => {}}
         onSignOut={handleSignOut}
       />
-      {/* Animated Background Circles */}
-      {styles.circles && (
-        <div className={styles.circles}>
-          <div className={`${styles.circle} ${styles.circle1}`}></div>
-          <div className={`${styles.circle} ${styles.circle2}`}></div>
-          <div className={`${styles.circle} ${styles.circle3}`}></div>
-        </div>
-      )}
- 
+
       <section className={styles.welcomeHero}>
         <div className={styles.welcomeHeroInner}>
           <div className={styles['welcome-section']}>
@@ -154,7 +172,9 @@ const Dashboard = ({ onSignOut }) => {
               </div>
 
               <div className={styles.welcomeBannerText}>
-                <div className={styles.welcomeBannerTitle}>Everything is under CTRL</div>
+                <div className={styles.welcomeBannerTitle}>
+                  Everything is under CTRL
+                </div>
                 <div className={styles.welcomeBannerSubtitle}>
                   Hi @{userStats.name}! We've been waiting for you.
                 </div>
@@ -166,55 +186,73 @@ const Dashboard = ({ onSignOut }) => {
 
       <div className={styles['main-content']}>
         <div className={styles['left-section']}>
+
           {!hasTouchedCourse ? (
-            <div className={styles.welcomeFirstCardInline}>
-              <div className={styles.welcomeFirstSprite}>
-                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" alt="Computer" className={styles.welcomeFirstSpriteImg} />
-              </div>
-              <h1 className={styles.welcomeFirstTitle}>Welcome to Code Mania!</h1>
-              <p className={styles.welcomeFirstSubtitle}>
-                Your coding journey awaits!, Choose a language to start learning.
-              </p>
-              <button
-                type="button"
-                className={styles.getStartedBtn}
-                onClick={() => navigate('/learn')}
-              >
-                Get Started
-              </button>
-            </div>
+            <button
+              className={styles.getStartedBtn}
+              onClick={() => navigate('/learn')}
+            >
+              Get Started
+            </button>
           ) : (
             <>
-              <h2 className={styles['section-title']}>Jump back in</h2>
-              
-              <div className={styles['course-card']} style={{ '--course-accent': courseAccentColor }}>
+              <h2 className={styles['section-title']}>
+                Jump back in
+              </h2>
+
+              <div
+                className={styles['course-card']}
+                style={{ '--course-accent': courseAccentColor }}
+              >
                 <div className={styles['course-header']}>
                   <div className={styles['progress-bar']}>
-                    <div className={styles['progress-fill']} style={{ width: `${progress}%` }}></div>
+                    <div
+                      className={styles['progress-fill']}
+                      style={{
+                        width: totalCount === 0
+                          ? "0%"
+                          : `${(completedCount / totalCount) * 100}%`
+                      }}
+                    />
                   </div>
-                  <span className={styles['progress-text']}>{progress}%</span>
+                  <span className={styles['progress-text']}>
+                    {completedCount} / {totalCount}
+                  </span>
                 </div>
 
                 <div className={styles['course-content']}>
                   <div className={styles['course-image']}>
-                    <img 
-                      src={courseGif} 
-                      alt={`${currentCourse.name} Programming`} 
+                    <img
+                      src={courseGif}
+                      alt={currentCourse.name}
                       className={styles['course-gif']}
                     />
                   </div>
 
                   <div className={styles['course-info']}>
-                    <span className={styles['course-label']}>COURSE</span>
-                    <h1 className={styles['course-name']}>{currentCourse.name}</h1>
-                    <p className={styles['next-exercise']}>{currentCourse.nextExercise}</p>
+                    <span className={styles['course-label']}>
+                      COURSE
+                    </span>
+                    <h1 className={styles['course-name']}>
+                      {currentCourse.name}
+                    </h1>
+                    <p className={styles['next-exercise']}>
+                      {nextExercise?.title || "Start Learning"}
+                    </p>
                   </div>
 
                   <div className={styles['course-actions']}>
                     <button
-                      type="button"
                       className={styles['continue-btn']}
-                      onClick={() => navigate(courseRoute)}
+                      onClick={() => {
+                        if (!nextExercise) {
+                          navigate(courseRoute);
+                        } else {
+                          navigate(
+                            `/learn/${currentCourse.name.toLowerCase()}/exercise/${nextExercise.id}`
+                          );
+                        }
+                      }}
                     >
                       Continue Learning
                     </button>
@@ -242,13 +280,13 @@ const Dashboard = ({ onSignOut }) => {
               </div>
               <div className={styles['profile-info']}>
                 <h3 className={styles['user-name']}>{userStats.name}</h3>
-                <p className={styles['user-level']}>Level {userStats.level}</p>
+                <p className={styles['user-level']}>Level {summaryLoading ? 0 : level}</p>
               </div>
             </div>
 
             <div className={styles['stats-grid']}>
               <div className={styles['stat-item']}>
-                <div className={styles['stat-value']}>{userStats.totalXP}</div>
+                <div className={styles['stat-value']}>{summaryLoading ? "..." : totalXp}</div>
                 <div className={styles['stat-label']}>TOTAL XP</div>
               </div>
               <div className={styles['stat-item']}>
@@ -256,7 +294,7 @@ const Dashboard = ({ onSignOut }) => {
                 <div className={styles['stat-label']}>RANK</div>
               </div>
               <div className={styles['stat-item']}>
-                <div className={styles['stat-value']}>{userStats.badges}</div>
+                <div className={styles['stat-value']}>{summaryLoading ? "..." : badgeCount}</div>
                 <div className={styles['stat-label']}>ACHIEVEMENTS</div>
               </div>
             </div>

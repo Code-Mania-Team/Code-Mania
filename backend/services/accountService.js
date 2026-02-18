@@ -68,6 +68,29 @@ class AccountService {
         return authUser;
     }
 
+    async getProfileSummary(user_id) {
+        if (!user_id) {
+            throw new Error("Unauthorized");
+        }
+
+        // 1️⃣ Get XP data from model
+        const xpData = await this.user.getUserXp(user_id);
+
+        const totalXp = xpData.reduce(
+            (sum, row) => sum + (row.quests?.experience || 0),
+            0
+        );
+
+        // 2️⃣ Get badge count from model
+        const badgeCount = await this.user.getUserBadgeCount(user_id);
+
+        return {
+            totalXp,
+            badgeCount
+        };
+    }
+
+
     async googleLogin(id, email, provider) {
         const emailExist = await this.user.findByEmail(email)
         const hashedPassword = encryptPassword(id + email)
@@ -95,6 +118,49 @@ class AccountService {
             }
         }    
     }
+
+    async getLearningProgress(user_id) {
+        if (!user_id) throw new Error("Unauthorized");
+
+        const completed = await this.user.getCompletedExercises(user_id);
+        const allExercises = await this.user.getAllExercises();
+
+        const totals = {};
+        const completedCounts = {};
+
+        // Count total exercises per language
+        allExercises.forEach(q => {
+            totals[q.programming_language_id] =
+            (totals[q.programming_language_id] || 0) + 1;
+        });
+
+        // Count completed exercises per language
+        completed.forEach(row => {
+            const lang = row.quests?.programming_language_id;
+            if (!lang) return;
+
+            completedCounts[lang] =
+            (completedCounts[lang] || 0) + 1;
+        });
+
+        // Build result safely
+        const result = Object.keys(totals).map(langId => {
+            const total = totals[langId];
+            const done = completedCounts[langId] || 0;
+
+            return {
+            programming_language_id: Number(langId),
+            completed: done,
+            total,
+            percentage: total === 0
+                ? 0
+                : Math.round((done / total) * 100)
+            };
+        });
+
+        return result;
+        }
+
 }
 
 export default AccountService;

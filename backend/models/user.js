@@ -120,7 +120,59 @@ class User {
 
 
     
+    async getUserXp(user_id) {
+        const { data, error } = await this.db
+        .from("users_game_data")
+        .select(`
+            exercise_id,
+            quests (
+            experience
+            )
+        `)
+        .eq("user_id", user_id);
 
+        if (error) throw error;
+
+        return data || [];
+    }
+
+    async getUserBadgeCount(user_id) {
+        const { count, error } = await this.db
+        .from("users_achievements")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user_id);
+
+        if (error) throw error;
+
+        return count || 0;
+    }
+
+
+    async getCompletedExercises(user_id) {
+        const { data, error } = await this.db
+            .from("users_game_data")
+            .select(`
+            exercise_id,
+            quests (
+                programming_language_id
+            )
+            `)
+            .eq("user_id", user_id);
+
+        if (error) throw error;
+
+        return data || [];
+        }
+
+        async getAllExercises() {
+        const { data, error } = await this.db
+            .from("quests")
+            .select("programming_language_id");
+
+        if (error) throw error;
+
+        return data || [];
+        }
 
 
     // ONE-TIME USERNAME SETUP

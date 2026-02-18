@@ -15,6 +15,7 @@ class AchievementsController {
                 });
             }
             const achievements = await this.achievements.getUserAchievements(userId);
+            console.log("User achievements retrieved:", achievements);
             res.status(200).json({ 
                 success: true, 
                 message: "Achievements retrieved successfully", 
