@@ -132,7 +132,7 @@ const PythonCourse = () => {
 
 
   const userProgress = {
-    name: user?.username || "Guest",
+    name: user?.full_name || "Guest",
     level: 1,
     exercisesCompleted: data?.completedQuests?.length || 0,
     totalExercises: 16,

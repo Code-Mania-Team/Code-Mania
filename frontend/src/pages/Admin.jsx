@@ -20,8 +20,6 @@ function Admin() {
   const [metricsError, setMetricsError] = useState('');
   const [metricsInFlight, setMetricsInFlight] = useState(false);
 
-  const adminEmail = "jetpadilla07@gmail.com";
-
   const fetchDatasets = async () => {
     setDatasetsLoading(true);
     try {
@@ -155,7 +153,7 @@ function Admin() {
             return;
           }
 
-          const allowed = (p?.role === "admin") && (p?.email === adminEmail);
+          const allowed = p?.role === "admin";
           setIsAdmin(allowed);
           setStatus("ok");
           

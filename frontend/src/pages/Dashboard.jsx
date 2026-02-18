@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/footer';
 import Header from '../components/header';
-import WelcomeOnboarding from '../components/WelcomeOnboarding';
 import styles from '../styles/Dashboard.module.css';
 import useAuth from "../hooks/useAxios";
 
@@ -14,7 +13,6 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const Dashboard = ({ onSignOut }) => {
   const navigate = useNavigate();
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [progress] = useState(0);
   const [characterIcon, setCharacterIcon] = useState(null);
   const { isAuthenticated } = useAuth();
@@ -100,19 +98,6 @@ const Dashboard = ({ onSignOut }) => {
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('characterUpdated', handleCharacterUpdate);
 
-    // Check if user is new (hasn't seen onboarding)
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    console.log('hasSeenOnboarding:', hasSeenOnboarding);
-    
-    // Show onboarding if the flag is not set to 'true'
-    if (hasSeenOnboarding !== 'true') {
-      console.log('Showing onboarding');
-      setShowOnboarding(true);
-    } else {
-      console.log('Skipping onboarding');
-      setShowOnboarding(false);
-    }
-
     // Load username from localStorage
     const savedUsername = localStorage.getItem('username');
     if (savedUsername) {
@@ -128,20 +113,6 @@ const Dashboard = ({ onSignOut }) => {
     };
   }, []);
 
-  const handleOnboardingComplete = () => {
-    console.log('Onboarding completed');
-    setShowOnboarding(false);
-    localStorage.setItem('hasSeenOnboarding', 'true');
-    
-    // Update username after onboarding
-    const savedUsername = localStorage.getItem('username');
-    if (savedUsername) {
-      setUserStats(prev => ({
-        ...prev,
-        name: savedUsername
-      }));
-    }
-  };
 
   const handleSignOut = () => {
     if (onSignOut) {
@@ -156,7 +127,6 @@ const Dashboard = ({ onSignOut }) => {
 
   return (
     <div className={styles.container}>
-      {showOnboarding && <WelcomeOnboarding onComplete={handleOnboardingComplete} />}
       <Header 
         isAuthenticated={isAuthenticated}
         onOpenModal={() => {}}

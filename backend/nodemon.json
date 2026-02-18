@@ -1,10 +1,8 @@
 {
-  "watch": ["src", "index.js"],
+  "watch": ["src"],
   "ext": "js,json",
-  "ignore": [
-    "tmp/*",
-    "tmp/**",
-    "**/tmp/**",
-    "*/tmp/*"
-  ]
+  "ignore": ["node_modules"],
+  "legacyWatch": true,
+  "verbose": true,
+  "delay": "1000"
 }

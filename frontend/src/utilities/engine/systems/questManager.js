@@ -62,6 +62,11 @@ export default class QuestManager {
     quest.completed = true;
     this.completedQuestIds.add(id);
 
+    const completed = JSON.parse(localStorage.getItem("completedQuests") || "[]");
+    if (!completed.includes(id)) {
+      completed.push(id);
+      // localStorage.setItem("completedQuests", JSON.stringify(completed));
+    }
 
     if (this.activeQuest?.id === id) {
       this.activeQuest = null;

@@ -1,13 +1,7 @@
 import nodemailer from "nodemailer";
 import path from "path";
 
-const crown = "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png";
-
-const crownPath = path.resolve(
-  process.cwd(),
-  "public",
-  "crown.png"
-);
+const crownPath = path.resolve(process.cwd(), "public", "crown.png");
 
 /**
  * Generate numeric OTP

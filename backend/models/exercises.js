@@ -53,7 +53,6 @@ class ExerciseModel {
                 console.error('Error creating exercise:', error);
                 throw error;
             }
-
             return data;
         } catch (error) {
             console.error('Error in createExercise:', error);
@@ -150,16 +149,11 @@ class ExerciseModel {
                     )
                 `)
                 .order('created_at', { ascending: false });
-
             if (error) {
                 console.error('Error getting exercises:', error);
                 throw error;
             }
-
-            return data;
         } catch (error) {
-            console.error('Error in getAllExercises:', error);
-            throw error;
         }
     }
 
@@ -183,7 +177,6 @@ class ExerciseModel {
                 console.error('Error getting exercise by ID:', error);
                 throw error;
             }
-
             return data;
         } catch (error) {
             console.error('Error in getExerciseById:', error);
@@ -211,7 +204,6 @@ class ExerciseModel {
                 console.error('Error getting exercises by language:', error);
                 throw error;
             }
-
             return data;
         } catch (error) {
             console.error('Error in getExercisesByLanguage:', error);
@@ -272,7 +264,6 @@ class ExerciseModel {
                 console.error('Error updating exercise:', error);
                 throw error;
             }
-
             return data;
         } catch (error) {
             console.error('Error in updateExercise:', error);
@@ -289,12 +280,10 @@ class ExerciseModel {
                 .eq('id', id)
                 .select()
                 .single();
-
             if (error) {
                 console.error('Error deleting exercise:', error);
                 throw error;
             }
-
             return data;
         } catch (error) {
             console.error('Error in deleteExercise:', error);
