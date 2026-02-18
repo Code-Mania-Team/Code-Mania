@@ -577,15 +577,10 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         
 
         if (response.data.success) {
-
           setShowResetPassword(true);
-
           setShowForgotPasswordOtp(false);
-
           setLoginError('');
-
           setIsLoading(false);
-
         } else {
 
           setLoginError(response.data.message || 'Invalid OTP');

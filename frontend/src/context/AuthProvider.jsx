@@ -1,7 +1,7 @@
 import { createContext, useEffect, useMemo, useState } from "react";
-import { axiosPublic } from "../api/axios";
+import { axiosPrivate } from "../api/axios";
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -11,43 +11,36 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    const bootstrap = async () => {
+    const checkAuth = async () => {
       try {
-        const res = await axiosPublic.get("/v1/account");
-        if (!mounted) return;
-
-        const ok = res?.data?.success === true;
-        const profile = res?.data?.data;
-        const hasUserId = Boolean(profile && profile.user_id);
-
-        if (ok && hasUserId) {
-          setUser(profile);
-          setIsAuthenticated(true);
-          return;
+        const response = await axiosPrivate.get("/v1/account");
+        if (mounted && response?.data?.success) {
+          const profile = response.data.data;
+          if (profile?.user_id) {
+            setUser(profile);
+            setIsAuthenticated(true);
+          } else {
+            setUser(null);
+            setIsAuthenticated(false);
+          }
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
         }
-
-        setUser(null);
-        setIsAuthenticated(false);
-      } catch (err) {
-        if (!mounted) return;
-        setUser(null);
-        setIsAuthenticated(false);
+      } catch (error) {
+        console.log("Auth check failed:", error.response?.status);
+        if (mounted) {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       } finally {
-        if (!mounted) return;
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
-    bootstrap();
-
-    const handleAuthChange = () => {
-      bootstrap();
-    };
-
-    window.addEventListener("authchange", handleAuthChange);
+    checkAuth();
 
     return () => {
-      window.removeEventListener("authchange", handleAuthChange);
       mounted = false;
     };
   }, []);
@@ -67,4 +60,4 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export default AuthContext;
+export default AuthProvider;

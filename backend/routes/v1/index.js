@@ -9,6 +9,8 @@ import forgotPasswordRouter from './forgotPasswordRoutes.js';
 import achievementsRouter from './achievementsRoutes.js';
 import {exercisesRouter, publicExerciseRouter} from './exercisesRoutes.js';
 
+
+
 const v1 = new Router();
 
 v1.use('/account', accountRouter);
@@ -21,14 +23,16 @@ v1.use('/achievements', achievementsRouter);
 v1.use('/admin', exercisesRouter);
 v1.use('/', publicExerciseRouter);
 
+
 v1.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));
+
+
 
 v1.get('/login/google/redirect', passport.authenticate('google'), (req, res) => {
     res.send('Redirected.')
     console.log(req.cookies)
     console.log(req.user.id)
 });
-
 export default v1;

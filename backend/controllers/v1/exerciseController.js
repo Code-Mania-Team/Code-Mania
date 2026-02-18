@@ -84,7 +84,7 @@ class ExerciseController {
         }
     }
 
-    // Get all exercises (admin only)
+    // Get all exercises (available to all users, but can be filtered by programming language)
     async getAllExercises(req, res) {
         try {
             const exercises = await this.exerciseModel.getAllExercises();
@@ -105,7 +105,7 @@ class ExerciseController {
         }
     }
 
-    // Get exercise by ID (admin only)
+    // Get exercise by ID 
     async getExerciseById(req, res) {
         try {
             const { id } = req.params;
@@ -254,7 +254,7 @@ class ExerciseController {
         }
     }
 
-    // Get exercises by programming language (admin only)
+    // Get exercises by programming language 
     async getExercisesByLanguage(req, res) {
         try {
             const { programming_language_id } = req.params;

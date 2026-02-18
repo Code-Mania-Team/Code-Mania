@@ -21,9 +21,25 @@ class FreedomWall {
         return data;
     }
 
+    async getUserProfile(user_id) {
+        try {
+            const { data, error } = await this.fd_wall
+                .from("users")
+                .select("username, email")
+                .eq("user_id", user_id)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } catch (err) {
+            console.error("<error> getUserProfile", err);
+            throw new Error("Failed to fetch user profile");
+        }
+    }
+
     async getCharacterIdByUserId(user_id) {
         try {
-        const { data: userProfile, error } = await supabase
+        const { data: userProfile, error } = await this.fd_wall
             .from("users")
             .select("character_id")
             .eq("user_id", user_id)
