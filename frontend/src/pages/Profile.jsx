@@ -37,6 +37,12 @@ import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 
 import achievementsConfig from "../utilities/data/achievements.json";
 
+import useGetAchievements from "../services/getUserAchievements";
+
+import useProfileSummary from "../services/useProfileSummary";
+
+import useLearningProgress from "../services/useLearningProgress";
+
 const badgeImageById = {
 
   divine_warrior: pythonBadge3,
@@ -96,6 +102,12 @@ const Profile = ({ onSignOut }) => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
+
+  const { achievements, loading } = useGetAchievements();
+
+  const { totalXp, badgeCount, loading: summaryLoading } = useProfileSummary();
+
+  const { progress, loading: progressLoading } = useLearningProgress();
 
   const deleteAccount = useDeleteAccount();
 
@@ -329,63 +341,43 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  const [learningProgress] = useState({
+  const learningProgress = {
+    python: { completed: 0, total: 0, icon: <Terminal size={20} /> },
+    cpp: { completed: 0, total: 0, icon: <Code size={20} /> },
+    javascript: { completed: 0, total: 0, icon: <FileCode2 size={20} /> }
+  };
 
-    python: { progress: 0, total: 100, icon: <Terminal size={20} /> },
+  if (progress && Array.isArray(progress)) {
+    progress.forEach(item => {
+      if (item.programming_language_id === 1) {
+        learningProgress.python.completed = item.completed;
+        learningProgress.python.total = item.total;
+      }
 
-    cpp: { progress: 0, total: 100, icon: <Code size={20} /> },
+      if (item.programming_language_id === 2) {
+        learningProgress.cpp.completed = item.completed;
+        learningProgress.cpp.total = item.total;
+      }
 
-    javascript: { progress: 0, total: 100, icon: <FileCode2 size={20} /> }
-
-  });
-
-
-
-  const [badges] = useState(() => {
-
-    const earnedRaw = localStorage.getItem('earnedAchievements') || '[]';
-
-    let earned;
-
-    try {
-
-      earned = JSON.parse(earnedRaw);
-
-    } catch {
-
-      earned = [];
-
-    }
+      if (item.programming_language_id === 3) {
+        learningProgress.javascript.completed = item.completed;
+        learningProgress.javascript.total = item.total;
+      }
+    });
+  }
 
 
 
-    const earnedById = new Map(
+  const badges = achievements.map(a => ({
+    id: a.id,
+    title: a.title,
+    description: a.description,
+    received: a.earned_at
+      ? new Date(a.earned_at).toLocaleString()
+      : "Locked",
+    badgeKey: a.badge_key
+  }));
 
-      (earned || []).map(e => [e?.id, e?.received])
-
-    );
-
-
-
-    return (achievementsConfig || [])
-
-      .filter(a => earnedById.has(a.id)) // Only show earned achievements
-
-      .map(a => ({
-
-        id: a.id,
-
-        title: a.title,
-
-        description: a.description,
-
-        received: earnedById.get(a.id) ? new Date(earnedById.get(a.id)).toLocaleString() : 'Locked',
-
-        badgeKey: a.badgeKey,
-
-      }));
-
-  });
 
 
 
@@ -698,75 +690,43 @@ const Profile = ({ onSignOut }) => {
         <div className={styles.tabContent}>
 
           {activeTab === 'achievements' && (
+        <div className={styles.achievementsTable}>
 
-            <div className={styles.achievementsTable}>
-
-              {badges.length === 0 ? (
-
-                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-
-                  <p>No achievements earned yet.</p>
-
-                  <p style={{ fontSize: '14px', marginTop: '8px' }}>Complete exercises to unlock badges!</p>
-
-                </div>
-
-              ) : (
-
-                <>
-
-                  <div className={styles.tableHeader}>
-
-                    <span>Badges</span>
-
-                    <span>Achievements</span>
-
-                    <span>Received</span>
-
-                  </div>
-
-                  {badges.map((badge) => (
-
-                    <div key={badge.id} className={styles.tableRow}>
-
-                      <div className={styles.badgeCell}>
-
-                        <img
-
-                          className={styles.badgeIcon}
-
-                          src={
-                            (badge.badgeKey && badgeImageByKey[badge.badgeKey]) ||
-                            badgeImageByKey['python-stage1']
-                          }
-
-                          alt={badge.title}
-
-                        />
-
-                      </div>
-
-                      <div className={styles.achievementCell}>
-
-                        <div className={styles.achievementTitle}>{badge.title}</div>
-
-                        <div className={styles.achievementDescription}>{badge.description}</div>
-
-                      </div>
-
-                      <div className={styles.timeCell}>{badge.received}</div>
-
-                    </div>
-
-                  ))}
-
-                </>
-
-              )}
-
+          {loading ? (
+            <div style={{ padding: 40, textAlign: 'center' }}>
+              Loading achievements...
             </div>
+          ) : badges.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center' }}>
+              No achievements earned yet.
+            </div>
+          ) : (
+            <>
+              <div className={styles.tableHeader}>
+                <span>Badge</span>
+                <span>Title</span>
+                <span>Received</span>
+              </div>
 
+              {badges.map(badge => (
+                <div key={badge.id} className={styles.tableRow}>
+                  <img
+                    className={styles.badgeIcon}
+                    src={badge.badgeKey || defaultBadgeImage}
+                    alt={badge.title}
+                  />
+                  <div>
+                    <div>{badge.title}</div>
+                    <div>{badge.description}</div>
+                  </div>
+                  <div>{badge.received}</div>
+                </div>
+              ))}
+            </>
           )}
+
+        </div>
+      )}
 
           
 
@@ -778,7 +738,7 @@ const Profile = ({ onSignOut }) => {
 
               <div className={styles.progressGrid}>
 
-                {Object.entries(learningProgress).map(([language, { progress, total, icon }]) => (
+                {Object.entries(learningProgress).map(([language, { completed, total, icon }]) => (
 
                   <div key={language} className={styles.progressItem}>
 
@@ -796,7 +756,7 @@ const Profile = ({ onSignOut }) => {
 
                       </div>
 
-                      <span className={styles.progressText}>{progress}%</span>
+                      <span className={styles.progressText}>{completed} / {total}</span>
 
                     </div>
 
@@ -806,7 +766,11 @@ const Profile = ({ onSignOut }) => {
 
                         className={styles.progressFill} 
 
-                        style={{ width: `${progress}%` }}
+                        style={{
+                          width: total === 0
+                            ? "0%"
+                            : `${(completed / total) * 100}%`
+                        }}
 
                       ></div>
 
@@ -978,7 +942,7 @@ const Profile = ({ onSignOut }) => {
 
             <div className={styles.sidebarCardStat}>
 
-              <div className={styles.sidebarCardStatValue}>0</div>
+              <div className={styles.sidebarCardStatValue}>{summaryLoading ? "..." : totalXp}</div>
 
               <div className={styles.sidebarCardStatLabel}>Total XP</div>
 
@@ -986,7 +950,7 @@ const Profile = ({ onSignOut }) => {
 
             <div className={styles.sidebarCardStat}>
 
-              <div className={styles.sidebarCardStatValue}>0</div>
+              <div className={styles.sidebarCardStatValue}>{summaryLoading ? "..." : badgeCount}</div>
 
               <div className={styles.sidebarCardStatLabel}>Badges</div>
 

@@ -390,6 +390,54 @@ class AccountController {
     }
     // PROFILE & other methods remain mostly unchanged
 
+    async getProfileSummary(req, res) {
+        try {
+            const user_id = res.locals.user_id;
+
+            if (!user_id) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+            }
+
+            const summary = await this.accountService.getProfileSummary(user_id);
+
+            return res.status(200).json({
+            success: true,
+            ...summary
+            });
+
+        } catch (err) {
+            console.error("getProfileSummary error:", err);
+            return res.status(500).json({
+            success: false,
+            message: err.message
+            });
+        }
+    }
+
+    async getLearningProgress(req, res) {
+        try {
+            const user_id = res.locals.user_id;
+
+            const progress =
+            await this.accountService.getLearningProgress(user_id);
+
+            return res.status(200).json({
+            success: true,
+            progress
+            });
+
+        } catch (err) {
+            console.error("Learning progress error:", err);
+            return res.status(500).json({
+            success: false,
+            message: err.message
+            });
+        }
+    }
+
     async profile(req, res) {
 
         try {

@@ -393,6 +393,38 @@ class ExerciseController {
         }
     }
 
+    async getLatestUnlocked(req, res) {
+        try {
+            const userId = res.locals.user_id;
+            const { programming_language_id } = req.params;
+
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Unauthorized"
+                });
+            }
+
+            const latest = await this.exerciseModel.getLatestUnlockedQuest(
+                userId,
+                parseInt(programming_language_id)
+            );
+
+            return res.status(200).json({
+                success: true,
+                data: latest
+            });
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                success: false,
+                message: "Server error"
+            });
+        }
+    }
+
+
     // Validate quest output
     async validateExercise(req, res) {
         try {
