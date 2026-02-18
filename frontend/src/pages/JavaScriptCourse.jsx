@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
-import TutorialPopup from "../components/TutorialPopup";
+import TutorialPopup from "../components/Tutorialpopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import useGetExercises from "../services/getExercise";

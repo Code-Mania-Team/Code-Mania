@@ -6,7 +6,7 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import StageCompleteModal from "../components/StageCompleteModal";
 import CodeTerminal from "../components/CodeTerminal";
-import TutorialPopup from "../components/TutorialPopup";
+import TutorialPopup from "../components/Tutorialpopup";
 
 import styles from "../styles/JavaScriptExercise.module.css";
 import { startGame } from "../utilities/engine/main.js";

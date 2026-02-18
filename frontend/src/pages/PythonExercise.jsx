@@ -6,7 +6,7 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 import MobileControls from "../components/MobileControls";
-import TutorialPopup from "../components/TutorialPopup";
+import TutorialPopup from "../components/Tutorialpopup";
 
 import styles from "../styles/PythonExercise.module.css";
 import { startGame } from "../utilities/engine/main.js";
