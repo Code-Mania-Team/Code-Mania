@@ -22,7 +22,7 @@ class ExerciseModel {
                 programming_language_id,
                 dialogue_id,
                 grants,
-                badgeKey,
+                achievements_id,
                 mapKey
             } = exerciseData;
 
@@ -42,7 +42,7 @@ class ExerciseModel {
                     programming_language_id,
                     dialogue_id,
                     grants,
-                    badgeKey,
+                    achievements_id,
                     mapKey,
                     created_at: new Date().toISOString()
                 }])
@@ -92,7 +92,8 @@ class ExerciseModel {
                     programming_language_id
                 )
             `)
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .eq('quests.programming_language_id', languageId)
 
         if (error) {
             console.error("Error fetching completed quests:", error);
@@ -238,7 +239,7 @@ class ExerciseModel {
                 programming_language_id,
                 dialogue_id,
                 grants,
-                badgeKey
+                achievements_id
             } = exerciseData;
 
             // Only include fields that are provided
@@ -255,7 +256,7 @@ class ExerciseModel {
             if (programming_language_id !== undefined) updateObject.programming_language_id = programming_language_id;
             if (dialogue_id !== undefined) updateObject.dialogue_id = dialogue_id;
             if (grants !== undefined) updateObject.grants = grants;
-            if (badgeKey !== undefined) updateObject.badgeKey = badgeKey;
+            if (achievements_id !== undefined) updateObject.achievements_id = achievements_id;
 
             // Always include updated_at
             updateObject.updated_at = new Date().toISOString();

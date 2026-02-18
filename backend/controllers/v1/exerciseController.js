@@ -22,7 +22,7 @@ class ExerciseController {
                 programming_language_id,
                 dialogue_id,
                 grants,
-                badgeKey,
+                achievements_id,
                 mapKey
             } = req.body;
 
@@ -56,7 +56,7 @@ class ExerciseController {
                 programming_language_id: parseInt(programming_language_id),
                 dialogue_id,
                 grants,
-                badgeKey,
+                achievements_id,
                 mapKey
             };
 
@@ -288,7 +288,7 @@ class ExerciseController {
                 'programming_language_id',
                 'dialogue_id',
                 'grants',
-                'badgeKey'
+                'achievements_id'
             ];
 
             // Build update object with only provided fields
@@ -398,8 +398,14 @@ class ExerciseController {
         try {
             const { questId, output, code } = req.body;
             const userId = res.locals.user_id;
-            console.log("validateExercise called with:", { questId, output, userId });
-
+            
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Authentication required"
+                });
+            }
+            
             if (!questId || typeof output !== "string") {
                 return res.status(400).json({
                     success: false,
