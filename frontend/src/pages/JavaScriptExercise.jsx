@@ -529,11 +529,8 @@ const JavaScriptExercise = () => {
       <div className={styles["codex-fullscreen"]}>
 
         <ProgressBar
-
-          currentLesson={activeExercise.id}
-
-          totalLessons={activeExercise.totalExercises || 1}
-
+          currentLesson={activeExercise?.order_index || 1}
+          totalLessons={activeExercise?.totalExercises || 16}
           title="🌐 JavaScript Basics"
 
         />

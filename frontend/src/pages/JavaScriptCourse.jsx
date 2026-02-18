@@ -135,38 +135,32 @@ const JavaScriptCourse = () => {
   =============================== */
 
   useEffect(() => {
-
-    if (!isAuthenticated) return;
-
-
-
-    const loadProgress = async () => {
-
-      try {
-
-        const result = await getGameProgress("JavaScript");
-
-        setData(result);
-
-        if (result?.completedQuests) {
-
-          setCompletedExercises(new Set(result.completedQuests));
-
-        }
-
-      } catch (err) {
-
-        console.error("Failed to load JS progress", err);
-
+      if (!isAuthenticated) {
+        setCompletedExercises(new Set());
+        setData(null);
+        return;
       }
-
-    };
-
-
-
-    loadProgress();
-
-  }, [isAuthenticated]);
+  
+      const loadProgress = async () => {
+        try {
+          const result = await getGameProgress(3);
+  
+          if (!result) return; // handles 401 returning null
+  
+          setData(result);
+  
+          setCompletedExercises(
+            new Set(result.completedQuests || [])
+          );
+  
+        } catch (err) {
+          console.error("Failed to load game progress", err);
+          setCompletedExercises(new Set());
+        }
+      };
+  
+      loadProgress();
+    }, [isAuthenticated]);
 
 
 

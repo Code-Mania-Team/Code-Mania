@@ -13,6 +13,7 @@ const useGetGameProgress = () => {
           }
         }
       );
+      console.log("✅ Game progress fetched:", response.data);
 
       return response.data; // { completedQuests: [...] }
     } catch (error) {
