@@ -250,7 +250,8 @@ function Admin() {
         <div className={styles.grid}>
           <StatCard title="Total Users" value={metricsLoading ? '…' : (metrics?.totalUsers ?? demo.totalUsers)} />
           <StatCard title="New Users (7 days)" value={metricsLoading ? '…' : (metrics?.newUsers7d ?? demo.newUsers7d)} />
-          <StatCard title="Total Courses Started" value={metricsLoading ? '…' : (metrics?.totalCoursesStarted ?? demo.totalCoursesStarted)} />
+          <StatCard title="New Users (30 days)" value={metricsLoading ? '…' : (metrics?.newUsers30d ?? 0)} />
+          <StatCard title="New Users (1 year)" value={metricsLoading ? '…' : (metrics?.newUsers365d ?? 0)} />
         </div>
 
         <div className={styles.panels}>
@@ -258,7 +259,7 @@ function Admin() {
             <h3 className={styles.panelTitle}>Users Overview</h3>
             <p className={styles.panelSubtitle}>Signups per day</p>
             <div className={styles.divider}>
-              {demo.signupsPerDay.map((d) => (
+              {(metrics?.signupsPerDay?.length ? metrics.signupsPerDay : demo.signupsPerDay).map((d) => (
                 <div key={d.day} className={styles.row}>
                   <div className={styles.day}>{d.day}</div>
                   <div className={styles.track}>

@@ -77,20 +77,31 @@ class AccountController {
             }
             // 🍪 HttpOnly cookie
             // 8. Set cookies
+            const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
+            const cookieSecure = process.env.NODE_ENV === 'production' && !isLocalhost;
+            const cookieSameSite = isLocalhost ? 'lax' : 'strict';
+
             res.cookie('accessToken', accessToken, {
+
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'Strict',
+
+                secure: cookieSecure,
+
+                sameSite: cookieSameSite,
+
                 maxAge: 1 * 60 * 1000, // 1 minute for testing
                 //maxAge: 24 * 60 * 60 * 1000
 
             });
 
             res.cookie('refreshToken', refreshToken, {
+
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                //sameSite: 'lax', 
-                sameSite: 'strict',
+
+                secure: cookieSecure,
+
+                sameSite: cookieSameSite,
+
                 maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
                 //domain: 'localhost' // Explicit domain for cross-origin
 
@@ -196,20 +207,22 @@ class AccountController {
 
 
 
+            const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
+            const cookieSecure = process.env.NODE_ENV === 'production' && !isLocalhost;
+            const cookieSameSite = isLocalhost ? 'lax' : 'strict';
+
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                //sameSite: "lax", // Changed from "strict" to "lax"
-                sameSite: "strict",
+                secure: cookieSecure,
+                sameSite: cookieSameSite,
                 //maxAge: 1 * 60 * 1000, // 1 minute for testing
                 maxAge: 24 * 60 * 60 * 1000
                 });
 
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                //sameSite: "lax", // Changed from "strict" to "lax"
-                sameSite: "strict",
+                secure: cookieSecure,
+                sameSite: cookieSameSite,
                 maxAge: 30 * 24 * 60 * 60 * 1000,
                 //domain: 'localhost' // Explicit domain for cross-origin
             });
