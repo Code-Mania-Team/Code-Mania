@@ -78,7 +78,7 @@ export default class QuestUI {
       this.bodyBaseY,
       "",
       {
-        fontSize: "20px",
+        fontSize: "18px",
         color: "#f5f0d6",
         lineSpacing: 12,
         wordWrap: { width: this.contentWidth }
@@ -207,9 +207,9 @@ export default class QuestUI {
     const panelBottom = this.panelTop + this.panelHeight;
 
     // Example code
-    if (quest.lessonExample) {
+    if (quest.lesson_example) {
       this.codeText
-        .setText(quest.lessonExample)
+        .setText(quest.lesson_example)
         .setVisible(true);
     } else {
       this.codeText.setVisible(false);
