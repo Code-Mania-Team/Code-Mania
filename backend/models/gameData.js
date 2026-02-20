@@ -17,6 +17,7 @@ class GameData {
         )
         `)
         .eq("user_id", user_id)
+        .eq("status", "completed")
         .eq("quests.programming_language_id", programming_language_id);
 
     if (error) throw error;

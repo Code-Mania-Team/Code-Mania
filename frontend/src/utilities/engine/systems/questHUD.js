@@ -12,130 +12,91 @@ export default class QuestUI {
     this.panelTop = 50;
     this.panelWidth = width - 100;
     this.panelHeight = height - 100;
-    this.contentLeft = 80;
-    this.bodyBaseY = 120;
-    this.contentWidth = width - 160;
-    this.padding = 20;
-    this.gap = 16;
+
+    this.titleY = 90;
+    this.bodyBaseY = 130;
+
+    this.scrollbarWidth = 8;
+    this.scrollbarPadding = 14;
+    this.contentLeft = this.panelLeft + 30;
+    this.contentWidth = this.panelWidth - 60 - this.scrollbarWidth - this.scrollbarPadding;
+
+    this.scrollbarX = this.contentLeft + this.contentWidth + this.scrollbarPadding;
+    this.scrollbarMinY = this.bodyBaseY;
+
+    this.panelBottomPad = 20;
+    this.bodyMaskHeight = this.panelHeight - (this.bodyBaseY - this.panelTop) - this.panelBottomPad;
+
     this.bodyScroll = 0;
     this.bodyScrollMax = 0;
+    this._taskBaseY = 0;
+    this._GAP = 16;
 
-    // Scrollbar properties
-    this.scrollbarWidth = 8;
-    this.scrollbarX = this.contentLeft + this.contentWidth - this.scrollbarWidth - 5;
-    this.scrollbarMinY = this.bodyBaseY;
-    this.scrollbarHeight = 0;
-    this.scrollbarY = 0;
-
-    // =========================
     // Container
-    // =========================
     this.container = scene.add.container(0, 0)
       .setDepth(1000)
       .setScrollFactor(0)
       .setVisible(false);
 
-    // =========================
     // Background Panel
-    // =========================
     this.bg = scene.add.graphics();
     this.bg.fillStyle(0x2b1a12, 1);
     this.bg.lineStyle(4, 0x8b5e3c, 1);
-    this.bg.fillRoundedRect(
-      this.panelLeft,
-      this.panelTop,
-      this.panelWidth,
-      this.panelHeight,
-      16
-    );
-    this.bg.strokeRoundedRect(
-      this.panelLeft,
-      this.panelTop,
-      this.panelWidth,
-      this.panelHeight,
-      16
-    );
+    this.bg.fillRoundedRect(this.panelLeft, this.panelTop, this.panelWidth, this.panelHeight, 16);
+    this.bg.strokeRoundedRect(this.panelLeft, this.panelTop, this.panelWidth, this.panelHeight, 16);
 
-    // =========================
-    // Lesson Title
-    // =========================
-    this.titleText = scene.add.text(
-      width / 2,
-      90,
-      "",
-      {
-        fontSize: "32px",
-        color: "#ffd37a",
-        fontStyle: "bold"
-      }
-    ).setOrigin(0.5);
+    // Title
+    this.titleText = scene.add.text(width / 2, this.titleY, "", {
+      fontSize: "32px",
+      color: "#ffd37a",
+      fontStyle: "bold"
+    }).setOrigin(0.5);
 
-    // =========================
-    // Lesson Body (Header + Description)
-    // =========================
-    this.bodyText = scene.add.text(
-      this.contentLeft,
-      this.bodyBaseY,
-      "",
-      {
-        fontSize: "18px",
-        color: "#f5f0d6",
-        lineSpacing: 12,
-        wordWrap: { width: this.contentWidth }
-      }
-    );
+    // Divider
+    this.divider = scene.add.graphics();
+    this.divider.lineStyle(2, 0x8b5e3c, 0.6);
+    this.divider.beginPath();
+    this.divider.moveTo(this.panelLeft + 20, this.bodyBaseY - 8);
+    this.divider.lineTo(this.panelLeft + this.panelWidth - 20, this.bodyBaseY - 8);
+    this.divider.strokePath();
 
-    // =========================
-    // Example Code Block
-    // =========================
-    this.codeText = scene.add.text(
-      this.contentLeft,
-      height - 150,
-      "",
-      {
-        fontFamily: "monospace",
-        fontSize: "18px",
-        color: "#a8ff60",
-        backgroundColor: "#1e1e1e",
-        padding: { left: 12, right: 12, top: 10, bottom: 10 },
-        wordWrap: { width: this.contentWidth }
-      }
-    );
+    // 1. Description — normal readable font, cream colour
+    this.bodyText = scene.add.text(this.contentLeft, this.bodyBaseY, "", {
+      fontFamily: "'Georgia', serif",
+      fontSize: "17px",
+      color: "#f5f0d6",
+      lineSpacing: 8,
+      wordWrap: { width: this.contentWidth }
+    });
 
-    // =========================
-    // Scrollbar Track
-    // =========================
-    this.scrollbarTrack = scene.add.graphics();
-    this.scrollbarTrack.fillStyle(0x4a3426, 0.8);
-    this.scrollbarTrack.fillRoundedRect(
-      this.scrollbarX,
-      this.scrollbarMinY,
-      this.scrollbarWidth,
-      200,
-      4
-    );
+    // 2. task — green challenge block shown at the END of description
+    this.taskText = scene.add.text(this.contentLeft, this.bodyBaseY, "", {
+      fontFamily: "'Courier New', Courier, monospace",
+      fontSize: "15px",
+      color: "#a8ff60",
+      backgroundColor: "#0d2b00",
+      padding: { left: 14, right: 14, top: 12, bottom: 12 },
+      wordWrap: { width: this.contentWidth }
+    }).setVisible(false);
 
-    // =========================
-    // Scrollbar Thumb
-    // =========================
-    this.scrollbarThumb = scene.add.graphics();
-    this.scrollbarThumb.fillStyle(0x8b5e3c, 1);
-    this.scrollbarThumb.fillRoundedRect(
-      this.scrollbarX,
-      this.scrollbarMinY,
-      this.scrollbarWidth,
-      40,
-      4
-    );
-
+    // Mask
     this.bodyMaskGraphics = scene.add.graphics();
     this.bodyMaskGraphics.fillStyle(0xffffff, 1);
-    this.bodyMaskGraphics.fillRect(this.contentLeft, this.bodyBaseY, this.contentWidth, 1);
+    this.bodyMaskGraphics.fillRect(
+      this.contentLeft,
+      this.bodyBaseY,
+      this.contentWidth + this.scrollbarWidth + this.scrollbarPadding + 10,
+      this.bodyMaskHeight
+    );
     this.bodyMaskGraphics.setAlpha(0);
     this.bodyMaskGraphics.setScrollFactor(0);
 
     this.bodyMask = this.bodyMaskGraphics.createGeometryMask();
     this.bodyText.setMask(this.bodyMask);
+    this.taskText.setMask(this.bodyMask);
+
+    this.scrollbarTrack = scene.add.graphics();
+    this.scrollbarThumb = scene.add.graphics();
 
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (!this.visible) return;
@@ -151,125 +112,74 @@ export default class QuestUI {
       if (!insidePanel) return;
 
       this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
-      this.bodyText.y = this.bodyBaseY - this.bodyScroll;
-      
-      // Update scrollbar thumb position
-      this.updateScrollbar();
+      this._applyScroll();
+      this._updateScrollbarThumb();
     };
 
     scene.input.on("wheel", this.onWheel);
 
-    // =========================
-    // Add to container
-    // =========================
     this.container.add([
       this.bg,
+      this.divider,
       this.titleText,
       this.bodyText,
-      this.codeText,
+      this.taskText,
+      this.bodyMaskGraphics,
       this.scrollbarTrack,
       this.scrollbarThumb,
-      this.bodyMaskGraphics
     ]);
   }
 
-  // =========================
-  // Show Quest Lesson
-  // =========================
   showQuest(quest) {
     if (!quest) return;
 
     this.ignoreWheelUntil = this.scene.time.now + 250;
 
-    // 🛑 Pause game when quest HUD appears
     window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
-    
-    // 🚫 Prevent page scrolling when quest HUD is active
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
 
-    // Lesson title
     this.titleText.setText(quest.title || "");
 
-    // Build lesson body
+    // Description only — lesson_example is duplicate of task, skip it
     let body = "";
-
-    if (quest.lessonHeader) {
-      body += quest.lessonHeader + "\n\n";
-    }
-
-    if (quest.description) {
-      body += quest.description;
-    }
-
+    if (quest.lessonHeader) body += quest.lessonHeader + "\n\n";
+    if (quest.description) body += quest.description;
     this.bodyText.setText(body);
 
-    const panelBottom = this.panelTop + this.panelHeight;
-
-    // Example code
-    if (quest.lesson_example) {
-      this.codeText
-        .setText(quest.lesson_example)
-        .setVisible(true);
-    } else {
-      this.codeText.setVisible(false);
-    }
-
+    // Reset
     this.bodyScroll = 0;
-    this.bodyText.x = this.contentLeft;
-    this.bodyText.y = this.bodyBaseY;
+    this.bodyText.setPosition(this.contentLeft, this.bodyBaseY);
+    this.taskText.setVisible(false);
+    this._taskBaseY = 0;
 
-    let codeTop = panelBottom - this.padding;
-    if (this.codeText.visible) {
-      const bodyHeight = this.bodyText.getBounds().height;
-      const desiredCodeY = this.bodyBaseY + bodyHeight + this.gap;
+    // Frame 1: bodyText settles → position taskText right after it
+    this.scene.time.delayedCall(0, () => {
+      const bodyBottom = this.bodyText.y + this.bodyText.height;
 
-      const codeHeight = this.codeText.getBounds().height;
-      const maxCodeY = panelBottom - this.padding - codeHeight;
+      if (quest.task) {
+        this._taskBaseY = bodyBottom + this._GAP;
+        this.taskText
+          .setText(quest.task)
+          .setVisible(true)
+          .setPosition(this.contentLeft, this._taskBaseY);
+      }
 
-      this.codeText.x = this.contentLeft;
-      this.codeText.y = Math.min(desiredCodeY, maxCodeY);
-      codeTop = this.codeText.y;
-    }
+      // Frame 2: taskText settles → compute scroll
+      this.scene.time.delayedCall(0, () => {
+        const totalContentHeight = this._getTotalContentHeight();
+        this.bodyScrollMax = Math.max(0, totalContentHeight - this.bodyMaskHeight);
 
-    const bodyMaskHeight = Math.max(1, codeTop - this.gap - this.bodyBaseY);
+        this._drawScrollbarTrack();
+        this._updateScrollbarThumb();
 
-    this.bodyMaskGraphics.clear();
-    this.bodyMaskGraphics.fillStyle(0xffffff, 1);
-    this.bodyMaskGraphics.fillRect(this.contentLeft, this.bodyBaseY, this.contentWidth, bodyMaskHeight);
-    this.bodyMaskGraphics.setAlpha(0);
+        this.scrollbarTrack.setVisible(this.bodyScrollMax > 0);
+        this.scrollbarThumb.setVisible(this.bodyScrollMax > 0);
+      });
+    });
 
-    this.bodyScrollMax = Math.max(0, this.bodyText.getBounds().height - bodyMaskHeight);
-
-    // Update scrollbar visibility and positioning
-    if (this.bodyScrollMax > 0) {
-      this.scrollbarTrack.setVisible(true);
-      this.scrollbarThumb.setVisible(true);
-      
-      // Update track height to match the scrollable area
-      this.scrollbarTrack.clear();
-      this.scrollbarTrack.fillStyle(0x4a3426, 0.8);
-      this.scrollbarTrack.fillRoundedRect(
-        this.scrollbarX,
-        this.scrollbarMinY,
-        this.scrollbarWidth,
-        bodyMaskHeight,
-        4
-      );
-      
-      // Store the track height for use in updateScrollbar
-      this.scrollbarTrack.height = bodyMaskHeight;
-      
-      this.updateScrollbar();
-    } else {
-      this.scrollbarTrack.setVisible(false);
-      this.scrollbarThumb.setVisible(false);
-    }
-
-    // Animate in
     this.container.setVisible(true);
     this.container.y = -500;
-
     this.scene.tweens.add({
       targets: this.container,
       y: 0,
@@ -280,13 +190,9 @@ export default class QuestUI {
     this.visible = true;
   }
 
-  // =========================
-  // Hide Quest Lesson
-  // =========================
   hide() {
     if (!this.visible) return;
 
-    // ▶ Resume game when quest HUD hides
     window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
 
     this.scene.tweens.add({
@@ -298,10 +204,8 @@ export default class QuestUI {
         this.container.setVisible(false);
         this.visible = false;
         this.bodyScroll = 0;
-        
-        // 🚫 Restore page scrolling when quest HUD is hidden
-        document.body.style.overflow = '';
-        document.documentElement.style.overflow = '';
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
       }
     });
   }
@@ -310,35 +214,42 @@ export default class QuestUI {
     this.visible ? this.hide() : this.showQuest(quest);
   }
 
-  // =========================
-  // Update Scrollbar Position
-  // =========================
-  updateScrollbar() {
+  _getTotalContentHeight() {
+    let bottom = this.bodyText.y + this.bodyText.height;
+    if (this.taskText.visible) bottom = Math.max(bottom, this.taskText.y + this.taskText.height);
+    return bottom - this.bodyBaseY;
+  }
+
+  _applyScroll() {
+    const offset = this.bodyScroll;
+    this.bodyText.y = this.bodyBaseY - offset;
+    if (this.taskText.visible && this._taskBaseY > 0) {
+      this.taskText.y = this._taskBaseY - offset;
+    }
+  }
+
+  _drawScrollbarTrack() {
+    this.scrollbarTrack.clear();
+    this.scrollbarTrack.fillStyle(0x4a3426, 0.8);
+    this.scrollbarTrack.fillRoundedRect(
+      this.scrollbarX, this.scrollbarMinY, this.scrollbarWidth, this.bodyMaskHeight, 4
+    );
+  }
+
+  _updateScrollbarThumb() {
     if (this.bodyScrollMax <= 0) return;
 
-    // Get the actual track height from the showQuest method
-    const trackHeight = this.scrollbarTrack.height || (this.panelHeight - 240);
-    const contentHeight = this.bodyText.getBounds().height;
-    const visibleHeight = trackHeight;
-    
-    // Calculate thumb height based on visible content ratio
-    const thumbHeight = Math.max(30, (visibleHeight / contentHeight) * visibleHeight);
-    
-    // Calculate scroll position (0 to 1)
+    const trackHeight = this.bodyMaskHeight;
+    const totalContentHeight = this._getTotalContentHeight();
+    const thumbHeight = Math.max(30, (trackHeight / totalContentHeight) * trackHeight);
     const scrollRatio = this.bodyScroll / this.bodyScrollMax;
-    
-    // Calculate thumb Y position
-    const maxThumbY = this.scrollbarMinY + trackHeight - thumbHeight;
-    const thumbY = this.scrollbarMinY + (maxThumbY - this.scrollbarMinY) * scrollRatio;
+    const maxThumbOffset = trackHeight - thumbHeight;
+    const thumbY = this.scrollbarMinY + maxThumbOffset * scrollRatio;
 
     this.scrollbarThumb.clear();
     this.scrollbarThumb.fillStyle(0x8b5e3c, 1);
     this.scrollbarThumb.fillRoundedRect(
-      this.scrollbarX,
-      thumbY,
-      this.scrollbarWidth,
-      thumbHeight,
-      4
+      this.scrollbarX, thumbY, this.scrollbarWidth, thumbHeight, 4
     );
   }
 }

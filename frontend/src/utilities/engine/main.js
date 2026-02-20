@@ -36,7 +36,7 @@ export const startGame = ({ exerciseId, quest ,parent, completedQuests = [] }) =
     },
 
     scale: {
-      mode: Phaser.Scale.FIT,        // ✅ SAFE
+      mode: Phaser.Scale.FIT,        
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
 

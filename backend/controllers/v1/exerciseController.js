@@ -430,7 +430,7 @@ class ExerciseController {
         try {
             const { questId, output, code } = req.body;
             const userId = res.locals.user_id;
-            
+
             if (!userId) {
                 return res.status(401).json({
                     success: false,
@@ -447,7 +447,6 @@ class ExerciseController {
 
             // 1️⃣ Get quest
             const quest = await this.exerciseModel.getExerciseById(questId);
-            console.log("Fetched quest for validation:", quest);
 
             if (!quest) {
                 return res.status(404).json({
@@ -456,7 +455,17 @@ class ExerciseController {
                 });
             }
 
-            // 2️⃣ Normalize helper
+            // 2️⃣ Check quest state (must be active)
+            const questState = await this.exerciseModel.getQuestState(userId, questId);
+
+            if (!questState || questState.status !== "active") {
+                return res.status(403).json({
+                    success: false,
+                    message: "You must start this quest first"
+                });
+            }
+
+            // Normalize helper
             const normalize = (text) =>
                 (text ?? "")
                     .toString()
@@ -468,15 +477,75 @@ class ExerciseController {
 
             const actual = normalize(output);
             const expected = normalize(quest.expected_output);
-
-            // 🔥 VALIDATION MODE LOGIC
             const mode = (quest.validation_mode || "").toUpperCase();
 
+            let validationResult = { success: true };
 
-            // =============================
-            // FUNDAMENTALS
-            // =============================
-            if (mode === "FUNDAMENTALS") {
+            // ==================================================
+            // 🧠 MULTI OBJECTIVE MODE
+            // ==================================================
+            if (mode === "MULTI_OBJECTIVE") {
+                const results = {};
+                let allPassed = true;
+
+                const normalizedOutput = normalize(output);
+
+                for (const obj of quest.requirements.objectives) {
+                    let passed = false;
+
+                    if (obj.type === "output_contains") {
+                        passed = normalizedOutput.includes(obj.value);
+                    }
+
+                    else if (obj.type === "output_equals") {
+                        passed = normalizedOutput === obj.value;
+                    }
+
+                    else if (obj.type === "output_regex") {
+                        const regex = new RegExp(obj.value, "m");
+                        passed = regex.test(normalizedOutput);
+                    }
+
+                    else if (obj.type === "code_contains") {
+                        passed = code.includes(obj.value);
+                    }
+
+                    else if (obj.type === "code_regex") {
+                        const regex = new RegExp(obj.value, "m");
+                        passed = regex.test(code);
+                    }
+
+                    else if (obj.type === "min_print_count") {
+                        const matches = code.match(/\bprint\s*\(/g);
+                        const count = matches ? matches.length : 0;
+                        passed = count >= obj.value;
+                    }
+
+                    results[obj.id] = {
+                        passed,
+                        label: obj.label,
+                        expected: obj.value
+                    };
+
+                    if (!passed) allPassed = false;
+                }
+
+
+                if (!allPassed) {
+                    return res.status(200).json({
+                        success: false,
+                        objectives: results
+                    });
+                }
+
+                // Store results for final response
+                validationResult.objectives = results;
+            }
+
+            // ==================================================
+            // 🧱 FUNDAMENTALS MODE
+            // ==================================================
+            else if (mode === "FUNDAMENTALS") {
                 if (quest.requirements?.mustInclude) {
                     const missing = quest.requirements.mustInclude.find(keyword =>
                         !code.includes(keyword)
@@ -491,13 +560,11 @@ class ExerciseController {
                 }
             }
 
+            // ==================================================
+            // 🔥 HYBRID MODE
+            // ==================================================
+            else if (mode === "HYBRID") {
 
-            // =============================
-            // HYBRID
-            // =============================
-            if (mode === "HYBRID") {
-
-                // 1️⃣ Must include check
                 if (quest.requirements?.mustInclude) {
                     const missing = quest.requirements.mustInclude.find(keyword =>
                         !code.includes(keyword)
@@ -511,7 +578,6 @@ class ExerciseController {
                     }
                 }
 
-                // 2️⃣ Output match check
                 if (expected !== actual) {
                     return res.status(200).json({
                         success: false,
@@ -520,18 +586,10 @@ class ExerciseController {
                 }
             }
 
-            // 3️⃣ Check if already completed
-            const alreadyCompleted =
-                await this.exerciseModel.isQuestCompleted(userId, questId);
+            // ==================================================
+            // 🎮 PROGRESSION CHECK
+            // ==================================================
 
-            if (alreadyCompleted) {
-                return res.status(200).json({
-                    success: true,
-                    message: "Already completed"
-                });
-            }
-
-            // 4️⃣ Enforce progression (VERY IMPORTANT)
             const previousQuest =
                 await this.exerciseModel.getPreviousQuest(quest);
 
@@ -547,10 +605,11 @@ class ExerciseController {
                 }
             }
 
-            // 5️⃣ Mark as completed
-            await this.exerciseModel.markQuestComplete(userId, questId);
+            // ==================================================
+            // 🏆 MARK COMPLETE
+            // ==================================================
 
-            // 6️⃣ Add XP
+            await this.exerciseModel.markQuestComplete(userId, questId);
             await this.exerciseModel.addXp(userId, quest.experience);
 
             if (quest.achievements_id) {
@@ -563,7 +622,8 @@ class ExerciseController {
             return res.status(200).json({
                 success: true,
                 message: "Quest completed",
-                xp: quest.experience
+                xp: quest.experience,
+                objectives: validationResult.objectives || null
             });
 
         } catch (error) {
@@ -574,6 +634,27 @@ class ExerciseController {
             });
         }
     }
+
+
+    async startExercise(req, res) {
+        try {
+            const userId = res.locals.user_id;
+            const { questId } = req.body;
+
+            if (!userId)
+                return res.status(401).json({ success: false });
+
+            await this.exerciseModel.startQuest(userId, questId);
+
+            return res.status(200).json({ success: true });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ success: false });
+        }
+    }
+
+
 
 }
 

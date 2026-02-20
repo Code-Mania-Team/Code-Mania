@@ -328,6 +328,12 @@ const CppExercise = () => {
 
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
 
+      if (window.game) {
+        window.game.sound?.stopAll();
+        window.game.destroy(true);
+        window.game = null;
+      }
+
     };
 
   }, [activeExercise, dbCompletedQuests]);
