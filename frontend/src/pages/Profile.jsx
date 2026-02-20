@@ -191,7 +191,7 @@ const Profile = ({ onSignOut }) => {
 
         const displayUsername = nextUsername ? `@${nextUsername}` : prev.username;
 
-        const displayFullName = nextFullName || prev.userName;
+        const displayFullName = nextFullName;
 
         const nextIcon =
 

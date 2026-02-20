@@ -226,8 +226,6 @@ const CppCourse = () => {
       loadProgress();
     }, [isAuthenticated]);
 
-
-
   /* ===============================
 
      HELPERS
@@ -248,7 +246,7 @@ const CppCourse = () => {
 
 
 
-    return "locked";
+    return "available";
 
   };
 

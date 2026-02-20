@@ -1,4 +1,3 @@
-import nodemailer from "nodemailer";
 import path from "path";
 
 const crownPath = path.resolve(process.cwd(), "public", "crown.png");
@@ -255,32 +254,52 @@ function resetTemplate(otp) {
  * Send OTP email
  */
 export async function sendOtpEmail({ toEmail, otp, type }) {
-  const transporter = nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.BREVO_USER,
-      pass: process.env.BREVO_PASS
-    }
-  });
-
   let template;
-  if (type === "signup") template = signupTemplate(otp);
-  else if (type === "reset") template = resetTemplate(otp);
-  else throw new Error("Invalid OTP type");
 
-  return transporter.sendMail({
-    from: `"Code Mania" <maniacode08@gmail.com>`,
-    to: toEmail,
-    subject: template.subject,
-    html: template.html,
-    attachments: [
-      {
-        filename: "crown.png",
-        path: crownPath,
-        cid: "crown"
-      }
-    ]
-  });
+  if (type === "signup") {
+    template = signupTemplate(otp);
+  } else if (type === "reset") {
+    template = resetTemplate(otp);
+  } else {
+    throw new Error("Invalid OTP type");
+  }
+
+  try {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "Code Mania",
+          email: "maniacode08@gmail.com" // MUST be verified in Brevo
+        },
+        to: [
+          {
+            email: toEmail
+          }
+        ],
+        subject: template.subject,
+        htmlContent: template.html
+      })
+    });
+    console.log("Brevo API response status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Brevo API Error:", errorText);
+      throw new Error("Failed to send email");
+    }
+
+    const result = await response.json();
+    console.log("Email sent successfully:", result);
+
+    return result;
+
+  } catch (error) {
+    console.error("Email sending failed:", error);
+    throw new Error("Email service failed");
+  }
 }
