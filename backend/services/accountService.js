@@ -150,19 +150,44 @@ class AccountService {
 
 
 
-        const { data: xpEvents, error: xpError } = await supabase
-            .from("user_xp_events")
-            .select("xp")
+        const { data: completedQuests, error: questError } = await supabase
+            .from("users_game_data")
+            .select(
+                `
+                exercise_id,
+                quests (
+                    experience
+                )
+                `
+            )
             .eq("user_id", user_id);
 
-        if (xpError) {
-            throw xpError;
+        if (questError) {
+            throw questError;
         }
 
-        const totalXp = (xpEvents || []).reduce(
-            (sum, row) => sum + (row?.xp || 0),
+        const questXpTotal = (completedQuests || []).reduce(
+            (sum, row) => sum + (row?.quests?.experience || 0),
             0
         );
+
+
+
+        const { data: quizAttempts, error: quizError } = await supabase
+            .from("user_quiz_attempts")
+            .select("earned_xp")
+            .eq("user_id", user_id);
+
+        if (quizError) {
+            throw quizError;
+        }
+
+        const quizXpTotal = (quizAttempts || []).reduce(
+            (sum, row) => sum + (row?.earned_xp || 0),
+            0
+        );
+
+        const totalXp = questXpTotal + quizXpTotal;
 
 
 
@@ -174,7 +199,7 @@ class AccountService {
 
         return {
 
-            totalXp,
+            totalXp: questXpTotal + quizXpTotal,
 
             badgeCount
 
