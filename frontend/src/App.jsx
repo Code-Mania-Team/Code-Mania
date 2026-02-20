@@ -252,7 +252,8 @@ function App() {
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard" ||
     location.pathname.startsWith("/quiz") ||
-    location.pathname.startsWith("/coding-exam");
+    location.pathname.startsWith("/coding-exam") ||
+    location.pathname.startsWith("/exam");
 
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" || 
@@ -298,6 +299,7 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/coding-exam/:language" element={<CodingExamPage />} />
+          <Route path="/exam/:language" element={<CodingExamPage />} />
           <Route path="/quiz/:language/:quizId" element={<QuizPage />} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />

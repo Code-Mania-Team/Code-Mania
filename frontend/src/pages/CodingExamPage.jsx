@@ -21,7 +21,7 @@ const CodingExamPage = () => {
   const languageBackgrounds = {
     python: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/python_gclhhq.gif",
     javascript: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/javascript_uenmcw.gif",
-    cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/cpp_your_cpp_gif.gif"
+    cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1771565944/Cpp_nvtgy7.gif"
   };
 
   const heroBackground = languageBackgrounds[language] || languageBackgrounds.python;
