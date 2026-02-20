@@ -330,7 +330,9 @@ const CppCourse = () => {
 
     xpEarned: data?.xpEarned || 0,
 
-    totalXp: 2600,
+    availableQuiz: data?.availableQuiz || 0,
+
+    totalQuiz: 4,
 
   };
 
@@ -365,12 +367,6 @@ const CppCourse = () => {
             Build high-performance applications with C++.
 
           </p>
-
-          <button className="start-learning-btn">
-
-            Start Learning for Free
-
-          </button>
 
         </div>
 
@@ -557,11 +553,6 @@ const CppCourse = () => {
 
 
         <div className="sidebar">
-
-          <ProfileCard onSignInRequired={() => setIsModalOpen(true)} />
-
-
-
           <div className="progress-card">
 
             <h4 className="progress-title">Course Progress</h4>
@@ -602,9 +593,25 @@ const CppCourse = () => {
 
               <span className="progress-value">
 
-                {userProgress.xpEarned} /
+                {userProgress.xpEarned}
 
-                {userProgress.totalXp}
+              </span>
+
+            </div>
+
+            <div className="progress-item">
+
+              <div className="progress-label">
+
+                <div className="progress-icon exercises"></div>
+
+                <span>Total Quiz</span>
+
+              </div>
+
+              <span className="progress-value">
+
+                {userProgress.availableQuiz} / {userProgress.totalQuiz}
 
               </span>
 

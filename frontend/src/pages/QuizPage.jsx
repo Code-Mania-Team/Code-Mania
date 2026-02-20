@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useQuiz } from "../hooks/useQuiz";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
 import styles from "../styles/QuizPage.module.css";
 
@@ -9,7 +10,9 @@ const QuizPage = () => {
   const navigate = useNavigate();
   const { language, quizId } = useParams();
 
-  const { quizData, loading, error } = useQuiz(language, quizId);
+  const { quizData, loading } = useQuiz(language, quizId);
+  const axiosPrivate = useAxiosPrivate();
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -29,6 +32,9 @@ const QuizPage = () => {
   const heroBackground =
     languageBackgrounds[language] || languageBackgrounds.python;
 
+  /* ---------------------------------
+     Initialize Quiz
+  ----------------------------------- */
   useEffect(() => {
     if (quizData && quizData.questions) {
       setAnswers(new Array(quizData.questions.length).fill(null));
@@ -64,6 +70,7 @@ const QuizPage = () => {
 
     const correctIndex =
       Number(quizData.questions[currentQuestion].correctanswer) - 1;
+
     const isCorrect = answerIndex === correctIndex;
 
     const newAnswers = [...answers];
@@ -103,6 +110,33 @@ const QuizPage = () => {
     };
   };
 
+  /* ---------------------------------
+     Submit Quiz + Store XP
+  ----------------------------------- */
+  useEffect(() => {
+    if (!quizCompleted || !quizData) return;
+
+    const submitQuiz = async () => {
+      try {
+        const score = calculateScore();
+
+        await axiosPrivate.post(
+          `/v1/quizzes/${language}/${quizId}/complete`,
+          {
+            score_percentage: score.percentage,
+            total_correct: score.correct,
+            total_questions: score.total,
+            earned_xp: score.totalExp,
+          }
+        );
+      } catch (err) {
+        console.error("Quiz submission failed:", err);
+      }
+    };
+
+    submitQuiz();
+  }, [quizCompleted]);
+
   const handleReturnToCourse = () => {
     navigate(`/learn/${language}`);
   };
@@ -112,21 +146,27 @@ const QuizPage = () => {
   if (!Array.isArray(quizData?.questions) || quizData.questions.length === 0) {
     return (
       <div className={styles.page}>
-        <AuthLoadingOverlay />
         <div
           className={styles.hero}
           style={{ backgroundImage: `url(${heroBackground})` }}
         >
           <div className={styles.heroContent}>
             <div className={styles.heroContentInner}>
-              <h1 className={styles.heroTitle}>{quizData.quiz_title}</h1>
-              <p className={styles.heroDescription}>No questions found for this quiz.</p>
+              <h1 className={styles.heroTitle}>
+                {quizData?.quiz_title}
+              </h1>
+              <p className={styles.heroDescription}>
+                No questions found for this quiz.
+              </p>
             </div>
           </div>
         </div>
 
         <div className={styles.section}>
-          <button className={styles.actionButton} onClick={handleReturnToCourse}>
+          <button
+            className={styles.actionButton}
+            onClick={handleReturnToCourse}
+          >
             Back to Course
           </button>
         </div>
@@ -153,7 +193,9 @@ const QuizPage = () => {
         >
           <div className={styles.heroContent}>
             <div className={styles.resultsContainer}>
-              <h1 className={styles.resultsTitle}>Quiz Completed!</h1>
+              <h1 className={styles.resultsTitle}>
+                Quiz Completed!
+              </h1>
 
               <div className={styles.scoreDisplay}>
                 <div className={styles.percentage}>
@@ -188,15 +230,12 @@ const QuizPage = () => {
     );
   }
 
-  const question = quizData.questions[currentQuestion];
-  if (!question) {
-    return <div>Loading...</div>;
-  }
-  const correctIndex = Number(question?.correctanswer) - 1;
-
   /* ---------------------------------
      Quiz UI
   ----------------------------------- */
+  const question = quizData.questions[currentQuestion];
+  const correctIndex = Number(question.correctanswer) - 1;
+
   return (
     <div className={styles.page}>
       <div
@@ -232,7 +271,7 @@ const QuizPage = () => {
           </p>
 
           <div className={styles.optionsContainer}>
-            {(question.options || []).map((option, index) => (
+            {question.options.map((option, index) => (
               <div
                 key={index}
                 className={`${styles.option} ${
@@ -258,10 +297,7 @@ const QuizPage = () => {
 
                 {showFeedback && index === correctIndex && (
                   <CheckCircle
-                    style={{
-                      color: "#10b981",
-                      marginLeft: "auto",
-                    }}
+                    style={{ color: "#10b981", marginLeft: "auto" }}
                   />
                 )}
 
@@ -269,10 +305,7 @@ const QuizPage = () => {
                   selectedAnswer === index &&
                   index !== correctIndex && (
                     <XCircle
-                      style={{
-                        color: "#ef4444",
-                        marginLeft: "auto",
-                      }}
+                      style={{ color: "#ef4444", marginLeft: "auto" }}
                     />
                   )}
               </div>

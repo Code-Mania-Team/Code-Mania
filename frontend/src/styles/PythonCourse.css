@@ -478,3 +478,8 @@
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
+
+/* Total Quiz Progress Item - Purple Color */
+.python-course-page .progress-item:nth-child(2) .progress-icon {
+  background: linear-gradient(135deg, #9333ea, #a855f7);
+}

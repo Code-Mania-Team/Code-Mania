@@ -119,7 +119,9 @@ const JavaScriptCourse = () => {
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: data?.xpEarned || 0,
-    totalXp: 2600
+    totalXp: 2600,
+    availableQuiz: data?.availableQuiz || 0,
+    totalQuiz: 4,
   };
 
   const handleStartExercise = (exerciseId) => {
@@ -170,7 +172,6 @@ const JavaScriptCourse = () => {
           <p className="javascript-hero-description">
             Create interactive web experiences with JavaScript. Learn DOM manipulation, events, and modern ES6+ features.
           </p>
-          <button className="start-learning-btn">Start Learning for Free</button>
         </div>
       </section>
 
@@ -270,17 +271,6 @@ const JavaScriptCourse = () => {
 
         {/* Sidebar */}
         <div className="sidebar">
-          <div className="profile-card">
-            <div className="profile-avatar">
-              <img src={characterIcon} alt="Profile" />
-            </div>
-            <div className="profile-info">
-              <h4>{userProgress.name}</h4>
-              <p>Level {userProgress.level}</p>
-            </div>
-            <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
-          </div>
-
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
             
@@ -300,7 +290,17 @@ const JavaScriptCourse = () => {
                 <span>XP Earned</span>
               </div>
               <span className="progress-value">
-                {userProgress.xpEarned} / {userProgress.totalXp}
+                {userProgress.xpEarned}
+              </span>
+            </div>
+
+            <div className="progress-item">
+              <div className="progress-label">
+                <div className="progress-icon exercises"></div>
+                <span>Total Quiz</span>
+              </div>
+              <span className="progress-value">
+                {userProgress.availableQuiz} / {userProgress.totalQuiz}
               </span>
             </div>
           </div>
