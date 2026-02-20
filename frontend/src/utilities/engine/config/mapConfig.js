@@ -455,6 +455,7 @@ export const MAPS = {
         { name: "univ_wall", key: "univ_wall", image: "/assets/tilesets/Cpp/univ_wall.png" },
         { name: "MordernOuter_Outdoor", key: "MordernOuter_Outdoor", image: "/assets/tilesets/Cpp/MordernOuter_Outdoor.png" },
         { name: "BlackCom_Inside_B", key: "BlackCom_Inside_B", image: "/assets/tilesets/Cpp/BlackCom_Inside_B.png" }
+        ,{name: "cyber_B", key: "cyber_B", image: "/assets/tilesets/Cpp/cyber_B.png" }
       ],
       nextMap: "map5"
     },

@@ -246,7 +246,7 @@ const CppCourse = () => {
 
 
 
-    return "locked";
+    return "available";
 
   };
 
