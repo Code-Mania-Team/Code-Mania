@@ -243,6 +243,24 @@ const PythonCourse = () => {
                       );
                     })}
 
+                    {module.id !== 5 && (
+                      <div className="exercise-item available">
+                        <div className="exercise-info">
+                          <span className="exercise-number">QUIZ</span>
+                          <span className="exercise-name">Take Quiz</span>
+                        </div>
+
+                        <div className="exercise-status">
+                          <button
+                            className="start-btn"
+                            onClick={() => navigate(`/quiz/python/${module.id}`)}
+                          >
+                            Start
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               )}
