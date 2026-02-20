@@ -35,7 +35,7 @@
         }, 
         {
          "data":[1595, 1595, 1595, 1595, 1595, 1595, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 3729, 3730, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 104, 103, 103, 104, 103, 104,
@@ -74,10 +74,10 @@
             0, 0, 0, 0, 0, 0, 0, 0, 1595, 0, 0, 0, 0, 1595, 0, 0, 0, 0, 0, 0,
             0, 382, 0, 0, 0, 0, 0, 0, 1595, 119, 0, 0, 120, 1595, 0, 0, 0, 0, 0, 0,
             1595, 398, 0, 0, 382, 0, 0, 0, 0, 135, 0, 0, 136, 0, 0, 0, 0, 0, 0, 0,
-            1595, 1595, 1595, 1595, 398, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0,
-            1595, 1595, 1595, 1595, 1595, 1595, 0, 0, 0, 119, 0, 0, 0, 0, 28, 0, 0, 0, 0, 0,
+            1594, 1595, 1595, 1595, 398, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0,
+            1594, 1594, 1594, 1594, 1594, 1594, 0, 0, 0, 119, 0, 0, 0, 0, 28, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 135, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0,
-            1586, 1586, 1586, 1586, 1586, 1669, 1669, 0, 113, 114, 0, 0, 120, 0, 28, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 113, 114, 0, 0, 120, 0, 28, 0, 0, 0, 0, 0,
             2609, 2610, 1638, 2609, 2610, 1638, 1638, 0, 129, 0, 0, 0, 136, 0, 12, 0, 0, 0, 0, 0,
             2625, 2626, 0, 2625, 2626, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0,
@@ -190,6 +190,52 @@
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
+         "tiles":[
+                {
+                 "id":102,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":103,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":196,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":197,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":198,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":48
         }, 
         {
@@ -203,6 +249,115 @@
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
+         "tiles":[
+                {
+                 "id":122,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":123,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":124,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":125,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":133,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":138,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":139,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":140,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":141,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":149,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":157,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":165,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":48
         }, 
         {
@@ -216,6 +371,169 @@
          "spacing":0,
          "tilecount":192,
          "tileheight":48,
+         "tiles":[
+                {
+                 "id":52,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":53,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":68,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":69,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":84,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":85,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":96,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":97,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":112,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":113,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":128,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":129,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":144,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":145,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":160,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":161,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":176,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":177,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":48
         }, 
         {
@@ -281,6 +599,16 @@
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
+         "tiles":[
+                {
+                 "id":9,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":48
         }, 
         {
@@ -294,6 +622,16 @@
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
+         "tiles":[
+                {
+                 "id":235,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":48
         }, 
         {
@@ -333,6 +671,25 @@
          "spacing":0,
          "tilecount":256,
          "tileheight":48,
+         "tiles":[
+                {
+                 "id":128,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":129,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":48
         }, 
         {
@@ -384,6 +741,32 @@
          "name":"ModernCity_A4_Night_High",
          "spacing":0,
          "tilecount":240,
+         "tileheight":48,
+         "tilewidth":48
+        }, 
+        {
+         "columns":16,
+         "firstgid":3729,
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_D2.png",
+         "imageheight":768,
+         "imagewidth":768,
+         "margin":0,
+         "name":"SP_Outside_D2",
+         "spacing":0,
+         "tilecount":256,
+         "tileheight":48,
+         "tilewidth":48
+        }, 
+        {
+         "columns":16,
+         "firstgid":3985,
+         "image":"..\/..\/tilesets\/Cpp\/SP_Outside_B.png",
+         "imageheight":768,
+         "imagewidth":768,
+         "margin":0,
+         "name":"SP_Outside_B",
+         "spacing":0,
+         "tilecount":256,
          "tileheight":48,
          "tilewidth":48
         }],
