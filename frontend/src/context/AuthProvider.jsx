@@ -11,29 +11,52 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
+    const setSignedOut = () => {
+      if (!mounted) return;
+      setUser(null);
+      setIsAuthenticated(false);
+    };
+
+    const applyProfile = (profile) => {
+      if (!mounted) return;
+      if (profile?.user_id) {
+        setUser(profile);
+        setIsAuthenticated(true);
+      } else {
+        setSignedOut();
+      }
+    };
+
+    const fetchProfile = async () => {
+      const response = await axiosPrivate.get("/v1/account");
+      if (response?.data?.success) {
+        return response.data.data;
+      }
+      return null;
+    };
+
     const checkAuth = async () => {
       try {
-        const response = await axiosPrivate.get("/v1/account");
-        if (mounted && response?.data?.success) {
-          const profile = response.data.data;
-          if (profile?.user_id) {
-            
-            setUser(profile);
-            setIsAuthenticated(true);
-          } else {
-            setUser(null);
-            setIsAuthenticated(false);
-          }
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
+        const profile = await fetchProfile();
+        applyProfile(profile);
       } catch (error) {
-        console.log("Auth check failed:", error.response?.status);
-        if (mounted) {
-          setUser(null);
-          setIsAuthenticated(false);
+        const status = error?.response?.status;
+
+        if (status === 401) {
+          try {
+            const refreshRes = await axiosPrivate.get("/v1/refresh");
+            if (refreshRes?.data?.accessToken) {
+              const profile = await fetchProfile();
+              applyProfile(profile);
+              return;
+            }
+          } catch {
+            // ignore and sign out below
+          }
         }
+
+        console.log("Auth check failed:", status);
+        setSignedOut();
       } finally {
         if (mounted) setIsLoading(false);
       }

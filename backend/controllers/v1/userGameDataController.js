@@ -1,4 +1,5 @@
 import GameDataService from "../../services/gameDataService.js";
+import { supabase } from "../../core/supabaseClient.js";
 
 class UserGameDataController {
     constructor() {
@@ -35,13 +36,35 @@ class UserGameDataController {
         );
         console.log("Fetched learning data:", rows);
 
+        const { data: quizRows } = await supabase
+            .from("user_quiz_attempts")
+            .select(`
+              id,
+              earned_xp,
+              quizzes!inner (
+                programming_language_id
+              )
+            `)
+            .eq("user_id", user_id)
+            .eq("quizzes.programming_language_id", programming_language_id);
+
+        const questXpEarned = rows.reduce(
+            (sum, r) => sum + (r.quests?.experience || 0),
+            0
+        );
+
+        const quizXpEarned = (quizRows || []).reduce(
+            (sum, row) => sum + Number(row?.earned_xp || 0),
+            0
+        );
+
         return res.status(200).json({
             success: true,
             completedQuests: rows.map(r => r.exercise_id),
-            xpEarned: rows.reduce(
-            (sum, r) => sum + (r.quests?.experience || 0),
-            0
-            ),
+            xpEarned: questXpEarned + quizXpEarned,
+            questXpEarned,
+            quizXpEarned,
+            availableQuiz: (quizRows || []).length,
             quests: rows.map(r => ({
             id: r.exercise_id,
             xp: r.quests?.experience || 0

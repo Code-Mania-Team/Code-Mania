@@ -76,14 +76,11 @@ const CppCourse = () => {
         ];
 
         exercises.forEach((exercise) => {
-          if (exercise.id >= 17 && exercise.id <= 20)
-            groupedModules[0].exercises.push(exercise);
-          else if (exercise.id >= 21 && exercise.id <= 24)
-            groupedModules[1].exercises.push(exercise);
-          else if (exercise.id >= 25 && exercise.id <= 28)
-            groupedModules[2].exercises.push(exercise);
-          else if (exercise.id >= 29 && exercise.id <= 32)
-            groupedModules[3].exercises.push(exercise);
+          const order = Number(exercise.order_index || 0);
+          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
         });
 
         setModules(groupedModules);
@@ -144,7 +141,7 @@ const CppCourse = () => {
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
     
-    const allExercisesCompleted = module.exercises.every(exercise => 
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
       completedExercises.has(exercise.id)
     );
     
@@ -187,9 +184,13 @@ const CppCourse = () => {
     return <Circle className="status-icon available" />;
   };
 
+  const totalExercises = modules
+    .filter((module) => module.id !== 5)
+    .reduce((sum, module) => sum + module.exercises.length, 0);
+
   const userProgress = {
     exercisesCompleted: data?.completedQuests?.length || 0,
-    totalExercises: 16,
+    totalExercises,
     xpEarned: data?.xpEarned || 0,
     availableQuiz: data?.availableQuiz || 0,
     totalQuiz: 4,

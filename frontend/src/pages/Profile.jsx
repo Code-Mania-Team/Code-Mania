@@ -18,6 +18,12 @@ import { useEditAccount } from '../services/editAccount';
 
 import useGetProfile from '../services/getProfile';
 
+import useProfileSummary from '../services/useProfileSummary';
+
+import useLearningProgress from '../services/useLearningProgress';
+
+import useGetAchievements from '../services/getUserAchievements';
+
 // Character icons from Cloudinary
 
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -660,119 +666,44 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  const [learningProgress] = useState({
+  const { totalXp, badgeCount } = useProfileSummary();
 
+  const { progress: learningProgressRows } = useLearningProgress();
 
+  const { achievements } = useGetAchievements();
 
-    python: { progress: 0, total: 100, icon: <Terminal size={20} /> },
+  const learningProgress = {
+    python: { progress: 0, total: 0, icon: <Terminal size={20} /> },
+    cpp: { progress: 0, total: 0, icon: <Code size={20} /> },
+    javascript: { progress: 0, total: 0, icon: <FileCode2 size={20} /> },
+  };
 
+  (learningProgressRows || []).forEach((row) => {
+    const languageId = Number(row?.programming_language_id);
+    const languageById = {
+      1: 'python',
+      2: 'cpp',
+      3: 'javascript',
+    };
 
+    const languageKey = languageById[languageId];
+    if (!languageKey || !learningProgress[languageKey]) return;
 
-    cpp: { progress: 0, total: 100, icon: <Code size={20} /> },
-
-
-
-    javascript: { progress: 0, total: 100, icon: <FileCode2 size={20} /> }
-
-
-
+    learningProgress[languageKey] = {
+      ...learningProgress[languageKey],
+      progress: Number(row?.percentage || 0),
+      total: Number(row?.total || 0),
+      completed: Number(row?.completed || 0),
+    };
   });
 
-
-
-
-
-
-
-  const [badges] = useState(() => {
-
-
-
-    const earnedRaw = localStorage.getItem('earnedAchievements') || '[]';
-
-
-
-    let earned;
-
-
-
-    try {
-
-
-
-      earned = JSON.parse(earnedRaw);
-
-
-
-    } catch {
-
-
-
-      earned = [];
-
-
-
-    }
-
-
-
-
-
-
-
-    const earnedById = new Map(
-
-
-
-      (earned || []).map(e => [e?.id, e?.received])
-
-
-
-    );
-
-
-
-
-
-
-
-    return (achievementsConfig || [])
-
-
-
-      .filter(a => earnedById.has(a.id)) // Only show earned achievements
-
-
-
-      .map(a => ({
-
-
-
-        id: a.id,
-
-
-
-        title: a.title,
-
-
-
-        description: a.description,
-
-
-
-        received: earnedById.get(a.id) ? new Date(earnedById.get(a.id)).toLocaleString() : 'Locked',
-
-
-
-        badgeKey: a.badgeKey,
-
-
-
-      }));
-
-
-
-  });
+  const badges = (achievements || []).map((item) => ({
+    id: item?.id,
+    title: item?.title || 'Achievement',
+    description: item?.description || '',
+    received: item?.earned_at ? new Date(item.earned_at).toLocaleString() : 'Locked',
+    badgeKey: item?.badge_key,
+  }));
 
 
 
@@ -1958,7 +1889,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <div className={styles.sidebarCardStatValue}>0</div>
+              <div className={styles.sidebarCardStatValue}>{totalXp || 0}</div>
 
 
 
@@ -1974,7 +1905,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <div className={styles.sidebarCardStatValue}>0</div>
+              <div className={styles.sidebarCardStatValue}>{badgeCount || badges.length || 0}</div>
 
 
 

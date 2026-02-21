@@ -42,14 +42,11 @@ const JavaScriptCourse = () => {
       ];
 
       exercises.forEach((exercise) => {
-        if (exercise.id >= 33 && exercise.id <= 36)
-          groupedModules[0].exercises.push(exercise);
-        else if (exercise.id >= 37 && exercise.id <= 40)
-          groupedModules[1].exercises.push(exercise);
-        else if (exercise.id >= 41 && exercise.id <= 44)
-          groupedModules[2].exercises.push(exercise);
-        else if (exercise.id >= 45 && exercise.id <= 48)
-          groupedModules[3].exercises.push(exercise);
+        const order = Number(exercise.order_index || 0);
+        if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+        else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+        else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+        else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
       });
 
       setModules(groupedModules);
@@ -100,7 +97,7 @@ const JavaScriptCourse = () => {
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
     
-    const allExercisesCompleted = module.exercises.every(exercise => 
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
       completedExercises.has(exercise.id)
     );
     
@@ -123,11 +120,15 @@ const JavaScriptCourse = () => {
     }
   };
 
+  const totalExercises = modules
+    .filter((module) => module.id !== 5)
+    .reduce((sum, module) => sum + module.exercises.length, 0);
+
   const userProgress = {
     name: user?.full_name || "Guest",
     level: 1,
     exercisesCompleted: data?.completedQuests?.length || 0,
-    totalExercises: 16,
+    totalExercises,
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: data?.xpEarned || 0,
