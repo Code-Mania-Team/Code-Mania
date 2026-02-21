@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
+import useAuth from "../hooks/useAxios";
 import { BarChart3, Database } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
 
 function Admin() {
   const navigate = useNavigate();
+  const { setUser, setIsAuthenticated } = useAuth();
   const [status, setStatus] = useState("loading");
   const [profile, setProfile] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -217,10 +219,15 @@ function Admin() {
           setProfile(p);
           const ok = res?.data?.success === true;
           if (!ok || !p?.user_id) {
+            setUser(null);
+            setIsAuthenticated(false);
             setIsAdmin(false);
             setStatus("unauthenticated");
             return;
           }
+
+          setUser(p);
+          setIsAuthenticated(true);
 
           const allowed = p?.role === "admin";
           setIsAdmin(allowed);
@@ -345,8 +352,8 @@ function Admin() {
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>Course Analytics</h3>
             <p className={styles.panelSubtitle}>Starts per course</p>
-            <div className={styles.divider}>
-              {demo.courseStarts.map((c) => (
+              <div className={styles.divider}>
+              {(metrics?.courseStarts?.length ? metrics.courseStarts : demo.courseStarts).map((c) => (
                 <div key={c.name} className={styles.courseRow}>
                   <div className={styles.courseName}>{c.name}</div>
                   <div className={styles.courseMeta}>{c.started} started</div>

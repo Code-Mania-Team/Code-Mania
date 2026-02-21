@@ -96,22 +96,63 @@ router.get('/admin-summary', async (req, res) => {
       return res.status(500).json({ success: false, message: newUsers365dError.message });
     }
 
-    // Interpreting "Total Courses Started" as unique (user_id, programming_language) pairs recorded in users_game_data
-    // This is best-effort: if the table/columns don't exist or RLS blocks it, we still return user counts.
+    // Interpreting "Total Courses Started" as unique (user_id, language) pairs recorded in users_game_data.
+    // Also return per-course breakdown for admin UI.
     let totalCoursesStarted = 0;
+    const courseStartsMap = new Map([
+      ['Python', 0],
+      ['JavaScript', 0],
+      ['C++', 0],
+    ]);
+
+    const normalizeLanguageName = (raw) => {
+      const value = String(raw || '').trim().toLowerCase();
+      if (value === 'python' || value === '1') return 'Python';
+      if (value === 'javascript' || value === 'js' || value === '3') return 'JavaScript';
+      if (value === 'cpp' || value === 'c++' || value === '2') return 'C++';
+      return null;
+    };
+
     const { data: courseStartsRows, error: courseStartsError } = await supabase
       .from('users_game_data')
-      .select('user_id, programming_language');
+      .select(`
+        user_id,
+        programming_language,
+        quests (
+          programming_languages (
+            name,
+            slug
+          )
+        )
+      `);
 
     if (courseStartsError) {
       console.error('metrics admin-summary: users_game_data query failed:', courseStartsError);
     } else {
-      totalCoursesStarted = new Set(
-        (courseStartsRows || [])
-          .filter((r) => r?.user_id != null && r?.programming_language)
-          .map((r) => `${r.user_id}:${r.programming_language}`)
-      ).size;
+      const uniqueStarts = new Set();
+
+      (courseStartsRows || []).forEach((row) => {
+        const joinedLanguage = row?.quests?.programming_languages?.name || row?.quests?.programming_languages?.slug;
+        const directLanguage = row?.programming_language;
+        const normalized = normalizeLanguageName(joinedLanguage || directLanguage);
+
+        if (row?.user_id == null || !normalized) return;
+
+        const pairKey = `${row.user_id}:${normalized}`;
+        if (uniqueStarts.has(pairKey)) return;
+
+        uniqueStarts.add(pairKey);
+        courseStartsMap.set(normalized, (courseStartsMap.get(normalized) || 0) + 1);
+      });
+
+      totalCoursesStarted = uniqueStarts.size;
     }
+
+    const courseStarts = [
+      { name: 'Python', started: courseStartsMap.get('Python') || 0 },
+      { name: 'JavaScript', started: courseStartsMap.get('JavaScript') || 0 },
+      { name: 'C++', started: courseStartsMap.get('C++') || 0 },
+    ];
 
     return res.json({
       success: true,
@@ -121,6 +162,7 @@ router.get('/admin-summary', async (req, res) => {
         newUsers30d: newUsers30d || 0,
         newUsers365d: newUsers365d || 0,
         totalCoursesStarted: totalCoursesStarted || 0,
+        courseStarts,
         signupsPerDay,
       },
     });

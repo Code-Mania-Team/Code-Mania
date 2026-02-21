@@ -216,6 +216,27 @@ const Dashboard = ({ onSignOut }) => {
 
         const displayName = profile?.username || profile?.full_name || 'User';
 
+        const nextCharacterId =
+          profile?.character_id === null || profile?.character_id === undefined
+            ? null
+            : Number(profile.character_id);
+
+        if (nextCharacterId !== null && !Number.isNaN(nextCharacterId)) {
+          const expectedIcon = iconByCharacterId[nextCharacterId] || null;
+
+          localStorage.setItem('selectedCharacter', String(nextCharacterId));
+
+          if (expectedIcon) {
+            localStorage.setItem('selectedCharacterIcon', expectedIcon);
+            setCharacterIcon(expectedIcon);
+          } else {
+            localStorage.removeItem('selectedCharacterIcon');
+            setCharacterIcon(null);
+          }
+
+          window.dispatchEvent(new CustomEvent('characterUpdated'));
+        }
+
         setUserStats(prev => ({
           ...prev,
           name: displayName,
