@@ -18,6 +18,21 @@ print("Your code here")`,
           description: "Should print 'Hello, World!'",
           input: "",
           expectedOutput: "Hello, World!"
+        },
+        {
+          description: "Should handle exact string matching",
+          input: "",
+          expectedOutput: "Hello, World!"
+        },
+        {
+          description: "Should not print extra spaces",
+          input: "",
+          expectedOutput: "Hello, World!"
+        },
+        {
+          description: "Should handle case sensitivity",
+          input: "",
+          expectedOutput: "Hello, World!"
         }
       ],
       points: 1000,
@@ -37,6 +52,21 @@ print(name)`,
       testCases: [
         {
           description: "Should print the name variable",
+          input: "",
+          expectedOutput: "John"
+        },
+        {
+          description: "Should handle string variable correctly",
+          input: "",
+          expectedOutput: "John"
+        },
+        {
+          description: "Should not include quotes in output",
+          input: "",
+          expectedOutput: "John"
+        },
+        {
+          description: "Should handle variable assignment and printing",
           input: "",
           expectedOutput: "John"
         }
@@ -64,6 +94,21 @@ print(result)`,
           description: "Should print 8",
           input: "",
           expectedOutput: "8"
+        },
+        {
+          description: "Should handle addition correctly",
+          input: "",
+          expectedOutput: "8"
+        },
+        {
+          description: "Should print numeric result as string",
+          input: "",
+          expectedOutput: "8"
+        },
+        {
+          description: "Should handle variable addition",
+          input: "",
+          expectedOutput: "8"
         }
       ],
       points: 1000,
@@ -87,6 +132,21 @@ if number > 0:
           description: "Should print 'Positive' for positive number",
           input: "",
           expectedOutput: "Positive"
+        },
+        {
+          description: "Should handle conditional logic correctly",
+          input: "",
+          expectedOutput: "Positive"
+        },
+        {
+          description: "Should evaluate positive condition",
+          input: "",
+          expectedOutput: "Positive"
+        },
+        {
+          description: "Should handle if statement syntax",
+          input: "",
+          expectedOutput: "Positive"
         }
       ],
       points: 1000,
@@ -106,6 +166,21 @@ if number > 0:
       testCases: [
         {
           description: "Should print numbers 1-5, each on new line",
+          input: "",
+          expectedOutput: "1\n2\n3\n4\n5"
+        },
+        {
+          description: "Should handle loop iteration correctly",
+          input: "",
+          expectedOutput: "1\n2\n3\n4\n5"
+        },
+        {
+          description: "Should use range function properly",
+          input: "",
+          expectedOutput: "1\n2\n3\n4\n5"
+        },
+        {
+          description: "Should print each number on separate line",
           input: "",
           expectedOutput: "1\n2\n3\n4\n5"
         }
@@ -146,6 +221,21 @@ int main() {
       testCases: [
         {
           description: "Should print 'Hello, World!'",
+          input: "",
+          expectedOutput: "Hello, World!"
+        },
+        {
+          description: "Should handle cout correctly",
+          input: "",
+          expectedOutput: "Hello, World!"
+        },
+        {
+          description: "Should include proper endl for newline",
+          input: "",
+          expectedOutput: "Hello, World!"
+        },
+        {
+          description: "Should handle C++ syntax properly",
           input: "",
           expectedOutput: "Hello, World!"
         }
