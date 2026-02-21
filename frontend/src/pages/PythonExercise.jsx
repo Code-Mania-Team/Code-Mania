@@ -28,6 +28,8 @@ import useGetExerciseById from "../services/getExerciseById";
 
 import useGetNextExercise from "../services/getNextExcercise.js";
 
+import useStartExercise from "../services/startExercise";
+
 
 
 
@@ -44,6 +46,8 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const getNextExercise = useGetNextExercise();
 
+  const startExercise = useStartExercise();
+
   const { exerciseId } = useParams();
 
   const activeExerciseId = Number(exerciseId);
@@ -51,6 +55,7 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [pythonExercises, setPythonExercises] = useState([]);
 
   const navigate = useNavigate();
+
 
 
 
@@ -77,6 +82,41 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [activeExercise, setActiveExercise] = useState(null);
 
 
+  useEffect(() => {
+  const handleStart = async (e) => {
+    const questId = e.detail?.questId;
+    if (!questId) return;
+
+    try {
+      await startExercise(questId);
+      console.log("✅ Quest started in backend");
+    } catch (err) {
+      console.error("Failed to start quest", err);
+    }
+  };
+
+  window.addEventListener("code-mania:quest-started", handleStart);
+
+  return () =>
+    window.removeEventListener("code-mania:quest-started", handleStart);
+}, []);
+
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+
+        const data = await getGameProgress(1);
+
+        if (data?.completedQuests) {
+          setDbCompletedQuests(data.completedQuests);
+        }
+      } catch (err) {
+        console.error("Failed to load progress", err);
+      }
+    };
+
+    fetchProgress();
+  }, []);
 
   useEffect(() => {
 
@@ -266,40 +306,15 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-
-
-    // const blockKeys = (e) => {
-
-    //   if (!terminalActive) return;
-
-    //   e.stopImmediatePropagation();
-
-    // };
-
-
-
     window.addEventListener("code-mania:terminal-active", onTerminalActive);
 
     window.addEventListener("code-mania:terminal-inactive", onTerminalInactive);
-
-
-
-    // window.addEventListener("keydown", blockKeys, true);
-
-    // window.addEventListener("keyup", blockKeys, true);
-
-
 
     return () => {
 
       window.removeEventListener("code-mania:terminal-active", onTerminalActive);
 
       window.removeEventListener("code-mania:terminal-inactive", onTerminalInactive);
-
-      // window.removeEventListener("keydown", blockKeys, true);
-
-      // window.removeEventListener("keyup", blockKeys, true);
-
     };
 
   }, []);
@@ -407,6 +422,12 @@ const PythonExercise = ({ isAuthenticated }) => {
       window.removeEventListener("code-mania:quest-started", onQuestStarted);
 
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
+
+      if (window.game) {
+        window.game.sound?.stopAll();
+        window.game.destroy(true);
+        window.game = null;
+      }
 
     };
 
@@ -533,7 +554,7 @@ const PythonExercise = ({ isAuthenticated }) => {
         <ProgressBar
           currentLesson={activeExercise?.order_index || 1}
           totalLessons={activeExercise?.totalExercises || 16}
-          title="🐍 Python Basics"
+          title= {activeExercise?.title || "Python Exercise"}
 
         />
 
@@ -545,35 +566,13 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           <div className={styles["game-container"]}>
 
-            <div className={styles["mobile-frame"]}>
-
-              <img
-
-                alt="Mobile Frame"
-
-                className={styles["mobile-frame-image"]}
-
-              />
-
-
-
-              <MobileControls />
-
-
-
-              <div className={styles["mobile-screen"]}>
-
-                <div
+            <div
 
                   id="phaser-container"
 
                   className={styles["game-scene"]}
 
                 />
-
-              </div>
-
-            </div>
 
           </div>
 
@@ -582,20 +581,15 @@ const PythonExercise = ({ isAuthenticated }) => {
           {/* ===== TERMINAL ===== */}
 
           <CodeTerminal
-
+            questId={activeExerciseId}
             code={code}
-
             onCodeChange={setCode}
-
             output={output}
-
             isRunning={isRunning}
-
             showRunButton={terminalEnabled}
-
             disabled={!terminalEnabled}
-
           />
+
 
         </div>
 
