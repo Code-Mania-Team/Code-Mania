@@ -24,8 +24,6 @@ import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
 import QuestValidator from "../systems/questValidator";
-import { postGameProgress } from "../../../services/postGameProgress";
-import { postAchievement } from "../../../services/postAchievement";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -207,18 +205,6 @@ export default class GameScene extends Phaser.Scene {
     if (quest.grants) {
       this.worldState.abilities.add(quest.grants);
     }
-    try {
-      await postGameProgress({
-        questId: quest.id,
-        xp: quest.experience ?? 0,
-        programming_language: localStorage.getItem("lastCourseTitle") || "Python",
-      });
-
-
-      console.log("✅ quest saved");
-    } catch (err) {
-      console.error("❌ save failed", err);
-    }
 
 
     // ✅ ALWAYS show quest completed toast
@@ -232,23 +218,6 @@ export default class GameScene extends Phaser.Scene {
     if (quest.badgeKey) {
       const language = localStorage.getItem("lastCourseTitle") || "Python";
 
-      const achievement = achievementsData.find(
-        a =>
-          a.exerciseId === Number(quest.id) &&
-          a.language === language
-      );
-
-      if (achievement) {
-        try {
-          await postAchievement({
-            achievementId: achievement.id   // ✅ ONLY THIS
-          });
-
-          console.log("🏆 Achievement sent:", achievement.id);
-        } catch (err) {
-          console.error("❌ Achievement save failed", err);
-        }
-      }
 
       const badge = BADGES[quest.badgeKey];
       if (badge) {
@@ -384,10 +353,25 @@ export default class GameScene extends Phaser.Scene {
       this.questHUD.toggle(this.questManager.activeQuest);
     });
 
-    this.input.keyboard.on("keydown-H", () => {
+    this.input.keyboard.on("keydown-H", (event) => {
+      // If user is typing in input/textarea/monaco
+      const active = document.activeElement;
+
+      if (
+        active &&
+        (active.tagName === "INPUT" ||
+          active.tagName === "TEXTAREA" ||
+          active.classList.contains("monaco-editor"))
+      ) {
+        return;
+      }
+
       if (this.gamePausedByTerminal) return;
+
       this.helpManager.openHelp();
     });
+
+
     
     this.input.keyboard.on("keydown-T", () => {
       if (this.gamePausedByTerminal) return;
@@ -424,15 +408,29 @@ export default class GameScene extends Phaser.Scene {
 
 
 
-    // 🔒 TERMINAL EVENTS
-    window.addEventListener("code-mania:terminal-active", () => {
+    this.handleTerminalActive = () => {
       this.gamePausedByTerminal = true;
-      this.player.setVelocity(0);
+
+      if (this.player?.body) {
+        this.player.setVelocity(0);
+      }
+
+      this.input.keyboard.enabled = false;
+    };
+
+    this.handleTerminalInactive = () => {
+      this.gamePausedByTerminal = false;
+      this.input.keyboard.enabled = true;
+    };
+
+    window.addEventListener("code-mania:terminal-active", this.handleTerminalActive);
+    window.addEventListener("code-mania:terminal-inactive", this.handleTerminalInactive);
+
+    this.events.once("shutdown", () => {
+      window.removeEventListener("code-mania:terminal-active", this.handleTerminalActive);
+      window.removeEventListener("code-mania:terminal-inactive", this.handleTerminalInactive);
     });
 
-    window.addEventListener("code-mania:terminal-inactive", () => {
-      this.gamePausedByTerminal = false;
-    });
 
     // 📚 TUTORIAL EVENTS (paused for now)
     window.addEventListener("code-mania:tutorial-open", () => {
@@ -965,6 +963,11 @@ export default class GameScene extends Phaser.Scene {
         quest.dialogue || [],
         () => {
           this.questManager.startQuest(quest.id);
+          window.dispatchEvent(
+            new CustomEvent("code-mania:quest-started", {
+              detail: { questId: quest.id }
+            })
+          );
           this.playerCanMove = true;
         }
       );

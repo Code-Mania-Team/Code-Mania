@@ -20,7 +20,7 @@ print("Your code here")`,
           expectedOutput: "Hello, World!"
         }
       ],
-      points: 100,
+      points: 1000,
       hints: [
         "Use the print() function to display text",
         "Remember to include quotes around the text"
@@ -41,7 +41,7 @@ print(name)`,
           expectedOutput: "John"
         }
       ],
-      points: 100,
+      points: 1000,
       hints: [
         "Use the assignment operator (=)",
         "Variable names don't need quotes when creating them"
@@ -66,7 +66,7 @@ print(result)`,
           expectedOutput: "8"
         }
       ],
-      points: 100,
+      points: 1000,
       hints: [
         "Use the + operator for addition",
         "You can store the result in another variable"
@@ -89,7 +89,7 @@ if number > 0:
           expectedOutput: "Positive"
         }
       ],
-      points: 100,
+      points: 1000,
       hints: [
         "Use the > operator for comparison",
         "Remember the colon (:) after the if condition"
@@ -110,7 +110,7 @@ if number > 0:
           expectedOutput: "1\n2\n3\n4\n5"
         }
       ],
-      points: 100,
+      points: 1000,
       hints: [
         "Use range(1, 6) to get numbers 1-5",
         "Remember to indent the code inside the loop"
@@ -150,7 +150,7 @@ int main() {
           expectedOutput: "Hello, World!"
         }
       ],
-      points: 100,
+      points: 1000,
       hints: [
         "Include the iostream header",
         "Use cout to output text"
@@ -179,7 +179,7 @@ console.log("Your code here");`,
           expectedOutput: "Hello, World!"
         }
       ],
-      points: 100,
+      points: 1000,
       hints: [
         "Use console.log() to output text",
         "Remember to include quotes around the text"

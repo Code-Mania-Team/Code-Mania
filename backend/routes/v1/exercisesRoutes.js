@@ -33,6 +33,12 @@ publicExerciseRouter.post(
   exerciseController.validateExercise.bind(exerciseController)
 );
 
+publicExerciseRouter.post(
+  "/exercises/start",
+  authentication,
+  exerciseController.startExercise.bind(exerciseController)
+);
+
 publicExerciseRouter.get(
   "/exercises/:id/next",
   authentication,

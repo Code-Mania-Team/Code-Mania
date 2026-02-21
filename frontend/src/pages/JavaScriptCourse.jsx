@@ -95,6 +95,18 @@ const JavaScriptCourse = () => {
     return "locked";
   };
 
+  const getQuizStatus = (moduleId) => {
+    // Check if all exercises in the module are completed
+    const module = modules.find(m => m.id === moduleId);
+    if (!module) return "locked";
+    
+    const allExercisesCompleted = module.exercises.every(exercise => 
+      completedExercises.has(exercise.id)
+    );
+    
+    return allExercisesCompleted ? "available" : "locked";
+  };
+
   const onOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -170,7 +182,7 @@ const JavaScriptCourse = () => {
           </div>
           <h1 className="javascript-hero-title">JavaScript ES6+</h1>
           <p className="javascript-hero-description">
-            Create interactive web experiences with JavaScript. Learn DOM manipulation, events, and modern ES6+ features.
+            Uncover quiet town mysteries while learning JavaScript basics like functions and logic.
           </p>
         </div>
       </section>
@@ -245,19 +257,23 @@ const JavaScriptCourse = () => {
                     })}
 
                     {module.id !== 5 && (
-                      <div className="exercise-item available">
+                      <div className={`exercise-item ${getQuizStatus(module.id)}`}>
                         <div className="exercise-info">
                           <span className="exercise-number">QUIZ</span>
                           <span className="exercise-name">Take Quiz</span>
                         </div>
 
                         <div className="exercise-status">
-                          <button
-                            className="start-btn"
-                            onClick={() => navigate(`/quiz/javascript/${module.id}`)}
-                          >
-                            Start
-                          </button>
+                          {getQuizStatus(module.id) === 'available' ? (
+                            <button
+                              className="start-btn"
+                              onClick={() => navigate(`/quiz/javascript/${module.id}`)}
+                            >
+                              Start
+                            </button>
+                          ) : (
+                            getStatusIcon(getQuizStatus(module.id))
+                          )}
                         </div>
                       </div>
                     )}

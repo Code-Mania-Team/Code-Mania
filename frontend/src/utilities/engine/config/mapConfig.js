@@ -138,8 +138,199 @@ export const MAPS = {
         }
       ],
       nextMap: "map6"
-    }
-
+    },
+    map6: {
+        mapKey: "map6",
+        mapJson: "/assets/maps/Python/map6.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_D2",
+            key: "fsm_C_Inside01_D2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D2.png"
+          },
+          {
+            name: "fsm_C_Inside01_E",
+            key: "fsm_C_Inside01_E",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_E.png"
+          }
+        ],
+        nextMap: "map7" // matches your trigger target_map
+      },
+      map7: {
+        mapKey: "map7",
+        mapJson: "/assets/maps/Python/map7.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A4",
+            key: "fsm_C_Inside01_A4",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A4.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D3",
+            key: "fsm_C_Inside01_D3",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D3.png"
+          },
+          {
+            name: "Dungeon_B_for_mineral",
+            key: "Dungeon_B_for_mineral",
+            image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+          }
+        ],
+        nextMap: "map8"
+      },
+      map8: {
+        mapKey: "map8",
+        mapJson: "/assets/maps/Python/map8.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D2",
+            key: "fsm_C_Inside01_D2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D2.png"
+          }
+        ],
+        nextMap: "map9"
+      },
+      map9: {
+        mapKey: "map9",
+        mapJson: "/assets/maps/Python/map9.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A4",
+            key: "fsm_C_Inside01_A4",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A4.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D3",
+            key: "fsm_C_Inside01_D3",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D3.png"
+          },
+          {
+            name: "Dungeon_B_for_mineral",
+            key: "Dungeon_B_for_mineral",
+            image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+          }
+        ],
+        nextMap: "map10"
+      },
+      map10: {
+        mapKey: "map10",
+        mapJson: "/assets/maps/Python/map10.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D1",
+            key: "fsm_C_Inside01_D1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D1.png"
+          }
+        ],
+        nextMap: "map11"
+      },
+      map11: {
+        mapKey: "map11",
+        mapJson: "/assets/maps/Python/map11.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A4",
+            key: "fsm_C_Inside01_A4",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A4.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D3",
+            key: "fsm_C_Inside01_D3",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D3.png"
+          },
+          {
+            name: "Dungeon_B_for_mineral",
+            key: "Dungeon_B_for_mineral",
+            image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+          }
+        ],
+        nextMap: "map12"
+      }
 
   },
   JavaScript: {

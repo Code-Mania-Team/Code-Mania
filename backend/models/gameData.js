@@ -4,7 +4,20 @@ import { supabase } from "../core/supabaseClient.js";
 
 class GameData {
 
-    constructor() {
+  async getUserGameData(user_id, programming_language_id) {
+    const { data, error } = await this.db
+        .from("users_game_data")
+        .select(`
+        exercise_id,
+        quests!inner (
+            id,
+            experience,
+            programming_language_id
+        )
+        `)
+        .eq("user_id", user_id)
+        .eq("status", "completed")
+        .eq("quests.programming_language_id", programming_language_id);
 
         this.db = supabase;
 

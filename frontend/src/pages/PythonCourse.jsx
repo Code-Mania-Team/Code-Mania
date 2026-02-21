@@ -72,7 +72,7 @@ const PythonCourse = () => {
           { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: []},
           { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: []},
           { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: []},
-          { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "Python Exam", status: "locked" }]}
+          { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: []}
         ];
   
         exercises.forEach((exercise) => {
@@ -121,6 +121,23 @@ const PythonCourse = () => {
     return "locked";
   };
 
+  const getQuizStatus = (moduleId) => {
+    // Check if all exercises in the module are completed
+    const module = modules.find(m => m.id === moduleId);
+    if (!module) return "locked";
+    
+    const allExercisesCompleted = module.exercises.every(exercise => 
+      completedExercises.has(exercise.id)
+    );
+    
+    return allExercisesCompleted ? "available" : "locked";
+  };
+
+  const getExamStatus = () => {
+    // Temporarily set to available for testing
+    return "available";
+  };
+
   const handleStartExercise = (exerciseId) => {
     const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
@@ -136,6 +153,10 @@ const PythonCourse = () => {
     // PASS THE REAL EXERCISE ID
     navigate(`/learn/python/exercise/${exerciseId}`);
 
+  };
+
+  const handleStartExam = () => {
+    navigate(`/exam/python`);
   };
 
 
@@ -179,7 +200,7 @@ const PythonCourse = () => {
           </div>
           <h1 className="python-hero-title">Python</h1>
           <p className="python-hero-description">
-            Master the basics of coding including variables, conditionals, and loops.
+            Explore a mysterious island while learning Python basics like variables, loops, and control flow.
           </p>
         </div>
       </section>
@@ -245,23 +266,47 @@ const PythonCourse = () => {
                     })}
 
                     {module.id !== 5 && (
-                      <div className="exercise-item available">
+                      <div className={`exercise-item ${getQuizStatus(module.id)}`}>
                         <div className="exercise-info">
                           <span className="exercise-number">QUIZ</span>
                           <span className="exercise-name">Take Quiz</span>
                         </div>
 
                         <div className="exercise-status">
-                          <button
-                            className="start-btn"
-                            onClick={() => navigate(`/quiz/python/${module.id}`)}
-                          >
-                            Start
-                          </button>
+                          {getQuizStatus(module.id) === 'available' ? (
+                            <button
+                              className="start-btn"
+                              onClick={() => navigate(`/quiz/python/${module.id}`)}
+                            >
+                              Start
+                            </button>
+                          ) : (
+                            getStatusIcon(getQuizStatus(module.id))
+                          )}
                         </div>
                       </div>
                     )}
 
+                    {module.id === 5 && (
+                      <div className={`exercise-item ${getExamStatus()}`}>
+                        <div className="exercise-info">
+                          <span className="exercise-name">Python Exam</span>
+                        </div>
+
+                        <div className="exercise-status">
+                          {getExamStatus() === 'available' ? (
+                            <button
+                              className="start-btn"
+                              onClick={handleStartExam}
+                            >
+                              Start
+                            </button>
+                          ) : (
+                            getStatusIcon(getExamStatus())
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -304,8 +349,6 @@ const PythonCourse = () => {
               </span>
             </div>
           </div>
-
-          {/* Course Badges Section */}
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">

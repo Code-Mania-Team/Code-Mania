@@ -78,6 +78,40 @@ class ExerciseModel {
         return data || null;
     }
 
+    async startQuest(userId, questId) {
+        const { data } = await this.db
+            .from('users_game_data')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('exercise_id', questId)
+            .maybeSingle();
+
+        if (data) return data; // already started
+
+        const { error } = await this.db
+            .from('users_game_data')
+            .insert({
+                user_id: userId,
+                exercise_id: questId,
+                status: 'active',
+                created_at: new Date().toISOString()
+            });
+
+        if (error) throw error;
+    }
+
+    async getQuestState(userId, questId) {
+        const { data } = await this.db
+            .from('users_game_data')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('exercise_id', questId)
+            .maybeSingle();
+
+        return data;
+    }
+
+
 
     async getLatestUnlockedQuest(userId, languageId) {
         // 1️⃣ Get all completed quests for this language
@@ -92,6 +126,7 @@ class ExerciseModel {
                 )
             `)
             .eq('user_id', userId)
+            .eq('status', 'completed')
             .eq('quests.programming_language_id', languageId)
 
         if (error) {
@@ -296,6 +331,7 @@ class ExerciseModel {
             .from('users_game_data')
             .select('*')
             .eq('user_id', userId)
+            .eq('status', 'completed')
             .eq('exercise_id', questId)
             .maybeSingle();
 
@@ -318,14 +354,18 @@ class ExerciseModel {
     }
 
     async markQuestComplete(userId, questId) {
-        await this.db
+        const { error } = await this.db
             .from('users_game_data')
-            .insert({
-                user_id: userId,
-                exercise_id: questId,
-                created_at: new Date().toISOString()
-            });
+            .update({
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .eq('exercise_id', questId);
+
+        if (error) throw error;
     }
+
 
     async addXp(userId, xp) {
         await this.db.rpc('increment_xp', {
