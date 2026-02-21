@@ -10,6 +10,12 @@ import styles from '../styles/Dashboard.module.css';
 
 import useAuth from "../hooks/useAxios";
 
+import useGetProfile from '../services/getProfile';
+
+import useProfileSummary from '../services/useProfileSummary';
+
+import useLearningProgress from '../services/useLearningProgress';
+
 
 
 // Character icons from Cloudinary
@@ -28,19 +34,21 @@ const Dashboard = ({ onSignOut }) => {
 
   const navigate = useNavigate();
 
-  const [progress] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   const [characterIcon, setCharacterIcon] = useState(null);
 
   const { isAuthenticated } = useAuth();
 
+  const getProfile = useGetProfile();
+
+  const { totalXp, badgeCount } = useProfileSummary();
+
+  const { progress: learningProgress, loading: learningProgressLoading } = useLearningProgress();
 
 
-  const [hasTouchedCourse] = useState(() => {
 
-    return localStorage.getItem('hasTouchedCourse') === 'true';
-
-  });
+  const [hasTouchedCourse, setHasTouchedCourse] = useState(false);
 
   const [userStats, setUserStats] = useState({
 
@@ -198,21 +206,26 @@ const Dashboard = ({ onSignOut }) => {
 
 
 
-    // Load username from localStorage
+    const loadProfile = async () => {
+      if (!isAuthenticated) return;
 
-    const savedUsername = localStorage.getItem('username');
+      try {
+        const response = await getProfile();
+        const profile = response?.data;
+        if (!profile) return;
 
-    if (savedUsername) {
+        const displayName = profile?.username || profile?.full_name || 'User';
 
-      setUserStats(prev => ({
+        setUserStats(prev => ({
+          ...prev,
+          name: displayName,
+        }));
+      } catch (error) {
+        console.error('Failed to load dashboard profile:', error);
+      }
+    };
 
-        ...prev,
-
-        name: savedUsername
-
-      }));
-
-    }
+    loadProfile();
 
 
 
@@ -224,7 +237,42 @@ const Dashboard = ({ onSignOut }) => {
 
     };
 
-  }, []);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const completedExercises = (learningProgress || []).reduce(
+      (sum, row) => sum + Number(row?.completed || 0),
+      0
+    );
+
+    const totalExercises = (learningProgress || []).reduce(
+      (sum, row) => sum + Number(row?.total || 0),
+      0
+    );
+
+    const computedProgress = totalExercises > 0
+      ? Math.round((completedExercises / totalExercises) * 100)
+      : 0;
+
+    setProgress(computedProgress);
+
+    if (isAuthenticated && !learningProgressLoading) {
+      setHasTouchedCourse(completedExercises > 0);
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setHasTouchedCourse(localStorage.getItem('hasTouchedCourse') === 'true');
+    }
+  }, [isAuthenticated, learningProgress, learningProgressLoading]);
+
+  useEffect(() => {
+    setUserStats(prev => ({
+      ...prev,
+      totalXP: Number(totalXp || 0),
+      badges: Number(badgeCount || 0),
+    }));
+  }, [totalXp, badgeCount]);
 
 
 

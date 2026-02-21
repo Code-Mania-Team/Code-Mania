@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
+import TutorialPopup from "../components/Tutorialpopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
@@ -76,14 +77,11 @@ const PythonCourse = () => {
         ];
   
         exercises.forEach((exercise) => {
-          if (exercise.id >= 1 && exercise.id <= 4)
-            groupedModules[0].exercises.push(exercise);
-          else if (exercise.id >= 5 && exercise.id <= 8)
-            groupedModules[1].exercises.push(exercise);
-          else if (exercise.id >= 9 && exercise.id <= 12)
-            groupedModules[2].exercises.push(exercise);
-          else if (exercise.id >= 13 && exercise.id <= 16)
-            groupedModules[3].exercises.push(exercise);
+          const order = Number(exercise.order_index || 0);
+          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
         });
   
   
@@ -126,7 +124,7 @@ const PythonCourse = () => {
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
     
-    const allExercisesCompleted = module.exercises.every(exercise => 
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
       completedExercises.has(exercise.id)
     );
     
@@ -160,11 +158,15 @@ const PythonCourse = () => {
   };
 
 
+  const totalExercises = modules
+    .filter((module) => module.id !== 5)
+    .reduce((sum, module) => sum + module.exercises.length, 0);
+
   const userProgress = {
     name: user?.full_name || "Guest",
     level: 1,
     exercisesCompleted: data?.completedQuests?.length || 0,
-    totalExercises: 16,
+    totalExercises,
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: data?.xpEarned || 0,

@@ -1,10 +1,33 @@
 import { Router } from 'express';
 import { authorization } from '../../middlewares/authorization.js';
+import { authentication } from '../../middlewares/authentication.js';
 import { supabase } from '../../core/supabaseClient.js';
 
 const router = Router();
 
 router.use(authorization);
+
+const isAdminRequest = (res) => res.locals.role === 'admin';
+
+const mapQuizAttempt = (row) => {
+  const language = row?.quizzes?.programming_languages?.slug || 'unknown';
+  const score = Number(row?.score_percentage || 0);
+
+  return {
+    id: row.id,
+    userId: row.user_id,
+    username: row?.users?.username || row?.users?.full_name || 'Unknown user',
+    email: row?.users?.email || '',
+    language,
+    quizTitle: row?.quizzes?.quiz_title || row?.quizzes?.route || 'Quiz',
+    scorePercentage: score,
+    totalCorrect: row?.total_correct || 0,
+    totalQuestions: row?.total_questions || 0,
+    earnedXp: row?.earned_xp || 0,
+    isPassed: score >= 70,
+    submittedAt: row?.completed_at || null,
+  };
+};
 
 // Public-ish (API key protected) metrics for admin dashboard cards
 router.get('/admin-summary', async (req, res) => {
@@ -104,6 +127,222 @@ router.get('/admin-summary', async (req, res) => {
   } catch (err) {
     console.error('Error building admin summary metrics:', err);
     return res.status(500).json({ success: false, message: err?.message || 'Failed to build metrics' });
+  }
+});
+
+router.get('/quiz-attempts', authentication, async (req, res) => {
+  try {
+    if (!isAdminRequest(res)) {
+      return res.status(403).json({ success: false, message: 'Forbidden: admin access required' });
+    }
+
+    const { data: rows, error } = await supabase
+      .from('user_quiz_attempts')
+      .select(`
+        id,
+        user_id,
+        score_percentage,
+        total_correct,
+        total_questions,
+        earned_xp,
+        completed_at,
+        users (
+          username,
+          full_name,
+          email
+        ),
+        quizzes (
+          quiz_title,
+          route,
+          programming_languages (
+            slug
+          )
+        )
+      `)
+      .order('completed_at', { ascending: false })
+      .limit(200);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    const attempts = (rows || []).map(mapQuizAttempt);
+
+    const totalAttempts = attempts.length;
+    const totalXpAwarded = attempts.reduce((sum, item) => sum + Number(item.earnedXp || 0), 0);
+    const averageScore = totalAttempts
+      ? Number((attempts.reduce((sum, item) => sum + Number(item.scorePercentage || 0), 0) / totalAttempts).toFixed(2))
+      : 0;
+    const passedCount = attempts.filter((item) => item.isPassed).length;
+    const passRate = totalAttempts ? Number(((passedCount / totalAttempts) * 100).toFixed(2)) : 0;
+
+    return res.json({
+      success: true,
+      data: {
+        totalAttempts,
+        averageScore,
+        passRate,
+        totalXpAwarded,
+        attempts,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching quiz attempts metrics:', err);
+    return res.status(500).json({ success: false, message: err?.message || 'Failed to fetch quiz metrics' });
+  }
+});
+
+router.get('/quiz-attempts/by-user', authentication, async (req, res) => {
+  try {
+    if (!isAdminRequest(res)) {
+      return res.status(403).json({ success: false, message: 'Forbidden: admin access required' });
+    }
+
+    const { data: rows, error } = await supabase
+      .from('user_quiz_attempts')
+      .select(`
+        id,
+        user_id,
+        score_percentage,
+        total_correct,
+        total_questions,
+        earned_xp,
+        completed_at,
+        users (
+          username,
+          full_name,
+          email
+        ),
+        quizzes (
+          quiz_title,
+          route,
+          programming_languages (
+            slug
+          )
+        )
+      `)
+      .order('completed_at', { ascending: false })
+      .limit(2000);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    const attempts = (rows || []).map(mapQuizAttempt);
+    const byUserMap = new Map();
+
+    attempts.forEach((attempt) => {
+      const key = String(attempt.userId);
+      const existing = byUserMap.get(key);
+
+      if (!existing) {
+        byUserMap.set(key, {
+          userId: attempt.userId,
+          username: attempt.username,
+          email: attempt.email,
+          totalAttempts: 1,
+          sumScore: Number(attempt.scorePercentage || 0),
+          passedCount: attempt.isPassed ? 1 : 0,
+          bestScore: Number(attempt.scorePercentage || 0),
+          latestAttemptAt: attempt.submittedAt,
+          languagesSet: new Set([attempt.language]),
+        });
+        return;
+      }
+
+      existing.totalAttempts += 1;
+      existing.sumScore += Number(attempt.scorePercentage || 0);
+      existing.passedCount += attempt.isPassed ? 1 : 0;
+      existing.bestScore = Math.max(existing.bestScore, Number(attempt.scorePercentage || 0));
+      if (!existing.latestAttemptAt || new Date(attempt.submittedAt) > new Date(existing.latestAttemptAt)) {
+        existing.latestAttemptAt = attempt.submittedAt;
+      }
+      existing.languagesSet.add(attempt.language);
+    });
+
+    const users = Array.from(byUserMap.values())
+      .map((item) => ({
+        userId: item.userId,
+        username: item.username,
+        email: item.email,
+        totalAttempts: item.totalAttempts,
+        averageScore: Number((item.sumScore / item.totalAttempts).toFixed(2)),
+        passRate: Number(((item.passedCount / item.totalAttempts) * 100).toFixed(2)),
+        bestScore: item.bestScore,
+        latestAttemptAt: item.latestAttemptAt,
+        languages: Array.from(item.languagesSet),
+      }))
+      .sort((a, b) => {
+        const dateA = new Date(a.latestAttemptAt || 0).getTime();
+        const dateB = new Date(b.latestAttemptAt || 0).getTime();
+        return dateB - dateA;
+      });
+
+    return res.json({
+      success: true,
+      data: {
+        totalUsers: users.length,
+        users,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching per-user quiz metrics:', err);
+    return res.status(500).json({ success: false, message: err?.message || 'Failed to fetch per-user quiz metrics' });
+  }
+});
+
+router.get('/quiz-attempts/by-user/:userId', authentication, async (req, res) => {
+  try {
+    if (!isAdminRequest(res)) {
+      return res.status(403).json({ success: false, message: 'Forbidden: admin access required' });
+    }
+
+    const { userId } = req.params;
+
+    const { data: rows, error } = await supabase
+      .from('user_quiz_attempts')
+      .select(`
+        id,
+        user_id,
+        score_percentage,
+        total_correct,
+        total_questions,
+        earned_xp,
+        completed_at,
+        users (
+          username,
+          full_name,
+          email
+        ),
+        quizzes (
+          quiz_title,
+          route,
+          programming_languages (
+            slug
+          )
+        )
+      `)
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false })
+      .limit(500);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    const attempts = (rows || []).map(mapQuizAttempt);
+
+    return res.json({
+      success: true,
+      data: {
+        userId,
+        totalAttempts: attempts.length,
+        attempts,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching user quiz attempts:', err);
+    return res.status(500).json({ success: false, message: err?.message || 'Failed to fetch user quiz attempts' });
   }
 });
 
