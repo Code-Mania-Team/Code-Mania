@@ -3,22 +3,19 @@ import LeaderboardService from "../../services/leaderboardService.js";
 
 class LeaderboardController {
     constructor() {
-        this.leaderboardModel = new Leaderboard();
-        this.leaderboardService = new LeaderboardService(this.leaderboardModel);
+        this.model = new Leaderboard();
+        this.service = new LeaderboardService(this.model);
     }
 
     async getLeaderboard(req, res) {
         try {
-            const limit = 50;
-
-            const leaderboard = await this.leaderboardService.buildLeaderboard(limit);
+            const data = await this.service.buildGlobalLeaderboard();
 
             return res.status(200).json({
                 success: true,
-                total_users: leaderboard.length,
-                data: leaderboard
+                total: data.length,
+                data
             });
-
         } catch (err) {
             console.error("Leaderboard error:", err);
             return res.status(500).json({

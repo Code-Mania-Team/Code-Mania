@@ -1,10 +1,9 @@
-import express from 'express';
-import LeaderboardController from '../../controllers/v1/leaderboardController.js';
+import express from "express";
+import LeaderboardController from "../../controllers/v1/leaderboardController.js";
 
-const leaderboardRouter = express.Router();
-const leaderboard = new LeaderboardController();
+const router = express.Router();
+const controller = new LeaderboardController();
 
-// Get leaderboard (top users by XP)
-leaderboardRouter.get('/', leaderboard.getLeaderboard.bind(leaderboard));
+router.get("/", controller.getLeaderboard.bind(controller));
 
-export default leaderboardRouter;
+export default router;

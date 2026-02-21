@@ -5,31 +5,48 @@ class Leaderboard {
         this.db = supabase;
     }
 
-    // Fetch users with their game data and quests
-    async getTopUsersWithGameData(limit = 50) {
+    // 1️⃣ Quest XP (grouped by user + language)
+    async getQuestXP() {
         const { data, error } = await this.db
-            .from("users")
+            .from("users_game_data")
             .select(`
                 user_id,
-                full_name,
-                character_id,
-                users_game_data (
-                    quests (
-                        programming_language_id,
-                        experience,
-                        programming_languages (
-                            name
-                        )
+                quests (
+                    experience,
+                    programming_languages (
+                        slug
                     )
+                ),
+                users (
+                    full_name,
+                    character_id
                 )
             `)
-            .limit(limit);
+            .eq("status", "completed");
 
-        if (error) {
-            console.error("Leaderboard DB error:", error);
-            throw error;
-        }
+        if (error) throw error;
+        return data;
+    }
 
+    // 2️⃣ Quiz XP (grouped by user + language)
+    async getQuizXP() {
+        const { data, error } = await this.db
+            .from("user_quiz_attempts")
+            .select(`
+                user_id,
+                earned_xp,
+                quizzes (
+                    programming_languages (
+                        slug
+                    )
+                ),
+                users (
+                    full_name,
+                    character_id
+                )
+            `);
+
+        if (error) throw error;
         return data;
     }
 }

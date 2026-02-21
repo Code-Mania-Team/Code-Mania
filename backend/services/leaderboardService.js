@@ -1,46 +1,76 @@
 class LeaderboardService {
-    constructor(leaderboardModel) {
-        this.leaderboardModel = leaderboardModel;
+    constructor(model) {
+        this.model = model;
     }
 
-    async buildLeaderboard(limit = 50) {
-        const users = await this.leaderboardModel.getTopUsersWithGameData(limit);
+    async buildGlobalLeaderboard() {
+        const questData = await this.model.getQuestXP();
+        const quizData = await this.model.getQuizXP();
 
-        return users.map((user) => {
-            const xpByLanguage = {};
+        const users = {};
 
-            user.users_game_data?.forEach((gameData) => {
-                const quest = gameData.quests;
-                if (!quest) return;
+        // Process Quest XP
+        questData.forEach(row => {
+            const userId = row.user_id;
+            const xp = row.quests?.experience || 0;
+            const slug = row.quests?.programming_languages?.slug;
 
-                const langId = quest.programming_language_id;
-                const langName = quest.programming_languages?.name;
-                const xp = quest.experience || 0;
+            if (!users[userId]) {
+                users[userId] = {
+                    user_id: userId,
+                    full_name: row.users?.full_name,
+                    character_id: row.users?.character_id,
+                    overall_xp: 0,
+                    python_xp: 0,
+                    cpp_xp: 0,
+                    javascript_xp: 0
+                };
+            }
 
-                if (!xpByLanguage[langId]) {
-                    xpByLanguage[langId] = {
-                        programming_language_id: langId,
-                        language_name: langName,
-                        total_xp: 0
-                    };
-                }
+            users[userId].overall_xp += xp;
 
-                xpByLanguage[langId].total_xp += xp;
-            });
+            if (slug === "python") users[userId].python_xp += xp;
+            if (slug === "cpp") users[userId].cpp_xp += xp;
+            if (slug === "javascript") users[userId].javascript_xp += xp;
+        });
 
-            // Calculate total XP for this user
-            const totalXP = user.users_game_data?.reduce((sum, gameData) => {
-                return sum + (gameData.quests?.experience || 0);
-            }, 0) || 0;
+        // Process Quiz XP
+        quizData.forEach(row => {
+            const userId = row.user_id;
+            const xp = row.earned_xp || 0;
+            const slug = row.quizzes?.programming_languages?.slug;
 
-            return {
-                user_id: user.user_id,
-                full_name: user.full_name || "Anonymous",
-                overall_xp: totalXP,
-                character_id: user.character_id,
-                xp_by_language: Object.values(xpByLanguage)
-            };
-        }).sort((a, b) => b.overall_xp - a.overall_xp);
+            if (!users[userId]) {
+                users[userId] = {
+                    user_id: userId,
+                    full_name: row.users?.full_name,
+                    character_id: row.users?.character_id,
+                    overall_xp: 0,
+                    python_xp: 0,
+                    cpp_xp: 0,
+                    javascript_xp: 0
+                };
+            }
+
+            users[userId].overall_xp += xp;
+
+            if (slug === "python") users[userId].python_xp += xp;
+            if (slug === "cpp") users[userId].cpp_xp += xp;
+            if (slug === "javascript") users[userId].javascript_xp += xp;
+        });
+
+        // Convert to array
+        const leaderboard = Object.values(users);
+
+        // Sort descending by overall XP
+        leaderboard.sort((a, b) => b.overall_xp - a.overall_xp);
+
+        // Assign rank
+        leaderboard.forEach((user, index) => {
+            user.rank = index + 1;
+        });
+
+        return leaderboard;
     }
 }
 
