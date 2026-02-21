@@ -43,7 +43,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (!this.quest || !this.quest.map_id) {
       console.error("❌ Quest missing or invalid. Using fallback map1.");
-      this.currentMapId = "map7";
+      this.currentMapId = "map9";
     } else {
       this.currentMapId = this.quest.map_id; // ✅ CORRECT FIELD
     }
