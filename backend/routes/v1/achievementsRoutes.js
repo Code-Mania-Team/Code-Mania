@@ -5,6 +5,8 @@ import { authorization } from "../../middlewares/authorization.js";
 
 const achievementsRouter = express.Router();
 const achievements = new AchievementsController();
+
+achievementsRouter.get("/course/:languageId",achievements.getCourseBadges.bind(achievements));
 achievementsRouter.use(authorization);
 
 
@@ -12,4 +14,5 @@ achievementsRouter.use(authorization);
 // POST /v1/achievements/post-badge - Post a badge/achievement
 achievementsRouter.post("/post-badge", authentication, achievements.postBadge.bind(achievements));
 achievementsRouter.get("/", authentication, achievements.getAchievements.bind(achievements));
+
 export default achievementsRouter;

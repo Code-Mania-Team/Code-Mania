@@ -66,6 +66,25 @@ class Achievements {
         return { alreadyCompleted: false, data };
     }
 
+    async getAchievementsByLanguage(languageId) {
+        const { data, error } = await this.db
+            .from("achievements")
+            .select(`
+                id,
+                title,
+                description,
+                badge_key,
+                programming_language_id,
+                quest_id
+            `)
+            .eq("programming_language_id", languageId)
+            .order("quest_id", { ascending: true });
+
+        if (error) throw error;
+
+        return data || [];
+    }
+
     // // Get user's achievement statistics
     // async getUserStats(userId) {
     //     const { data, error } = await this.db
@@ -80,6 +99,7 @@ class Achievements {
     //         completedIds: data ? data.map(item => item.achievement_id) : []
     //     };
     // }
+    
 }
 
 export default Achievements;
