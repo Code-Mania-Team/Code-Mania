@@ -554,7 +554,7 @@ const PythonExercise = ({ isAuthenticated }) => {
         <ProgressBar
           currentLesson={activeExercise?.order_index || 1}
           totalLessons={activeExercise?.totalExercises || 16}
-          title= {activeExercise?.title || "Python Exercise"}
+          title={activeExercise?.lesson_header || activeExercise?.title || "Python Exercise"}
 
         />
 

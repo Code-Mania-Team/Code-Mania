@@ -483,7 +483,7 @@ const CppExercise = () => {
         <ProgressBar
           currentLesson={activeExercise?.order_index || 1}
           totalLessons={activeExercise?.totalExercises || 16}
-          title="💻 C++ Basics"
+          title={activeExercise?.lesson_header || activeExercise?.title || "C++ Exercise"}
 
         />
 

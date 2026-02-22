@@ -16,6 +16,8 @@ import useProfileSummary from '../services/useProfileSummary';
 
 import useLearningProgress from '../services/useLearningProgress';
 
+import useLatestUnlockedExercise from '../services/useLatestUnlockedExercise';
+
 
 
 // Character icons from Cloudinary
@@ -35,6 +37,8 @@ const Dashboard = ({ onSignOut }) => {
   const navigate = useNavigate();
 
   const [progress, setProgress] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [characterIcon, setCharacterIcon] = useState(null);
 
@@ -66,31 +70,24 @@ const Dashboard = ({ onSignOut }) => {
 
 
 
-  const [currentCourse] = useState(() => {
+  const currentCourseName = localStorage.getItem('lastCourseTitle') || 'Python';
 
-    const lastCourseTitle = localStorage.getItem('lastCourseTitle');
+  const courseLanguageIdByName = {
+    Python: 1,
+    'C++': 2,
+    JavaScript: 3,
+  };
 
-    const exerciseTitles = {
+  const selectedCourseLanguageId = courseLanguageIdByName[currentCourseName] || 1;
 
-      'Python': 'Setting Up',
+  const { exercise: latestUnlockedExercise } = useLatestUnlockedExercise(
+    isAuthenticated ? selectedCourseLanguageId : null
+  );
 
-      'C++': 'The Program',
-
-      'JavaScript': 'Introduction'
-
-    };
-
-    return {
-
-      name: lastCourseTitle,
-
-      nextExercise: exerciseTitles[lastCourseTitle] || 'Start Learning',
-
-      progress: 0
-
-    };
-
-  });
+  const currentCourse = {
+    name: currentCourseName,
+    nextExercise: latestUnlockedExercise?.title || 'Start Learning',
+  };
 
 
 
@@ -261,31 +258,47 @@ const Dashboard = ({ onSignOut }) => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    const completedExercises = (learningProgress || []).reduce(
+    const allCompletedExercises = (learningProgress || []).reduce(
       (sum, row) => sum + Number(row?.completed || 0),
       0
     );
 
-    const totalExercises = (learningProgress || []).reduce(
+    const allTotalExercises = (learningProgress || []).reduce(
       (sum, row) => sum + Number(row?.total || 0),
       0
     );
+
+    const languageIdByCourse = {
+      Python: 1,
+      'C++': 2,
+      JavaScript: 3,
+    };
+
+    const selectedLanguageId = languageIdByCourse[currentCourse?.name];
+    const selectedCourseRow = (learningProgress || []).find(
+      (row) => Number(row?.programming_language_id) === selectedLanguageId
+    );
+
+    const completedExercises = Number(selectedCourseRow?.completed || 0);
+    const totalExercises = Number(selectedCourseRow?.total || 0);
 
     const computedProgress = totalExercises > 0
       ? Math.round((completedExercises / totalExercises) * 100)
       : 0;
 
     setProgress(computedProgress);
+    setCompletedCount(completedExercises);
+    setTotalCount(totalExercises);
 
     if (isAuthenticated && !learningProgressLoading) {
-      setHasTouchedCourse(completedExercises > 0);
+      setHasTouchedCourse(allCompletedExercises > 0);
       return;
     }
 
     if (!isAuthenticated) {
       setHasTouchedCourse(localStorage.getItem('hasTouchedCourse') === 'true');
     }
-  }, [isAuthenticated, learningProgress, learningProgressLoading]);
+  }, [isAuthenticated, learningProgress, learningProgressLoading, currentCourseName]);
 
   useEffect(() => {
     setUserStats(prev => ({
@@ -455,7 +468,7 @@ const Dashboard = ({ onSignOut }) => {
 
                   </div>
 
-                  <span className={styles['progress-text']}>{progress}%</span>
+                  <span className={styles['progress-text']}>{completedCount}/{totalCount || 0}</span>
 
                 </div>
 

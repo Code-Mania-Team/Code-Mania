@@ -537,7 +537,7 @@ const JavaScriptExercise = () => {
         <ProgressBar
           currentLesson={activeExercise?.order_index || 1}
           totalLessons={activeExercise?.totalExercises || 16}
-          title="🌐 JavaScript Basics"
+          title={activeExercise?.lesson_header || activeExercise?.title || "JavaScript Exercise"}
 
         />
 
