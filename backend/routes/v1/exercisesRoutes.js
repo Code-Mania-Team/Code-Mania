@@ -1,9 +1,7 @@
 import express from "express";
 import ExerciseController from "../../controllers/v1/exerciseController.js";
 import { authentication } from "../../middlewares/authentication.js";
-import requireAdmin from "../../middlewares/requireAdmin.js";
 
-const exercisesRouter = express.Router();      // admin router
 const publicExerciseRouter = express.Router(); // public router
 
 const exerciseController = new ExerciseController();
@@ -52,25 +50,4 @@ publicExerciseRouter.get(
 );
 
 
-// ---------------- ADMIN ROUTES ----------------
-// apply middleware ONLY to admin router
-exercisesRouter.use(authentication);
-exercisesRouter.use(requireAdmin);
-
-exercisesRouter.post(
-  "/exercises",
-  exerciseController.createExercise.bind(exerciseController)
-);
-
-exercisesRouter.patch(
-  "/exercises/:id",
-  exerciseController.updateExercise.bind(exerciseController)
-);
-
-exercisesRouter.delete(
-  "/exercises/:id",
-  exerciseController.deleteExercise.bind(exerciseController)
-);
-
-
-export { exercisesRouter, publicExerciseRouter };
+export { publicExerciseRouter };

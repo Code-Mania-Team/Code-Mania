@@ -22,9 +22,11 @@ import achievementsRouter from './achievementsRoutes.js';
 
 import quizRouter from './quizRoutes.js';
 
-import {exercisesRouter, publicExerciseRouter} from './exercisesRoutes.js';
+import { publicExerciseRouter } from './exercisesRoutes.js';
 
 import leaderboardRouter from './leaderboardRoutes.js';
+
+import examRouter from './examRoutes.js';
 
 
 
@@ -35,6 +37,8 @@ v1.use('/account', accountRouter);
 v1.use('/', homeRouter);
 
 v1.use('/leaderboard', leaderboardRouter);
+
+v1.use('/exam', examRouter);
 
 v1.use('/', userGameDataRouter);
 
@@ -51,8 +55,6 @@ v1.use('/forgot-password', forgotPasswordRouter);
 v1.use('/achievements', achievementsRouter);
 
 v1.use('/quizzes', quizRouter);
-
-v1.use('/admin', exercisesRouter);
 
 v1.use('/', publicExerciseRouter);
 
