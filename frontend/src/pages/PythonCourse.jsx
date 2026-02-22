@@ -7,12 +7,8 @@ import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
-<<<<<<< HEAD
-import { axiosPublic } from "../api/axios";
-=======
 import useGetExercises from "../services/getExercise";
 import useGetCourseBadges from "../services/getCourseBadge";
->>>>>>> origin/main_v
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
