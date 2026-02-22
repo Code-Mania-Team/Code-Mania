@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
+import allQuests from "../utilities/data/javascriptExercises.json";
 import useValidateExercise from "../services/validateExercise";
 
 /* ===============================
@@ -29,169 +30,227 @@ function getStarterCode(lang) {
       return `#include <iostream>
 
 int main() {
-  std::string name;
-  std::cout << "Type something: ";
-  std::cin >> name;
-  std::cout << name << std::endl;
+  std::cout << "Hello world" << std::endl;
+  return 0;
 }`;
     default:
-      return `a = input("Type something: ")
-print(a)`;
+      return `print("Hello world")`;
   }
 }
 
-const InteractiveTerminal = ({ questId }) => {
+const InteractiveTerminal = ({disabled}) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
 
   const [code, setCode] = useState(() => getStarterCode(language));
-  const [programOutput, setProgramOutput] = useState("");
-  const [inputBuffer, setInputBuffer] = useState("");
-  const [waitingForInput, setWaitingForInput] = useState(false);
+  const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
-  const [validationResult, setValidationResult] = useState(null);
-  const [isQuestActive, setIsQuestActive] = useState(false);
-
-  const validateExercise = useValidateExercise();
 
   const socketRef = useRef(null);
-  const terminalRef = useRef(null);
+  const iframeRef = useRef(null);
+  const outputRef = useRef("");
+
+  /* ===============================
+     STAGE + QUEST DETECTION
+  =============================== */
+
+  const activeModule = Number(localStorage.getItem("activeJSModule"));
+  const activeQuestId = Number(localStorage.getItem("activeQuestId"));
+  const validateExercise = useValidateExercise();
+
+  const isDOMStage = () => {
+    return language === "javascript" && activeModule === 4;
+  };
+
+  const quest = allQuests.find(q => q.id === 14);
+  console.log("Active Quest:", quest);
+
+  const questHTML = quest?.htmlTemplate;
+
+  /* ===============================
+     TERMINAL HELPERS
+  =============================== */
+
+  const write = (text) => {
+    outputRef.current += text;
+    setOutput(outputRef.current);
+  };
+
+  const resetTerminal = () => {
+    outputRef.current = "";
+    setOutput("");
+  };
 
   /* ===============================
      DOCKER EXECUTION
   =============================== */
 
-  useEffect(() => {
-    const handleQuestStarted = (e) => {
-      const startedId = e.detail?.questId;
-      if (startedId === questId) {
-        setIsQuestActive(true);
-      }
-    };
-
-    window.addEventListener("code-mania:quest-started", handleQuestStarted);
-
-    return () =>
-      window.removeEventListener("code-mania:quest-started", handleQuestStarted);
-  }, [questId]);
-
-  useEffect(() => {
-    setIsQuestActive(false);
-    setValidationResult(null);
-  }, [questId]);
-
-
   const runViaDocker = () => {
-    if (socketRef.current) socketRef.current.close();
-
-    let finalOutput = ""; // prevent stale state issue
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
 
     const socket = new WebSocket("wss://terminal.codemania.fun");
     socketRef.current = socket;
 
+    let fullOutput = "";
+
     socket.onopen = () => {
-      window.dispatchEvent(new Event("code-mania:terminal-active"));
       socket.send(JSON.stringify({ language, code }));
     };
 
     socket.onmessage = (e) => {
-      finalOutput += e.data;
-      setProgramOutput(prev => prev + e.data);
-
-      if (!e.data.endsWith("\n")) {
-        setWaitingForInput(true);
-        terminalRef.current?.focus();
-      }
+      fullOutput += e.data;
+      write(e.data);
     };
 
     socket.onclose = async () => {
-      setWaitingForInput(false);
       setIsRunning(false);
-      window.dispatchEvent(new Event("code-mania:terminal-inactive"));
 
       try {
-        const result = await validateExercise(
-          questId,
-          finalOutput,
-          code
-        );
-
-        console.log("Validation result:", result.objectives);
-
-        if (result?.objectives) {
-          setValidationResult(result.objectives);
-        }
+        const result = await validateExercise(activeQuestId, fullOutput, code);
 
         if (result?.success) {
           window.dispatchEvent(
             new CustomEvent("code-mania:quest-complete", {
-              detail: { questId }
+              detail: { questId: activeQuestId }
             })
           );
-        } else if (result?.message) {
-          setProgramOutput(prev =>
-            prev + "\n\n❌ " + result.message
-          );
+        } else {
+          write("\n\n❌ " + (result?.message || "Validation failed"));
         }
 
       } catch (err) {
-        setProgramOutput(prev =>
-          prev + "\n\n❌ Validation server error"
-        );
+        write("\n\n❌ Validation server error");
       }
     };
   };
 
+
   /* ===============================
-     TERMINAL INPUT HANDLER
+     PRELOAD DOM (AUTO LOAD HTML)
   =============================== */
 
-  const handleKeyDown = (e) => {
-    if (!waitingForInput || !socketRef.current) return;
+  const preloadDOM = () => {
+    if (!iframeRef.current) return;
 
-    if (e.key === "Enter") {
-      socketRef.current.send(
-        JSON.stringify({ stdin: inputBuffer })
-      );
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              background: white;
+              color: black;
+              font-family: Arial;
+              padding: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          ${questHTML}
+        </body>
+      </html>
+    `;
 
-      setProgramOutput(prev => prev + inputBuffer + "\n");
-      setInputBuffer("");
-      setWaitingForInput(false);
-      e.preventDefault();
-      return;
-    }
-
-    if (e.key === "Backspace") {
-      setInputBuffer(prev => prev.slice(0, -1));
-      e.preventDefault();
-      return;
-    }
-
-    if (e.key.length === 1) {
-      setInputBuffer(prev => prev + e.key);
-      e.preventDefault();
-    }
+    iframeRef.current.srcdoc = html;
   };
 
   /* ===============================
-     RUN BUTTON
+     RUN JS ON EXISTING DOM
+  =============================== */
+
+  const runInIframe = () => {
+    if (!iframeRef.current) return;
+
+    const quest = allQuests.find(q => q.id === 14);
+
+    const questHTML = quest?.htmlTemplate
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              background: white;
+              color: black;
+              font-family: Arial;
+              padding: 20px;
+            }
+            pre {
+              background: #eee;
+              padding: 5px;
+            }
+          </style>
+        </head>
+        <body>
+
+          ${questHTML}
+
+          <hr />
+
+          <script>
+            const oldLog = console.log;
+            console.log = function(...args) {
+              const msg = args.join(" ");
+              const pre = document.createElement("pre");
+              pre.textContent = msg;
+              document.body.appendChild(pre);
+              oldLog.apply(console, args);
+            };
+
+            try {
+              ${code}
+            } catch (err) {
+              const pre = document.createElement("pre");
+              pre.style.color = "red";
+              pre.textContent = err;
+              document.body.appendChild(pre);
+            }
+          <\/script>
+
+        </body>
+      </html>
+    `;
+
+    iframeRef.current.srcdoc = html;
+  };
+
+
+
+  /* ===============================
+     AUTO PRELOAD WHEN DOM STAGE
+  =============================== */
+
+  useEffect(() => {
+    if (isDOMStage()) {
+      preloadDOM();
+    }
+  }, [activeQuestId, activeModule]);
+
+  /* ===============================
+     RUN HANDLER
   =============================== */
 
   const handleRun = () => {
-    setProgramOutput("");
-    setInputBuffer("");
-    setWaitingForInput(false);
+    if (disabled) {
+      write("\n\n🔒 Talk to the NPC to accept the quest first.");
+      return;
+    }
+    resetTerminal();
     setIsRunning(true);
+
+    if (isDOMStage()) {
+      setTimeout(() => {
+        runInIframe();
+        setIsRunning(false);
+      }, 50); // small delay ensures iframe is ready
+      return;
+    }
+
     runViaDocker();
   };
-
-  const totalObjectives = validationResult
-    ? Object.keys(validationResult).length
-    : 0;
-
-  const passedObjectives = validationResult
-    ? Object.values(validationResult).filter(obj => obj.passed).length
-    : 0;
 
   /* ===============================
      RENDER
@@ -210,11 +269,9 @@ const InteractiveTerminal = ({ questId }) => {
           </span>
 
           <button
-            className={`${styles["submit-btn"]} ${
-                        !isQuestActive ? styles["btn-disabled"] : ""
-                      }`}
+            className={styles["submit-btn"]}
             onClick={handleRun}
-            disabled={isRunning || !isQuestActive}
+            disabled={isRunning || disabled}
           >
             <Play size={16} />
             {isRunning ? "Running..." : "Run"}
@@ -235,57 +292,35 @@ const InteractiveTerminal = ({ questId }) => {
         />
       </div>
 
-      <div
-        className={styles["terminal"]}
-        ref={terminalRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-      >
-        <div className={styles["terminal-header"]}>Terminal</div>
-
-        <div className={styles["terminal-content"]}>
-          <pre>
-            {programOutput}
-            {waitingForInput && inputBuffer}
-            {waitingForInput && (
-              <span className={styles.cursor}></span>
-            )}
-            {!programOutput &&
-              !waitingForInput &&
-              "▶ Output will appear here"}
-          </pre>
-        </div>
-
-      </div>
-      {validationResult && (
-          <div className={styles["validation-box"]}>
-            <h4 className={styles["validation-summary"]}>
-              Test Results: {passedObjectives} / {totalObjectives} passed
-            </h4>
-
-            {Object.values(validationResult).map((obj, index) => (
-              <div
-                key={index}
-                className={
-                  obj.passed
-                    ? styles["test-pass"]
-                    : styles["test-fail"]
-                }
-              >
-                <span className={styles["test-icon"]}>
-                  {obj.passed ? "✔" : "✖"}
-                </span>
-                <span>{obj.label}</span>
-              </div>
-            ))}
-
-            {passedObjectives === totalObjectives && (
-              <div className={styles["all-pass"]}>
-                🎉 All tests passed!
-              </div>
-            )}
+      {/* DOCKER TERMINAL */}
+      {!isDOMStage() && (
+        <div className={styles["terminal"]}>
+          <div className={styles["terminal-header"]}>Terminal</div>
+          <div className={styles["terminal-content"]}>
+            <pre>{output || "▶ Output will appear here"}</pre>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* DOM PREVIEW */}
+      {isDOMStage() && (
+        <div style={{ marginTop: "20px" }}>
+          <div className={styles["terminal-header"]}>
+            DOM Preview (Sandboxed)
+          </div>
+
+          <iframe
+            ref={iframeRef}
+            sandbox="allow-scripts"
+            style={{
+              width: "100%",
+              height: "300px",
+              background: "white",
+              border: "1px solid #333"
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
