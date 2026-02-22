@@ -14,7 +14,7 @@ import StageCompleteModal from "../components/StageCompleteModal";
 
 import CodeTerminal from "../components/CodeTerminal";
 
-import TutorialPopup from "../components/Tutorialpopup";
+import TutorialPopup from "../components/TutorialPopup";
 
 
 
