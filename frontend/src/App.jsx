@@ -20,6 +20,8 @@ import About from "./pages/About";
 import PageNotFound from "./pages/PageNotFound";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
+import CodingExamPage from "./pages/CodingExamPage";
+import QuizPage from "./pages/QuizPage";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -243,12 +245,15 @@ function App() {
     }
   }, [location.search, navigate, setIsAuthenticated, navigate]);
 
-  // hide header/footer on exercise routes and dashboard
+  // hide header/footer on exercise routes, dashboard, exams, and quizzes
   const hideGlobalHeaderFooter = 
     location.pathname.startsWith("/learn/python/exercise") || 
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
-    location.pathname === "/dashboard";
+    location.pathname === "/dashboard" ||
+    location.pathname.startsWith("/quiz") ||
+    location.pathname.startsWith("/coding-exam") ||
+    location.pathname.startsWith("/exam");
 
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" || 
@@ -273,7 +278,7 @@ function App() {
           <Route path="/learn/python" element={<PythonCourse />} />
 
           <Route 
-            path="/learn/python/exercise/play" 
+            path="/learn/python/exercise/:exerciseId" 
             element={
               <PythonExercise 
                 isAuthenticated={isAuthenticated}
@@ -286,13 +291,16 @@ function App() {
           <Route path="/learn/cpp/exercise/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-          <Route path="/learn/javascript/exercise/play" element={<JavaScriptExercise />} />
+          <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
+          <Route path="/coding-exam/:language" element={<CodingExamPage />} />
+          <Route path="/exam/:language" element={<CodingExamPage />} />
+          <Route path="/quiz/:language/:quizId" element={<QuizPage />} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<PageNotFound />} />

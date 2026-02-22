@@ -1,314 +1,566 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Play, ChevronLeft, ChevronRight } from "lucide-react";
+
+import { useParams, useNavigate } from "react-router-dom";
+
+
+
 import Header from "../components/header";
+
 import SignInModal from "../components/SignInModal";
+
 import ProgressBar from "../components/ProgressBar";
+
 import StageCompleteModal from "../components/StageCompleteModal";
+
 import CodeTerminal from "../components/CodeTerminal";
+
 import TutorialPopup from "../components/TutorialPopup";
+
+
+
 import styles from "../styles/JavaScriptExercise.module.css";
-// Reusing CSS – you can replace with C++ styles if you add them
-import cppStage1Badge from "../assets/badges/C++/cpp-badges1.png";
-import cppStage2Badge from "../assets/badges/C++/cpp-badges2.png";
-import cppStage3Badge from "../assets/badges/C++/cpp-badge3.png";
-import cppStage4Badge from "../assets/badges/C++/cpp-badge4.png";
-import exercises from "../utilities/data/cppExercises.json";
-// import { initPhaserGame } from "../utilities/engine/main.js";
+
+import { startGame } from "../utilities/engine/main.js";
+
+
+
 import useAuth from "../hooks/useAxios";
+
 import { axiosPublic } from "../api/axios";
 
+import useGetGameProgress from "../services/getGameProgress.js";
+
+import useGetExerciseById from "../services/getExerciseById";
+
+import useGetNextExercise from "../services/getNextExcercise.js";
+
+
+
 const CppExercise = () => {
-const { exerciseId } = useParams();
-const navigate = useNavigate();
-const location = useLocation();
-const [currentExercise, setCurrentExercise] = useState(null);
-const [code, setCode] = useState("");
-const [output, setOutput] = useState("");
-const [showHelp, setShowHelp] = useState(false);
-const [showStageComplete, setShowStageComplete] = useState(false);
-const [, setXpEarned] = useState(0);
-const [showTutorial, setShowTutorial] = useState(false);
 
-// === Dialogue System ===
-const dialogues = [
-"Use the hints if you get stuck. For now, just complete what the exercise asks."
-];
-const [currentDialogue, setCurrentDialogue] = useState(0);
-const [displayedText, setDisplayedText] = useState("");
-const [isTyping, setIsTyping] = useState(false);
+  const navigate = useNavigate();
 
-// Load exercise data when route changes
-useEffect(() => {
-  const searchParams = new URLSearchParams(location.search);
-  const forceStageComplete = searchParams.get("stageComplete") === "1";
+  const { exerciseId } = useParams();
 
-  // Check if tutorial should be shown for new accounts
-  const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  
-  if (isAuthenticated && !hasSeenTutorial) {
-    setShowTutorial(true);
-  }
+  const activeExerciseId = Number(exerciseId);
 
-  if (exerciseId) {
-    const id = parseInt(exerciseId.split("-")[0], 10);
-    if (isNaN(id)) {
-      console.error('Invalid exercise ID');
-      return;
-    }
-    
-    // Set language for game scene
-    localStorage.setItem("lastCourseTitle", "C++");
-    
-    // Set mapId based on current exercise number
-    let mapId;
-    if (id === 1) {
-      mapId = "map1";
-    } else if (id === 2) {
-      mapId = "map2";
-    } else if (id === 3) {
-      mapId = "map3";
-    } else {
-      mapId = "map2"; // Default to map2 for exercises 4+
-    }
-    localStorage.setItem("currentMapId", mapId);
-    
-    const exercise = exercises.find((ex) => ex.id === id);
-    if (!exercise) {
-      console.error(`Exercise with ID ${id} not found`);
-      return;
-    }
-    
-    setCurrentExercise(exercise);
-    setCode(
-      exercise.startingCode ||
-      `// ${exercise.title}\n\n${exercise.startingCode || ""}`
-    );
-    setOutput("");
-    setShowHelp(false);
-    setShowStageComplete(forceStageComplete);
-  }
-}, [exerciseId, location.search]);
 
-const stageNumber = currentExercise ? Math.floor((currentExercise.id - 1) / 4) + 1 : 1;
-const lessonInStage = currentExercise ? ((currentExercise.id - 1) % 4) + 1 : 1;
-const cppStageBadges = [cppStage1Badge, cppStage2Badge, cppStage3Badge, cppStage4Badge];
-const isExam = Boolean(
-  currentExercise &&
-  ((currentExercise.title && currentExercise.title.toLowerCase().includes("exam")) ||
-    (currentExercise.lessonHeader && currentExercise.lessonHeader.toLowerCase().includes("exam")))
-);
-const debugStageNumber = (() => {
-  const searchParams = new URLSearchParams(location.search);
-  const n = parseInt(searchParams.get("stage"), 10);
-  return Number.isFinite(n) ? n : null;
-})();
-const displayStageNumber = debugStageNumber ?? stageNumber;
 
-// Navigation functions
-const goToNextExercise = () => {
-if (!currentExercise) return;
-const nextId = currentExercise.id + 1;
-if (nextId <= exercises.length) {
-const nextExercise = exercises[nextId - 1];
-const exerciseSlug = nextExercise.title.toLowerCase().replace(/\s+/g, "-");
-navigate(`/learn/cpp/exercise/${nextId}-${exerciseSlug}`);
-}
-};
+  const getGameProgress = useGetGameProgress();
 
-const goToPrevExercise = () => {
-if (!currentExercise) return;
-const prevId = currentExercise.id - 1;
-if (prevId >= 1) {
-const prevExercise = exercises[prevId - 1];
-const exerciseSlug = prevExercise.title.toLowerCase().replace(/\s+/g, "-");
-navigate(`/learn/cpp/exercise/${prevId}-${exerciseSlug}`);
-}
-};
+  const getExerciseById = useGetExerciseById();
 
-// Auto typing dialogue
-useEffect(() => {
-handleNextDialogue();
-}, []);
+  const getNextExercise = useGetNextExercise();
 
-useEffect(() => {
-  const game = initPhaserGame("phaser-container");
 
-  return () => {
-    if (game) game.cleanup();
-  };
-}, [exerciseId]); // Restart game when exerciseId changes
 
-const handleNextDialogue = () => {
-  if (isTyping) return;
-  const nextText = dialogues[currentDialogue];
-  if (!nextText) return;
-  setIsTyping(true);
-  setDisplayedText("");
+  const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
 
-  let index = 0;
-  const interval = setInterval(() => {
-    setDisplayedText(nextText.slice(0, index));
-    index++;
-    if (index > nextText.length) {
-      clearInterval(interval);
-      setIsTyping(false);
-      setCurrentDialogue((prev) =>
-        prev + 1 < dialogues.length ? prev + 1 : prev
-      );
-    }
-  }, 40); // typing speed
-};
+  const [activeExercise, setActiveExercise] = useState(null);
 
-const handleRunCode = () => {
-setOutput("Running cpp...\n");
-setTimeout(() => {
-  try {
-    // Capture console.log output
-    const logs = [];
-    const originalLog = console.log;
-    console.log = (...args) => {
-      logs.push(args.join(" "));
-      originalLog(...args);
+
+
+  const [terminalEnabled, setTerminalEnabled] = useState(false);
+
+  const [code, setCode] = useState("");
+
+  const [output, setOutput] = useState("");
+
+  const [isRunning, setIsRunning] = useState(false);
+
+
+
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  const [showStageComplete, setShowStageComplete] = useState(false);
+
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+
+
+
+  const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
+
+
+
+  /* ===============================
+
+     LOAD EXERCISE (BACKEND DRIVEN)
+
+  =============================== */
+
+  useEffect(() => {
+
+    const fetchExercise = async () => {
+
+      try {
+
+        const quest = await getExerciseById(activeExerciseId);
+
+        setActiveExercise(quest);
+
+      } catch (err) {
+
+        if (err.response?.status === 403) {
+
+          const redirectId = err.response.data?.redirectTo;
+
+          if (redirectId) {
+
+            navigate(`/learn/cpp/exercise/${redirectId}`);
+
+            return;
+
+          }
+
+        }
+
+
+
+        if (err.response?.status === 404 || err.response?.status === 400) {
+
+          navigate("/learn/cpp/exercise/1");
+
+          return;
+
+        }
+
+
+
+        console.error(err);
+
+      }
+
     };
 
-    // Execute the code (in a real app, you'd send this to a backend)
-    eval(code);
 
-    // Restore console.log
-    console.log = originalLog;
 
-    const resultText = logs.length > 0
-      ? `${logs.join("\n")}\n`
-      : "Program ran successfully.\n";
-    setOutput(resultText);
+    fetchExercise();
 
-if (lessonInStage === 4) {
-  setShowStageComplete(true);
-} else {
-  setShowStageComplete(false);
-}
-  } catch (error) {
-    setOutput(
-      `Error: ${error.message}\n>>> Program failed`
-    );
-    setShowStageComplete(false);
-  }
-}, 500);
-};
+  }, [activeExerciseId]);
 
-const handleStageContinue = () => {
-  setShowStageComplete(false);
-  goToNextExercise();
-};
 
-// --- Auth modal setup ---
-const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
-const handleOpenModal = () => setIsSignInModalOpen(true);
-const handleCloseModal = () => setIsSignInModalOpen(false);
+  /* ===============================
 
-const handleSignInSuccess = () => {
-axiosPublic
-  .get("/v1/account")
-  .then((res) => {
-    const ok = res?.data?.success === true;
-    const profile = res?.data?.data;
-    const hasUserId = Boolean(profile && profile.user_id);
+     LOAD PROGRESS
 
-    if (ok && hasUserId) {
-      setUser(profile);
-      setIsAuthenticated(true);
-      return;
+  =============================== */
+
+  useEffect(() => {
+
+    const loadProgress = async () => {
+
+      const result = await getGameProgress("C++");
+
+      if (result?.completedQuests) {
+
+        setDbCompletedQuests(result.completedQuests);
+
+      }
+
+    };
+
+
+
+    loadProgress();
+
+  }, []);
+
+
+
+  /* ===============================
+
+     RESET TERMINAL ON EXERCISE CHANGE
+
+  =============================== */
+
+  useEffect(() => {
+
+    setTerminalEnabled(false);
+
+
+
+    if (activeExercise?.startingCode) {
+
+      setCode(activeExercise.startingCode);
+
+      setOutput("");
+
     }
 
-    setUser(null);
-    setIsAuthenticated(false);
-  })
-  .catch(() => {
-    setUser(null);
-    setIsAuthenticated(false);
-  });
-window.dispatchEvent(new Event('authchange'));
-setIsSignInModalOpen(false);
-};
+  }, [activeExerciseId, activeExercise]);
 
-return (
-<div className={styles["javascript-exercise-page"]}>
-<div className={styles["scroll-background"]}></div>
-<Header
-isAuthenticated={isAuthenticated}
-onOpenModal={isAuthenticated ? null : handleOpenModal}
-user={user}
-/>
-{isSignInModalOpen && (
-<SignInModal
-isOpen={isSignInModalOpen}
-onClose={handleCloseModal}
-onSignInSuccess={handleSignInSuccess}
-/>
-)}
 
-<div className={styles["codex-fullscreen"]}>
-<ProgressBar
-currentLesson={lessonInStage}
-totalLessons={4}
-title={currentExercise?.lessonHeader || " C++ Basics"}
-variant={isExam ? "titleOnly" : "full"}
-/>
 
-<div className={styles["main-layout"]}>
-{/* Left Side */}
-<div className={styles["game-container"]}>
-<div className={styles["game-preview"]}>
-<div
-id="phaser-container"
-className={styles["game-scene"]}
-style={{
-width: "100%",
-height: "100%",
-imageRendering: "pixelated"
-}}
->
-</div>
-</div>
-</div>
+  /* ===============================
 
-{/* Right Side */}
-<CodeTerminal
-language="cpp"
-code={code}
-onRunCode={handleRunCode}
-runUnlocked={true}
-/>
+     NEXT EXERCISE LISTENER
 
-</div>
+  =============================== */
 
-<StageCompleteModal
-show={showStageComplete}
-stageNumber={displayStageNumber}
-languageLabel="C++"
-badgeSrc={cppStageBadges[displayStageNumber - 1]}
-onContinue={handleStageContinue}
-onClose={() => setShowStageComplete(false)}
-/>
+  useEffect(() => {
 
-</div>
+    const onRequestNext = async (e) => {
 
-{/* Tutorial Popup */}
-{showTutorial && (
-<TutorialPopup 
-open={showTutorial} 
-onClose={() => {
-setShowTutorial(false);
-          localStorage.setItem('hasSeenTutorial', 'true');
-        }} 
+      const currentId = e.detail?.exerciseId;
+
+      if (!currentId) return;
+
+
+
+      const next = await getNextExercise(currentId);
+
+
+
+      if (!next) {
+
+        setShowStageComplete(true);
+
+        return;
+
+      }
+
+
+
+      navigate(`/learn/cpp/exercise/${next.id}`);
+
+    };
+
+
+
+    window.addEventListener(
+
+      "code-mania:request-next-exercise",
+
+      onRequestNext
+
+    );
+
+
+
+    return () => {
+
+      window.removeEventListener(
+
+        "code-mania:request-next-exercise",
+
+        onRequestNext
+
+      );
+
+    };
+
+  }, []);
+
+
+
+  /* ===============================
+
+     PHASER INIT (MATCH PYTHON)
+
+  =============================== */
+
+  useEffect(() => {
+
+    if (!activeExercise) return;
+
+
+
+    startGame({
+
+      exerciseId: activeExerciseId,
+
+      quest: activeExercise,
+
+      completedQuests: dbCompletedQuests,
+
+      parent: "phaser-container"
+
+    });
+
+
+
+    const onQuestStarted = (e) => {
+
+      if (!e.detail?.questId) return;
+
+      setTerminalEnabled(true);
+
+    };
+
+
+
+    const onQuestComplete = (e) => {
+
+      const questId = e.detail?.questId;
+
+      if (!questId) return;
+
+
+
+      const scene = window.game?.scene?.keys?.GameScene;
+
+      scene?.questManager?.completeQuest(questId);
+
+
+
+      if (scene) {
+
+        scene.playerCanMove = true;
+
+        scene.gamePausedByTerminal = false;
+
+      }
+
+    };
+
+
+
+    window.addEventListener("code-mania:quest-started", onQuestStarted);
+
+    window.addEventListener("code-mania:quest-complete", onQuestComplete);
+
+
+
+    return () => {
+
+      window.removeEventListener("code-mania:quest-started", onQuestStarted);
+
+      window.removeEventListener("code-mania:quest-complete", onQuestComplete);
+
+      if (window.game) {
+        window.game.sound?.stopAll();
+        window.game.destroy(true);
+        window.game = null;
+      }
+
+    };
+
+  }, [activeExercise, dbCompletedQuests]);
+
+
+
+  /* ===============================
+
+     RUN CODE (SIMULATED C++)
+
+  =============================== */
+
+  const handleRunCode = () => {
+
+    if (!terminalEnabled || isRunning) return;
+
+
+
+    setIsRunning(true);
+
+    setOutput("Compiling C++...\n");
+
+
+
+    setTimeout(() => {
+
+      try {
+
+        // In production this should hit a backend compiler
+
+        const expected = activeExercise.expectedOutput || "";
+
+
+
+        setOutput(expected || "Program ran successfully.");
+
+
+
+        window.dispatchEvent(
+
+          new CustomEvent("code-mania:quest-complete", {
+
+            detail: { questId: activeExercise.id }
+
+          })
+
+        );
+
+      } catch (err) {
+
+        setOutput(`❌ ${err.message}`);
+
+      } finally {
+
+        setIsRunning(false);
+
+      }
+
+    }, 800);
+
+  };
+
+
+
+  /* ===============================
+
+     AUTH
+
+  =============================== */
+
+  const handleSignInSuccess = () => {
+
+    axiosPublic
+
+      .get("/v1/account")
+
+      .then((res) => {
+
+        const profile = res?.data?.data;
+
+        if (profile?.user_id) {
+
+          setUser(profile);
+
+          setIsAuthenticated(true);
+
+        }
+
+      })
+
+      .catch(() => {
+
+        setUser(null);
+
+        setIsAuthenticated(false);
+
+      });
+
+
+
+    window.dispatchEvent(new Event("authchange"));
+
+    setIsSignInModalOpen(false);
+
+  };
+
+
+
+  if (!activeExercise) return null;
+
+
+
+  return (
+
+    <div className={styles["javascript-exercise-page"]}>
+
+      <Header
+
+        isAuthenticated={isAuthenticated}
+
+        onOpenModal={() => setIsSignInModalOpen(true)}
+
+        user={user}
+
       />
-    )}
-  </div>
-);
+
+
+
+      {isSignInModalOpen && (
+
+        <SignInModal
+
+          isOpen
+
+          onClose={() => setIsSignInModalOpen(false)}
+
+          onSignInSuccess={handleSignInSuccess}
+
+        />
+
+      )}
+
+
+
+      <div className={styles["codex-fullscreen"]}>
+
+        <ProgressBar
+          currentLesson={activeExercise?.order_index || 1}
+          totalLessons={activeExercise?.totalExercises || 16}
+          title="💻 C++ Basics"
+
+        />
+
+
+
+        <div className={styles["main-layout"]}>
+
+          <div className={styles["game-container"]}>
+
+            <div id="phaser-container" className={styles["game-scene"]} />
+
+          </div>
+
+
+
+          <CodeTerminal
+
+            language="cpp"
+
+            code={code}
+
+            onCodeChange={setCode}
+
+            onRun={handleRunCode}
+
+            output={output}
+
+            isRunning={isRunning}
+
+            showRunButton={terminalEnabled}
+
+            disabled={!terminalEnabled}
+
+          />
+
+        </div>
+
+      </div>
+
+
+
+      <StageCompleteModal
+
+        show={showStageComplete}
+
+        languageLabel="C++"
+
+        onClose={() => setShowStageComplete(false)}
+
+      />
+
+
+
+      {showTutorial && (
+
+        <TutorialPopup
+
+          open={showTutorial}
+
+          onClose={() => {
+
+            setShowTutorial(false);
+
+            localStorage.setItem("hasSeenTutorial", "true");
+
+          }}
+
+        />
+
+      )}
+
+    </div>
+
+  );
+
 };
+
+
 
 export default CppExercise;

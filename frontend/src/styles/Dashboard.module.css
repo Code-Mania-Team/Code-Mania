@@ -239,7 +239,7 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 475px;
+  height: 420px;
   position: relative;
   top: 50px;
 }
@@ -444,7 +444,6 @@ body, html {
   border-radius: 20px;
   padding: 25px;
   backdrop-filter: blur(10px);
-  height: 475px;
   margin-top: 50px;
 }
 
@@ -532,7 +531,6 @@ body, html {
   margin: 0 auto;
   display: block;
   position: relative;
-  top: 65px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;

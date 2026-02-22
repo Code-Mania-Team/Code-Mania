@@ -18,9 +18,12 @@ const useAxiosPrivate = () => {
         if (error?.response?.status === 401 && prevRequest && !prevRequest._retry) {
           prevRequest._retry = true;
           
-          // Check if this is an account endpoint - don't refresh for auth checks
-          if (prevRequest?.url?.includes('/v1/account')) {
-            console.log("Skipping refresh for auth check endpoint");
+          // Don't auto-refresh for auth/refresh endpoints
+          if (
+            prevRequest?.url?.includes('/v1/account') ||
+            prevRequest?.url?.includes('/v1/refresh')
+          ) {
+            console.log("Skipping refresh for auth endpoint");
             return Promise.reject(error);
           }
           

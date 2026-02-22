@@ -40,5 +40,7 @@ accountRouter.patch('/', authentication, account.updateProfile.bind(account));
 
 // Delete account
 accountRouter.delete('/', authentication, account.deleteUser.bind(account));
+accountRouter.get('/summary', authentication, account.getProfileSummary.bind(account));
+accountRouter.get('/learning-progress', authentication, account.getLearningProgress.bind(account));
 
 export default accountRouter;

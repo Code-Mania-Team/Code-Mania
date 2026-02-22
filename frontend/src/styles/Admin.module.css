@@ -130,7 +130,7 @@
   height: 320px;
   background-image:
     linear-gradient(180deg, rgba(5, 9, 19, 0.55) 100%),
-    url("/assets/admin.gif");
+    url("https://res.cloudinary.com/daegpuoss/image/upload/v1771179248/admin_n6bbed.webp");
   background-size: cover;
   background-position: 0px -200px;
   display: flex;
@@ -396,4 +396,67 @@
 
 .state {
   padding: 24px;
+}
+
+.errorText {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+.quizHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inlineActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quizTableWrap {
+  margin-top: 12px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.quizTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.quizTable th,
+.quizTable td {
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quizTable th {
+  font-size: 12px;
+  opacity: 0.8;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.quizEmpty {
+  text-align: center !important;
+  opacity: 0.75;
+}
+
+.passed {
+  color: #86efac;
+  font-weight: 600;
+}
+
+.failed {
+  color: #fca5a5;
+  font-weight: 600;
 }

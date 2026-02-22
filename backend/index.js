@@ -12,6 +12,8 @@ import './core/oauthSetup.js';
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.disable('etag');
+
 // app.set('trust-proxy', 1)
 /* ---------------------------------
    Middleware
@@ -30,7 +32,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: [process.env.FRONTEND_URL || 'http://localhost:5173', 'http://localhost:4173'],
     credentials: true,
   })
 );

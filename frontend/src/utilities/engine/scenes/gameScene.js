@@ -19,11 +19,11 @@ import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import { BADGES } from "../config/badgeConfig";
+import achievementsData from "../../data/achievements.json";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
 import QuestValidator from "../systems/questValidator";
-import { postGameProgress } from "../../../services/postGameProgress";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -31,47 +31,40 @@ export default class GameScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.completedQuestIds = new Set(data.completedQuests || [])
-    console.log("NIGGA",data);
-    // Use the last course title from localStorage if available
-    const storedLanguage = localStorage.getItem("lastCourseTitle") || "Python";
-    
-    // Map language names to MAPS keys
+    this.exerciseId = data.exerciseId;
+    this.quest = data.quest || null;
+    console.log("🚀 QUEST:", this.quest);
+    this.completedQuestIds = new Set(data.completedQuests || []);
+
+    const storedLanguage =
+      localStorage.getItem("lastCourseTitle") || "Python";
+
     this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
 
-    // Map ID passed from previous scene, or fall back to localStorage, or default to map1
-    if (data?.exerciseId) {
-      this.currentMapId = `map${data.exerciseId}`;
+    if (!this.quest || !this.quest.map_id) {
+      console.error("❌ Quest missing or invalid. Using fallback map1.");
+      this.currentMapId = "map9";
     } else {
-      // fallback only (free roam / dev mode)
-      this.currentMapId =
-        localStorage.getItem("currentMapId") || "map1";
+      this.currentMapId = this.quest.map_id; // ✅ CORRECT FIELD
     }
 
+    this.mapData = MAPS[this.language]?.[this.currentMapId];
 
-    // Access mapData based on language
-    this.mapData = MAPS[this.language][this.currentMapId];
+    if (!this.mapData) {
+      console.error("❌ Map not found:", {
+        language: this.language,
+        mapId: this.currentMapId
+      });
+    }
 
     this.playerCanMove = true;
-    this.helpShownThisSession = false;
     this.gamePausedByTerminal = false;
-    // this.openedChests = new Set(
-    //   JSON.parse(localStorage.getItem("openedChests") || "[]")
-    // );
-
-    // const savedAbilities = JSON.parse(
-    //   localStorage.getItem("abilities") || "[]"
-    // );
-    // this.worldState = {
-    //   abilities: new Set(savedAbilities)
-    // };
-    this.worldState = {
-      abilities: new Set()
-    };
-
+    this.worldState = { abilities: new Set() };
     this.openedChests = new Set();
-
   }
+
+
+
 
   setupLayerSwitching() {
     // Get the layer references
@@ -189,6 +182,10 @@ export default class GameScene extends Phaser.Scene {
       frameWidth: 48,
       frameHeight: 48
     });
+    this.load.audio("bgm-python", "/assets/audio/python.mp3");
+    this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
+    this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
+
 
   }
   onQuestComplete = async (e) => {
@@ -208,18 +205,6 @@ export default class GameScene extends Phaser.Scene {
     if (quest.grants) {
       this.worldState.abilities.add(quest.grants);
     }
-    try {
-      await postGameProgress({
-        questId: quest.id,
-        xp: quest.experience ?? 0,
-        programming_language: localStorage.getItem("lastCourseTitle") || "Python",
-      });
-
-
-      console.log("✅ quest saved");
-    } catch (err) {
-      console.error("❌ save failed", err);
-    }
 
 
     // ✅ ALWAYS show quest completed toast
@@ -231,14 +216,18 @@ export default class GameScene extends Phaser.Scene {
 
     // 🏅 ONLY show badge UI if quest has badge
     if (quest.badgeKey) {
-      const badge = BADGES[quest.badgeKey];
-      if (!badge) return;
+      const language = localStorage.getItem("lastCourseTitle") || "Python";
 
-      this.badgeUnlockPopup.show({
-        badgeKey: badge.key,
-        label: quest.title
-      });
+
+      const badge = BADGES[quest.badgeKey];
+      if (badge) {
+        this.badgeUnlockPopup.show({
+          badgeKey: badge.key,
+          label: quest.title
+        });
+      }
     }
+
   };
 
   create() {
@@ -364,10 +353,25 @@ export default class GameScene extends Phaser.Scene {
       this.questHUD.toggle(this.questManager.activeQuest);
     });
 
-    this.input.keyboard.on("keydown-H", () => {
+    this.input.keyboard.on("keydown-H", (event) => {
+      // If user is typing in input/textarea/monaco
+      const active = document.activeElement;
+
+      if (
+        active &&
+        (active.tagName === "INPUT" ||
+          active.tagName === "TEXTAREA" ||
+          active.classList.contains("monaco-editor"))
+      ) {
+        return;
+      }
+
       if (this.gamePausedByTerminal) return;
+
       this.helpManager.openHelp();
     });
+
+
     
     this.input.keyboard.on("keydown-T", () => {
       if (this.gamePausedByTerminal) return;
@@ -378,15 +382,55 @@ export default class GameScene extends Phaser.Scene {
       }
     });
 
-    // 🔒 TERMINAL EVENTS
-    window.addEventListener("code-mania:terminal-active", () => {
-      this.gamePausedByTerminal = true;
-      this.player.setVelocity(0);
+    // 🎵 Background music per language
+    const BGM_BY_LANGUAGE = {
+      Python: "bgm-python",
+      JavaScript: "bgm-javascript",
+      Cpp: "bgm-cpp"
+    };
+
+    const bgmKey = BGM_BY_LANGUAGE[this.language];
+
+    if (bgmKey) {
+      this.bgm = this.sound.add(bgmKey, {
+        loop: true,
+        volume: 0.5
+      });
+
+      this.bgm.play();
+    }
+
+    this.events.once("shutdown", () => {
+      if (this.bgm) {
+        this.bgm.stop();
+      }
     });
 
-    window.addEventListener("code-mania:terminal-inactive", () => {
+
+
+    this.handleTerminalActive = () => {
+      this.gamePausedByTerminal = true;
+
+      if (this.player?.body) {
+        this.player.setVelocity(0);
+      }
+
+      this.input.keyboard.enabled = false;
+    };
+
+    this.handleTerminalInactive = () => {
       this.gamePausedByTerminal = false;
+      this.input.keyboard.enabled = true;
+    };
+
+    window.addEventListener("code-mania:terminal-active", this.handleTerminalActive);
+    window.addEventListener("code-mania:terminal-inactive", this.handleTerminalInactive);
+
+    this.events.once("shutdown", () => {
+      window.removeEventListener("code-mania:terminal-active", this.handleTerminalActive);
+      window.removeEventListener("code-mania:terminal-inactive", this.handleTerminalInactive);
     });
+
 
     // 📚 TUTORIAL EVENTS (paused for now)
     window.addEventListener("code-mania:tutorial-open", () => {
@@ -474,9 +518,10 @@ export default class GameScene extends Phaser.Scene {
     this.questHUD = new QuestHUD(this);
     this.questManager = new QuestManager(
       this,
-      QUESTS_BY_LANGUAGE[this.language],
+      [this.quest],
       this.completedQuestIds
     );
+
 
     this.dialogueManager = new DialogueManager(this);
     this.cutsceneManager = new CutsceneManager(this);
@@ -762,10 +807,9 @@ export default class GameScene extends Phaser.Scene {
         npc.body.immovable = true;
 
         npc.npcData = {
-          questId: Number(
-            obj.properties?.find(p => p.name === "quest_id")?.value
-          )
+          questId: this.exerciseId
         };
+
 
         // ✅ THIS WAS MISSING
         this.npcs.push(npc);
@@ -919,6 +963,11 @@ export default class GameScene extends Phaser.Scene {
         quest.dialogue || [],
         () => {
           this.questManager.startQuest(quest.id);
+          window.dispatchEvent(
+            new CustomEvent("code-mania:quest-started", {
+              detail: { questId: quest.id }
+            })
+          );
           this.playerCanMove = true;
         }
       );
@@ -1259,12 +1308,17 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
 
     this.cameras.main.once("camerafadeoutcomplete", () => {
-    localStorage.setItem("currentMapId", targetMap);
 
-    this.scene.start("GameScene", {
-      mapId: targetMap
+      if (!this.quest.completed) return;
+
+      // Tell React to navigate
+      window.dispatchEvent(
+        new CustomEvent("code-mania:request-next-exercise", {
+          detail: { exerciseId: this.exerciseId }
+        })
+      );
+
     });
 
-    });
   }
 }

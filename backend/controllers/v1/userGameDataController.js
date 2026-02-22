@@ -1,4 +1,5 @@
 import GameDataService from "../../services/gameDataService.js";
+import { supabase } from "../../core/supabaseClient.js";
 
 class UserGameDataController {
     constructor() {
@@ -7,80 +8,75 @@ class UserGameDataController {
 
     async learningData(req, res) {
         try {
-            const user_id = res.locals.user_id;
+        const user_id = res.locals.user_id;
 
-            const programming_language =
-            req.query.programming_language;
-
-            if (!programming_language) {
-            return res.status(400).json({
-                success: false,
-                message: "programming_language is required",
-            });
-            }
-
-            let rows = await this.gameDataService.getLearningData(
-            user_id,
-            programming_language
-            );
-            
-
-            if (!Array.isArray(rows)) {
-            rows = rows ? [rows] : [];
-            }
-
-            return res.status(200).json({
-            success: true,
-            completedQuests: rows.map(r => r.exercise_id),
-            xpEarned: rows.reduce(
-                (sum, r) => sum + (r.xp_earned || 0),
-                0
-            ),
-            });
-        } catch (err) {
-            return res.status(500).json({
+        if (!user_id) {
+            return res.status(401).json({
             success: false,
-            message: err.message,
+            message: "Unauthorized"
             });
         }
-    }
 
+        const programming_language_id = parseInt(
+            req.query.programming_language
+        );
 
-    async gameData(req, res) {
-        try {
-            console.log("🔥 gameData HIT");
-            console.log("HEADERS:", req.headers);
-            console.log("BODY:", req.body);
-            console.log("USER_ID:", res.locals.user_id);
-            const user_id = res.locals.user_id;
-            const { exercise_id, xp_earned, programming_language } = req.body || {};
+        console.log("Language requested:", programming_language_id)
 
-            const result = await this.gameDataService.storeGameData({
-                user_id,
-                exercise_id,
-                xp_earned,
-                programming_language,
+        if (!Number.isFinite(programming_language_id)) {
+            return res.status(400).json({
+            success: false,
+            message: "programming_language must be a valid ID"
             });
+        }
 
-            if (result?.alreadyCompleted) {
-            return res.status(200).json({
-                success: true,
-                alreadyCompleted: true,
-            });
-            }
+        const rows = await this.gameDataService.getLearningData(
+            user_id,
+            programming_language_id
+        );
+        console.log("Fetched learning data:", rows);
 
-            return res.status(200).json({ success: true });
+        const { data: quizRows } = await supabase
+            .from("user_quiz_attempts")
+            .select(`
+              id,
+              earned_xp,
+              quizzes!inner (
+                programming_language_id
+              )
+            `)
+            .eq("user_id", user_id)
+            .eq("quizzes.programming_language_id", programming_language_id);
+
+        const questXpEarned = rows.reduce(
+            (sum, r) => sum + (r.quests?.experience || 0),
+            0
+        );
+
+        const quizXpEarned = (quizRows || []).reduce(
+            (sum, row) => sum + Number(row?.earned_xp || 0),
+            0
+        );
+
+        return res.status(200).json({
+            success: true,
+            completedQuests: rows.map(r => r.exercise_id),
+            xpEarned: questXpEarned + quizXpEarned,
+            questXpEarned,
+            quizXpEarned,
+            availableQuiz: (quizRows || []).length,
+            quests: rows.map(r => ({
+            id: r.exercise_id,
+            xp: r.quests?.experience || 0
+            }))
+        });
+
         } catch (err) {
-            if (err.message === "Unauthorized") {
-                return res.status(401).json({ success: false, message: "Unauthorized" });
-            }
-            if (err.message === "exercise_id is required") {
-                return res.status(400).json({ success: false, message: "exercise_id is required" });
-            }
-            if (err.message === "xp_earned must be a number") {
-                return res.status(400).json({ success: false, message: "xp_earned must be a number" });
-            }
-            return res.status(500).json({ success: false, message: err.message });
+        console.error("learningData error:", err);
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
         }
     }
 }

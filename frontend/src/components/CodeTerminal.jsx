@@ -1,19 +1,17 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useRef, useState, useMemo, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
+import useValidateExercise from "../services/validateExercise";
 
 /* ===============================
-   LANGUAGE FROM LOCALSTORAGE
+   LANGUAGE DETECTION
 =============================== */
+
 function getLanguageFromLocalStorage() {
   const title = (localStorage.getItem("lastCourseTitle") || "").toLowerCase();
-
-  if (title.includes("python")) return "python";
   if (title.includes("javascript")) return "javascript";
-  if (title.includes("java script")) return "javascript";
   if (title.includes("c++")) return "cpp";
-
   return "python";
 }
 
@@ -26,177 +24,179 @@ function getMonacoLang(lang) {
 function getStarterCode(lang) {
   switch (lang) {
     case "javascript":
-      return `// Write code below ❤️
-console.log("Hello world");`;
-
+      return `console.log("Hello world");`;
     case "cpp":
       return `#include <iostream>
 
 int main() {
-  std::cout << "Hello world" << std::endl;
-  return 0;
+  std::string name;
+  std::cout << "Type something: ";
+  std::cin >> name;
+  std::cout << name << std::endl;
 }`;
-
     default:
-      return `# Write code below ❤️
-print("Hello world")`;
+      return `a = input("Type something: ")
+print(a)`;
   }
 }
 
-/* ===============================
-   QUEST BRIDGE
-=============================== */
-function getActiveQuestId() {
-  return Number(localStorage.getItem("activeQuestId"));
-}
-
-const InteractiveTerminal = () => {
+const InteractiveTerminal = ({ questId }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
 
   const [code, setCode] = useState(() => getStarterCode(language));
-  const [output, setOutput] = useState("");
+  const [programOutput, setProgramOutput] = useState("");
+  const [inputBuffer, setInputBuffer] = useState("");
+  const [waitingForInput, setWaitingForInput] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [validationResult, setValidationResult] = useState(null);
+  const [isQuestActive, setIsQuestActive] = useState(false);
+
+  const validateExercise = useValidateExercise();
 
   const socketRef = useRef(null);
-  const waitingForInputRef = useRef(false);
-  const inputBufferRef = useRef("");
-
-  // ✅ FIX: output must be a ref (state is async)
-  const outputRef = useRef("");
+  const terminalRef = useRef(null);
 
   /* ===============================
-     GAME PAUSE / RESUME
+     DOCKER EXECUTION
   =============================== */
-  const handleEditorMount = (editor) => {
-    editor.onDidFocusEditorText(() => {
-      window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
-    });
 
-    editor.onDidBlurEditorText(() => {
-      window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
-    });
-  };
+  useEffect(() => {
+    const handleQuestStarted = (e) => {
+      const startedId = e.detail?.questId;
+      if (startedId === questId) {
+        setIsQuestActive(true);
+      }
+    };
 
-  /* ===============================
-     TERMINAL HELPERS
-  =============================== */
-  const write = (text) => {
-    outputRef.current += text;           // ✅ FIX
-    setOutput(outputRef.current);         // keep UI in sync
-  };
+    window.addEventListener("code-mania:quest-started", handleQuestStarted);
 
-  const resetTerminal = () => {
-    outputRef.current = "";               // ✅ FIX
-    setOutput("");
-    waitingForInputRef.current = false;
-    inputBufferRef.current = "";
-  };
+    return () =>
+      window.removeEventListener("code-mania:quest-started", handleQuestStarted);
+  }, [questId]);
 
-  /* ===============================
-     START SESSION
-  =============================== */
-  const handleRun = () => {
-    localStorage.setItem("lastSubmittedCode", code);
+  useEffect(() => {
+    setIsQuestActive(false);
+    setValidationResult(null);
+  }, [questId]);
 
-    if (socketRef.current) {
-      socketRef.current.close();
-    }
 
-    resetTerminal();
-    setIsRunning(true);
+  const runViaDocker = () => {
+    if (socketRef.current) socketRef.current.close();
 
-    // ✅ FIX: remove trailing space
-    const socket = new WebSocket(
-      "wss://terminal.codemania.fun"
-    );
+    let finalOutput = ""; // prevent stale state issue
 
+    const socket = new WebSocket("wss://terminal.codemania.fun");
     socketRef.current = socket;
 
     socket.onopen = () => {
-      // write(`▶ Running ${language.toUpperCase()}\n`);
-      socket.send(
-        JSON.stringify({
-          language,
-          code
-        })
-      );
+      window.dispatchEvent(new Event("code-mania:terminal-active"));
+      socket.send(JSON.stringify({ language, code }));
     };
 
     socket.onmessage = (e) => {
-      write(e.data);
+      finalOutput += e.data;
+      setProgramOutput(prev => prev + e.data);
 
       if (!e.data.endsWith("\n")) {
-        waitingForInputRef.current = true;
+        setWaitingForInput(true);
+        terminalRef.current?.focus();
       }
     };
 
-    socket.onclose = () => {
-      console.log("🧨 SOCKET CLOSED");
+    socket.onclose = async () => {
+      setWaitingForInput(false);
       setIsRunning(false);
-      waitingForInputRef.current = false;
+      window.dispatchEvent(new Event("code-mania:terminal-inactive"));
 
-      const questId = getActiveQuestId();
-      if (!questId) return;
+      try {
+        const result = await validateExercise(
+          questId,
+          finalOutput,
+          code
+        );
 
-      // ✅ FIX: dispatch FINAL output
-      window.dispatchEvent(
-        new CustomEvent("code-mania:terminal-result", {
-          detail: {
-            questId,
-            output: outputRef.current,
-            error: null
-          }
-        })
-      );
+        console.log("Validation result:", result.objectives);
 
-      console.log("📤 terminal-result dispatched", {
-        questId,
-        output: outputRef.current
-      });
+        if (result?.objectives) {
+          setValidationResult(result.objectives);
+        }
+
+        if (result?.success) {
+          window.dispatchEvent(
+            new CustomEvent("code-mania:quest-complete", {
+              detail: { questId }
+            })
+          );
+        } else if (result?.message) {
+          setProgramOutput(prev =>
+            prev + "\n\n❌ " + result.message
+          );
+        }
+
+      } catch (err) {
+        setProgramOutput(prev =>
+          prev + "\n\n❌ Validation server error"
+        );
+      }
     };
   };
 
   /* ===============================
-     INLINE STDIN
+     TERMINAL INPUT HANDLER
   =============================== */
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      if (!waitingForInputRef.current || !socketRef.current) return;
 
-      if (e.key === "Enter") {
-        write("\n");
-        socketRef.current.send(
-          JSON.stringify({ stdin: inputBufferRef.current })
-        );
-        inputBufferRef.current = "";
-        waitingForInputRef.current = false;
-        e.preventDefault();
-        return;
-      }
+  const handleKeyDown = (e) => {
+    if (!waitingForInput || !socketRef.current) return;
 
-      if (e.key === "Backspace") {
-        inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-        outputRef.current = outputRef.current.slice(0, -1); // ✅ FIX
-        setOutput(outputRef.current);
-        e.preventDefault();
-        return;
-      }
+    if (e.key === "Enter") {
+      socketRef.current.send(
+        JSON.stringify({ stdin: inputBuffer })
+      );
 
-      if (e.key.length === 1) {
-        inputBufferRef.current += e.key;
-        write(e.key);
-        e.preventDefault();
-      }
-    };
+      setProgramOutput(prev => prev + inputBuffer + "\n");
+      setInputBuffer("");
+      setWaitingForInput(false);
+      e.preventDefault();
+      return;
+    }
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+    if (e.key === "Backspace") {
+      setInputBuffer(prev => prev.slice(0, -1));
+      e.preventDefault();
+      return;
+    }
+
+    if (e.key.length === 1) {
+      setInputBuffer(prev => prev + e.key);
+      e.preventDefault();
+    }
+  };
 
   /* ===============================
-     RENDER (UNCHANGED)
+     RUN BUTTON
   =============================== */
+
+  const handleRun = () => {
+    setProgramOutput("");
+    setInputBuffer("");
+    setWaitingForInput(false);
+    setIsRunning(true);
+    runViaDocker();
+  };
+
+  const totalObjectives = validationResult
+    ? Object.keys(validationResult).length
+    : 0;
+
+  const passedObjectives = validationResult
+    ? Object.values(validationResult).filter(obj => obj.passed).length
+    : 0;
+
+  /* ===============================
+     RENDER
+  =============================== */
+
   return (
     <div className={styles["code-container"]}>
       <div className={styles["code-editor"]}>
@@ -205,14 +205,16 @@ const InteractiveTerminal = () => {
             {language === "cpp"
               ? "main.cpp"
               : language === "javascript"
-              ? "main.js"
+              ? "script.js"
               : "script.py"}
           </span>
 
           <button
-            className={styles["submit-btn"]}
+            className={`${styles["submit-btn"]} ${
+                        !isQuestActive ? styles["btn-disabled"] : ""
+                      }`}
             onClick={handleRun}
-            disabled={isRunning}
+            disabled={isRunning || !isQuestActive}
           >
             <Play size={16} />
             {isRunning ? "Running..." : "Run"}
@@ -225,22 +227,65 @@ const InteractiveTerminal = () => {
           theme="vs-dark"
           value={code}
           onChange={(v) => setCode(v ?? "")}
-          onMount={handleEditorMount}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
-            automaticLayout: true,
-            scrollBeyondLastLine: false
+            automaticLayout: true
           }}
         />
       </div>
 
-      <div className={styles["terminal"]}>
+      <div
+        className={styles["terminal"]}
+        ref={terminalRef}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+      >
         <div className={styles["terminal-header"]}>Terminal</div>
+
         <div className={styles["terminal-content"]}>
-          <pre>{output || "▶ Output will appear here"}</pre>
+          <pre>
+            {programOutput}
+            {waitingForInput && inputBuffer}
+            {waitingForInput && (
+              <span className={styles.cursor}></span>
+            )}
+            {!programOutput &&
+              !waitingForInput &&
+              "▶ Output will appear here"}
+          </pre>
         </div>
+
       </div>
+      {validationResult && (
+          <div className={styles["validation-box"]}>
+            <h4 className={styles["validation-summary"]}>
+              Test Results: {passedObjectives} / {totalObjectives} passed
+            </h4>
+
+            {Object.values(validationResult).map((obj, index) => (
+              <div
+                key={index}
+                className={
+                  obj.passed
+                    ? styles["test-pass"]
+                    : styles["test-fail"]
+                }
+              >
+                <span className={styles["test-icon"]}>
+                  {obj.passed ? "✔" : "✖"}
+                </span>
+                <span>{obj.label}</span>
+              </div>
+            ))}
+
+            {passedObjectives === totalObjectives && (
+              <div className={styles["all-pass"]}>
+                🎉 All tests passed!
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 };

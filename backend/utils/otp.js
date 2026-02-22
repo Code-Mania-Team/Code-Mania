@@ -1,4 +1,3 @@
-import nodemailer from "nodemailer";
 import path from "path";
 
 const crownPath = path.resolve(process.cwd(), "public", "crown.png");

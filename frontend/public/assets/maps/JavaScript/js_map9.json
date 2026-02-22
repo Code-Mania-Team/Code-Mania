@@ -93,7 +93,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-                         "value":1
+                         "value":9
                         }, 
                         {
                          "name":"target_map",
@@ -131,7 +131,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-                         "value":1
+                         "value":10
                         }, 
                         {
                          "name":"target_map",
@@ -673,6 +673,15 @@
                         }]
                 }, 
                 {
+                 "id":83,
+                 "properties":[
+                        {
+                         "name":"collision",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
                  "id":97,
                  "properties":[
                         {
@@ -788,7 +797,8 @@
                          "type":"bool",
                          "value":true
                         }]
-                }, 
+                },
+            
                 {
                  "id":253,
                  "properties":[

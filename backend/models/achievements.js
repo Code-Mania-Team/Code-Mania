@@ -9,13 +9,34 @@ class Achievements {
     async getUserAchievements(userId) {
         const { data, error } = await this.db
             .from("users_achievements")
-            .select("achievement_id, created_at")
+            .select(`
+            achievement_id,
+            created_at,
+            achievements (
+                id,
+                title,
+                description,
+                badge_key,
+                programming_language_id,
+                quest_id
+            )
+            `)
             .eq("user_id", userId)
             .order("created_at", { ascending: false });
-        
+
         if (error) throw error;
-        return data || [];
-    }
+
+        return data?.map(row => ({
+            id: row.achievements?.id,
+            title: row.achievements?.title,
+            description: row.achievements?.description,
+            badge_key: row.achievements?.badge_key,
+            programming_language_id: row.achievements?.programming_language_id,
+            quest_id: row.achievements?.quest_id,
+            earned_at: row.created_at
+        })) || [];
+        }
+
 
     // Mark achievement as completed for user
     async completeAchievement(userId, achievementId) {

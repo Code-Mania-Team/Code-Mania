@@ -9,6 +9,7 @@ import { signUp } from '../services/signup';
 import { verifyOtp } from '../services/verifyOtp';
 
 import { login } from '../services/login';
+import { loginWithGoogle } from '../services/login';
 
 import { axiosPublic } from '../api/axios';
 
@@ -743,7 +744,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
             isLoading={isLoading}
 
-            onClick={() => console.log('Google OAuth clicked')}
+            onClick={loginWithGoogle}
 
             icon={<GoogleIcon />}
 

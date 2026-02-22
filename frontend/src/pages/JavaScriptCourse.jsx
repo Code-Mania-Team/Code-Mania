@@ -7,6 +7,7 @@ import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
+import useGetExercises from "../services/getExercise";
 
 // Import JavaScript course badges
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
@@ -14,44 +15,73 @@ import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
 import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
 import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 
-const checkmarkIcon =
-  "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
+const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user} = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
-
+  const getExercises = useGetExercises();
+  const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [data, setData] = useState();
 
-  /* ===============================
-     LOAD PROGRESS (PYTHON LOGIC)
-  =============================== */
   useEffect(() => {
-    if (!isAuthenticated) return;
+    const fetchData = async () => {
+      const exercises = await getExercises(3); // JS
+
+      const groupedModules = [
+        { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
+        { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
+        { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
+        { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
+        { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
+      ];
+
+      exercises.forEach((exercise) => {
+        const order = Number(exercise.order_index || 0);
+        if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+        else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+        else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+        else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+      });
+
+      setModules(groupedModules);
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCompletedExercises(new Set());
+      setData(null);
+      return;
+    }
 
     const loadProgress = async () => {
       try {
-        const result = await getGameProgress("JavaScript");
+        const result = await getGameProgress(3);
+
+        if (!result) return; // handles 401 returning null
+
         setData(result);
-        if (result?.completedQuests) {
-          setCompletedExercises(new Set(result.completedQuests));
-        }
+        setCompletedExercises(
+          new Set(result.completedQuests || [])
+        );
+
       } catch (err) {
-        console.error("Failed to load JS progress", err);
+        console.error("Failed to load game progress", err);
+        setCompletedExercises(new Set());
       }
     };
 
     loadProgress();
   }, [isAuthenticated]);
 
-  /* ===============================
-     HELPERS (PYTHON LOGIC)
-  =============================== */
   const getExerciseStatus = (exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
 
@@ -62,12 +92,16 @@ const JavaScriptCourse = () => {
     return "locked";
   };
 
-  const handleViewProfile = () => {
-    if (isAuthenticated) {
-      navigate('/profile');
-    } else {
-      onOpenModal();
-    }
+  const getQuizStatus = (moduleId) => {
+    // Check if all exercises in the module are completed
+    const module = modules.find(m => m.id === moduleId);
+    if (!module) return "locked";
+    
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
+      completedExercises.has(exercise.id)
+    );
+    
+    return allExercisesCompleted ? "available" : "locked";
   };
 
   const onOpenModal = () => {
@@ -78,15 +112,29 @@ const JavaScriptCourse = () => {
     setIsModalOpen(false);
   };
 
+  const handleViewProfile = () => {
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else {
+      onOpenModal();
+    }
+  };
+
+  const totalExercises = modules
+    .filter((module) => module.id !== 5)
+    .reduce((sum, module) => sum + module.exercises.length, 0);
+
   const userProgress = {
     name: user?.full_name || "Guest",
     level: 1,
     exercisesCompleted: data?.completedQuests?.length || 0,
-    totalExercises: 16,
+    totalExercises,
     projectsCompleted: 0,
     totalProjects: 2,
     xpEarned: data?.xpEarned || 0,
-    totalXp: 2600
+    totalXp: 2600,
+    availableQuiz: data?.availableQuiz || 0,
+    totalQuiz: 4,
   };
 
   const handleStartExercise = (exerciseId) => {
@@ -101,12 +149,13 @@ const JavaScriptCourse = () => {
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
-    navigate(`/learn/javascript/exercise/play`);
+    navigate(`/learn/javascript/exercise/${exerciseId}`);
   };
 
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
+
   const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
 
   const getStatusIcon = (status) => {
@@ -123,67 +172,6 @@ const JavaScriptCourse = () => {
     return <Circle className="status-icon available" />;
   };
 
-  /* ===============================
-     COURSE STRUCTURE (UNCHANGED)
-  =============================== */
-  const modules = [
-    {
-      id: 1,
-      title: "JavaScript Basics",
-      description:
-        "Get started with JavaScript fundamentals and write your first interactive code.",
-      exercises: [
-        { id: 1, name: "Introduction" },
-        { id: 2, name: "Console Output" },
-        { id: 3, name: "Variables" },
-        { id: 4, name: "Data Types" },
-      ],
-    },
-    {
-      id: 2,
-      title: "Functions & Scope",
-      description:
-        "Master functions, parameters, and understand variable scope in JavaScript.",
-      exercises: [
-        { id: 5, name: "Function Basics" },
-        { id: 6, name: "Parameters & Arguments" },
-        { id: 7, name: "Return Values" },
-        { id: 8, name: "Arrow Functions" },
-      ],
-    },
-    {
-      id: 3,
-      title: "Arrays & Objects",
-      description:
-        "Learn to work with arrays and objects to store and manipulate complex data.",
-      exercises: [
-        { id: 9, name: "Arrays" },
-        { id: 10, name: "Array Methods" },
-        { id: 11, name: "Objects" },
-        { id: 12, name: "Object Methods" },
-      ],
-    },
-    {
-      id: 4,
-      title: "DOM Manipulation",
-      description:
-        "Interact with web pages by manipulating the Document Object Model.",
-      exercises: [
-        { id: 13, name: "Selecting Elements" },
-        { id: 14, name: "Modifying Content" },
-        { id: 15, name: "Event Listeners" },
-        { id: 16, name: "Dynamic Styling" },
-      ],
-    },
-    {
-      id: 5,
-      title: "Examination",
-      description:
-        "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
-      exercises: [{ id: 17, name: "JavaScript Exam" }],
-    },
-  ];
-
   return (
     <div className="javascript-course-page">
       {/* Hero Section */}
@@ -195,9 +183,8 @@ const JavaScriptCourse = () => {
           </div>
           <h1 className="javascript-hero-title">JavaScript ES6+</h1>
           <p className="javascript-hero-description">
-            Create interactive web experiences with JavaScript. Learn DOM manipulation, events, and modern ES6+ features.
+            Uncover quiet town mysteries while learning JavaScript basics like functions and logic.
           </p>
-          <button className="start-learning-btn">Start Learning for Free</button>
         </div>
       </section>
 
@@ -240,18 +227,15 @@ const JavaScriptCourse = () => {
                       );
 
                       return (
-                        <div
-                          key={exercise.id}
-                          className={`exercise-item ${status}`}
-                        >
+                        <div key={exercise.id} className={`exercise-item ${status}`}>
                           <div className="exercise-info">
                             {module.id !== 5 && (
                               <span className="exercise-number">
-                                Exercise {exercise.id}
+                                EXERCISE {index + 1}
                               </span>
                             )}
                             <span className="exercise-name">
-                              {exercise.name}
+                              {exercise.title}
                             </span>
                           </div>
 
@@ -259,19 +243,42 @@ const JavaScriptCourse = () => {
                             {status === "available" ? (
                               <button
                                 className="start-btn"
-                                onClick={() =>
-                                  handleStartExercise(exercise.id)
-                                }
+                                onClick={() => handleStartExercise(exercise.id)}
                               >
                                 Start
                               </button>
                             ) : (
-                              getStatusIcon(status)
+                              <button className="locked-btn" disabled>
+                                {getStatusIcon(status)}
+                              </button>
                             )}
                           </div>
                         </div>
                       );
                     })}
+
+                    {module.id !== 5 && (
+                      <div className={`exercise-item ${getQuizStatus(module.id)}`}>
+                        <div className="exercise-info">
+                          <span className="exercise-number">QUIZ</span>
+                          <span className="exercise-name">Take Quiz</span>
+                        </div>
+
+                        <div className="exercise-status">
+                          {getQuizStatus(module.id) === 'available' ? (
+                            <button
+                              className="start-btn"
+                              onClick={() => navigate(`/quiz/javascript/${module.id}`)}
+                            >
+                              Start
+                            </button>
+                          ) : (
+                            getStatusIcon(getQuizStatus(module.id))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               )}
@@ -281,17 +288,6 @@ const JavaScriptCourse = () => {
 
         {/* Sidebar */}
         <div className="sidebar">
-          <div className="profile-card">
-            <div className="profile-avatar">
-              <img src={characterIcon} alt="Profile" />
-            </div>
-            <div className="profile-info">
-              <h4>{userProgress.name}</h4>
-              <p>Level {userProgress.level}</p>
-            </div>
-            <button className="view-profile-btn" onClick={handleViewProfile}>View Profile</button>
-          </div>
-
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
             
@@ -311,7 +307,17 @@ const JavaScriptCourse = () => {
                 <span>XP Earned</span>
               </div>
               <span className="progress-value">
-                {userProgress.xpEarned} / {userProgress.totalXp}
+                {userProgress.xpEarned}
+              </span>
+            </div>
+
+            <div className="progress-item">
+              <div className="progress-label">
+                <div className="progress-icon exercises"></div>
+                <span>Total Quiz</span>
+              </div>
+              <span className="progress-value">
+                {userProgress.availableQuiz} / {userProgress.totalQuiz}
               </span>
             </div>
           </div>

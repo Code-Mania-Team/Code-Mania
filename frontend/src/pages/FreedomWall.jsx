@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, Send } from "lucide-react";
+import { containsProfanity } from "../utils/profanityFilter";
 import "../styles/FreedomWall.css";
 
 import useGetAllPosts from "../services/home";
@@ -13,6 +14,8 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const FreedomWall = ({ onOpenModal }) => {
   const getAllPosts = useGetAllPosts();
+  const COOLDOWN_MINUTES = 30;
+  const COOLDOWN_KEY = 'freedomwallLastPost';
   const userPost = useUserPost();
   const [comments, setComments] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
@@ -35,6 +38,7 @@ const FreedomWall = ({ onOpenModal }) => {
   const formatTimeAgo = (dateInput) => {
     const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
     if (!date || Number.isNaN(date.getTime())) return '';
+    
 
     const diffMs = Date.now() - date.getTime();
     const diffSec = Math.max(0, Math.floor(diffMs / 1000));
@@ -98,21 +102,58 @@ const FreedomWall = ({ onOpenModal }) => {
   }, []);
 
   const handleAddComment = async () => {
-    const content = (newComment || '').trim();
-    console.log("content",content);
+  const content = (newComment || '').trim();
+  console.log("content", content);
+
     if (!content) return;
+
+    // 🚫 PROFANITY CHECK
+    if (containsProfanity(content)) {
+      setPostError("Your post contains inappropriate language.");
+      return;
+    }
+
+    // 🚫 COOLDOWN CHECK
+    const lastPostTimeRaw = localStorage.getItem(COOLDOWN_KEY);
+
+    if (lastPostTimeRaw) {
+      const lastPostTime = parseInt(lastPostTimeRaw, 10);
+
+      if (!isNaN(lastPostTime)) {
+        const now = Date.now();
+        const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
+        const timePassed = now - lastPostTime;
+
+        if (timePassed < cooldownMs) {
+          const remainingMs = cooldownMs - timePassed;
+          const remainingMinutes = Math.ceil(remainingMs / 60000);
+
+          setPostError(
+            `You can post again in ${remainingMinutes} minute(s).`
+          );
+          return;
+        }
+      }
+    }
 
     setIsPosting(true);
     setPostError('');
+
     try {
       const res = await userPost(content);
+
       if (res?.success) {
+        // 🔥 SAVE POST TIME
+        localStorage.setItem(COOLDOWN_KEY, String(Date.now()));
+
         const created = res?.data ? mapApiPostToComment(res.data) : null;
+
         if (created) {
           setComments((prev) => [created, ...prev]);
         } else {
           await fetchPosts();
         }
+
         setNewComment('');
       }
     } catch (err) {
@@ -123,7 +164,12 @@ const FreedomWall = ({ onOpenModal }) => {
         }
         return;
       }
-      const msg = err?.response?.data?.message || err?.message || 'Failed to create post.';
+
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to create post.';
+
       setPostError(String(msg));
     } finally {
       setIsPosting(false);

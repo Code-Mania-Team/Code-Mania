@@ -4,7 +4,7 @@ import HelpScene from "./scenes/helpScene";
 
 let game = null;
 
-export const startGame = ({ exerciseId, parent, completedQuests = [] }) => {
+export const startGame = ({ exerciseId, quest ,parent, completedQuests = [] }) => {
   // destroy previous game
   if (game) {
     game.destroy(true);
@@ -36,7 +36,7 @@ export const startGame = ({ exerciseId, parent, completedQuests = [] }) => {
     },
 
     scale: {
-      mode: Phaser.Scale.FIT,        // ✅ SAFE
+      mode: Phaser.Scale.FIT,        
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
 
@@ -49,7 +49,7 @@ export const startGame = ({ exerciseId, parent, completedQuests = [] }) => {
   game.scene.add("HelpScene", HelpScene, false);
 
   // start with correct exercise → map
-  game.scene.start("GameScene", { exerciseId, completedQuests });
+  game.scene.start("GameScene", { exerciseId,quest, completedQuests });
 
   // 🔁 keep reference
   window.game = game;
