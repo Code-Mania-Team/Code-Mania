@@ -11,11 +11,10 @@ class GameData {
       .from("users_game_data")
       .select(`
         exercise_id,
-        status,
         quests!inner (
-          id,
-          experience,
-          programming_language_id
+            id,
+            experience,
+            programming_language_id
         )
         `)
       .eq("user_id", user_id)

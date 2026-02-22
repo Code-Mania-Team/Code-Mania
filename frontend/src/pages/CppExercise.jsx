@@ -14,7 +14,7 @@ import StageCompleteModal from "../components/StageCompleteModal";
 
 import CodeTerminal from "../components/CodeTerminal";
 
-import TutorialPopup from "../components/TutorialPopup";
+import TutorialPopup from "../components/Tutorialpopup";
 
 
 
@@ -80,7 +80,7 @@ const CppExercise = () => {
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
-
+  
 
   /* ===============================
 
@@ -150,7 +150,7 @@ const CppExercise = () => {
 
     const loadProgress = async () => {
 
-      const result = await getGameProgress("C++");
+      const result = await getGameProgress(3);
 
       if (result?.completedQuests) {
 
