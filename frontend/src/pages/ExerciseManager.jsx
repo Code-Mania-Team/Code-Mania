@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
-import { ArrowLeft, Plus, Edit, Trash2, Save, X, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Save, X, Eye, EyeOff } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 
 const ExerciseManager = () => {
@@ -10,17 +10,30 @@ const ExerciseManager = () => {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingExercise, setEditingExercise] = useState(null);
-  const [creatingNew, setCreatingNew] = useState(false);
   const [formData, setFormData] = useState({});
+
+  const languageIdByCourse = {
+    python: 1,
+    cpp: 2,
+    javascript: 3,
+  };
+
+  const selectedLanguageId = languageIdByCourse[course];
 
   useEffect(() => {
     fetchExercises();
   }, [course]);
 
   const fetchExercises = async () => {
+    if (!selectedLanguageId) {
+      setExercises([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axiosPublic.get(`/v1/admin/exercises?course=${course}`, { 
+      const response = await axiosPublic.get(`/v1/exercises/programming-language/${selectedLanguageId}`, {
         withCredentials: true 
       });
       if (response.data.success) {
@@ -37,61 +50,44 @@ const ExerciseManager = () => {
     setEditingExercise(exercise.id);
     setFormData({
       ...exercise,
-      dialogue: JSON.stringify(exercise.dialogue, null, 2),
-      requirements: JSON.stringify(exercise.requirements, null, 2)
-    });
-  };
-
-  const handleCreateNew = () => {
-    setCreatingNew(true);
-    setFormData({
-      course,
-      exercise_id: exercises.length + 1,
-      title: "",
-      validation_mode: "HYBRID",
-      dialogue: JSON.stringify([], null, 2),
-      experience: 100,
-      lesson_header: "",
-      description: "",
-      task: "",
-      lesson_example: "",
-      starting_code: "",
-      requirements: JSON.stringify({}, null, 2),
-      expected_output: "",
-      grants: "",
-      status: "draft",
-      order_index: exercises.length + 1
+      dialogue: JSON.stringify(exercise.dialogue || [], null, 2),
+      requirements: JSON.stringify(exercise.requirements || {}, null, 2)
     });
   };
 
   const handleSave = async () => {
     try {
+      let parsedRequirements = formData.requirements || {};
+
+      if (typeof formData.requirements === 'string') {
+        try {
+          parsedRequirements = JSON.parse(formData.requirements);
+        } catch {
+          alert('Requirements must be valid JSON.');
+          return;
+        }
+      }
+
       const processedData = {
         ...formData,
-        dialogue: JSON.parse(formData.dialogue),
-        requirements: JSON.parse(formData.requirements)
+        requirements: parsedRequirements,
       };
 
-      let response;
-      if (creatingNew) {
-        response = await axiosPublic.post("/v1/admin/exercises", processedData, {
-          withCredentials: true
-        });
-      } else {
-        response = await axiosPublic.put(`/v1/admin/exercises/${editingExercise}`, processedData, {
-          withCredentials: true
-        });
-      }
+      delete processedData.dialogue;
+
+      const response = await axiosPublic.patch(`/v1/admin/exercises/${editingExercise}`, processedData, {
+        withCredentials: true
+      });
 
       if (response.data.success) {
         await fetchExercises();
         setEditingExercise(null);
-        setCreatingNew(false);
         setFormData({});
       }
     } catch (error) {
       console.error("Error saving exercise:", error);
-      alert("Error saving exercise. Please check your JSON formatting.");
+      const message = error?.response?.data?.message || error?.message || "Error saving exercise.";
+      alert(message);
     }
   };
 
@@ -111,14 +107,13 @@ const ExerciseManager = () => {
 
   const handleCancel = () => {
     setEditingExercise(null);
-    setCreatingNew(false);
     setFormData({});
   };
 
   const toggleStatus = async (exercise) => {
     const newStatus = exercise.status === 'published' ? 'draft' : 'published';
     try {
-      await axiosPublic.put(`/v1/admin/exercises/${exercise.id}`, {
+      await axiosPublic.patch(`/v1/admin/exercises/${exercise.id}`, {
         ...exercise,
         status: newStatus
       }, { withCredentials: true });
@@ -127,6 +122,19 @@ const ExerciseManager = () => {
       console.error("Error toggling status:", error);
     }
   };
+
+  if (!selectedLanguageId) {
+    return (
+      <div className={styles.page}>
+        <section className={styles.section}>
+          <div className={styles.state}>
+            <h1>Invalid course.</h1>
+            <button className={styles.button} type="button" onClick={() => navigate('/admin')}>Back to Admin</button>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -156,10 +164,6 @@ const ExerciseManager = () => {
             </button>
             <h2 className={styles.title}>{course.charAt(0).toUpperCase() + course.slice(1)} Exercises</h2>
           </div>
-          <button className={styles.button} type="button" onClick={handleCreateNew}>
-            <Plus size={16} style={{ marginRight: 4 }} />
-            New Exercise
-          </button>
         </div>
 
         <p className={styles.subtitle}>
@@ -167,18 +171,6 @@ const ExerciseManager = () => {
         </p>
 
         <div className={styles.panel}>
-          {creatingNew && (
-            <div className={styles.exerciseEditor}>
-              <h3>Create New Exercise</h3>
-              <ExerciseForm 
-                formData={formData} 
-                setFormData={setFormData} 
-                onSave={handleSave} 
-                onCancel={handleCancel} 
-              />
-            </div>
-          )}
-
           {exercises.map((exercise) => (
             <div key={exercise.id} className={styles.exerciseRow}>
               {editingExercise === exercise.id ? (

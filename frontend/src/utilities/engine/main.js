@@ -4,7 +4,7 @@ import HelpScene from "./scenes/helpScene";
 
 let game = null;
 
-export const startGame = ({ exerciseId, quest ,parent, completedQuests = [] }) => {
+export const startGame = ({ exerciseId, quest, parent, completedQuests = [] }) => {
   // destroy previous game
   if (game) {
     game.destroy(true);
@@ -17,15 +17,15 @@ export const startGame = ({ exerciseId, quest ,parent, completedQuests = [] }) =
     return;
   }
 
-  // const width = container.clientWidth;
-  // const height = container.clientHeight;
+  const width = container.clientWidth || 800;
+  const height = container.clientHeight || 600;
 
   game = new Phaser.Game({
     type: Phaser.AUTO,
     parent,
-    width: 800,
-    height: 600,
-    backgroundColor: "#000000",
+    width,
+    height,
+    backgroundColor: "#0f172a",
 
     physics: {
       default: "arcade",
@@ -33,11 +33,6 @@ export const startGame = ({ exerciseId, quest ,parent, completedQuests = [] }) =
         gravity: { y: 0 },
         debug: false,
       },
-    },
-
-    scale: {
-      mode: Phaser.Scale.FIT,        
-      autoCenter: Phaser.Scale.CENTER_BOTH,
     },
 
     scene: [],
@@ -49,7 +44,7 @@ export const startGame = ({ exerciseId, quest ,parent, completedQuests = [] }) =
   game.scene.add("HelpScene", HelpScene, false);
 
   // start with correct exercise → map
-  game.scene.start("GameScene", { exerciseId,quest, completedQuests });
+  game.scene.start("GameScene", { exerciseId, quest, completedQuests });
 
   // 🔁 keep reference
   window.game = game;
