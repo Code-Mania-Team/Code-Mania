@@ -323,8 +323,6 @@ function Admin() {
           </div>
         </div>
 
-        <p className={styles.subtitle}>Simple dashboard (demo values for now).</p>
-
         <div className={styles.grid}>
           <StatCard title="Total Users" value={metricsLoading ? '…' : (metrics?.totalUsers ?? demo.totalUsers)} />
           <StatCard title="New Users (7 days)" value={metricsLoading ? '…' : (metrics?.newUsers7d ?? demo.newUsers7d)} />
@@ -367,11 +365,9 @@ function Admin() {
         <div className={styles.header} style={{ marginTop: 24 }}>
           <div className={styles.headerLeft}>
             <BarChart3 className={styles.icon} />
-            <h2 className={styles.title}>Exam Analytics & Statistics</h2>
+            <h2 className={styles.title}>Quiz Analytics & Statistics</h2>
           </div>
         </div>
-
-        <p className={styles.subtitle}>Real user quiz attempts from backend.</p>
 
         <div className={styles.grid}>
           <StatCard title="Quiz Attempts" value={quizMetricsLoading ? '…' : (quizMetrics?.totalAttempts ?? 0)} />

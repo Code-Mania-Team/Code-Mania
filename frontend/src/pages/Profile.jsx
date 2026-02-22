@@ -689,11 +689,15 @@ const Profile = ({ onSignOut }) => {
     const languageKey = languageById[languageId];
     if (!languageKey || !learningProgress[languageKey]) return;
 
+    const completed = Number(row?.completed || 0);
+    const total = Number(row?.total || 0);
+    const computedPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
     learningProgress[languageKey] = {
       ...learningProgress[languageKey],
-      progress: Number(row?.percentage || 0),
-      total: Number(row?.total || 0),
-      completed: Number(row?.completed || 0),
+      progress: computedPercent,
+      total,
+      completed,
     };
   });
 
@@ -1489,7 +1493,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                {Object.entries(learningProgress).map(([language, { progress, total, icon }]) => (
+                {Object.entries(learningProgress).map(([language, { progress, total, completed, icon }]) => (
 
 
 
@@ -1525,7 +1529,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                      <span className={styles.progressText}>{progress}%</span>
+                      <span className={styles.progressText}>{completed || 0}/{total || 0}</span>
 
 
 

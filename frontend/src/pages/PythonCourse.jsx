@@ -269,9 +269,7 @@ const PythonCourse = () => {
                                 Start
                               </button>
                             ) : (
-                              <button className="locked-btn" disabled>
-                                {getStatusIcon(status)}
-                              </button>
+                              <span className="status-icon-wrap">{getStatusIcon(status)}</span>
                             )}
                           </div>
                         </div>
@@ -294,7 +292,7 @@ const PythonCourse = () => {
                               Start
                             </button>
                           ) : (
-                            getStatusIcon(getQuizStatus(module.id))
+                            <span className="status-icon-wrap">{getStatusIcon(getQuizStatus(module.id))}</span>
                           )}
                         </div>
                       </div>
