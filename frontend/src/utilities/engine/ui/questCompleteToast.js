@@ -7,7 +7,6 @@ export default class QuestCompleteToast {
     const marginY = 16;
     this.isShowing = false;
 
-
     // Start off-screen (left)
     this.container = scene.add
       .container(-320, marginY)
@@ -25,14 +24,14 @@ export default class QuestCompleteToast {
     this.titleText = scene.add.text(10, 6, "QUEST COMPLETED", {
       fontSize: "13px",
       fontStyle: "bold",
-      color: "#00ff88"
+      color: "#00ff88",
     });
 
     // Subtitle (quest title)
     this.subtitle = scene.add.text(10, 24, "", {
       fontSize: "12px",
       color: "#ffffff",
-      wordWrap: { width: 150 }
+      wordWrap: { width: 150 },
     });
 
     // ⭐ EXP text
@@ -42,7 +41,7 @@ export default class QuestCompleteToast {
         fontStyle: "bold",
         color: "#ffd700",
         stroke: "#000000",
-        strokeThickness: 2
+        strokeThickness: 2,
       })
       .setOrigin(1, 0)
       .setVisible(false);
@@ -63,7 +62,7 @@ export default class QuestCompleteToast {
       this.titleText,
       this.subtitle,
       this.expText,
-      this.badgeIcon
+      this.badgeIcon,
     ]);
 
     this.targetX = marginX;
@@ -90,9 +89,7 @@ export default class QuestCompleteToast {
     }
 
     if (exp > 0) {
-      this.expText
-        .setText(`+${exp} XP`)
-        .setVisible(true);
+      this.expText.setText(`+${exp} XP`).setVisible(true);
 
       this.expText.x = this.badgeIcon.visible ? 180 : 230;
     } else {
@@ -108,7 +105,7 @@ export default class QuestCompleteToast {
       x: this.targetX,
       alpha: 1,
       duration: 300,
-      ease: "Back.Out"
+      ease: "Back.Out",
     });
 
     this.scene.time.delayedCall(2000, () => {
@@ -120,9 +117,8 @@ export default class QuestCompleteToast {
         ease: "Sine.easeIn",
         onComplete: () => {
           this.isShowing = false;
-        }
+        },
       });
     });
   }
-
 }

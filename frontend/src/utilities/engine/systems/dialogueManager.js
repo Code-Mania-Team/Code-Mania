@@ -8,14 +8,7 @@ export default class DialogueManager {
 
     // 🔲 Dialogue Box
     this.box = scene.add
-      .rectangle(
-        width / 2,
-        height - 120,
-        width * 0.8,
-        120,
-        0x000000,
-        0.85
-      )
+      .rectangle(width / 2, height - 120, width * 0.8, 120, 0x000000, 0.85)
       .setScrollFactor(0)
       .setDepth(10000)
       .setVisible(false)
@@ -27,7 +20,7 @@ export default class DialogueManager {
         font: "22px Georgia",
         fill: "#ffffff",
         align: "center",
-        wordWrap: { width: width * 0.7 }
+        wordWrap: { width: width * 0.7 },
       })
       .setOrigin(0.5)
       .setScrollFactor(0)
@@ -38,7 +31,7 @@ export default class DialogueManager {
     this.speakerName = scene.add
       .text(width * 0.2, height - 180, "", {
         font: "18px Georgia",
-        fill: "#ffd700"
+        fill: "#ffd700",
       })
       .setScrollFactor(0)
       .setDepth(10002)
@@ -87,15 +80,9 @@ export default class DialogueManager {
   displayCurrentLine() {
     const line = this.lines[this.index];
 
-    const text =
-      typeof line === "string"
-        ? line
-        : line.text;
+    const text = typeof line === "string" ? line : line.text;
 
-    const speaker =
-      typeof line === "string"
-        ? "npc"
-        : line.speaker;
+    const speaker = typeof line === "string" ? "npc" : line.speaker;
 
     this.text.setText(text);
 

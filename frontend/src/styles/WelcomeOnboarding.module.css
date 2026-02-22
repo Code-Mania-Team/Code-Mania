@@ -138,7 +138,7 @@
   color: #ffffff;
   font-size: 1rem;
   line-height: 1.5;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 /* Main Content Area */
@@ -200,7 +200,8 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -243,7 +244,7 @@
   border-radius: 8px;
   color: #ffffff;
   font-size: 1.1rem;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   text-align: center;
   transition: all 0.3s ease;
 }
@@ -265,9 +266,23 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
 }
 
 .errorMessage {
@@ -299,7 +314,7 @@
   background: linear-gradient(90deg, #00d4ff 0%, #0099ff 100%);
   border: none;
   border-radius: 8px;
-  font-family: 'Press Start 2P', monospace;
+  font-family: "Press Start 2P", monospace;
   padding: 1rem 3rem;
   color: #ffffff;
   font-size: 1.1rem;

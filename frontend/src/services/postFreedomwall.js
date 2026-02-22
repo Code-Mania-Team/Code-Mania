@@ -9,7 +9,7 @@ const useUserPost = () => {
       const response = await axiosPrivate.post(
         "/v1/freedom-wall/",
         { content },
-        { headers: {} }
+        { headers: {} },
       );
       console.log("Post response:", response.data);
       if (response.data.success === false) {

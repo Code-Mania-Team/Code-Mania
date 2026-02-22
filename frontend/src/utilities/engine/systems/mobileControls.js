@@ -11,11 +11,13 @@ export default class MobileControls {
   createJoystick() {
     const { width, height } = this.scene.scale;
 
-    this.base = this.scene.add.circle(100, height - 100, 50, 0x000000, 0.4)
+    this.base = this.scene.add
+      .circle(100, height - 100, 50, 0x000000, 0.4)
       .setScrollFactor(0)
       .setDepth(10000);
 
-    this.thumb = this.scene.add.circle(100, height - 100, 25, 0xffffff, 0.6)
+    this.thumb = this.scene.add
+      .circle(100, height - 100, 25, 0xffffff, 0.6)
       .setScrollFactor(0)
       .setDepth(10001);
 
@@ -29,7 +31,7 @@ export default class MobileControls {
 
       this.thumb.setPosition(
         this.base.x + Math.cos(angle) * dist,
-        this.base.y + Math.sin(angle) * dist
+        this.base.y + Math.sin(angle) * dist,
       );
 
       this.vector.x = Math.cos(angle) * (dist / 40);
@@ -46,13 +48,8 @@ export default class MobileControls {
   createActionButton() {
     const { width, height } = this.scene.scale;
 
-    this.button = this.scene.add.circle(
-      width - 80,
-      height - 100,
-      40,
-      0x00aa00,
-      0.6
-    )
+    this.button = this.scene.add
+      .circle(width - 80, height - 100, 40, 0x00aa00, 0.6)
       .setScrollFactor(0)
       .setDepth(10000)
       .setInteractive();

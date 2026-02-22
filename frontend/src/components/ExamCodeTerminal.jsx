@@ -8,11 +8,11 @@ import styles from "../styles/ExamCodeTerminal.module.css";
 =============================== */
 function getLanguageFromPathname() {
   const pathname = window.location.pathname;
-  
+
   if (pathname.includes("/python")) return "python";
   if (pathname.includes("/javascript")) return "javascript";
   if (pathname.includes("/cpp")) return "cpp";
-  
+
   return "python";
 }
 
@@ -61,12 +61,12 @@ const ExamCodeTerminal = () => {
      TERMINAL HELPERS
   =============================== */
   const write = (text) => {
-    outputRef.current += text;           // ✅ FIX
-    setOutput(outputRef.current);         // keep UI in sync
+    outputRef.current += text; // ✅ FIX
+    setOutput(outputRef.current); // keep UI in sync
   };
 
   const resetTerminal = () => {
-    outputRef.current = "";               // ✅ FIX
+    outputRef.current = ""; // ✅ FIX
     setOutput("");
     waitingForInputRef.current = false;
     inputBufferRef.current = "";
@@ -105,7 +105,7 @@ const ExamCodeTerminal = () => {
             write("No output detected\n");
           }
         }
-        
+
         write("\n✅ Code executed successfully!\n");
       } catch (error) {
         write(`\n❌ Error: ${error.message}\n`);
@@ -123,8 +123,8 @@ const ExamCodeTerminal = () => {
             {language === "cpp"
               ? "main.cpp"
               : language === "javascript"
-              ? "main.js"
-              : "script.py"}
+                ? "main.js"
+                : "script.py"}
           </span>
 
           <button
@@ -147,7 +147,7 @@ const ExamCodeTerminal = () => {
             minimap: { enabled: false },
             fontSize: 14,
             automaticLayout: true,
-            scrollBeyondLastLine: false
+            scrollBeyondLastLine: false,
           }}
         />
       </div>

@@ -2,7 +2,7 @@
 
 .page {
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: white;
   display: flex;
   flex-direction: column;
@@ -12,7 +12,7 @@
 .hero {
   position: relative;
   width: 100%;
-  background: url('/assets/python.gif') center/cover no-repeat;
+  background: url("/assets/python.gif") center/cover no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -20,10 +20,14 @@
 }
 
 .hero::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3),
+    rgba(0, 0, 0, 0.6)
+  );
   z-index: 1;
 }
 
@@ -44,20 +48,20 @@
 }
 
 .heroSubtitle {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.5rem;
   color: #e2e8f0;
 }
 
 .heroTitle {
-  font-family: 'Jersey 25', sans-serif;
+  font-family: "Jersey 25", sans-serif;
   font-size: 3rem;
   margin: 0.5rem 0;
-  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
 }
 
 .heroDescription {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.2rem;
   color: #e2e8f0;
   max-width: 700px;
@@ -76,7 +80,7 @@
 }
 
 .questionContainer {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
   padding: 1.5rem;
@@ -93,14 +97,14 @@
 }
 
 .questionTitle {
-  font-family: 'Jersey 25', sans-serif;
+  font-family: "Jersey 25", sans-serif;
   font-size: 2rem;
   color: #e2e8f0;
   margin: 0;
 }
 
 .questionPoints {
-  font-family: 'Press Start 2P', monospace;
+  font-family: "Press Start 2P", monospace;
   font-size: 1.5rem;
   color: #10b981;
   padding: 0.25rem 0.75rem;
@@ -108,7 +112,7 @@
 }
 
 .questionText {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.5rem;
   color: #e2e8f0;
   margin-bottom: 2rem;
@@ -124,7 +128,7 @@
 }
 
 .option {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border: 2px solid #334155;
   border-radius: 0.75rem;
   padding: 1.25rem;
@@ -162,7 +166,7 @@
 }
 
 .optionLetter {
-  font-family: 'Press Start 2P', monospace;
+  font-family: "Press Start 2P", monospace;
   font-size: 1.5rem;
   font-weight: bold;
   color: #94a3b8;
@@ -171,7 +175,7 @@
 }
 
 .optionText {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.25rem;
   color: #e2e8f0;
   flex: 1;
@@ -185,7 +189,7 @@
   padding: 1rem;
   border-radius: 0.5rem;
   margin-bottom: 1.5rem;
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.25rem;
 }
 
@@ -210,7 +214,7 @@
 }
 
 .questionCounter {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.25rem;
   color: #94a3b8;
 }
@@ -221,7 +225,7 @@
   border: none;
   padding: 0.75rem 2rem;
   border-radius: 0.5rem;
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.25rem;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -238,7 +242,7 @@
 
 /* Results Section */
 .resultsContainer {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
   padding: 3rem;
@@ -249,29 +253,29 @@
 }
 
 .resultsTitle {
-  font-family: 'Jersey 25', sans-serif;
+  font-family: "Jersey 25", sans-serif;
   font-size: 3rem;
   color: #e2e8f0;
   margin-bottom: 2rem;
 }
 
 .scoreDisplay {
-  font-family: 'Press Start 2P', 'monospace';
+  font-family: "Press Start 2P", "monospace";
   font-size: 4rem;
   color: #10b981;
   margin-bottom: 1rem;
-  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
 }
 
 .scoreLabel {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.5rem;
   color: #94a3b8;
   margin-bottom: 2rem;
 }
 
 .resultsMessage {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.5rem;
   color: #e2e8f0;
   margin-bottom: 2rem;
@@ -292,7 +296,7 @@
   margin-top: 50px;
   padding: 1rem 2rem;
   border-radius: 0.5rem;
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -320,53 +324,53 @@
   .hero {
     padding: 1rem;
   }
-  
+
   .heroTitle {
     font-size: 2rem;
   }
-  
+
   .heroDescription {
     font-size: 1rem;
   }
-  
+
   .section {
     padding: 2rem 1rem;
   }
-  
+
   .questionContainer {
     padding: 1.5rem;
     margin: 1rem auto;
   }
-  
+
   .questionTitle {
     font-size: 1.5rem;
   }
-  
+
   .questionText {
     font-size: 1.25rem;
   }
-  
+
   .option {
     padding: 1rem;
   }
-  
+
   .optionText {
     font-size: 1.1rem;
   }
-  
+
   .resultsContainer {
     padding: 2rem;
   }
-  
+
   .scoreDisplay {
     font-size: 3rem;
   }
-  
+
   .resultsActions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .actionButton {
     width: 100%;
     max-width: 300px;

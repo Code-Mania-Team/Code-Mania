@@ -7,7 +7,7 @@ const MobileControls = () => {
     window.dispatchEvent(
       new CustomEvent("code-mania:mobile-move", {
         detail: { dx, dy },
-      })
+      }),
     );
   };
 
@@ -29,7 +29,7 @@ const MobileControls = () => {
     window.dispatchEvent(
       new CustomEvent("code-mania:mobile-action", {
         detail: { action: "interact" },
-      })
+      }),
     );
   };
 

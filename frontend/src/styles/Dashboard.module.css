@@ -3,7 +3,8 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   padding: 0;
   margin: 0;
   box-sizing: border-box;
@@ -13,7 +14,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) scale(1);
   }
   50% {
@@ -22,7 +24,8 @@
 }
 
 /* Reset default margins and padding */
-body, html {
+body,
+html {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -33,7 +36,7 @@ body, html {
   position: relative;
   width: 100%;
   min-height: 220px;
-  background-image: url('https://res.cloudinary.com/daegpuoss/image/upload/v1768368770/dashboard-banner_fdq9ja.png');
+  background-image: url("https://res.cloudinary.com/daegpuoss/image/upload/v1768368770/dashboard-banner_fdq9ja.png");
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
@@ -45,7 +48,7 @@ body, html {
 }
 
 .welcomeHero::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -112,7 +115,11 @@ body, html {
   padding: 22px 28px;
   border-radius: 999px;
   background:
-    radial-gradient(circle at 88% 45%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 40%),
+    radial-gradient(
+      circle at 88% 45%,
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0) 40%
+    ),
     linear-gradient(
       90deg,
       rgba(92, 84, 255, 0.42) 0%,
@@ -147,7 +154,8 @@ body, html {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -212,7 +220,7 @@ body, html {
 
 .getStartedBtn {
   padding: 14px 28px;
-  background: #2196F3;
+  background: #2196f3;
   border: none;
   border-radius: 10px;
   color: #fff;
@@ -223,7 +231,7 @@ body, html {
 }
 
 .getStartedBtn:hover {
-  background: #1976D2;
+  background: #1976d2;
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(33, 150, 243, 0.35);
 }
@@ -266,7 +274,7 @@ body, html {
     grid-template-columns: 1fr;
     padding: 0 15px 30px;
   }
-  
+
   .welcome-section {
     padding: 30px 15px 20px;
     text-align: center;
@@ -291,13 +299,14 @@ body, html {
   .main-content {
     gap: 20px;
   }
-  
+
   .course-actions {
     flex-direction: column;
     gap: 10px;
   }
-  
-  .continue-btn, .view-course-btn {
+
+  .continue-btn,
+  .view-course-btn {
     width: 100%;
   }
 }
@@ -312,7 +321,7 @@ body, html {
   font-size: 28px;
   font-weight: 300;
   margin-top: 30px;
-  font-family: 'Jersey 25';
+  font-family: "Jersey 25";
 }
 
 /* Course Card */
@@ -342,7 +351,7 @@ body, html {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
   border-radius: 10px;
   transition: width 0.3s ease;
 }
@@ -350,7 +359,7 @@ body, html {
 .progress-text {
   font-size: 14px;
   font-weight: bold;
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .course-content {
@@ -395,7 +404,7 @@ body, html {
   font-size: 26px;
   font-weight: 400;
   margin: 0;
-  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-family: "Press Start 2P", "Courier New", monospace;
   color: var(--course-accent, #ffffff);
   line-height: 1.25;
 }
@@ -414,7 +423,7 @@ body, html {
 .continue-btn {
   flex: 1;
   padding: 15px 30px;
-  background: #2196F3;
+  background: #2196f3;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -425,7 +434,7 @@ body, html {
 }
 
 .continue-btn:hover {
-  background: #1976D2;
+  background: #1976d2;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
@@ -497,7 +506,9 @@ body, html {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   min-width: 120px;
 }
 
@@ -608,7 +619,7 @@ body, html {
 .time-left {
   font-size: 12px;
   font-weight: bold;
-  color: #FFA500;
+  color: #ffa500;
 }
 
 /* Responsive Design */
@@ -616,7 +627,7 @@ body, html {
   .main-content {
     grid-template-columns: 1fr;
   }
-  
+
   .welcome-section {
     flex-direction: column;
     text-align: center;
@@ -627,19 +638,19 @@ body, html {
   .container {
     padding: 20px 10px;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .course-actions {
     flex-direction: column;
   }
-  
+
   .section-title {
     font-size: 24px;
   }
-  
+
   .course-name {
     font-size: 28px;
   }

@@ -20,7 +20,6 @@ const useLearningProgress = () => {
         if (res.data?.success) {
           setProgress(res.data.progress || []);
         }
-
       } catch (err) {
         if (!isMounted) return;
 

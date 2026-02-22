@@ -25,8 +25,7 @@ const QuizPage = () => {
       "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/python_gclhhq.gif",
     javascript:
       "https://res.cloudinary.com/daegpuoss/image/upload/v1771179249/javascript_uenmcw.gif",
-    cpp:
-      "https://res.cloudinary.com/daegpuoss/image/upload/v1771565944/Cpp_nvtgy7.gif",
+    cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1771565944/Cpp_nvtgy7.gif",
   };
 
   const heroBackground =
@@ -97,7 +96,7 @@ const QuizPage = () => {
   ----------------------------------- */
   const calculateScore = () => {
     const percentage = Math.round(
-      (correctAnswers / quizData.questions.length) * 100
+      (correctAnswers / quizData.questions.length) * 100,
     );
 
     const totalExp = correctAnswers * 100;
@@ -120,15 +119,12 @@ const QuizPage = () => {
       try {
         const score = calculateScore();
 
-        await axiosPrivate.post(
-          `/v1/quizzes/${language}/${quizId}/complete`,
-          {
-            score_percentage: score.percentage,
-            total_correct: score.correct,
-            total_questions: score.total,
-            earned_xp: score.totalExp,
-          }
-        );
+        await axiosPrivate.post(`/v1/quizzes/${language}/${quizId}/complete`, {
+          score_percentage: score.percentage,
+          total_correct: score.correct,
+          total_questions: score.total,
+          earned_xp: score.totalExp,
+        });
       } catch (err) {
         console.error("Quiz submission failed:", err);
       }
@@ -152,9 +148,7 @@ const QuizPage = () => {
         >
           <div className={styles.heroContent}>
             <div className={styles.heroContentInner}>
-              <h1 className={styles.heroTitle}>
-                {quizData?.quiz_title}
-              </h1>
+              <h1 className={styles.heroTitle}>{quizData?.quiz_title}</h1>
               <p className={styles.heroDescription}>
                 No questions found for this quiz.
               </p>
@@ -193,14 +187,10 @@ const QuizPage = () => {
         >
           <div className={styles.heroContent}>
             <div className={styles.resultsContainer}>
-              <h1 className={styles.resultsTitle}>
-                Quiz Completed!
-              </h1>
+              <h1 className={styles.resultsTitle}>Quiz Completed!</h1>
 
               <div className={styles.scoreDisplay}>
-                <div className={styles.percentage}>
-                  {score.percentage}%
-                </div>
+                <div className={styles.percentage}>{score.percentage}%</div>
               </div>
 
               <div className={styles.resultsDetails}>
@@ -211,7 +201,7 @@ const QuizPage = () => {
                   Score: {score.totalExp}/
                   {quizData.questions.reduce(
                     (sum, q) => sum + (q.exp || 100),
-                    0
+                    0,
                   )}{" "}
                   EXP
                 </p>
@@ -244,12 +234,9 @@ const QuizPage = () => {
       >
         <div className={styles.heroContent}>
           <div className={styles.heroContentInner}>
-            <h1 className={styles.heroTitle}>
-              {quizData.quiz_title}
-            </h1>
+            <h1 className={styles.heroTitle}>{quizData.quiz_title}</h1>
             <p className={styles.heroDescription}>
-              Question {currentQuestion + 1} of{" "}
-              {quizData.questions.length}
+              Question {currentQuestion + 1} of {quizData.questions.length}
             </p>
           </div>
         </div>
@@ -266,9 +253,7 @@ const QuizPage = () => {
             </span>
           </div>
 
-          <p className={styles.questionText}>
-            {question.question}
-          </p>
+          <p className={styles.questionText}>{question.question}</p>
 
           <div className={styles.optionsContainer}>
             {question.options.map((option, index) => (
@@ -281,8 +266,8 @@ const QuizPage = () => {
                     ? index === correctIndex
                       ? styles.correct
                       : selectedAnswer === index
-                      ? styles.incorrect
-                      : ""
+                        ? styles.incorrect
+                        : ""
                     : ""
                 } ${showFeedback ? styles.disabled : ""}`}
                 onClick={() => handleAnswerSelect(index)}
@@ -291,9 +276,7 @@ const QuizPage = () => {
                   {String.fromCharCode(65 + index)}
                 </div>
 
-                <div className={styles.optionText}>
-                  {option}
-                </div>
+                <div className={styles.optionText}>{option}</div>
 
                 {showFeedback && index === correctIndex && (
                   <CheckCircle
@@ -304,9 +287,7 @@ const QuizPage = () => {
                 {showFeedback &&
                   selectedAnswer === index &&
                   index !== correctIndex && (
-                    <XCircle
-                      style={{ color: "#ef4444", marginLeft: "auto" }}
-                    />
+                    <XCircle style={{ color: "#ef4444", marginLeft: "auto" }} />
                   )}
               </div>
             ))}
@@ -314,8 +295,7 @@ const QuizPage = () => {
 
           <div className={styles.quizNavigation}>
             <div className={styles.questionCounter}>
-              {currentQuestion + 1} /{" "}
-              {quizData.questions.length}
+              {currentQuestion + 1} / {quizData.questions.length}
             </div>
           </div>
         </div>

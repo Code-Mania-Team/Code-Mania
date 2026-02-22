@@ -19,13 +19,16 @@ export default class QuestUI {
     this.scrollbarWidth = 8;
     this.scrollbarPadding = 14;
     this.contentLeft = this.panelLeft + 30;
-    this.contentWidth = this.panelWidth - 60 - this.scrollbarWidth - this.scrollbarPadding;
+    this.contentWidth =
+      this.panelWidth - 60 - this.scrollbarWidth - this.scrollbarPadding;
 
-    this.scrollbarX = this.contentLeft + this.contentWidth + this.scrollbarPadding;
+    this.scrollbarX =
+      this.contentLeft + this.contentWidth + this.scrollbarPadding;
     this.scrollbarMinY = this.bodyBaseY;
 
     this.panelBottomPad = 20;
-    this.bodyMaskHeight = this.panelHeight - (this.bodyBaseY - this.panelTop) - this.panelBottomPad;
+    this.bodyMaskHeight =
+      this.panelHeight - (this.bodyBaseY - this.panelTop) - this.panelBottomPad;
 
     this.bodyScroll = 0;
     this.bodyScrollMax = 0;
@@ -33,7 +36,8 @@ export default class QuestUI {
     this._GAP = 16;
 
     // Container
-    this.container = scene.add.container(0, 0)
+    this.container = scene.add
+      .container(0, 0)
       .setDepth(1000)
       .setScrollFactor(0)
       .setVisible(false);
@@ -42,22 +46,39 @@ export default class QuestUI {
     this.bg = scene.add.graphics();
     this.bg.fillStyle(0x2b1a12, 1);
     this.bg.lineStyle(4, 0x8b5e3c, 1);
-    this.bg.fillRoundedRect(this.panelLeft, this.panelTop, this.panelWidth, this.panelHeight, 16);
-    this.bg.strokeRoundedRect(this.panelLeft, this.panelTop, this.panelWidth, this.panelHeight, 16);
+    this.bg.fillRoundedRect(
+      this.panelLeft,
+      this.panelTop,
+      this.panelWidth,
+      this.panelHeight,
+      16,
+    );
+    this.bg.strokeRoundedRect(
+      this.panelLeft,
+      this.panelTop,
+      this.panelWidth,
+      this.panelHeight,
+      16,
+    );
 
     // Title
-    this.titleText = scene.add.text(width / 2, this.titleY, "", {
-      fontSize: "32px",
-      color: "#ffd37a",
-      fontStyle: "bold"
-    }).setOrigin(0.5);
+    this.titleText = scene.add
+      .text(width / 2, this.titleY, "", {
+        fontSize: "32px",
+        color: "#ffd37a",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5);
 
     // Divider
     this.divider = scene.add.graphics();
     this.divider.lineStyle(2, 0x8b5e3c, 0.6);
     this.divider.beginPath();
     this.divider.moveTo(this.panelLeft + 20, this.bodyBaseY - 8);
-    this.divider.lineTo(this.panelLeft + this.panelWidth - 20, this.bodyBaseY - 8);
+    this.divider.lineTo(
+      this.panelLeft + this.panelWidth - 20,
+      this.bodyBaseY - 8,
+    );
     this.divider.strokePath();
 
     // 1. Description — normal readable font, cream colour
@@ -66,18 +87,20 @@ export default class QuestUI {
       fontSize: "17px",
       color: "#f5f0d6",
       lineSpacing: 8,
-      wordWrap: { width: this.contentWidth }
+      wordWrap: { width: this.contentWidth },
     });
 
     // 2. task — green challenge block shown at the END of description
-    this.taskText = scene.add.text(this.contentLeft, this.bodyBaseY, "", {
-      fontFamily: "'Courier New', Courier, monospace",
-      fontSize: "15px",
-      color: "#a8ff60",
-      backgroundColor: "#0d2b00",
-      padding: { left: 14, right: 14, top: 12, bottom: 12 },
-      wordWrap: { width: this.contentWidth }
-    }).setVisible(false);
+    this.taskText = scene.add
+      .text(this.contentLeft, this.bodyBaseY, "", {
+        fontFamily: "'Courier New', Courier, monospace",
+        fontSize: "15px",
+        color: "#a8ff60",
+        backgroundColor: "#0d2b00",
+        padding: { left: 14, right: 14, top: 12, bottom: 12 },
+        wordWrap: { width: this.contentWidth },
+      })
+      .setVisible(false);
 
     // Mask
     this.bodyMaskGraphics = scene.add.graphics();
@@ -86,7 +109,7 @@ export default class QuestUI {
       this.contentLeft,
       this.bodyBaseY,
       this.contentWidth + this.scrollbarWidth + this.scrollbarPadding + 10,
-      this.bodyMaskHeight
+      this.bodyMaskHeight,
     );
     this.bodyMaskGraphics.setAlpha(0);
     this.bodyMaskGraphics.setScrollFactor(0);
@@ -111,7 +134,11 @@ export default class QuestUI {
 
       if (!insidePanel) return;
 
-      this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
+      this.bodyScroll = Phaser.Math.Clamp(
+        this.bodyScroll + deltaY,
+        0,
+        this.bodyScrollMax,
+      );
       this._applyScroll();
       this._updateScrollbarThumb();
     };
@@ -168,7 +195,10 @@ export default class QuestUI {
       // Frame 2: taskText settles → compute scroll
       this.scene.time.delayedCall(0, () => {
         const totalContentHeight = this._getTotalContentHeight();
-        this.bodyScrollMax = Math.max(0, totalContentHeight - this.bodyMaskHeight);
+        this.bodyScrollMax = Math.max(
+          0,
+          totalContentHeight - this.bodyMaskHeight,
+        );
 
         this._drawScrollbarTrack();
         this._updateScrollbarThumb();
@@ -184,7 +214,7 @@ export default class QuestUI {
       targets: this.container,
       y: 0,
       duration: 500,
-      ease: "Back.Out"
+      ease: "Back.Out",
     });
 
     this.visible = true;
@@ -206,7 +236,7 @@ export default class QuestUI {
         this.bodyScroll = 0;
         document.body.style.overflow = "";
         document.documentElement.style.overflow = "";
-      }
+      },
     });
   }
 
@@ -216,7 +246,8 @@ export default class QuestUI {
 
   _getTotalContentHeight() {
     let bottom = this.bodyText.y + this.bodyText.height;
-    if (this.taskText.visible) bottom = Math.max(bottom, this.taskText.y + this.taskText.height);
+    if (this.taskText.visible)
+      bottom = Math.max(bottom, this.taskText.y + this.taskText.height);
     return bottom - this.bodyBaseY;
   }
 
@@ -232,7 +263,11 @@ export default class QuestUI {
     this.scrollbarTrack.clear();
     this.scrollbarTrack.fillStyle(0x4a3426, 0.8);
     this.scrollbarTrack.fillRoundedRect(
-      this.scrollbarX, this.scrollbarMinY, this.scrollbarWidth, this.bodyMaskHeight, 4
+      this.scrollbarX,
+      this.scrollbarMinY,
+      this.scrollbarWidth,
+      this.bodyMaskHeight,
+      4,
     );
   }
 
@@ -241,7 +276,10 @@ export default class QuestUI {
 
     const trackHeight = this.bodyMaskHeight;
     const totalContentHeight = this._getTotalContentHeight();
-    const thumbHeight = Math.max(30, (trackHeight / totalContentHeight) * trackHeight);
+    const thumbHeight = Math.max(
+      30,
+      (trackHeight / totalContentHeight) * trackHeight,
+    );
     const scrollRatio = this.bodyScroll / this.bodyScrollMax;
     const maxThumbOffset = trackHeight - thumbHeight;
     const thumbY = this.scrollbarMinY + maxThumbOffset * scrollRatio;
@@ -249,7 +287,11 @@ export default class QuestUI {
     this.scrollbarThumb.clear();
     this.scrollbarThumb.fillStyle(0x8b5e3c, 1);
     this.scrollbarThumb.fillRoundedRect(
-      this.scrollbarX, thumbY, this.scrollbarWidth, thumbHeight, 4
+      this.scrollbarX,
+      thumbY,
+      this.scrollbarWidth,
+      thumbHeight,
+      4,
     );
   }
 }

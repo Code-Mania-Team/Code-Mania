@@ -4,7 +4,13 @@
   min-height: 100vh;
   background: #0f172a;
   color: white;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -12,7 +18,6 @@
   position: relative;
   overflow: hidden;
 }
-
 
 .leaderboard-page > * {
   position: relative;
@@ -36,7 +41,7 @@
   font-size: 3rem;
   font-weight: 700;
   margin: 0;
-  font-family: 'Jersey 25', sans-serif;
+  font-family: "Jersey 25", sans-serif;
 }
 
 .trophy-container {
@@ -57,7 +62,7 @@
 }
 
 .trophy-container::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   height: 100%;
@@ -68,7 +73,11 @@
 }
 
 .leaderboard-container {
-  background: linear-gradient(135deg, rgba(15, 15, 15, 0.5), rgba(30, 30, 30, 0.5));
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 15, 0.5),
+    rgba(30, 30, 30, 0.5)
+  );
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
@@ -118,7 +127,9 @@
   background: #1a1a1a;
   border-radius: 0.75rem;
   padding: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .leaderboard-card:hover {
@@ -186,16 +197,16 @@
   .leaderboard-page {
     padding: 1rem;
   }
-  
+
   .leaderboard-container {
     padding: 1rem;
   }
-  
+
   .leaderboard-tabs {
     overflow-x: auto;
     padding-bottom: 0.5rem;
   }
-  
+
   .leaderboard-tabs::-webkit-scrollbar {
     display: none;
   }

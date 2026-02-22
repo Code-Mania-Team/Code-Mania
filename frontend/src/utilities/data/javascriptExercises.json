@@ -240,7 +240,11 @@
     "task": "Create an async function named getData that waits for 1 second using setTimeout, then returns 'Data loaded!'. Call the function and print the result.",
     "lessonExample": "async function wait() {\n  await new Promise(resolve => setTimeout(resolve, 1000));\n  return 'Done!';\n}\nconsole.log(await wait());",
     "startingCode": "async function getData() {\n  // wait 1 second here\n  return 'Data loaded!';\n}\n\n// call and print the result",
-    "hints": ["Use async keyword before function.", "Use await with Promise-based setTimeout.", "Call the async function and handle the result."],
+    "hints": [
+      "Use async keyword before function.",
+      "Use await with Promise-based setTimeout.",
+      "Call the async function and handle the result."
+    ],
     "requirements": { "mustInclude": ["async", "await"] },
     "expectedOutput": "Data loaded!"
   },
@@ -252,7 +256,11 @@
     "task": "Create an array of numbers [1, 2, 3, 4, 5]. Use map() to create a new array where each number is doubled, then print the new array.",
     "lessonExample": "let numbers = [1, 2, 3];\nlet doubled = numbers.map(n => n * 2);\nconsole.log(doubled);",
     "startingCode": "let numbers = [1, 2, 3, 4, 5];\n\n// use map to double each number\n\nconsole.log(doubled);",
-    "hints": ["Use map() method on the array.", "Provide an arrow function as callback.", "The callback should return the doubled value."],
+    "hints": [
+      "Use map() method on the array.",
+      "Provide an arrow function as callback.",
+      "The callback should return the doubled value."
+    ],
     "requirements": { "mustInclude": ["map", "console.log"] },
     "expectedOutput": "[2,4,6,8,10]"
   },
@@ -264,7 +272,11 @@
     "task": "Create a function that divides two numbers. Use try/catch to handle division by zero errors. Test it with 10/0 and print 'Cannot divide by zero' when an error occurs.",
     "lessonExample": "try {\n  let result = 10 / 0;\n  console.log(result);\n} catch (error) {\n  console.log('Error occurred');\n}",
     "startingCode": "function divide(a, b) {\n  try {\n    let result = a / b;\n    console.log(result);\n  } catch (error) {\n    console.log('Cannot divide by zero');\n  }\n}\n\n// test with 10/0",
-    "hints": ["Wrap division in try block.", "Catch the error in catch block.", "Test with division by zero."],
+    "hints": [
+      "Wrap division in try block.",
+      "Catch the error in catch block.",
+      "Test with division by zero."
+    ],
     "requirements": { "mustInclude": ["try", "catch"] },
     "expectedOutput": "Cannot divide by zero"
   },
@@ -276,7 +288,11 @@
     "task": "Save the string 'Hello World' to localStorage with key 'message', then retrieve it and print it to the console.",
     "lessonExample": "localStorage.setItem('name', 'John');\nlet name = localStorage.getItem('name');\nconsole.log(name);",
     "startingCode": "// save to localStorage\n\n// retrieve from localStorage\n\nconsole.log(message);",
-    "hints": ["Use localStorage.setItem() to save.", "Use localStorage.getItem() to retrieve.", "Use the same key for both operations."],
+    "hints": [
+      "Use localStorage.setItem() to save.",
+      "Use localStorage.getItem() to retrieve.",
+      "Use the same key for both operations."
+    ],
     "requirements": { "mustInclude": ["localStorage", "console.log"] },
     "expectedOutput": "Hello World"
   }

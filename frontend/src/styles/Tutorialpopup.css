@@ -57,7 +57,7 @@
   color: #ffffff;
   font-size: 16px;
   font-weight: 600;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -179,7 +179,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -217,7 +218,7 @@
   transform: translateY(0);
   opacity: 1;
   font-size: 30px;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
 }
 
 .section-text p {
@@ -233,7 +234,7 @@
   transform: translateY(0);
   opacity: 1;
   font-size: 25px;
-  font-family: 'Jersey 10';
+  font-family: "Jersey 10";
 }
 
 /* Navigation Controls */

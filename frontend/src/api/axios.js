@@ -3,18 +3,18 @@ import axios from "axios";
 const BASE_URL = "http://localhost:3000";
 
 const DEFAULT_HEADERS = {
-    apikey: import.meta.env.VITE_API_KEY,
-    'Content-Type': 'application/json',
+  apikey: import.meta.env.VITE_API_KEY,
+  "Content-Type": "application/json",
 };
 
 export const axiosPublic = axios.create({
-    baseURL: BASE_URL,
-    withCredentials: true,
-    headers: DEFAULT_HEADERS,
+  baseURL: BASE_URL,
+  withCredentials: true,
+  headers: DEFAULT_HEADERS,
 });
 
 export const axiosPrivate = axios.create({
-    baseURL: BASE_URL,
-    headers: DEFAULT_HEADERS,
-    withCredentials: true,
+  baseURL: BASE_URL,
+  headers: DEFAULT_HEADERS,
+  withCredentials: true,
 });

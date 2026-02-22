@@ -2,7 +2,13 @@
 .javascript-course-page {
   width: 100%;
   color: white;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   background: #0f172a;
   min-height: 100vh;
 }
@@ -12,7 +18,8 @@
   position: relative;
   width: 100%;
   min-height: 350px;
-  background: url('https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif') center/cover no-repeat;
+  background: url("https://res.cloudinary.com/daegpuoss/image/upload/v1766925754/javascript_esc21m.gif")
+    center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,10 +28,14 @@
 }
 
 .javascript-hero::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0.6)
+  );
   z-index: 1;
 }
 
@@ -36,16 +47,16 @@
 }
 
 .javascript-hero-title {
-  font-family: 'Jersey 25', sans-serif;
+  font-family: "Jersey 25", sans-serif;
   font-size: 4.5rem;
-  color: #FFD700;
+  color: #ffd700;
   margin-bottom: 1rem;
   text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
   letter-spacing: 2px;
 }
 
 .javascript-hero-description {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.5rem;
   color: #ffffff;
   line-height: 1.6;
@@ -93,21 +104,21 @@
 /* Completed Module Icon - Checked State */
 .javascript-course-page .module-icon.completed {
   background: rgba(255, 215, 0, 0.3);
-  border: 2px solid #FFD700;
+  border: 2px solid #ffd700;
   position: relative;
 }
 
 .javascript-course-page .module-icon.completed::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   font-size: 1.2rem;
-  color: #FFD700;
+  color: #ffd700;
   font-weight: bold;
 }
 
 /* Exercise Item - JavaScript Yellow Border */
 .javascript-course-page .exercise-item.available {
-  border-left: 3px solid #FFD700;
+  border-left: 3px solid #ffd700;
 }
 
 /* Responsive Design */

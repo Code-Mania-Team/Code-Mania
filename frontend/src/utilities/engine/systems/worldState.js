@@ -1,3 +1,3 @@
 export const worldState = {
-  abilities: new Set()
+  abilities: new Set(),
 };

@@ -15,7 +15,8 @@ import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
 import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
 import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 
-const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
+const checkmarkIcon =
+  "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
@@ -33,24 +34,57 @@ const JavaScriptCourse = () => {
 
     const fetchData = async () => {
       try {
-        const response = await axiosPublic.get("/v1/exercises/programming-language/3", { withCredentials: true });
+        const response = await axiosPublic.get(
+          "/v1/exercises/programming-language/3",
+          { withCredentials: true },
+        );
         const exercises = response?.data?.data || [];
         if (cancelled) return;
 
         const groupedModules = [
-          { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
-          { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
-          { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
-          { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
-          { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
+          {
+            id: 1,
+            title: "JavaScript Basics",
+            description: "Learn fundamentals of JavaScript.",
+            exercises: [],
+          },
+          {
+            id: 2,
+            title: "Functions & Scope",
+            description: "Understand functions and parameters.",
+            exercises: [],
+          },
+          {
+            id: 3,
+            title: "Arrays & Objects",
+            description: "Work with arrays and objects.",
+            exercises: [],
+          },
+          {
+            id: 4,
+            title: "DOM Manipulation",
+            description: "Interact with the DOM.",
+            exercises: [],
+          },
+          {
+            id: 5,
+            title: "Examination",
+            description:
+              "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.",
+            exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }],
+          },
         ];
 
         exercises.forEach((exercise) => {
           const order = Number(exercise.order_index || 0);
-          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+          if (order >= 1 && order <= 4)
+            groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8)
+            groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12)
+            groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16)
+            groupedModules[3].exercises.push(exercise);
         });
 
         setModules(groupedModules);
@@ -80,10 +114,7 @@ const JavaScriptCourse = () => {
         if (!result) return; // handles 401 returning null
 
         setData(result);
-        setCompletedExercises(
-          new Set(result.completedQuests || [])
-        );
-
+        setCompletedExercises(new Set(result.completedQuests || []));
       } catch (err) {
         console.error("Failed to load game progress", err);
         setCompletedExercises(new Set());
@@ -105,13 +136,13 @@ const JavaScriptCourse = () => {
 
   const getQuizStatus = (moduleId) => {
     // Check if all exercises in the module are completed
-    const module = modules.find(m => m.id === moduleId);
+    const module = modules.find((m) => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
-      completedExercises.has(exercise.id)
-    );
-    
+
+    const allExercisesCompleted =
+      module.exercises.length > 0 &&
+      module.exercises.every((exercise) => completedExercises.has(exercise.id));
+
     return allExercisesCompleted ? "available" : "locked";
   };
 
@@ -125,7 +156,7 @@ const JavaScriptCourse = () => {
 
   const handleViewProfile = () => {
     if (isAuthenticated) {
-      navigate('/profile');
+      navigate("/profile");
     } else {
       onOpenModal();
     }
@@ -167,7 +198,9 @@ const JavaScriptCourse = () => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
 
-  const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
+  const characterIcon =
+    localStorage.getItem("selectedCharacterIcon") ||
+    "https://api.dicebear.com/7.x/pixel-art/svg?seed=user";
 
   const getStatusIcon = (status) => {
     if (status === "completed") {
@@ -194,7 +227,8 @@ const JavaScriptCourse = () => {
           </div>
           <h1 className="javascript-hero-title">JavaScript ES6+</h1>
           <p className="javascript-hero-description">
-            Uncover quiet town mysteries while learning JavaScript basics like functions and logic.
+            Uncover quiet town mysteries while learning JavaScript basics like
+            functions and logic.
           </p>
         </div>
       </section>
@@ -222,23 +256,22 @@ const JavaScriptCourse = () => {
 
               {expandedModule === module.id && (
                 <div className="module-content">
-                  <p className="module-description">
-                    {module.description}
-                  </p>
+                  <p className="module-description">{module.description}</p>
                   <div className="exercises-list">
                     {module.exercises.map((exercise, index) => {
                       const previousExerciseId =
-                        index > 0
-                          ? module.exercises[index - 1].id
-                          : null;
+                        index > 0 ? module.exercises[index - 1].id : null;
 
                       const status = getExerciseStatus(
                         exercise.id,
-                        previousExerciseId
+                        previousExerciseId,
                       );
 
                       return (
-                        <div key={exercise.id} className={`exercise-item ${status}`}>
+                        <div
+                          key={exercise.id}
+                          className={`exercise-item ${status}`}
+                        >
                           <div className="exercise-info">
                             {module.id !== 5 && (
                               <span className="exercise-number">
@@ -269,17 +302,21 @@ const JavaScriptCourse = () => {
                     })}
 
                     {module.id !== 5 && (
-                      <div className={`exercise-item ${getQuizStatus(module.id)}`}>
+                      <div
+                        className={`exercise-item ${getQuizStatus(module.id)}`}
+                      >
                         <div className="exercise-info">
                           <span className="exercise-number">QUIZ</span>
                           <span className="exercise-name">Take Quiz</span>
                         </div>
 
                         <div className="exercise-status">
-                          {getQuizStatus(module.id) === 'available' ? (
+                          {getQuizStatus(module.id) === "available" ? (
                             <button
                               className="start-btn"
-                              onClick={() => navigate(`/quiz/javascript/${module.id}`)}
+                              onClick={() =>
+                                navigate(`/quiz/javascript/${module.id}`)
+                              }
                             >
                               Start
                             </button>
@@ -289,7 +326,6 @@ const JavaScriptCourse = () => {
                         </div>
                       </div>
                     )}
-
                   </div>
                 </div>
               )}
@@ -301,14 +337,15 @@ const JavaScriptCourse = () => {
         <div className="sidebar">
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
+
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
                 <span>Exercises</span>
               </div>
               <span className="progress-value">
-                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
+                {userProgress.exercisesCompleted} /{" "}
+                {userProgress.totalExercises}
               </span>
             </div>
 
@@ -317,9 +354,7 @@ const JavaScriptCourse = () => {
                 <div className="progress-icon xp"></div>
                 <span>XP Earned</span>
               </div>
-              <span className="progress-value">
-                {userProgress.xpEarned}
-              </span>
+              <span className="progress-value">{userProgress.xpEarned}</span>
             </div>
 
             <div className="progress-item">
@@ -337,10 +372,26 @@ const JavaScriptCourse = () => {
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
-              <img src={jsStage1Badge} alt="JavaScript Stage 1" className="javascript-course-badge" />
-              <img src={jsStage2Badge} alt="JavaScript Stage 2" className="javascript-course-badge" />
-              <img src={jsStage3Badge} alt="JavaScript Stage 3" className="javascript-course-badge" />
-              <img src={jsStage4Badge} alt="JavaScript Stage 4" className="javascript-course-badge" />
+              <img
+                src={jsStage1Badge}
+                alt="JavaScript Stage 1"
+                className="javascript-course-badge"
+              />
+              <img
+                src={jsStage2Badge}
+                alt="JavaScript Stage 2"
+                className="javascript-course-badge"
+              />
+              <img
+                src={jsStage3Badge}
+                alt="JavaScript Stage 3"
+                className="javascript-course-badge"
+              />
+              <img
+                src={jsStage4Badge}
+                alt="JavaScript Stage 4"
+                className="javascript-course-badge"
+              />
             </div>
           </div>
         </div>

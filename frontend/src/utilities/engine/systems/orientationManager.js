@@ -3,8 +3,7 @@ export default class OrientationManager {
     this.scene = scene;
 
     this.isMobile =
-      scene.sys.game.device.os.android ||
-      scene.sys.game.device.os.iOS;
+      scene.sys.game.device.os.android || scene.sys.game.device.os.iOS;
 
     if (!this.isMobile) return;
 
@@ -42,28 +41,23 @@ export default class OrientationManager {
   createOverlay() {
     const { width, height } = this.scene.scale;
 
-    this.bg = this.scene.add.rectangle(
-      width / 2,
-      height / 2,
-      width,
-      height,
-      0x000000,
-      0.85
-    )
+    this.bg = this.scene.add
+      .rectangle(width / 2, height / 2, width, height, 0x000000, 0.85)
       .setScrollFactor(0)
       .setDepth(20000)
       .setVisible(false);
 
-    this.text = this.scene.add.text(
-      width / 2,
-      height / 2,
-      "🔄 Rotate your device\nLandscape required",
-      {
-        font: "22px Arial",
-        fill: "#ffffff",
-        align: "center"
-      }
-    )
+    this.text = this.scene.add
+      .text(
+        width / 2,
+        height / 2,
+        "🔄 Rotate your device\nLandscape required",
+        {
+          font: "22px Arial",
+          fill: "#ffffff",
+          align: "center",
+        },
+      )
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(20001)

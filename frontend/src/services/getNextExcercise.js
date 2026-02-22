@@ -6,9 +6,7 @@ const useGetNextExercise = () => {
   const getNextExercise = async (exerciseId) => {
     if (!exerciseId) return null;
 
-    const response = await axiosPrivate.get(
-      `/v1/exercises/${exerciseId}/next`
-    );
+    const response = await axiosPrivate.get(`/v1/exercises/${exerciseId}/next`);
 
     return response.data.data; // null if no next
   };

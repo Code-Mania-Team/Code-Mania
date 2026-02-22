@@ -1,5 +1,5 @@
 [
-    //python dialogue
+  //python dialogue
   {
     "id": 1,
     "dialogue": [
@@ -133,7 +133,7 @@
       "It’s a powerful technique for solving complex problems that require multiple steps at once."
     ]
   },
-//  cpp dialogues
+  //  cpp dialogues
   {
     "id": 17,
     "dialogue": [
@@ -254,7 +254,7 @@
       "Print the values while the condition is true."
     ]
   },
-    // javascript dialogues
+  // javascript dialogues
   {
     "id": 32,
     "dialogue": [

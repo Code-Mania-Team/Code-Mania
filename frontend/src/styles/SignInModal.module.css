@@ -52,7 +52,7 @@
   justify-content: center;
   align-items: center;
   gap: 0.6rem;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   color: #fff;
   margin-bottom: 2rem;
   text-align: center;
@@ -73,7 +73,7 @@
 }
 
 .subtext {
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 0.65rem;
   background: linear-gradient(90deg, #007bff, #7f00ff);
   background-clip: text;
@@ -98,7 +98,7 @@
   margin-bottom: 0.5rem;
   font-size: 0.8rem;
   color: #94a3b8;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
   letter-spacing: 0.3px;
 }
@@ -118,7 +118,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.95rem;
   transition: all 0.2s ease;
   outline: none;
@@ -150,12 +150,14 @@
   width: 20px;
   height: 20px;
   object-fit: contain;
-  filter: invert(70%) sepia(13%) saturate(1000%) hue-rotate(180deg) brightness(90%) contrast(90%);
+  filter: invert(70%) sepia(13%) saturate(1000%) hue-rotate(180deg)
+    brightness(90%) contrast(90%);
   transition: filter 0.2s ease;
 }
 
 .togglePasswordButton:hover .togglePasswordIcon {
-  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(200%) contrast(100%);
+  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(180deg)
+    brightness(200%) contrast(100%);
 }
 
 /* Error message styling */
@@ -169,8 +171,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Add red border to invalid inputs */
@@ -193,7 +201,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.95rem;
   transition: all 0.2s ease;
   outline: none;
@@ -216,7 +224,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
   font-size: 0.85rem;
   color: #94a3b8;
   margin: 1.5rem 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   cursor: pointer;
   user-select: none;
 }
@@ -238,11 +246,13 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border: none;
   border-radius: 12px;
   color: white;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 0.7rem;
   letter-spacing: 0.05em;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
   text-transform: uppercase;
   margin-top: 1rem;
 }
@@ -266,7 +276,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border-radius: 8px;
   padding: 0.9rem 1rem;
   margin-top: 1rem;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -286,7 +296,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border-radius: 8px;
   padding: 0.9rem;
   margin-top: 0.75rem;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -296,7 +306,6 @@ input:not(:placeholder-shown):not(:focus):invalid {
   background: rgba(255, 255, 255, 0.05);
   color: white;
 }
-
 
 /* Modal Container */
 .signinModal {
@@ -371,7 +380,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
 
 .otpSent h2 {
   color: white;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 1.2rem;
   margin-bottom: 1rem;
 }
@@ -400,7 +409,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
   margin-top: 1.5rem;
   font-size: 0.7rem;
   color: #aaa;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   text-align: center;
 }
 
@@ -410,12 +419,15 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border: none;
   padding: 0.4rem 0.9rem;
   color: #f9fafb;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
   margin-left: 0.5rem;
   margin-top: 10px;
   width: 300px;
@@ -493,7 +505,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
 
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   border-bottom: 1px solid #e2e8f0;
 }

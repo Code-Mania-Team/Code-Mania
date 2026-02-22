@@ -5,14 +5,11 @@ const useGetGameProgress = () => {
 
   const getGameProgress = async (programmingLanguage) => {
     try {
-      const response = await axiosPrivate.get(
-        "/v1/learning-data",
-        {
-          params: {
-            programming_language: programmingLanguage
-          }
-        }
-      );
+      const response = await axiosPrivate.get("/v1/learning-data", {
+        params: {
+          programming_language: programmingLanguage,
+        },
+      });
       console.log("✅ Game progress fetched:", response.data);
 
       return response.data; // { completedQuests: [...] }

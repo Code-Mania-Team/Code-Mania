@@ -5,7 +5,7 @@ const useGetExercises = () => {
 
   const getExercises = async (languageId) => {
     const response = await axiosPrivate.get(
-      `/v1/exercises/programming-language/${languageId}`
+      `/v1/exercises/programming-language/${languageId}`,
     );
 
     return response.data.data;

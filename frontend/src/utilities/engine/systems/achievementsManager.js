@@ -7,9 +7,7 @@ export default class AchievementManager {
 
   checkForUnlock(questId, language) {
     const achievement = this.achievements.find(
-      a =>
-        a.unlockQuestId === questId &&
-        a.language === language
+      (a) => a.unlockQuestId === questId && a.language === language,
     );
 
     if (!achievement) return null;

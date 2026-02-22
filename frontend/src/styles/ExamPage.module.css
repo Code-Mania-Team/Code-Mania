@@ -1,6 +1,6 @@
 .page {
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: white;
 }
 
@@ -13,7 +13,7 @@
 .hero {
   position: relative;
   width: 100%;
-  background: url('/assets/python.gif') center/cover no-repeat;
+  background: url("/assets/python.gif") center/cover no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -29,10 +29,14 @@
 }
 
 .hero::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3),
+    rgba(0, 0, 0, 0.6)
+  );
   z-index: 1;
 }
 
@@ -53,20 +57,20 @@
 }
 
 .heroSubtitle {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.5rem;
   color: #e2e8f0;
 }
 
 .heroTitle {
-  font-family: 'Jersey 25', sans-serif;
+  font-family: "Jersey 25", sans-serif;
   font-size: 3rem;
   margin: 0.5rem 0;
-  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
 }
 
 .heroDescription {
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1.2rem;
   color: #e2e8f0;
   max-width: 700px;
@@ -85,7 +89,7 @@
 }
 
 .questionContainer {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
   padding: 1.5rem; /* reduced from 2rem */
@@ -99,15 +103,15 @@
 }
 
 .questionTitle {
-  font-family: 'Jersey 25', sans-serif;
+  font-family: "Jersey 25", sans-serif;
   font-size: 1.8rem;
   color: white;
 }
 
 .questionPoints {
-  font-family: 'Press Start 2P';
+  font-family: "Press Start 2P";
   font-size: 1rem;
-  color: #3CB371;
+  color: #3cb371;
   font-weight: bold;
 }
 
@@ -128,15 +132,15 @@
   display: flex;
   align-items: center;
   padding: 1rem;
-  border: 2px solid rgba(255,255,255,0.1);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .optionLabel:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .optionInput {
@@ -153,8 +157,8 @@
 .optionLetter {
   width: 2rem;
   height: 2rem;
-  font-family: 'Press Start 2P';
-  background: rgba(255,255,255,0.1);
+  font-family: "Press Start 2P";
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -163,12 +167,12 @@
 }
 
 .optionLabel:has(input:checked) .optionLetter {
-  background: #3CB371;
+  background: #3cb371;
 }
 
 .selectedOption {
-  background: rgba(255,255,255,0.1) !important;
-  border-color: rgba(255,255,255,0.3) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 .optionText {
@@ -202,8 +206,8 @@
 .navButton {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   cursor: pointer;
 }
@@ -211,7 +215,7 @@
 .submitButton {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
-  background: #3CB371;
+  background: #3cb371;
   color: white;
   border: none;
   cursor: pointer;
@@ -241,7 +245,7 @@
 }
 
 .percentage {
-  font-family: 'Press Start 2P';
+  font-family: "Press Start 2P";
   font-size: 5rem;
   color: white;
   line-height: 1;
@@ -269,7 +273,10 @@
   padding: 0.75rem 1.25rem;
   border-radius: 0.6rem;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
 .button:hover {

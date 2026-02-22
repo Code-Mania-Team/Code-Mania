@@ -38,7 +38,10 @@ const CppCourse = () => {
 
     const fetchData = async () => {
       try {
-        const response = await axiosPublic.get("/v1/exercises/programming-language/2", { withCredentials: true });
+        const response = await axiosPublic.get(
+          "/v1/exercises/programming-language/2",
+          { withCredentials: true },
+        );
         const exercises = response?.data?.data || [];
         if (cancelled) return;
 
@@ -80,10 +83,14 @@ const CppCourse = () => {
 
         exercises.forEach((exercise) => {
           const order = Number(exercise.order_index || 0);
-          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+          if (order >= 1 && order <= 4)
+            groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8)
+            groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12)
+            groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16)
+            groupedModules[3].exercises.push(exercise);
         });
 
         setModules(groupedModules);
@@ -108,25 +115,22 @@ const CppCourse = () => {
       setData(null);
       return;
     }
-  
+
     const loadProgress = async () => {
       try {
         const result = await getGameProgress(2);
-  
+
         if (!result) return; // handles 401 returning null
-  
+
         setData(result);
-  
-        setCompletedExercises(
-          new Set(result.completedQuests || [])
-          );
-  
+
+        setCompletedExercises(new Set(result.completedQuests || []));
       } catch (err) {
         console.error("Failed to load game progress", err);
         setCompletedExercises(new Set());
       }
     };
-  
+
     loadProgress();
   }, [isAuthenticated]);
 
@@ -145,13 +149,13 @@ const CppCourse = () => {
 
   const getQuizStatus = (moduleId) => {
     // Check if all exercises in the module are completed
-    const module = modules.find(m => m.id === moduleId);
+    const module = modules.find((m) => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
-      completedExercises.has(exercise.id)
-    );
-    
+
+    const allExercisesCompleted =
+      module.exercises.length > 0 &&
+      module.exercises.every((exercise) => completedExercises.has(exercise.id));
+
     return allExercisesCompleted ? "available" : "locked";
   };
 
@@ -185,8 +189,7 @@ const CppCourse = () => {
       );
     }
 
-    if (status === "locked")
-      return <Lock className="status-icon locked" />;
+    if (status === "locked") return <Lock className="status-icon locked" />;
 
     return <Circle className="status-icon available" />;
   };
@@ -216,7 +219,8 @@ const CppCourse = () => {
           </div>
           <h1 className="cpp-hero-title">C++</h1>
           <p className="cpp-hero-description">
-            Navigate a neon city and master core programming fundamentals with C++.
+            Navigate a neon city and master core programming fundamentals with
+            C++.
           </p>
         </div>
       </section>
@@ -242,20 +246,16 @@ const CppCourse = () => {
 
               {expandedModule === module.id && (
                 <div className="module-content">
-                  <p className="module-description">
-                    {module.description}
-                  </p>
+                  <p className="module-description">{module.description}</p>
 
                   <div className="exercises-list">
                     {module.exercises.map((exercise, index) => {
                       const previousExerciseId =
-                        index > 0
-                          ? module.exercises[index - 1].id
-                          : null;
+                        index > 0 ? module.exercises[index - 1].id : null;
 
                       const status = getExerciseStatus(
                         exercise.id,
-                        previousExerciseId
+                        previousExerciseId,
                       );
 
                       return (
@@ -279,10 +279,7 @@ const CppCourse = () => {
                               <button
                                 className="start-btn"
                                 onClick={() =>
-                                  handleStartExercise(
-                                    module.id,
-                                    exercise.id
-                                  )
+                                  handleStartExercise(module.id, exercise.id)
                                 }
                               >
                                 Start
@@ -296,14 +293,16 @@ const CppCourse = () => {
                     })}
 
                     {module.id !== 5 && (
-                      <div className={`exercise-item ${getQuizStatus(module.id)}`}>
+                      <div
+                        className={`exercise-item ${getQuizStatus(module.id)}`}
+                      >
                         <div className="exercise-info">
                           <span className="exercise-number">QUIZ</span>
                           <span className="exercise-name">Take Quiz</span>
                         </div>
 
                         <div className="exercise-status">
-                          {getQuizStatus(module.id) === 'available' ? (
+                          {getQuizStatus(module.id) === "available" ? (
                             <button
                               className="start-btn"
                               onClick={() => navigate(`/quiz/cpp/${module.id}`)}
@@ -333,8 +332,7 @@ const CppCourse = () => {
                 <span>Exercises</span>
               </div>
               <span className="progress-value">
-                {userProgress.exercisesCompleted} /
-                {userProgress.totalExercises}
+                {userProgress.exercisesCompleted} /{userProgress.totalExercises}
               </span>
             </div>
 
@@ -343,9 +341,7 @@ const CppCourse = () => {
                 <div className="progress-icon xp"></div>
                 <span>XP Earned</span>
               </div>
-              <span className="progress-value">
-                {userProgress.xpEarned}
-              </span>
+              <span className="progress-value">{userProgress.xpEarned}</span>
             </div>
 
             <div className="progress-item">
@@ -363,19 +359,32 @@ const CppCourse = () => {
             <h4 className="progress-title">Course Badges</h4>
 
             <div className="course-badges-grid">
-              <img src={cppBadge1} alt="C++ Stage 1" className="cpp-course-badge" />
-              <img src={cppBadge2} alt="C++ Stage 2" className="cpp-course-badge" />
-              <img src={cppBadge3} alt="C++ Stage 3" className="cpp-course-badge" />
-              <img src={cppBadge4} alt="C++ Stage 4" className="cpp-course-badge" />
+              <img
+                src={cppBadge1}
+                alt="C++ Stage 1"
+                className="cpp-course-badge"
+              />
+              <img
+                src={cppBadge2}
+                alt="C++ Stage 2"
+                className="cpp-course-badge"
+              />
+              <img
+                src={cppBadge3}
+                alt="C++ Stage 3"
+                className="cpp-course-badge"
+              />
+              <img
+                src={cppBadge4}
+                alt="C++ Stage 4"
+                className="cpp-course-badge"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      <SignInModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       {showTutorial && (
         <TutorialPopup
@@ -388,7 +397,6 @@ const CppCourse = () => {
       )}
     </div>
   );
-
 };
 
 export default CppCourse;

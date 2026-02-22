@@ -25,7 +25,7 @@
 
 .examEditorHeader span {
   color: #94a3b8;
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1rem;
 }
 
@@ -39,7 +39,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1rem;
   transition: background 0.2s;
 }
@@ -65,7 +65,7 @@
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #334155;
   color: #e2e8f0;
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1rem;
   font-weight: bold;
 }
@@ -79,7 +79,7 @@
 
 .examTerminalContent pre {
   margin: 0;
-  font-family: 'VT323', monospace;
+  font-family: "VT323", monospace;
   font-size: 1rem;
   color: #10b981;
   white-space: pre-wrap;
@@ -110,7 +110,7 @@
   .examCodeContainer {
     gap: 0.75rem;
   }
-  
+
   .examTerminalContent {
     min-height: 120px;
     max-height: 250px;
@@ -121,12 +121,12 @@
   .examCodeContainer {
     gap: 0.5rem;
   }
-  
+
   .examEditorHeader,
   .examTerminalHeader {
     padding: 0.5rem 0.75rem;
   }
-  
+
   .examTerminalContent {
     min-height: 100px;
     max-height: 200px;

@@ -15,12 +15,17 @@ const StageCompleteModal = ({
     <div className={styles.overlay} role="dialog" aria-modal="true">
       <div className={styles.modal}>
         <div className={styles.header}>
-          <h1 
+          <h1
             className={styles.title}
             style={{
-              color: languageLabel === "C++" ? '#3b82f6' : 
-                     languageLabel === "JavaScript" ? '#eab308' : 
-                     languageLabel === "Python" ? '#10b981' : '#fbbf24'
+              color:
+                languageLabel === "C++"
+                  ? "#3b82f6"
+                  : languageLabel === "JavaScript"
+                    ? "#eab308"
+                    : languageLabel === "Python"
+                      ? "#10b981"
+                      : "#fbbf24",
             }}
           >
             Stage {stageNumber} complete!
@@ -41,7 +46,11 @@ const StageCompleteModal = ({
         )}
 
         <div className={styles.actions}>
-          <button type="button" className={styles.continueBtn} onClick={onContinue}>
+          <button
+            type="button"
+            className={styles.continueBtn}
+            onClick={onContinue}
+          >
             Continue
           </button>
           <button type="button" className={styles.closeBtn} onClick={onClose}>

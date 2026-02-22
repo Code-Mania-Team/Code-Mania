@@ -12,7 +12,7 @@ const signUp = async (email, password) => {
       { email, password },
       {
         withCredentials: true,
-      }
+      },
     );
 
     console.log("Sign-up response:", response.data);

@@ -4,7 +4,7 @@ export default class QuestManager {
     this.quests = quests;
 
     this.completedQuestIds = new Set(completedQuestIds);
-    this.completedQuestIds.forEach(id => {
+    this.completedQuestIds.forEach((id) => {
       const q = this.getQuestById(id);
       if (q) q.completed = true;
     });
@@ -14,7 +14,7 @@ export default class QuestManager {
 
   getQuestById(id) {
     if (!this.quests) return null;
-    return this.quests.find(q => q && q.id === id) || null;
+    return this.quests.find((q) => q && q.id === id) || null;
   }
 
   startQuest(id) {
@@ -28,20 +28,20 @@ export default class QuestManager {
 
     window.dispatchEvent(
       new CustomEvent("code-mania:quest-started", {
-        detail: { questId: quest.id }
-      })
+        detail: { questId: quest.id },
+      }),
     );
 
     window.dispatchEvent(
       new CustomEvent("code-mania:dialogue-complete", {
-        detail: { questId: quest.id }
-      })
+        detail: { questId: quest.id },
+      }),
     );
 
     console.log("🚀 QUEST STARTED:", quest.title);
 
     // ✅ HIDE NPC QUEST ICON
-    this.scene.npcs?.forEach(npc => {
+    this.scene.npcs?.forEach((npc) => {
       if (npc.npcData?.questId === id) {
         this.scene.questIconManager?.hideForNPC(npc);
       }
@@ -53,7 +53,6 @@ export default class QuestManager {
     this.scene.questHUD?.showQuest(quest);
   }
 
-
   completeQuest(id) {
     const quest = this.getQuestById(id);
     console.log("📤 dispatch quest-complete", id);
@@ -62,7 +61,9 @@ export default class QuestManager {
     quest.completed = true;
     this.completedQuestIds.add(id);
 
-    const completed = JSON.parse(localStorage.getItem("completedQuests") || "[]");
+    const completed = JSON.parse(
+      localStorage.getItem("completedQuests") || "[]",
+    );
     if (!completed.includes(id)) {
       completed.push(id);
       // localStorage.setItem("completedQuests", JSON.stringify(completed));
@@ -75,18 +76,18 @@ export default class QuestManager {
 
     window.dispatchEvent(
       new CustomEvent("code-mania:quest-complete", {
-        detail: { questId: id }
-      })
+        detail: { questId: id },
+      }),
     );
 
     console.log("🏁 QUEST COMPLETED:", quest.title);
     let exitTarget = null;
 
-    this.scene.mapExits?.children?.iterate(zone => {
-    if (Number(zone.exitData?.requiredQuest) === id) {
-      zone.exitArrow?.setVisible(true);
-      exitTarget = zone;
-    }
+    this.scene.mapExits?.children?.iterate((zone) => {
+      if (Number(zone.exitData?.requiredQuest) === id) {
+        zone.exitArrow?.setVisible(true);
+        exitTarget = zone;
+      }
     });
 
     // 🎯 Switch pointer to exit

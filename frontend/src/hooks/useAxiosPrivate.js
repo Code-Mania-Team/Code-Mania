@@ -15,40 +15,44 @@ const useAxiosPrivate = () => {
       async (error) => {
         const prevRequest = error?.config;
 
-        if (error?.response?.status === 401 && prevRequest && !prevRequest._retry) {
+        if (
+          error?.response?.status === 401 &&
+          prevRequest &&
+          !prevRequest._retry
+        ) {
           prevRequest._retry = true;
-          
+
           // Don't auto-refresh for auth/refresh endpoints
           if (
-            prevRequest?.url?.includes('/v1/account') ||
-            prevRequest?.url?.includes('/v1/refresh')
+            prevRequest?.url?.includes("/v1/account") ||
+            prevRequest?.url?.includes("/v1/refresh")
           ) {
             console.log("Skipping refresh for auth endpoint");
             return Promise.reject(error);
           }
-          
+
           // Add to queue if refresh is already in progress
           if (isRefreshing) {
             return new Promise((resolve, reject) => {
               refreshQueue.push({ resolve, reject, config: prevRequest });
             });
           }
-          
+
           // Set refresh flag
           isRefreshing = true;
-          
+
           try {
             await refresh();
-            
+
             // Process queued requests
             refreshQueue.forEach(({ resolve, config }) => {
               resolve(axiosPrivate(config));
             });
             refreshQueue = [];
-            
+
             // Clear refresh flag
             isRefreshing = false;
-            
+
             return axiosPrivate(prevRequest);
           } catch (refreshError) {
             // Reject all queued requests on failure
@@ -57,13 +61,13 @@ const useAxiosPrivate = () => {
             });
             refreshQueue = [];
             isRefreshing = false;
-            
+
             return Promise.reject(refreshError);
           }
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {

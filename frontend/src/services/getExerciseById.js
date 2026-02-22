@@ -6,9 +6,7 @@ const useGetExerciseById = () => {
   const getExerciseById = async (exerciseId) => {
     if (!exerciseId) return null;
 
-    const response = await axiosPrivate.get(
-      `/v1/exercises/${exerciseId}`
-    );
+    const response = await axiosPrivate.get(`/v1/exercises/${exerciseId}`);
     console.log("getExerciseById response:", response);
 
     return response.data.data; // 🔥 same structure

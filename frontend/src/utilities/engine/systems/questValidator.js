@@ -5,13 +5,13 @@ export default class QuestValidator {
 
     window.addEventListener(
       "code-mania:terminal-result",
-      this.onTerminalResult
+      this.onTerminalResult,
     );
 
     scene.events.once("shutdown", () => {
       window.removeEventListener(
         "code-mania:terminal-result",
-        this.onTerminalResult
+        this.onTerminalResult,
       );
     });
   }
@@ -29,9 +29,7 @@ export default class QuestValidator {
   validateMustInclude(code = "", requirements) {
     if (!requirements?.mustInclude) return true;
 
-    return requirements.mustInclude.every(token =>
-      code.includes(token)
-    );
+    return requirements.mustInclude.every((token) => code.includes(token));
   }
 
   getValidationMode(quest) {
@@ -61,14 +59,13 @@ export default class QuestValidator {
     if (error) {
       this.scene.dialogueManager.startDialogue([
         "Your code has an error.",
-        "Fix it and try again."
+        "Fix it and try again.",
       ]);
       return;
     }
 
     // Get last submitted code (store this when user clicks Run)
-    const userCode =
-      localStorage.getItem("lastSubmittedCode") || "";
+    const userCode = localStorage.getItem("lastSubmittedCode") || "";
 
     const actual = this.normalize(output);
     const expected = quest.expectedOutput
@@ -85,15 +82,12 @@ export default class QuestValidator {
     // MODE: FUNDAMENTALS
     // -------------------------
     if (mode === "FUNDAMENTALS") {
-      const ok = this.validateMustInclude(
-        userCode,
-        quest.requirements
-      );
+      const ok = this.validateMustInclude(userCode, quest.requirements);
 
       if (!ok) {
         this.scene.dialogueManager.startDialogue([
           "You’re missing an important concept.",
-          `Try using: ${quest.requirements.mustInclude.join(", ")}`
+          `Try using: ${quest.requirements.mustInclude.join(", ")}`,
         ]);
         return;
       }
@@ -108,13 +102,13 @@ export default class QuestValidator {
     if (mode === "HYBRID") {
       const fundamentalsOk = this.validateMustInclude(
         userCode,
-        quest.requirements
+        quest.requirements,
       );
 
       if (!fundamentalsOk) {
         this.scene.dialogueManager.startDialogue([
           "You’re missing a required concept.",
-          `Make sure to use: ${quest.requirements.mustInclude.join(", ")}`
+          `Make sure to use: ${quest.requirements.mustInclude.join(", ")}`,
         ]);
         return;
       }
@@ -122,7 +116,7 @@ export default class QuestValidator {
       if (!actual.includes(expected)) {
         this.scene.dialogueManager.startDialogue([
           "Your code runs, but the result isn’t quite right.",
-          "Check your logic and try again."
+          "Check your logic and try again.",
         ]);
         return;
       }
@@ -138,7 +132,7 @@ export default class QuestValidator {
       if (actual !== expected) {
         this.scene.dialogueManager.startDialogue([
           "The output is incorrect.",
-          "This challenge requires an exact result."
+          "This challenge requires an exact result.",
         ]);
         return;
       }

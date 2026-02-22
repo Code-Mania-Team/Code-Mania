@@ -15,7 +15,7 @@ export default class ExitArrowManager {
       duration: 600,
       yoyo: true,
       repeat: -1,
-      ease: "Sine.easeInOut"
+      ease: "Sine.easeInOut",
     });
 
     return arrow;

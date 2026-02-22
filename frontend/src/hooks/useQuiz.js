@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { axiosPublic } from '../api/axios';
+import { useState, useEffect } from "react";
+import { axiosPublic } from "../api/axios";
 
 export const useQuiz = (language, quizId) => {
   const [quizData, setQuizData] = useState(null);
@@ -12,7 +12,7 @@ export const useQuiz = (language, quizId) => {
         setLoading(true);
 
         const response = await axiosPublic.get(
-          `/v1/quizzes/${language}/${quizId}`
+          `/v1/quizzes/${language}/${quizId}`,
         );
 
         const questions = Array.isArray(response.data?.questions)
@@ -26,9 +26,9 @@ export const useQuiz = (language, quizId) => {
 
         setError(null);
       } catch (err) {
-        console.error('Quiz fetch error:', err);
-        setError(err.response?.data?.message || 'Failed to fetch quiz');
-        setQuizData({ quiz_title: 'Quiz', questions: [] });
+        console.error("Quiz fetch error:", err);
+        setError(err.response?.data?.message || "Failed to fetch quiz");
+        setQuizData({ quiz_title: "Quiz", questions: [] });
       } finally {
         setLoading(false);
       }

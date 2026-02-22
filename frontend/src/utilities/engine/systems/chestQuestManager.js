@@ -22,7 +22,7 @@ export default class ChestQuestIconManager {
   }
 
   clearAll() {
-    this.icons.forEach(icon => icon.destroy());
+    this.icons.forEach((icon) => icon.destroy());
     this.icons.clear();
   }
 }

@@ -106,7 +106,7 @@
 .scroll-content h2 {
   color: #60a5fa;
   margin-bottom: 1rem;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 1.5rem;
 }
 
@@ -136,7 +136,7 @@
 
 .code-example pre {
   margin: 0;
-  font-family: 'Fira Code', monospace;
+  font-family: "Fira Code", monospace;
   font-size: 0.85rem;
   line-height: 1.5;
   color: #e2e8f0;
@@ -144,7 +144,7 @@
 
 .show-scroll-btn {
   padding: 12px 24px;
-  font-family: 'Press Start 2P', cursive;
+  font-family: "Press Start 2P", cursive;
   font-size: 16px;
   color: #fff;
   background-color: #3b82f6;
@@ -336,7 +336,9 @@
   background: #1e293b;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .help-header {
@@ -390,7 +392,7 @@
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
-  font-family: 'Fira Code', monospace;
+  font-family: "Fira Code", monospace;
   font-size: 0.9rem;
   line-height: 1.5;
   color: #e2e8f0;
@@ -463,8 +465,13 @@
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* =============== HELP / HINT SECTION =============== */

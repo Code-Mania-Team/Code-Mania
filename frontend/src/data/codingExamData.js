@@ -4,12 +4,14 @@ const pythonCodingExam = {
   title: "Python Fundamentals",
   route: "python",
   examTitle: "Python Coding Exam",
-  examDescription: "Complete coding challenges to test your Python programming skills.",
+  examDescription:
+    "Complete coding challenges to test your Python programming skills.",
   challenges: [
     {
       id: 1,
       title: "Hello World",
-      description: "Write a program that prints 'Hello, World!' to the console.",
+      description:
+        "Write a program that prints 'Hello, World!' to the console.",
       starterCode: `# Write your code here
 print("Your code here")`,
       solution: `print("Hello, World!")`,
@@ -17,34 +19,35 @@ print("Your code here")`,
         {
           description: "Should print 'Hello, World!'",
           input: "",
-          expectedOutput: "Hello, World!"
+          expectedOutput: "Hello, World!",
         },
         {
           description: "Should handle exact string matching",
           input: "",
-          expectedOutput: "Hello, World!"
+          expectedOutput: "Hello, World!",
         },
         {
           description: "Should not print extra spaces",
           input: "",
-          expectedOutput: "Hello, World!"
+          expectedOutput: "Hello, World!",
         },
         {
           description: "Should handle case sensitivity",
           input: "",
-          expectedOutput: "Hello, World!"
-        }
+          expectedOutput: "Hello, World!",
+        },
       ],
       points: 1000,
       hints: [
         "Use the print() function to display text",
-        "Remember to include quotes around the text"
-      ]
+        "Remember to include quotes around the text",
+      ],
     },
     {
       id: 2,
       title: "Variable Assignment",
-      description: "Create a variable called 'name' with value 'John' and print it.",
+      description:
+        "Create a variable called 'name' with value 'John' and print it.",
       starterCode: `# Create a name variable and print it
 print("")`,
       solution: `name = "John"
@@ -53,29 +56,29 @@ print(name)`,
         {
           description: "Should print the name variable",
           input: "",
-          expectedOutput: "John"
+          expectedOutput: "John",
         },
         {
           description: "Should handle string variable correctly",
           input: "",
-          expectedOutput: "John"
+          expectedOutput: "John",
         },
         {
           description: "Should not include quotes in output",
           input: "",
-          expectedOutput: "John"
+          expectedOutput: "John",
         },
         {
           description: "Should handle variable assignment and printing",
           input: "",
-          expectedOutput: "John"
-        }
+          expectedOutput: "John",
+        },
       ],
       points: 1000,
       hints: [
         "Use the assignment operator (=)",
-        "Variable names don't need quotes when creating them"
-      ]
+        "Variable names don't need quotes when creating them",
+      ],
     },
     {
       id: 3,
@@ -93,34 +96,35 @@ print(result)`,
         {
           description: "Should print 8",
           input: "",
-          expectedOutput: "8"
+          expectedOutput: "8",
         },
         {
           description: "Should handle addition correctly",
           input: "",
-          expectedOutput: "8"
+          expectedOutput: "8",
         },
         {
           description: "Should print numeric result as string",
           input: "",
-          expectedOutput: "8"
+          expectedOutput: "8",
         },
         {
           description: "Should handle variable addition",
           input: "",
-          expectedOutput: "8"
-        }
+          expectedOutput: "8",
+        },
       ],
       points: 1000,
       hints: [
         "Use the + operator for addition",
-        "You can store the result in another variable"
-      ]
+        "You can store the result in another variable",
+      ],
     },
     {
       id: 4,
       title: "If Statement",
-      description: "Check if number 10 is positive and print 'Positive' if it is.",
+      description:
+        "Check if number 10 is positive and print 'Positive' if it is.",
       starterCode: `# Check if 10 is positive
 number = 10
 # Your code here`,
@@ -131,29 +135,29 @@ if number > 0:
         {
           description: "Should print 'Positive' for positive number",
           input: "",
-          expectedOutput: "Positive"
+          expectedOutput: "Positive",
         },
         {
           description: "Should handle conditional logic correctly",
           input: "",
-          expectedOutput: "Positive"
+          expectedOutput: "Positive",
         },
         {
           description: "Should evaluate positive condition",
           input: "",
-          expectedOutput: "Positive"
+          expectedOutput: "Positive",
         },
         {
           description: "Should handle if statement syntax",
           input: "",
-          expectedOutput: "Positive"
-        }
+          expectedOutput: "Positive",
+        },
       ],
       points: 1000,
       hints: [
         "Use the > operator for comparison",
-        "Remember the colon (:) after the if condition"
-      ]
+        "Remember the colon (:) after the if condition",
+      ],
     },
     {
       id: 5,
@@ -167,43 +171,45 @@ if number > 0:
         {
           description: "Should print numbers 1-5, each on new line",
           input: "",
-          expectedOutput: "1\n2\n3\n4\n5"
+          expectedOutput: "1\n2\n3\n4\n5",
         },
         {
           description: "Should handle loop iteration correctly",
           input: "",
-          expectedOutput: "1\n2\n3\n4\n5"
+          expectedOutput: "1\n2\n3\n4\n5",
         },
         {
           description: "Should use range function properly",
           input: "",
-          expectedOutput: "1\n2\n3\n4\n5"
+          expectedOutput: "1\n2\n3\n4\n5",
         },
         {
           description: "Should print each number on separate line",
           input: "",
-          expectedOutput: "1\n2\n3\n4\n5"
-        }
+          expectedOutput: "1\n2\n3\n4\n5",
+        },
       ],
       points: 1000,
       hints: [
         "Use range(1, 6) to get numbers 1-5",
-        "Remember to indent the code inside the loop"
-      ]
-    }
-  ]
+        "Remember to indent the code inside the loop",
+      ],
+    },
+  ],
 };
 
 const cppCodingExam = {
   title: "C++ Fundamentals",
   route: "cpp",
   examTitle: "C++ Coding Exam",
-  examDescription: "Complete coding challenges to test your C++ programming skills.",
+  examDescription:
+    "Complete coding challenges to test your C++ programming skills.",
   challenges: [
     {
       id: 1,
       title: "Hello World",
-      description: "Write a C++ program that prints 'Hello, World!' to the console.",
+      description:
+        "Write a C++ program that prints 'Hello, World!' to the console.",
       starterCode: `#include <iostream>
 using namespace std;
 
@@ -222,43 +228,42 @@ int main() {
         {
           description: "Should print 'Hello, World!'",
           input: "",
-          expectedOutput: "Hello, World!"
+          expectedOutput: "Hello, World!",
         },
         {
           description: "Should handle cout correctly",
           input: "",
-          expectedOutput: "Hello, World!"
+          expectedOutput: "Hello, World!",
         },
         {
           description: "Should include proper endl for newline",
           input: "",
-          expectedOutput: "Hello, World!"
+          expectedOutput: "Hello, World!",
         },
         {
           description: "Should handle C++ syntax properly",
           input: "",
-          expectedOutput: "Hello, World!"
-        }
+          expectedOutput: "Hello, World!",
+        },
       ],
       points: 1000,
-      hints: [
-        "Include the iostream header",
-        "Use cout to output text"
-      ]
-    }
-  ]
+      hints: ["Include the iostream header", "Use cout to output text"],
+    },
+  ],
 };
 
 const javascriptCodingExam = {
   title: "JavaScript Fundamentals",
   route: "javascript",
   examTitle: "JavaScript Coding Exam",
-  examDescription: "Complete coding challenges to test your JavaScript programming skills.",
+  examDescription:
+    "Complete coding challenges to test your JavaScript programming skills.",
   challenges: [
     {
       id: 1,
       title: "Hello World",
-      description: "Write a JavaScript program that logs 'Hello, World!' to the console.",
+      description:
+        "Write a JavaScript program that logs 'Hello, World!' to the console.",
       starterCode: `// Write your code here
 console.log("Your code here");`,
       solution: `console.log("Hello, World!");`,
@@ -266,22 +271,22 @@ console.log("Your code here");`,
         {
           description: "Should log 'Hello, World!'",
           input: "",
-          expectedOutput: "Hello, World!"
-        }
+          expectedOutput: "Hello, World!",
+        },
       ],
       points: 1000,
       hints: [
         "Use console.log() to output text",
-        "Remember to include quotes around the text"
-      ]
-    }
-  ]
+        "Remember to include quotes around the text",
+      ],
+    },
+  ],
 };
 
 const codingExamsByLanguage = {
   python: pythonCodingExam,
   cpp: cppCodingExam,
-  javascript: javascriptCodingExam
+  javascript: javascriptCodingExam,
 };
 
 export const getCodingExamData = (language = "python") => {

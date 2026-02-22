@@ -36,8 +36,7 @@ export default class GameScene extends Phaser.Scene {
     console.log("🚀 QUEST:", this.quest);
     this.completedQuestIds = new Set(data.completedQuests || []);
 
-    const storedLanguage =
-      localStorage.getItem("lastCourseTitle") || "Python";
+    const storedLanguage = localStorage.getItem("lastCourseTitle") || "Python";
 
     this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
 
@@ -53,7 +52,7 @@ export default class GameScene extends Phaser.Scene {
     if (!this.mapData) {
       console.error("❌ Map not found:", {
         language: this.language,
-        mapId: this.currentMapId
+        mapId: this.currentMapId,
       });
     }
 
@@ -63,19 +62,18 @@ export default class GameScene extends Phaser.Scene {
     this.openedChests = new Set();
   }
 
-
-
-
   setupLayerSwitching() {
     // Get the layer references
     this.groundLayer = this.mapLoader.map.getLayer("ground")?.tilemapLayer;
     this.thingsLayer = this.mapLoader.map.getLayer("things")?.tilemapLayer;
-    this.groundInvisibleLayer = this.mapLoader.map.getLayer("ground_invisible")?.tilemapLayer;
-    this.thingsInvisibleLayer = this.mapLoader.map.getLayer("things_invisible")?.tilemapLayer;
+    this.groundInvisibleLayer =
+      this.mapLoader.map.getLayer("ground_invisible")?.tilemapLayer;
+    this.thingsInvisibleLayer =
+      this.mapLoader.map.getLayer("things_invisible")?.tilemapLayer;
 
     // Set initial state
     this.layersSwitched = false;
-    
+
     // Initially show ground/things, hide invisible layers
     if (this.groundLayer) this.groundLayer.setVisible(true);
     if (this.thingsLayer) this.thingsLayer.setVisible(true);
@@ -87,8 +85,10 @@ export default class GameScene extends Phaser.Scene {
 
   openDoors() {
     // Get door layers
-    const doorCloseLayer = this.mapLoader.map.getLayer("door_close")?.tilemapLayer;
-    const doorOpenLayer = this.mapLoader.map.getLayer("door_open")?.tilemapLayer;
+    const doorCloseLayer =
+      this.mapLoader.map.getLayer("door_close")?.tilemapLayer;
+    const doorOpenLayer =
+      this.mapLoader.map.getLayer("door_open")?.tilemapLayer;
 
     if (!doorCloseLayer || !doorOpenLayer) {
       console.warn("⚠️ Door layers not found in map");
@@ -103,7 +103,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   toggleLayers() {
-    if (!this.groundLayer || !this.thingsLayer || !this.groundInvisibleLayer || !this.thingsInvisibleLayer) {
+    if (
+      !this.groundLayer ||
+      !this.thingsLayer ||
+      !this.groundInvisibleLayer ||
+      !this.thingsInvisibleLayer
+    ) {
       console.warn("⚠️ Missing required layers for switching");
       return;
     }
@@ -132,61 +137,59 @@ export default class GameScene extends Phaser.Scene {
     this.mapLoader.load(
       this.mapData.mapKey,
       this.mapData.mapJson,
-      this.mapData.tilesets
+      this.mapData.tilesets,
     );
 
     const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
     const character =
-      CHARACTERS.find(c => c.id === selectedId) || CHARACTERS[0];
+      CHARACTERS.find((c) => c.id === selectedId) || CHARACTERS[0];
 
     Object.entries(character.sprites).forEach(([dir, path]) => {
       this.load.spritesheet(`player-${dir}`, path, {
         frameWidth: 48,
-        frameHeight: 48
+        frameHeight: 48,
       });
     });
 
-    Object.values(BADGES).forEach(badge => {
+    Object.values(BADGES).forEach((badge) => {
       this.load.image(badge.key, badge.path);
     });
 
     this.load.spritesheet("npc-villager", "/assets/npcs/npc1.png", {
       frameWidth: 48,
-      frameHeight: 48
+      frameHeight: 48,
     });
 
     this.load.spritesheet("arrow_up", "/assets/ui/arrow_up.png", {
       frameWidth: 48,
-      frameHeight: 48
+      frameHeight: 48,
     });
 
     this.load.spritesheet("arrow_down", "/assets/ui/arrow_down.png", {
       frameWidth: 48,
-      frameHeight: 48
+      frameHeight: 48,
     });
 
     this.load.spritesheet("arrow_left", "/assets/ui/arrow_left.png", {
       frameWidth: 48,
-      frameHeight: 48
+      frameHeight: 48,
     });
 
     this.load.spritesheet("arrow_right", "/assets/ui/arrow_right.png", {
       frameWidth: 48,
-      frameHeight: 48
+      frameHeight: 48,
     });
     this.load.spritesheet("quest_icon", "/assets/ui/quest_icon.png", {
       frameWidth: 48,
-      frameHeight: 48 
+      frameHeight: 48,
     });
     this.load.spritesheet("exclamation", "/assets/ui/exclamation.png", {
       frameWidth: 48,
-      frameHeight: 48
+      frameHeight: 48,
     });
     this.load.audio("bgm-python", "/assets/audio/python.mp3");
     this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
     this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
-
-
   }
   onQuestComplete = async (e) => {
     const questId = e.detail?.questId;
@@ -198,50 +201,47 @@ export default class GameScene extends Phaser.Scene {
 
     const gainedExp = quest.experience || 0;
 
-    console.log("LANGUAGE BEING SENT:", localStorage.getItem("lastCourseTitle"));
-
+    console.log(
+      "LANGUAGE BEING SENT:",
+      localStorage.getItem("lastCourseTitle"),
+    );
 
     // 🎒 Grant ability (if any)
     if (quest.grants) {
       this.worldState.abilities.add(quest.grants);
     }
 
-
     // ✅ ALWAYS show quest completed toast
     this.questCompleteToast.show({
       title: quest.title,
       badgeKey: quest.badgeKey || null, // toast can ignore if null
-      exp: gainedExp
+      exp: gainedExp,
     });
 
     // 🏅 ONLY show badge UI if quest has badge
     if (quest.badgeKey) {
       const language = localStorage.getItem("lastCourseTitle") || "Python";
 
-
       const badge = BADGES[quest.badgeKey];
       if (badge) {
         this.badgeUnlockPopup.show({
           badgeKey: badge.key,
-          label: quest.title
+          label: quest.title,
         });
       }
     }
-
   };
 
   create() {
     // 🗺 MAP
     this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesets);
 
-    this.textures.each(t =>
-      t.setFilter(Phaser.Textures.FilterMode.NEAREST)
-    );
+    this.textures.each((t) => t.setFilter(Phaser.Textures.FilterMode.NEAREST));
 
     this.cameras.main.roundPixels = true;
 
     // 🔄 LAYER SWITCHING SYSTEM (for js_map10)
-    if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+    if (this.currentMapId === "map10" && this.language === "JavaScript") {
       this.setupLayerSwitching();
     }
 
@@ -249,56 +249,56 @@ export default class GameScene extends Phaser.Scene {
 
     // 🎮 PLAYER ANIMATIONS
     const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
-    
+
     const characterIdleFrames = {
       0: 1,
       1: 1,
       2: 1,
-      3: 1
+      3: 1,
     };
-    
+
     const idleFrame = characterIdleFrames[selectedId] || 0;
-    
-    ["down", "up", "left", "right"].forEach(dir => {
+
+    ["down", "up", "left", "right"].forEach((dir) => {
       this.anims.create({
         key: `walk-${dir}`,
         frames: this.anims.generateFrameNumbers(`player-${dir}`, {
           start: 0,
-          end: 3
+          end: 3,
         }),
         frameRate: 10,
-        repeat: -1
+        repeat: -1,
       });
 
       this.anims.create({
         key: `idle-${dir}`,
-        frames: [{ key: `player-${dir}`, frame: idleFrame }]
+        frames: [{ key: `player-${dir}`, frame: idleFrame }],
       });
     });
 
-    ["up", "down", "left", "right"].forEach(dir => {
+    ["up", "down", "left", "right"].forEach((dir) => {
       if (this.anims.exists(`arrow-${dir}`)) return;
 
       this.anims.create({
         key: `arrow-${dir}`,
         frames: this.anims.generateFrameNumbers(`arrow_${dir}`, {
           start: 0,
-          end: 3
+          end: 3,
         }),
         frameRate: 6,
-        repeat: -1
+        repeat: -1,
       });
     });
-    
+
     if (!this.anims.exists("quest-icon")) {
       this.anims.create({
         key: "quest-icon",
         frames: this.anims.generateFrameNumbers("quest_icon", {
           start: 0,
-          end: 2
+          end: 2,
         }),
         frameRate: 4,
-        repeat: -1
+        repeat: -1,
       });
     }
 
@@ -306,10 +306,10 @@ export default class GameScene extends Phaser.Scene {
       key: "exclamation",
       frames: this.anims.generateFrameNumbers("exclamation", {
         start: 0,
-        end: 2
+        end: 2,
       }),
       frameRate: 4,
-      repeat: -1
+      repeat: -1,
     });
 
     // 🧍 PLAYER
@@ -326,7 +326,7 @@ export default class GameScene extends Phaser.Scene {
     this.createPlayerArrow();
 
     // 🧱 COLLISIONS
-    this.mapLoader.collisionLayers.forEach(layer => {
+    this.mapLoader.collisionLayers.forEach((layer) => {
       this.physics.add.collider(this.player, layer);
     });
 
@@ -334,7 +334,6 @@ export default class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
     // 🔓 FREE SPACEBAR FOR THE BROWSER / TERMINAL
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
     this.input.keyboard.on("keydown-E", () => {
@@ -371,8 +370,6 @@ export default class GameScene extends Phaser.Scene {
       this.helpManager.openHelp();
     });
 
-
-    
     this.input.keyboard.on("keydown-T", () => {
       if (this.gamePausedByTerminal) return;
       const activeQuest = this.questManager.activeQuest;
@@ -386,7 +383,7 @@ export default class GameScene extends Phaser.Scene {
     const BGM_BY_LANGUAGE = {
       Python: "bgm-python",
       JavaScript: "bgm-javascript",
-      Cpp: "bgm-cpp"
+      Cpp: "bgm-cpp",
     };
 
     const bgmKey = BGM_BY_LANGUAGE[this.language];
@@ -394,7 +391,7 @@ export default class GameScene extends Phaser.Scene {
     if (bgmKey) {
       this.bgm = this.sound.add(bgmKey, {
         loop: true,
-        volume: 0.5
+        volume: 0.5,
       });
 
       this.bgm.play();
@@ -405,8 +402,6 @@ export default class GameScene extends Phaser.Scene {
         this.bgm.stop();
       }
     });
-
-
 
     this.handleTerminalActive = () => {
       this.gamePausedByTerminal = true;
@@ -423,14 +418,25 @@ export default class GameScene extends Phaser.Scene {
       this.input.keyboard.enabled = true;
     };
 
-    window.addEventListener("code-mania:terminal-active", this.handleTerminalActive);
-    window.addEventListener("code-mania:terminal-inactive", this.handleTerminalInactive);
+    window.addEventListener(
+      "code-mania:terminal-active",
+      this.handleTerminalActive,
+    );
+    window.addEventListener(
+      "code-mania:terminal-inactive",
+      this.handleTerminalInactive,
+    );
 
     this.events.once("shutdown", () => {
-      window.removeEventListener("code-mania:terminal-active", this.handleTerminalActive);
-      window.removeEventListener("code-mania:terminal-inactive", this.handleTerminalInactive);
+      window.removeEventListener(
+        "code-mania:terminal-active",
+        this.handleTerminalActive,
+      );
+      window.removeEventListener(
+        "code-mania:terminal-inactive",
+        this.handleTerminalInactive,
+      );
     });
-
 
     // 📚 TUTORIAL EVENTS (paused for now)
     window.addEventListener("code-mania:tutorial-open", () => {
@@ -459,8 +465,7 @@ export default class GameScene extends Phaser.Scene {
       this.smallRockLayer.setVisible(false);
     }
     // 🧰 CHEST LAYERS
-    this.chestLayer =
-      this.mapLoader.map.getLayer("chest")?.tilemapLayer;
+    this.chestLayer = this.mapLoader.map.getLayer("chest")?.tilemapLayer;
 
     this.chestOpenLayer =
       this.mapLoader.map.getLayer("chest_open")?.tilemapLayer;
@@ -476,10 +481,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.gateCloseLayer =
-    this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
+      this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
 
-    this.gateOpenLayer =
-      this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
+    this.gateOpenLayer = this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
 
     if (this.gateCloseLayer) {
       this.gateCloseLayer.setCollisionByProperty({ collides: true });
@@ -497,8 +501,6 @@ export default class GameScene extends Phaser.Scene {
       }
     });
 
-
-
     this.createInteractionMarker();
 
     const w = this.mapLoader.map.widthInPixels;
@@ -507,11 +509,11 @@ export default class GameScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, w, h);
     this.cameras.main.setBounds(0, 0, w, h);
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    
+
     const QUESTS_BY_LANGUAGE = {
       Python: pythonQuests,
       JavaScript: jsQuests,
-      Cpp: cppQuests
+      Cpp: cppQuests,
     };
 
     // 🧠 SYSTEMS
@@ -519,9 +521,8 @@ export default class GameScene extends Phaser.Scene {
     this.questManager = new QuestManager(
       this,
       [this.quest],
-      this.completedQuestIds
+      this.completedQuestIds,
     );
-
 
     this.dialogueManager = new DialogueManager(this);
     this.cutsceneManager = new CutsceneManager(this);
@@ -534,55 +535,46 @@ export default class GameScene extends Phaser.Scene {
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
     this.cinematicBars = new CinematicBars(this);
 
-
     this.isMobile =
-      this.sys.game.device.os.android ||
-      this.sys.game.device.os.iOS;
+      this.sys.game.device.os.android || this.sys.game.device.os.iOS;
 
     if (this.isMobile) {
       this.mobileControls = new MobileControls(this, {
-      onInteract: () => this.handleInteract()
-    });
-
+        onInteract: () => this.handleInteract(),
+      });
     }
 
     this.orientationManager = new OrientationManager(this);
     this.scale.on("resize", () => {
       this.cinematicBars.resize();
     });
-    
 
     // ✅ QUEST COMPLETE EVENT (AFTER SYSTEMS EXIST)
-    window.addEventListener(
-      "code-mania:quest-complete",
-      this.onQuestComplete
-    );
+    window.addEventListener("code-mania:quest-complete", this.onQuestComplete);
 
     this.events.once("shutdown", () => {
       window.removeEventListener(
         "code-mania:quest-complete",
-        this.onQuestComplete
+        this.onQuestComplete,
       );
     });
-
 
     // Help button (always available)
     this.helpButton = new HelpButton(this, () => {
       this.helpManager.openHelp();
     });
-  
+
     this.createMapExits();
     this.lastDirection = "down";
     // 🧑 NPCs
     this.spawnNPCs();
-    this.npcs.forEach(npc => {
+    this.npcs.forEach((npc) => {
       this.physics.add.collider(this.player, npc);
     });
 
     // 🎬 INTRO
     this.playIntroCutscene();
     this.spawnChestQuestIcons();
-
   }
   createPlayerArrow() {
     // Use one of your arrow sprites (we'll rotate it dynamically)
@@ -595,7 +587,6 @@ export default class GameScene extends Phaser.Scene {
 
     this.playerArrow.setVisible(false);
   }
-
 
   resizeCamera(gameSize) {
     const cam = this.cameras.main;
@@ -628,7 +619,6 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-
   update() {
     if (this.gamePausedByTerminal) {
       this.player.setVelocity(0);
@@ -657,35 +647,32 @@ export default class GameScene extends Phaser.Scene {
         }
       }
     } else {
-        if (this.cursors.left.isDown) {
-          this.player.setVelocityX(-speed);
-          this.lastDirection = "left";
-          moving = true;
-        } else if (this.cursors.right.isDown) {
-            this.player.setVelocityX(speed);
-            this.lastDirection = "right";
-            moving = true;
-        }
+      if (this.cursors.left.isDown) {
+        this.player.setVelocityX(-speed);
+        this.lastDirection = "left";
+        moving = true;
+      } else if (this.cursors.right.isDown) {
+        this.player.setVelocityX(speed);
+        this.lastDirection = "right";
+        moving = true;
+      }
 
-        if (this.cursors.up.isDown) {
-          this.player.setVelocityY(-speed);
-          this.lastDirection = "up";
-          moving = true;
-        } else if (this.cursors.down.isDown) {
-            this.player.setVelocityY(speed);
-            this.lastDirection = "down";
-            moving = true;
+      if (this.cursors.up.isDown) {
+        this.player.setVelocityY(-speed);
+        this.lastDirection = "up";
+        moving = true;
+      } else if (this.cursors.down.isDown) {
+        this.player.setVelocityY(speed);
+        this.lastDirection = "down";
+        moving = true;
       }
     }
-
-    
 
     const anim = moving
       ? `walk-${this.lastDirection}`
       : `idle-${this.lastDirection}`;
     this.player.anims.play(anim, true);
     this.updatePlayerArrow();
-
   }
 
   updatePlayerArrow() {
@@ -703,7 +690,7 @@ export default class GameScene extends Phaser.Scene {
       this.player.x,
       this.player.y,
       target.x,
-      target.y
+      target.y,
     );
 
     const hideDistance = 100; // 👈 adjust this value
@@ -720,24 +707,22 @@ export default class GameScene extends Phaser.Scene {
       this.player.x,
       this.player.y,
       target.x,
-      target.y
+      target.y,
     );
 
     const radius = 40;
 
     this.playerArrow.setPosition(
       this.player.x + Math.cos(angle) * radius,
-      this.player.y + Math.sin(angle) * radius
+      this.player.y + Math.sin(angle) * radius,
     );
 
     this.playerArrow.setRotation(angle + Math.PI / 2);
   }
 
-
-
   getCurrentPointerTarget() {
     // 1️⃣ If any exit requires a completed quest → point to it
-    const exitZone = this.mapExits?.getChildren()?.find(zone => {
+    const exitZone = this.mapExits?.getChildren()?.find((zone) => {
       const requiredQuest = zone.exitData?.requiredQuest;
       if (!requiredQuest) return false;
 
@@ -748,7 +733,7 @@ export default class GameScene extends Phaser.Scene {
     if (exitZone) return exitZone;
 
     // 2️⃣ Otherwise point to first incomplete NPC quest
-    const npc = this.npcs?.find(n => {
+    const npc = this.npcs?.find((n) => {
       const quest = this.questManager.getQuestById(n.npcData.questId);
       return quest && !quest.completed;
     });
@@ -758,15 +743,11 @@ export default class GameScene extends Phaser.Scene {
     return null;
   }
 
-
-
-
-
   spawnChestQuestIcons() {
     const chestLayer = this.mapLoader.map.getLayer("chest")?.tilemapLayer;
     if (!chestLayer) return;
 
-    chestLayer.forEachTile(tile => {
+    chestLayer.forEachTile((tile) => {
       if (!tile.properties) return;
       if (tile.properties.type !== "chest") return;
 
@@ -783,7 +764,6 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-
   spawnNPCs() {
     const layer = this.mapLoader.map.getObjectLayer("spawn");
     if (!layer) return;
@@ -791,14 +771,14 @@ export default class GameScene extends Phaser.Scene {
     this.npcs = [];
 
     layer.objects
-      .filter(o =>
-        o.properties?.some(p => p.name === "type" && p.value === "npc")
+      .filter((o) =>
+        o.properties?.some((p) => p.name === "type" && p.value === "npc"),
       )
-      .forEach(obj => {
+      .forEach((obj) => {
         const npc = this.physics.add.sprite(
           obj.x + obj.width / 2,
           obj.y - obj.height / 2,
-          "npc-villager"
+          "npc-villager",
         );
 
         npc.setOrigin(0.5, 1);
@@ -807,9 +787,8 @@ export default class GameScene extends Phaser.Scene {
         npc.body.immovable = true;
 
         npc.npcData = {
-          questId: this.exerciseId
+          questId: this.exerciseId,
         };
-
 
         // ✅ THIS WAS MISSING
         this.npcs.push(npc);
@@ -827,10 +806,8 @@ export default class GameScene extends Phaser.Scene {
       });
   }
 
-
   createInteractionMarker() {
     this.interactionMarker = this.add.container(0, 0).setDepth(999);
-    
 
     this.tweens.add({
       targets: this.interactionMarker,
@@ -838,15 +815,16 @@ export default class GameScene extends Phaser.Scene {
       duration: 600,
       yoyo: true,
       repeat: -1,
-      ease: "Sine.easeInOut"
+      ease: "Sine.easeInOut",
     });
 
-    this.interactPrompt = this.add.text(0, 0, "Press E", {
-      font: "16px Arial",
-      fill: "#ffffff",
-      stroke: "#000000",
-      strokeThickness: 3
-    })
+    this.interactPrompt = this.add
+      .text(0, 0, "Press E", {
+        font: "16px Arial",
+        fill: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 3,
+      })
       .setOrigin(0.5, 1)
       .setDepth(999);
 
@@ -862,8 +840,18 @@ export default class GameScene extends Phaser.Scene {
 
     const nearestNpc = this.npcs.reduce((best, n) => {
       if (!best) return n;
-      const dn = Phaser.Math.Distance.Between(this.player.x, this.player.y, n.x, n.y);
-      const db = Phaser.Math.Distance.Between(this.player.x, this.player.y, best.x, best.y);
+      const dn = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        n.x,
+        n.y,
+      );
+      const db = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        best.x,
+        best.y,
+      );
       return dn < db ? n : best;
     }, null);
 
@@ -873,7 +861,7 @@ export default class GameScene extends Phaser.Scene {
       this.player.x,
       this.player.y,
       nearestNpc.x,
-      nearestNpc.y
+      nearestNpc.y,
     );
 
     const inRange = d <= 50;
@@ -881,7 +869,9 @@ export default class GameScene extends Phaser.Scene {
     if (this.interactionMarker) {
       this.interactionMarker.setPosition(nearestNpc.x, nearestNpc.y - 52);
       this.interactionMarker.setVisible(!inRange);
-      this.interactionMarker.setAlpha(Phaser.Math.Clamp((d - 50) / 200, 0.25, 1));
+      this.interactionMarker.setAlpha(
+        Phaser.Math.Clamp((d - 50) / 200, 0.25, 1),
+      );
     }
 
     if (this.interactPrompt) {
@@ -892,7 +882,7 @@ export default class GameScene extends Phaser.Scene {
 
   getSpawnPoint(name) {
     const layer = this.mapLoader.map.getObjectLayer("spawn");
-    const obj = layer?.objects.find(o => o.name === name);
+    const obj = layer?.objects.find((o) => o.name === name);
 
     if (!obj) return { x: 100, y: 100 };
 
@@ -920,13 +910,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   tryInteractWithNPC() {
-    const npc = this.npcs.find(n =>
-      Phaser.Math.Distance.Between(
-        this.player.x,
-        this.player.y,
-        n.x,
-        n.y
-      ) <= 50
+    const npc = this.npcs.find(
+      (n) =>
+        Phaser.Math.Distance.Between(this.player.x, this.player.y, n.x, n.y) <=
+        50,
     );
 
     if (!npc) return false; // 👈 IMPORTANT
@@ -940,37 +927,31 @@ export default class GameScene extends Phaser.Scene {
     this.playerCanMove = false;
 
     // 1️⃣ QUEST NOT STARTED
-    if (
-      !quest.completed &&
-      this.questManager.activeQuest?.id !== quest.id
-    ) {
+    if (!quest.completed && this.questManager.activeQuest?.id !== quest.id) {
       // DOOR OPENING FOR JS_MAP7
-      if (this.currentMapId === 'map7' && this.language === 'JavaScript') {
+      if (this.currentMapId === "map7" && this.language === "JavaScript") {
         this.openDoors();
       }
 
       // DOOR OPENING FOR JS_MAP8
-      if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
+      if (this.currentMapId === "map8" && this.language === "JavaScript") {
         this.openDoors();
       }
 
       // LAYER SWITCHING FOR JS_MAP10 (whenever quest starts)
-      if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+      if (this.currentMapId === "map10" && this.language === "JavaScript") {
         this.toggleLayers();
       }
 
-      this.dialogueManager.startDialogue(
-        quest.dialogue || [],
-        () => {
-          this.questManager.startQuest(quest.id);
-          window.dispatchEvent(
-            new CustomEvent("code-mania:quest-started", {
-              detail: { questId: quest.id }
-            })
-          );
-          this.playerCanMove = true;
-        }
-      );
+      this.dialogueManager.startDialogue(quest.dialogue || [], () => {
+        this.questManager.startQuest(quest.id);
+        window.dispatchEvent(
+          new CustomEvent("code-mania:quest-started", {
+            detail: { questId: quest.id },
+          }),
+        );
+        this.playerCanMove = true;
+      });
       return true; // ✅ INPUT CONSUMED
     }
 
@@ -978,7 +959,7 @@ export default class GameScene extends Phaser.Scene {
     if (!quest.completed) {
       this.dialogueManager.startDialogue(
         ["Solve the challenge to earn the key."],
-        () => (this.playerCanMove = true)
+        () => (this.playerCanMove = true),
       );
       return true;
     }
@@ -989,26 +970,23 @@ export default class GameScene extends Phaser.Scene {
         this.worldState.abilities.add(quest.grants);
 
         // 🔄 LAYER SWITCHING FOR JS_MAP10
-        if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+        if (this.currentMapId === "map10" && this.language === "JavaScript") {
           this.toggleLayers();
         }
 
         this.dialogueManager.startDialogue(
-          [
-            "Excellent work.",
-            "Take this key — it opens the gate."
-          ],
-          () => (this.playerCanMove = true)
+          ["Excellent work.", "Take this key — it opens the gate."],
+          () => (this.playerCanMove = true),
         );
       } else {
         // 🔄 TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
-        if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
+        if (this.currentMapId === "map10" && this.language === "JavaScript") {
           this.toggleLayers();
         }
 
         this.dialogueManager.startDialogue(
           ["You already have the key."],
-          () => (this.playerCanMove = true)
+          () => (this.playerCanMove = true),
         );
       }
       return true;
@@ -1031,10 +1009,9 @@ export default class GameScene extends Phaser.Scene {
     if (!this.interactableRockLayer) return;
     if (!this.worldState || !this.worldState.abilities) return;
 
-    const requiredProp =
-      this.interactableRockLayer.layer.properties?.find(
-        p => p.name === "requires"
-      );
+    const requiredProp = this.interactableRockLayer.layer.properties?.find(
+      (p) => p.name === "requires",
+    );
 
     const required = requiredProp?.value;
     if (!this.worldState.abilities.has(required)) return;
@@ -1043,7 +1020,7 @@ export default class GameScene extends Phaser.Scene {
       up: { x: 0, y: -48 },
       down: { x: 0, y: 16 },
       left: { x: -48, y: 0 },
-      right: { x: 48, y: 0 }
+      right: { x: 48, y: 0 },
     };
 
     const offset = offsets[this.lastDirection] || { x: 0, y: 0 };
@@ -1059,7 +1036,7 @@ export default class GameScene extends Phaser.Scene {
 
     // 💥 BREAK ROCK
     this.interactableRockLayer.setVisible(false);
-    this.interactableRockLayer.forEachTile(tile => {
+    this.interactableRockLayer.forEachTile((tile) => {
       tile.setCollision(false);
     });
 
@@ -1070,8 +1047,6 @@ export default class GameScene extends Phaser.Scene {
     console.log("🪨 Rocks broken!");
   }
 
-
-
   tryInteractWithChest() {
     if (!this.openedChests) return;
     if (!this.chestLayer || !this.chestOpenLayer) return;
@@ -1080,7 +1055,7 @@ export default class GameScene extends Phaser.Scene {
       { x: 0, y: -24 },
       { x: -24, y: 0 },
       { x: 24, y: 0 },
-      { x: 0, y: 24 }
+      { x: 0, y: 24 },
     ];
 
     for (const offset of offsets) {
@@ -1117,7 +1092,7 @@ export default class GameScene extends Phaser.Scene {
         this.playerCanMove = false;
         this.dialogueManager.startDialogue(
           ["The chest is sealed by ancient code..."],
-          () => (this.playerCanMove = true)
+          () => (this.playerCanMove = true),
         );
         return;
       }
@@ -1127,7 +1102,7 @@ export default class GameScene extends Phaser.Scene {
 
       // 🔁 Toggle layers
       this.chestLayer.setVisible(false);
-      this.chestLayer.forEachTile(t => t.setCollision(false));
+      this.chestLayer.forEachTile((t) => t.setCollision(false));
 
       this.chestOpenLayer.setVisible(true);
 
@@ -1135,7 +1110,7 @@ export default class GameScene extends Phaser.Scene {
         [
           "The chest clicks open.",
           "Inside, you find a sturdy Pickaxe.",
-          "🪓 You can now break rocks!"
+          "🪓 You can now break rocks!",
         ],
         () => {
           // Grant ability
@@ -1154,14 +1129,12 @@ export default class GameScene extends Phaser.Scene {
 
           this.playerCanMove = true;
           console.log("🧰 Pickaxe obtained!");
-        }
+        },
       );
 
       return;
     }
   }
-
-
 
   async playIntroCutscene() {
     const key = `${this.language}_${this.currentMapId}_intro`;
@@ -1184,10 +1157,9 @@ export default class GameScene extends Phaser.Scene {
   tryOpenGate() {
     if (!this.gateCloseLayer) return;
 
-    const requiredProp =
-      this.gateCloseLayer.layer.properties?.find(
-        p => p.name === "requires"
-      );
+    const requiredProp = this.gateCloseLayer.layer.properties?.find(
+      (p) => p.name === "requires",
+    );
 
     const requiredKey = requiredProp?.value;
     if (!requiredKey) return;
@@ -1196,14 +1168,14 @@ export default class GameScene extends Phaser.Scene {
     if (!this.worldState.abilities.has(requiredKey)) {
       this.dialogueManager.startDialogue(
         ["The gate is locked. You need a key."],
-        () => {}
+        () => {},
       );
       return;
     }
 
     // ✅ HAS KEY → OPEN GATE
     this.gateCloseLayer.setVisible(false);
-    this.gateCloseLayer.forEachTile(t => t.setCollision(false));
+    this.gateCloseLayer.forEachTile((t) => t.setCollision(false));
 
     if (this.gateOpenLayer) {
       this.gateOpenLayer.setVisible(true);
@@ -1211,12 +1183,11 @@ export default class GameScene extends Phaser.Scene {
 
     this.dialogueManager.startDialogue(
       ["You unlock the gate.", "The path is now open."],
-      () => {}
+      () => {},
     );
 
     console.log("🚪 Gate opened!");
   }
-
 
   createMapExits() {
     const layer = this.mapLoader.map.getObjectLayer("triggers");
@@ -1225,12 +1196,13 @@ export default class GameScene extends Phaser.Scene {
     this.mapExits = this.physics.add.group();
 
     layer.objects
-      .filter(o =>
-        o.properties?.some(p => p.name === "type" && p.value === "map_exit")
+      .filter((o) =>
+        o.properties?.some((p) => p.name === "type" && p.value === "map_exit"),
       )
-      .forEach(obj => {
+      .forEach((obj) => {
         const isJavaScript = this.language === "JavaScript";
-        const isPoint = Boolean(obj.point) || obj.width === 0 || obj.height === 0;
+        const isPoint =
+          Boolean(obj.point) || obj.width === 0 || obj.height === 0;
         const zoneWidth = isJavaScript && isPoint ? 48 : obj.width;
         const zoneHeight = isJavaScript && isPoint ? 48 : obj.height;
         const zoneX = isJavaScript && isPoint ? obj.x : obj.x + obj.width / 2;
@@ -1242,17 +1214,20 @@ export default class GameScene extends Phaser.Scene {
         zone.body.setAllowGravity(false);
         zone.body.setImmovable(true);
 
-        const targetMap =
-          obj.properties.find(p => p.name === "target_map")?.value;
+        const targetMap = obj.properties.find(
+          (p) => p.name === "target_map",
+        )?.value;
 
-        const targetSpawn =
-          obj.properties.find(p => p.name === "target_spawn")?.value;
+        const targetSpawn = obj.properties.find(
+          (p) => p.name === "target_spawn",
+        )?.value;
 
         const direction =
-          obj.properties.find(p => p.name === "direction")?.value ?? "down";
+          obj.properties.find((p) => p.name === "direction")?.value ?? "down";
 
-        const rawQuest =
-          obj.properties.find(p => p.name === "required_quest")?.value;
+        const rawQuest = obj.properties.find(
+          (p) => p.name === "required_quest",
+        )?.value;
 
         // 🔒 LOCKED BY DEFAULT
         let unlocked = false;
@@ -1265,7 +1240,7 @@ export default class GameScene extends Phaser.Scene {
         zone.exitData = {
           targetMap,
           targetSpawn,
-          requiredQuest: rawQuest
+          requiredQuest: rawQuest,
         };
 
         // 🏹 EXIT-ONLY ARROW
@@ -1273,7 +1248,7 @@ export default class GameScene extends Phaser.Scene {
           zone.x,
           zone.y,
           direction,
-          unlocked
+          unlocked,
         );
 
         this.mapExits.add(zone);
@@ -1284,12 +1259,9 @@ export default class GameScene extends Phaser.Scene {
       this.mapExits,
       this.handleMapExit,
       null,
-      this
+      this,
     );
   }
-
-
-
 
   handleMapExit(player, zone) {
     const { targetMap, requiredQuest } = zone.exitData;
@@ -1308,17 +1280,14 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
 
     this.cameras.main.once("camerafadeoutcomplete", () => {
-
       if (!this.quest.completed) return;
 
       // Tell React to navigate
       window.dispatchEvent(
         new CustomEvent("code-mania:request-next-exercise", {
-          detail: { exerciseId: this.exerciseId }
-        })
+          detail: { exerciseId: this.exerciseId },
+        }),
       );
-
     });
-
   }
 }

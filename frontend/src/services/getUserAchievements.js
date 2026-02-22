@@ -38,7 +38,7 @@ const useGetAchievements = () => {
     achievements,
     loading,
     error,
-    refetch: fetchAchievements
+    refetch: fetchAchievements,
   };
 };
 

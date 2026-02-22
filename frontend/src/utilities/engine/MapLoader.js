@@ -10,7 +10,7 @@ export default class MapLoader {
   load(mapKey, mapJsonPath, tilesets) {
     this.scene.load.tilemapTiledJSON(mapKey, mapJsonPath);
 
-    tilesets.forEach(ts => {
+    tilesets.forEach((ts) => {
       this.scene.load.image(ts.key, ts.image);
     });
   }
@@ -18,17 +18,12 @@ export default class MapLoader {
   create(mapKey, tilesets) {
     this.map = this.scene.make.tilemap({ key: mapKey });
 
-    this.tilesets = tilesets.map(ts =>
-      this.map.addTilesetImage(ts.name, ts.key)
+    this.tilesets = tilesets.map((ts) =>
+      this.map.addTilesetImage(ts.name, ts.key),
     );
 
-    this.map.layers.forEach(layerData => {
-      const layer = this.map.createLayer(
-        layerData.name,
-        this.tilesets,
-        0,
-        0
-      );
+    this.map.layers.forEach((layerData) => {
+      const layer = this.map.createLayer(layerData.name, this.tilesets, 0, 0);
 
       // 🔥 COLLISION BY TILE PROPERTY
       layer.setCollisionByProperty({ collision: true });
@@ -45,8 +40,8 @@ export default class MapLoader {
       this.layers[layerData.name] = layer;
 
       if (
-        layer.layer.data.some(row =>
-          row.some(tile => tile?.properties?.collision)
+        layer.layer.data.some((row) =>
+          row.some((tile) => tile?.properties?.collision),
         )
       ) {
         this.collisionLayers.push(layer);

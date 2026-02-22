@@ -28,7 +28,7 @@ export default class CutsceneManager {
   }
 
   runAction(action) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const cam = this.scene.cameras.main;
 
       switch (action.type) {
@@ -83,54 +83,51 @@ export default class CutsceneManager {
       const { width, height } = this.scene.scale;
 
       // Background panel (semi-transparent, rounded)
-      this.textBox = this.scene.add.rectangle(
-        width / 2,                // center horizontally
-        height - 120,             // cinematic bottom
-        width * 0.8,              // 80% screen width
-        120,                      // panel height
-        0x000000,                 // black
-        0.7                       // opacity
-      )
-      .setStrokeStyle(3, 0xffffff) // white border
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1000);
+      this.textBox = this.scene.add
+        .rectangle(
+          width / 2, // center horizontally
+          height - 120, // cinematic bottom
+          width * 0.8, // 80% screen width
+          120, // panel height
+          0x000000, // black
+          0.7, // opacity
+        )
+        .setStrokeStyle(3, 0xffffff) // white border
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(1000);
 
       // Text inside panel
-      this.text = this.scene.add.text(
-        width / 2,
-        height - 120,
-        line,
-        {
-          font: "24px Georgia",    // more cinematic font
+      this.text = this.scene.add
+        .text(width / 2, height - 120, line, {
+          font: "24px Georgia", // more cinematic font
           fill: "#ffffff",
           align: "center",
           wordWrap: { width: width * 0.7 },
-        }
-      )
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001);
+        })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(1001);
 
       // Optional: small blinking arrow to hint auto-advance
-      const arrow = this.scene.add.text(
-        width / 2 + width * 0.35 - 20,
-        height - 70,
-        "▼",
-        { font: "22px Arial", fill: "#ffffff" }
-      ).setScrollFactor(0)
-      .setDepth(1002);
+      const arrow = this.scene.add
+        .text(width / 2 + width * 0.35 - 20, height - 70, "▼", {
+          font: "22px Arial",
+          fill: "#ffffff",
+        })
+        .setScrollFactor(0)
+        .setDepth(1002);
 
       this.scene.tweens.add({
         targets: arrow,
         y: height - 60,
         duration: 600,
         yoyo: true,
-        repeat: -1
+        repeat: -1,
       });
 
       // Wait for SPACE or auto-advance
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         const onClick = (pointer) => {
           if (pointer.button !== 0) return;
           cleanup();
@@ -147,7 +144,6 @@ export default class CutsceneManager {
         // auto advance fallback
         this.scene.time.delayedCall(3000, cleanup);
       });
-
     }
 
     // Cleanup last text
@@ -157,35 +153,28 @@ export default class CutsceneManager {
 
   async playFadeIn(duration) {
     const { width, height } = this.scene.scale;
-    
+
     // Create black overlay covering entire screen
-    const blackOverlay = this.scene.add.rectangle(
-      width / 2,
-      height / 2,
-      width,
-      height,
-      0x000000,
-      1.0
-    )
-    .setOrigin(0.5)
-    .setScrollFactor(0)
-    .setDepth(9999);
+    const blackOverlay = this.scene.add
+      .rectangle(width / 2, height / 2, width, height, 0x000000, 1.0)
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(9999);
 
     // Fade from black to transparent
     this.scene.tweens.add({
       targets: blackOverlay,
       alpha: 0,
       duration: duration,
-      ease: 'Power2.easeOut',
+      ease: "Power2.easeOut",
       onComplete: () => {
         blackOverlay.destroy();
-      }
+      },
     });
 
     // Wait for fade to complete
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.scene.time.delayedCall(duration, resolve);
     });
   }
-
 }

@@ -72,14 +72,16 @@ const InteractiveTerminal = ({ questId }) => {
     window.addEventListener("code-mania:quest-started", handleQuestStarted);
 
     return () =>
-      window.removeEventListener("code-mania:quest-started", handleQuestStarted);
+      window.removeEventListener(
+        "code-mania:quest-started",
+        handleQuestStarted,
+      );
   }, [questId]);
 
   useEffect(() => {
     setIsQuestActive(false);
     setValidationResult(null);
   }, [questId]);
-
 
   const runViaDocker = () => {
     if (socketRef.current) socketRef.current.close();
@@ -96,7 +98,7 @@ const InteractiveTerminal = ({ questId }) => {
 
     socket.onmessage = (e) => {
       finalOutput += e.data;
-      setProgramOutput(prev => prev + e.data);
+      setProgramOutput((prev) => prev + e.data);
 
       if (!e.data.endsWith("\n")) {
         setWaitingForInput(true);
@@ -110,11 +112,7 @@ const InteractiveTerminal = ({ questId }) => {
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
 
       try {
-        const result = await validateExercise(
-          questId,
-          finalOutput,
-          code
-        );
+        const result = await validateExercise(questId, finalOutput, code);
 
         console.log("Validation result:", result.objectives);
 
@@ -125,19 +123,14 @@ const InteractiveTerminal = ({ questId }) => {
         if (result?.success) {
           window.dispatchEvent(
             new CustomEvent("code-mania:quest-complete", {
-              detail: { questId }
-            })
+              detail: { questId },
+            }),
           );
         } else if (result?.message) {
-          setProgramOutput(prev =>
-            prev + "\n\n❌ " + result.message
-          );
+          setProgramOutput((prev) => prev + "\n\n❌ " + result.message);
         }
-
       } catch (err) {
-        setProgramOutput(prev =>
-          prev + "\n\n❌ Validation server error"
-        );
+        setProgramOutput((prev) => prev + "\n\n❌ Validation server error");
       }
     };
   };
@@ -150,11 +143,9 @@ const InteractiveTerminal = ({ questId }) => {
     if (!waitingForInput || !socketRef.current) return;
 
     if (e.key === "Enter") {
-      socketRef.current.send(
-        JSON.stringify({ stdin: inputBuffer })
-      );
+      socketRef.current.send(JSON.stringify({ stdin: inputBuffer }));
 
-      setProgramOutput(prev => prev + inputBuffer + "\n");
+      setProgramOutput((prev) => prev + inputBuffer + "\n");
       setInputBuffer("");
       setWaitingForInput(false);
       e.preventDefault();
@@ -162,13 +153,13 @@ const InteractiveTerminal = ({ questId }) => {
     }
 
     if (e.key === "Backspace") {
-      setInputBuffer(prev => prev.slice(0, -1));
+      setInputBuffer((prev) => prev.slice(0, -1));
       e.preventDefault();
       return;
     }
 
     if (e.key.length === 1) {
-      setInputBuffer(prev => prev + e.key);
+      setInputBuffer((prev) => prev + e.key);
       e.preventDefault();
     }
   };
@@ -190,7 +181,7 @@ const InteractiveTerminal = ({ questId }) => {
     : 0;
 
   const passedObjectives = validationResult
-    ? Object.values(validationResult).filter(obj => obj.passed).length
+    ? Object.values(validationResult).filter((obj) => obj.passed).length
     : 0;
 
   /* ===============================
@@ -205,14 +196,14 @@ const InteractiveTerminal = ({ questId }) => {
             {language === "cpp"
               ? "main.cpp"
               : language === "javascript"
-              ? "script.js"
-              : "script.py"}
+                ? "script.js"
+                : "script.py"}
           </span>
 
           <button
             className={`${styles["submit-btn"]} ${
-                        !isQuestActive ? styles["btn-disabled"] : ""
-                      }`}
+              !isQuestActive ? styles["btn-disabled"] : ""
+            }`}
             onClick={handleRun}
             disabled={isRunning || !isQuestActive}
           >
@@ -230,7 +221,7 @@ const InteractiveTerminal = ({ questId }) => {
           options={{
             minimap: { enabled: false },
             fontSize: 14,
-            automaticLayout: true
+            automaticLayout: true,
           }}
         />
       </div>
@@ -247,45 +238,34 @@ const InteractiveTerminal = ({ questId }) => {
           <pre>
             {programOutput}
             {waitingForInput && inputBuffer}
-            {waitingForInput && (
-              <span className={styles.cursor}></span>
-            )}
-            {!programOutput &&
-              !waitingForInput &&
-              "▶ Output will appear here"}
+            {waitingForInput && <span className={styles.cursor}></span>}
+            {!programOutput && !waitingForInput && "▶ Output will appear here"}
           </pre>
         </div>
-
       </div>
       {validationResult && (
-          <div className={styles["validation-box"]}>
-            <h4 className={styles["validation-summary"]}>
-              Test Results: {passedObjectives} / {totalObjectives} passed
-            </h4>
+        <div className={styles["validation-box"]}>
+          <h4 className={styles["validation-summary"]}>
+            Test Results: {passedObjectives} / {totalObjectives} passed
+          </h4>
 
-            {Object.values(validationResult).map((obj, index) => (
-              <div
-                key={index}
-                className={
-                  obj.passed
-                    ? styles["test-pass"]
-                    : styles["test-fail"]
-                }
-              >
-                <span className={styles["test-icon"]}>
-                  {obj.passed ? "✔" : "✖"}
-                </span>
-                <span>{obj.label}</span>
-              </div>
-            ))}
+          {Object.values(validationResult).map((obj, index) => (
+            <div
+              key={index}
+              className={obj.passed ? styles["test-pass"] : styles["test-fail"]}
+            >
+              <span className={styles["test-icon"]}>
+                {obj.passed ? "✔" : "✖"}
+              </span>
+              <span>{obj.label}</span>
+            </div>
+          ))}
 
-            {passedObjectives === totalObjectives && (
-              <div className={styles["all-pass"]}>
-                🎉 All tests passed!
-              </div>
-            )}
-          </div>
-        )}
+          {passedObjectives === totalObjectives && (
+            <div className={styles["all-pass"]}>🎉 All tests passed!</div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

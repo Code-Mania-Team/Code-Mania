@@ -4,7 +4,11 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(0deg,rgba(34, 50, 87, 1) 0%, rgba(111, 144, 223, 1) 100%);
+  background: linear-gradient(
+    0deg,
+    rgba(34, 50, 87, 1) 0%,
+    rgba(111, 144, 223, 1) 100%
+  );
   overflow: hidden;
   z-index: 9999;
 }
@@ -32,8 +36,8 @@
 }
 
 .errorMess h1 {
-  font-family: 'Press Start 2P', monospace;
-  color: #ffff00; 
+  font-family: "Press Start 2P", monospace;
+  color: #ffff00;
   font-size: 3rem;
   margin-bottom: 10px;
   line-height: 1.1;
@@ -67,13 +71,13 @@
   transform: translateY(-2px);
 }
 
-@media (max-width:768px) {
+@media (max-width: 768px) {
   .notFound {
     flex-direction: column;
     padding: 30px 20px;
     text-align: center;
   }
-  
+
   .errorLaptopImage img {
     width: 90%;
   }

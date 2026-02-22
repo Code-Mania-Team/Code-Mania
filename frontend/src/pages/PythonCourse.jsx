@@ -15,8 +15,8 @@ import pythonBadge2 from "../assets/badges/Python/python-badge2.png";
 import pythonBadge3 from "../assets/badges/Python/python-badge3.png";
 import pythonBadge4 from "../assets/badges/Python/python-badge4.png";
 
-const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
-
+const checkmarkIcon =
+  "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const PythonCourse = () => {
   const navigate = useNavigate();
@@ -48,10 +48,7 @@ const PythonCourse = () => {
 
         setData(result);
 
-        setCompletedExercises(
-          new Set(result.completedQuests || [])
-        );
-
+        setCompletedExercises(new Set(result.completedQuests || []));
       } catch (err) {
         console.error("Failed to load game progress", err);
         setCompletedExercises(new Set());
@@ -61,47 +58,82 @@ const PythonCourse = () => {
     loadProgress();
   }, [isAuthenticated]);
 
-
   useEffect(() => {
-      let cancelled = false;
+    let cancelled = false;
 
-      const fetchData = async () => {
-        try {
-          const response = await axiosPublic.get("/v1/exercises/programming-language/1", { withCredentials: true });
-          const exercises = response?.data?.data || [];
-          if (cancelled) return;
+    const fetchData = async () => {
+      try {
+        const response = await axiosPublic.get(
+          "/v1/exercises/programming-language/1",
+          { withCredentials: true },
+        );
+        const exercises = response?.data?.data || [];
+        if (cancelled) return;
 
-          console.log("Fetched exercises:", exercises);
-   
-          const groupedModules = [
-            { id: 1, title: "Hello World", description: "Learn how to write your first line of Python by printing messages to the terminal.", exercises: []},
-            { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: []},
-            { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: []},
-            { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: []},
-            { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: []}
-          ];
-   
-          exercises.forEach((exercise) => {
-            const order = Number(exercise.order_index || 0);
-            if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-            else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-            else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-            else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
-          });
-   
-          setModules(groupedModules);
-        } catch (error) {
-          console.error("Failed to fetch Python exercises:", error);
-          if (!cancelled) setModules([]);
-        }
-      };
-  
-      fetchData();
-      return () => {
-        cancelled = true;
-      };
-    }, []);
+        console.log("Fetched exercises:", exercises);
 
+        const groupedModules = [
+          {
+            id: 1,
+            title: "Hello World",
+            description:
+              "Learn how to write your first line of Python by printing messages to the terminal.",
+            exercises: [],
+          },
+          {
+            id: 2,
+            title: "Variables & Data Types",
+            description:
+              "Understand how to store and manipulate data using variables in Python.",
+            exercises: [],
+          },
+          {
+            id: 3,
+            title: "Control Flow",
+            description:
+              "Master conditional statements and decision-making in your programs.",
+            exercises: [],
+          },
+          {
+            id: 4,
+            title: "Loops",
+            description:
+              "Learn how to repeat code efficiently using for and while loops.",
+            exercises: [],
+          },
+          {
+            id: 5,
+            title: "Examination",
+            description:
+              "Test your Python knowledge. Complete all previous modules to unlock this exam.",
+            exercises: [],
+          },
+        ];
+
+        exercises.forEach((exercise) => {
+          const order = Number(exercise.order_index || 0);
+          if (order >= 1 && order <= 4)
+            groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8)
+            groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12)
+            groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16)
+            groupedModules[3].exercises.push(exercise);
+        });
+
+        setModules(groupedModules);
+      } catch (error) {
+        console.error("Failed to fetch Python exercises:", error);
+        if (!cancelled) setModules([]);
+      }
+    };
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const onOpenModal = () => {
     setIsModalOpen(true);
@@ -113,7 +145,7 @@ const PythonCourse = () => {
 
   const handleViewProfile = () => {
     if (isAuthenticated) {
-      navigate('/profile');
+      navigate("/profile");
     } else {
       onOpenModal();
     }
@@ -132,13 +164,13 @@ const PythonCourse = () => {
 
   const getQuizStatus = (moduleId) => {
     // Check if all exercises in the module are completed
-    const module = modules.find(m => m.id === moduleId);
+    const module = modules.find((m) => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
-      completedExercises.has(exercise.id)
-    );
-    
+
+    const allExercisesCompleted =
+      module.exercises.length > 0 &&
+      module.exercises.every((exercise) => completedExercises.has(exercise.id));
+
     return allExercisesCompleted ? "available" : "locked";
   };
 
@@ -161,13 +193,11 @@ const PythonCourse = () => {
 
     // PASS THE REAL EXERCISE ID
     navigate(`/learn/python/exercise/${exerciseId}`);
-
   };
 
   const handleStartExam = () => {
     navigate(`/exam/python`);
   };
-
 
   const totalExercises = modules
     .filter((module) => module.id !== 5)
@@ -186,9 +216,9 @@ const PythonCourse = () => {
     totalQuiz: 4,
   };
 
-  const characterIcon = localStorage.getItem('selectedCharacterIcon') || 'https://api.dicebear.com/7.x/pixel-art/svg?seed=user';
-
-
+  const characterIcon =
+    localStorage.getItem("selectedCharacterIcon") ||
+    "https://api.dicebear.com/7.x/pixel-art/svg?seed=user";
 
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
@@ -196,7 +226,13 @@ const PythonCourse = () => {
 
   const getStatusIcon = (status) => {
     if (status === "completed") {
-      return <img src={checkmarkIcon} alt="Completed" className="status-icon completed" />;
+      return (
+        <img
+          src={checkmarkIcon}
+          alt="Completed"
+          className="status-icon completed"
+        />
+      );
     }
     if (status === "locked") return <Lock className="status-icon locked" />;
     return <Circle className="status-icon available" />;
@@ -213,7 +249,8 @@ const PythonCourse = () => {
           </div>
           <h1 className="python-hero-title">Python</h1>
           <p className="python-hero-description">
-            Explore a mysterious island while learning Python basics like variables, loops, and control flow.
+            Explore a mysterious island while learning Python basics like
+            variables, loops, and control flow.
           </p>
         </div>
       </section>
@@ -224,7 +261,7 @@ const PythonCourse = () => {
         <div className="modules-section">
           {modules.map((module) => (
             <div key={module.id} className="module-card">
-              <div 
+              <div
                 className="module-header"
                 onClick={() => toggleModule(module.id)}
               >
@@ -247,17 +284,25 @@ const PythonCourse = () => {
                       const previousExercise =
                         index > 0 ? module.exercises[index - 1].id : null;
 
-                      const status = getExerciseStatus(exercise.id, previousExercise);
+                      const status = getExerciseStatus(
+                        exercise.id,
+                        previousExercise,
+                      );
 
                       return (
-                        <div key={exercise.id} className={`exercise-item ${status}`}>
+                        <div
+                          key={exercise.id}
+                          className={`exercise-item ${status}`}
+                        >
                           <div className="exercise-info">
                             {module.id !== 5 && (
                               <span className="exercise-number">
                                 EXERCISE {index + 1}
                               </span>
                             )}
-                            <span className="exercise-name">{exercise.title}</span>
+                            <span className="exercise-name">
+                              {exercise.title}
+                            </span>
                           </div>
 
                           <div className="exercise-status">
@@ -279,17 +324,21 @@ const PythonCourse = () => {
                     })}
 
                     {module.id !== 5 && (
-                      <div className={`exercise-item ${getQuizStatus(module.id)}`}>
+                      <div
+                        className={`exercise-item ${getQuizStatus(module.id)}`}
+                      >
                         <div className="exercise-info">
                           <span className="exercise-number">QUIZ</span>
                           <span className="exercise-name">Take Quiz</span>
                         </div>
 
                         <div className="exercise-status">
-                          {getQuizStatus(module.id) === 'available' ? (
+                          {getQuizStatus(module.id) === "available" ? (
                             <button
                               className="start-btn"
-                              onClick={() => navigate(`/quiz/python/${module.id}`)}
+                              onClick={() =>
+                                navigate(`/quiz/python/${module.id}`)
+                              }
                             >
                               Start
                             </button>
@@ -307,7 +356,7 @@ const PythonCourse = () => {
                         </div>
 
                         <div className="exercise-status">
-                          {getExamStatus() === 'available' ? (
+                          {getExamStatus() === "available" ? (
                             <button
                               className="start-btn"
                               onClick={handleStartExam}
@@ -331,14 +380,15 @@ const PythonCourse = () => {
         <div className="sidebar">
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
+
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
                 <span>Exercises</span>
               </div>
               <span className="progress-value">
-                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
+                {userProgress.exercisesCompleted} /{" "}
+                {userProgress.totalExercises}
               </span>
             </div>
 
@@ -347,9 +397,7 @@ const PythonCourse = () => {
                 <div className="progress-icon xp"></div>
                 <span>XP Earned</span>
               </div>
-              <span className="progress-value">
-                {userProgress.xpEarned}
-              </span>
+              <span className="progress-value">{userProgress.xpEarned}</span>
             </div>
 
             <div className="progress-item">
@@ -365,29 +413,45 @@ const PythonCourse = () => {
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
-              <img src={pythonBadge1} alt="Python Stage 1" className="python-course-badge" />
-              <img src={pythonBadge2} alt="Python Stage 2" className="python-course-badge" />
-              <img src={pythonBadge3} alt="Python Stage 3" className="python-course-badge" />
-              <img src={pythonBadge4} alt="Python Stage 4" className="python-course-badge" />
+              <img
+                src={pythonBadge1}
+                alt="Python Stage 1"
+                className="python-course-badge"
+              />
+              <img
+                src={pythonBadge2}
+                alt="Python Stage 2"
+                className="python-course-badge"
+              />
+              <img
+                src={pythonBadge3}
+                alt="Python Stage 3"
+                className="python-course-badge"
+              />
+              <img
+                src={pythonBadge4}
+                alt="Python Stage 4"
+                className="python-course-badge"
+              />
             </div>
           </div>
         </div>
       </div>
-      
-      <SignInModal 
+
+      <SignInModal
         isOpen={isModalOpen}
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-      
+
       {/* Tutorial Popup */}
       {showTutorial && (
-        <TutorialPopup 
-          open={showTutorial} 
+        <TutorialPopup
+          open={showTutorial}
           onClose={() => {
             setShowTutorial(false);
-            localStorage.setItem('hasSeenTutorial', 'true');
-          }} 
+            localStorage.setItem("hasSeenTutorial", "true");
+          }}
         />
       )}
     </div>

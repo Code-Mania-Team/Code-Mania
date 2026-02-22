@@ -12,7 +12,7 @@ const useLatestUnlockedExercise = (languageId) => {
     const fetchLatest = async () => {
       try {
         const response = await axiosPrivate.get(
-          `/v1/exercises/programming-language/${languageId}/latest`
+          `/v1/exercises/programming-language/${languageId}/latest`,
         );
 
         setExercise(response.data.data);
