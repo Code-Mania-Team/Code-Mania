@@ -1,14 +1,14 @@
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 const useGetExercises = () => {
-  const axiosPrivate = useAxiosPrivate(); // or normal axios if public
+  const axiosPrivate = useAxiosPrivate();
 
   const getExercises = async (languageId) => {
     const response = await axiosPrivate.get(
       `/v1/exercises/programming-language/${languageId}`
     );
 
-    return response.data.data; // 🔥 IMPORTANT
+    return response.data.data;
   };
 
   return getExercises;

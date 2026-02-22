@@ -5,9 +5,9 @@ import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
-import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import useAuth from "../hooks/useAxios";
+import { axiosPublic } from "../api/axios";
 
 // Import C++ course badges
 import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
@@ -21,7 +21,6 @@ const checkmarkIcon =
 const CppCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const getExercises = useGetExercises();
   const getGameProgress = useGetGameProgress();
 
   const [expandedModule, setExpandedModule] = useState(1);
@@ -35,9 +34,13 @@ const CppCourse = () => {
      FETCH C++ EXERCISES (UNCHANGED)
   =============================== */
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
-        const exercises = await getExercises(2); // 2 = C++
+        const response = await axiosPublic.get("/v1/exercises/programming-language/2", { withCredentials: true });
+        const exercises = response?.data?.data || [];
+        if (cancelled) return;
 
         if (!exercises) return;
 
@@ -86,10 +89,14 @@ const CppCourse = () => {
         setModules(groupedModules);
       } catch (err) {
         console.error("Failed to fetch C++ exercises", err);
+        if (!cancelled) setModules([]);
       }
     };
 
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /* ===============================

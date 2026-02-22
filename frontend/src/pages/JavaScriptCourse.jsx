@@ -7,7 +7,7 @@ import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
-import useGetExercises from "../services/getExercise";
+import { axiosPublic } from "../api/axios";
 
 // Import JavaScript course badges
 import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
@@ -21,7 +21,6 @@ const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
-  const getExercises = useGetExercises();
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
@@ -30,29 +29,41 @@ const JavaScriptCourse = () => {
   const [data, setData] = useState();
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
-      const exercises = await getExercises(3); // JS
+      try {
+        const response = await axiosPublic.get("/v1/exercises/programming-language/3", { withCredentials: true });
+        const exercises = response?.data?.data || [];
+        if (cancelled) return;
 
-      const groupedModules = [
-        { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
-        { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
-        { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
-        { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
-        { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
-      ];
+        const groupedModules = [
+          { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
+          { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
+          { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
+          { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
+          { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
+        ];
 
-      exercises.forEach((exercise) => {
-        const order = Number(exercise.order_index || 0);
-        if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-        else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-        else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-        else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
-      });
+        exercises.forEach((exercise) => {
+          const order = Number(exercise.order_index || 0);
+          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+        });
 
-      setModules(groupedModules);
+        setModules(groupedModules);
+      } catch (error) {
+        console.error("Failed to fetch JavaScript exercises:", error);
+        if (!cancelled) setModules([]);
+      }
     };
 
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
