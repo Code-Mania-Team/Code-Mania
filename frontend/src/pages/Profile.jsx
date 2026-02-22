@@ -78,10 +78,6 @@ import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
 
 
 
-import achievementsConfig from "../utilities/data/achievements.json";
-
-
-
 const badgeImageById = {
 
 

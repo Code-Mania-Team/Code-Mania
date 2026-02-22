@@ -18,8 +18,6 @@ import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
-import { BADGES } from "../config/badgeConfig";
-import achievementsData from "../../data/achievements.json";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
@@ -193,6 +191,9 @@ export default class GameScene extends Phaser.Scene {
     console.log("questId", questId);
     if (!questId) return;
 
+    // Keep completion flow inside engine too (not only React page listeners)
+    this.questManager?.completeQuest(Number(questId));
+
     const quest = this.questManager.getQuestById(questId);
     if (!quest) return;
 
@@ -332,8 +333,6 @@ export default class GameScene extends Phaser.Scene {
 
     // ⌨ INPUT — ONLY ONCE
     this.cursors = this.input.keyboard.createCursorKeys();
-    // 🔓 FREE SPACEBAR FOR THE BROWSER / TERMINAL
-    this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
@@ -351,35 +350,6 @@ export default class GameScene extends Phaser.Scene {
     this.input.keyboard.on("keydown-Q", () => {
       if (this.gamePausedByTerminal) return;
       this.questHUD.toggle(this.questManager.activeQuest);
-    });
-
-    this.input.keyboard.on("keydown-H", (event) => {
-      // If user is typing in input/textarea/monaco
-      const active = document.activeElement;
-
-      if (
-        active &&
-        (active.tagName === "INPUT" ||
-          active.tagName === "TEXTAREA" ||
-          active.classList.contains("monaco-editor"))
-      ) {
-        return;
-      }
-
-      if (this.gamePausedByTerminal) return;
-
-      this.helpManager.openHelp();
-    });
-
-
-    
-    this.input.keyboard.on("keydown-T", () => {
-      if (this.gamePausedByTerminal) return;
-      const activeQuest = this.questManager.activeQuest;
-      if (activeQuest) {
-        this.questManager.completeQuest(activeQuest.id);
-        console.log("🧪 TEST MODE: Quest completed:", activeQuest.id);
-      }
     });
 
     // 🎵 Background music per language
@@ -740,9 +710,7 @@ export default class GameScene extends Phaser.Scene {
     const exitZone = this.mapExits?.getChildren()?.find(zone => {
       const requiredQuest = zone.exitData?.requiredQuest;
       if (!requiredQuest) return false;
-
-      const quest = this.questManager.getQuestById(Number(requiredQuest));
-      return quest && quest.completed;
+      return this.isRequiredQuestSatisfied(requiredQuest);
     });
 
     if (exitZone) return exitZone;
@@ -755,7 +723,21 @@ export default class GameScene extends Phaser.Scene {
 
     if (npc) return npc;
 
+    // 3️⃣ If no NPC quest remains, point to a map exit
+    const anyExit = this.mapExits?.getChildren?.()?.[0] || null;
+    if (anyExit) return anyExit;
+
     return null;
+  }
+
+  isRequiredQuestSatisfied(requiredQuest) {
+    const required = Number(requiredQuest);
+    if (!Number.isFinite(required)) return false;
+
+    const quest = this.questManager?.getQuestById(this.exerciseId) || this.quest;
+    if (!quest || !quest.completed) return false;
+
+    return Number(quest.id) === required || Number(quest.order_index) === required;
   }
 
 
@@ -1254,18 +1236,22 @@ export default class GameScene extends Phaser.Scene {
         const rawQuest =
           obj.properties.find(p => p.name === "required_quest")?.value;
 
-        // 🔒 LOCKED BY DEFAULT
-        let unlocked = false;
+        const requiredQuestId =
+          rawQuest === undefined || rawQuest === null || rawQuest === ""
+            ? null
+            : Number(rawQuest);
 
-        if (rawQuest !== undefined) {
-          const quest = this.questManager.getQuestById(Number(rawQuest));
-          unlocked = !!quest?.completed;
+        // If no required quest, exit is open by default
+        let unlocked = requiredQuestId === null;
+
+        if (requiredQuestId !== null) {
+          unlocked = this.isRequiredQuestSatisfied(requiredQuestId);
         }
 
         zone.exitData = {
           targetMap,
           targetSpawn,
-          requiredQuest: rawQuest
+          requiredQuest: requiredQuestId
         };
 
         // 🏹 EXIT-ONLY ARROW
@@ -1296,8 +1282,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Quest not finished → do nothing
     if (requiredQuest) {
-      const quest = this.questManager.getQuestById(requiredQuest);
-      if (!quest || !quest.completed) return;
+      if (!this.isRequiredQuestSatisfied(requiredQuest)) return;
     }
 
     // Prevent multiple triggers

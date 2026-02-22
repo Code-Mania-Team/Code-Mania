@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 
-
+import useStartExercise from "../services/startExercise";
 import Header from "../components/header";
 
 import SignInModal from "../components/SignInModal";
@@ -46,6 +46,8 @@ const JavaScriptExercise = () => {
 
   const getGameProgress = useGetGameProgress();
 
+  const startExercise = useStartExercise();
+
   const getExerciseById = useGetExerciseById();
 
   const getNextExercise = useGetNextExercise();
@@ -83,6 +85,25 @@ const JavaScriptExercise = () => {
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
 
+
+  useEffect(() => {
+    const handleStart = async (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      try {
+        await startExercise(questId);
+        console.log("✅ Quest started in backend");
+      } catch (err) {
+        console.error("Failed to start quest", err);
+      }
+    };
+
+    window.addEventListener("code-mania:quest-started", handleStart);
+
+    return () =>
+      window.removeEventListener("code-mania:quest-started", handleStart);
+  }, []);
 
   /* ===============================
 
@@ -151,13 +172,15 @@ const JavaScriptExercise = () => {
   useEffect(() => {
 
     const loadProgress = async () => {
+      try {
+        // Must be numeric language id for /v1/learning-data
+        const result = await getGameProgress(3);
 
-      const result = await getGameProgress("JavaScript");
-
-      if (result?.completedQuests) {
-
-        setDbCompletedQuests(result.completedQuests);
-
+        if (result?.completedQuests) {
+          setDbCompletedQuests(result.completedQuests);
+        }
+      } catch (err) {
+        console.error("Failed to load JavaScript progress", err);
       }
 
     };
@@ -554,6 +577,7 @@ const JavaScriptExercise = () => {
 
 
           <CodeTerminal
+            questId={activeExerciseId}
 
             language="javascript"
 

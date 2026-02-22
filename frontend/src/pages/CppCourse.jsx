@@ -26,9 +26,14 @@ const CppCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState(null);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [modules, setModules] = useState([]);
   const [data, setData] = useState();
+
+  const tutorialSeenKey = user?.user_id
+    ? `hasSeenTutorial_${user.user_id}`
+    : "hasSeenTutorial";
 
   /* ===============================
      FETCH C++ EXERCISES (UNCHANGED)
@@ -160,18 +165,31 @@ const CppCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
-    const authed = localStorage.getItem("isAuthenticated") === "true";
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}`;
 
-    if (authed && !hasSeenTutorial) {
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
       setShowTutorial(true);
+      return;
     }
 
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "C++");
     localStorage.setItem("lastCourseRoute", "/learn/cpp");
 
-    navigate(`/learn/cpp/exercise/${moduleId}/${exerciseId}`);
+    navigate(route);
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem(tutorialSeenKey, "true");
+
+    if (pendingRoute) {
+      const nextRoute = pendingRoute;
+      setPendingRoute(null);
+      navigate(nextRoute);
+    }
   };
 
   const getStatusIcon = (status) => {
@@ -380,10 +398,7 @@ const CppCourse = () => {
       {showTutorial && (
         <TutorialPopup
           open={showTutorial}
-          onClose={() => {
-            setShowTutorial(false);
-            localStorage.setItem("hasSeenTutorial", "true");
-          }}
+          onClose={handleTutorialClose}
         />
       )}
     </div>

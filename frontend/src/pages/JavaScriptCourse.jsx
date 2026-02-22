@@ -26,7 +26,12 @@ const JavaScriptCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState(null);
   const [data, setData] = useState();
+
+  const tutorialSeenKey = user?.user_id
+    ? `hasSeenTutorial_${user.user_id}`
+    : "hasSeenTutorial";
 
   useEffect(() => {
     let cancelled = false;
@@ -149,18 +154,31 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExercise = (exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
-    const authed = localStorage.getItem("isAuthenticated") === "true";
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = `/learn/javascript/exercise/${exerciseId}`;
 
-    if (authed && !hasSeenTutorial) {
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
       setShowTutorial(true);
+      return;
     }
 
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
-    navigate(`/learn/javascript/exercise/${exerciseId}`);
+    navigate(route);
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem(tutorialSeenKey, "true");
+
+    if (pendingRoute) {
+      const nextRoute = pendingRoute;
+      setPendingRoute(null);
+      navigate(nextRoute);
+    }
   };
 
   const toggleModule = (moduleId) => {
@@ -353,10 +371,7 @@ const JavaScriptCourse = () => {
       {showTutorial && (
         <TutorialPopup
           open={showTutorial}
-          onClose={() => {
-            setShowTutorial(false);
-            localStorage.setItem("hasSeenTutorial", "true");
-          }}
+          onClose={handleTutorialClose}
         />
       )}
     </div>

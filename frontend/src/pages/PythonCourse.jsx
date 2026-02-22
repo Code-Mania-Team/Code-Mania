@@ -3,17 +3,11 @@ import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
-import TutorialPopup from "../components/Tutorialpopup";
+import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
-
-// Import Python course badges
-import pythonBadge1 from "../assets/badges/Python/python-badge1.png";
-import pythonBadge2 from "../assets/badges/Python/python-badge2.png";
-import pythonBadge3 from "../assets/badges/Python/python-badge3.png";
-import pythonBadge4 from "../assets/badges/Python/python-badge4.png";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -28,6 +22,11 @@ const PythonCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState(null);
+
+  const tutorialSeenKey = user?.user_id
+    ? `hasSeenTutorial_${user.user_id}`
+    : "hasSeenTutorial";
 
   // Tutorial will be shown only when clicking Start button
   const { exerciseId } = useParams();
@@ -148,20 +147,32 @@ const PythonCourse = () => {
   };
 
   const handleStartExercise = (exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = `/learn/python/exercise/${exerciseId}`;
 
-    if (isAuthenticated && !hasSeenTutorial) {
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
       setShowTutorial(true);
+      return;
     }
 
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "Python");
     localStorage.setItem("lastCourseRoute", "/learn/python");
 
-    // PASS THE REAL EXERCISE ID
-    navigate(`/learn/python/exercise/${exerciseId}`);
+    navigate(route);
 
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem(tutorialSeenKey, 'true');
+
+    if (pendingRoute) {
+      const nextRoute = pendingRoute;
+      setPendingRoute(null);
+      navigate(nextRoute);
+    }
   };
 
   const handleStartExam = () => {
@@ -382,10 +393,7 @@ const PythonCourse = () => {
       {showTutorial && (
         <TutorialPopup 
           open={showTutorial} 
-          onClose={() => {
-            setShowTutorial(false);
-            localStorage.setItem('hasSeenTutorial', 'true');
-          }} 
+          onClose={handleTutorialClose} 
         />
       )}
     </div>

@@ -18,6 +18,8 @@ import useLearningProgress from '../services/useLearningProgress';
 
 import useLatestUnlockedExercise from '../services/useLatestUnlockedExercise';
 
+import useGetAllLeaderboard from '../services/leaderBoard';
+
 
 
 // Character icons from Cloudinary
@@ -42,13 +44,15 @@ const Dashboard = ({ onSignOut }) => {
 
   const [characterIcon, setCharacterIcon] = useState(null);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const getProfile = useGetProfile();
 
   const { totalXp, badgeCount } = useProfileSummary();
 
   const { progress: learningProgress, loading: learningProgressLoading } = useLearningProgress();
+
+  const getAllLeaderboard = useGetAllLeaderboard();
 
 
 
@@ -308,6 +312,36 @@ const Dashboard = ({ onSignOut }) => {
     }));
   }, [totalXp, badgeCount]);
 
+  useEffect(() => {
+    const fetchUserRank = async () => {
+      if (!isAuthenticated || !user?.user_id) {
+        setUserStats(prev => ({
+          ...prev,
+          rank: 0,
+        }));
+        return;
+      }
+
+      try {
+        const response = await getAllLeaderboard();
+        const leaderboard = response?.data || [];
+
+        const currentUser = leaderboard.find(
+          (entry) => Number(entry?.user_id) === Number(user.user_id)
+        );
+
+        setUserStats(prev => ({
+          ...prev,
+          rank: Number(currentUser?.rank || 0),
+        }));
+      } catch (error) {
+        console.error('Failed to load leaderboard rank:', error);
+      }
+    };
+
+    fetchUserRank();
+  }, [isAuthenticated, user?.user_id, totalXp]);
+
 
 
 
@@ -565,11 +599,7 @@ const Dashboard = ({ onSignOut }) => {
               </div>
 
               <div className={styles['profile-info']}>
-
                 <h3 className={styles['user-name']}>{userStats.name}</h3>
-
-                <p className={styles['user-level']}>Level {userStats.level}</p>
-
               </div>
 
             </div>
