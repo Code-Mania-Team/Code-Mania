@@ -40,11 +40,11 @@ print(a)`;
   }
 }
 
-const InteractiveTerminal = ({ questId }) => {
+const InteractiveTerminal = ({ questId, startingCode }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
 
-  const [code, setCode] = useState(() => getStarterCode(language));
+  const [code, setCode] = useState("");
   const [programOutput, setProgramOutput] = useState("");
   const [inputBuffer, setInputBuffer] = useState("");
   const [waitingForInput, setWaitingForInput] = useState(false);
@@ -74,6 +74,14 @@ const InteractiveTerminal = ({ questId }) => {
     return () =>
       window.removeEventListener("code-mania:quest-started", handleQuestStarted);
   }, [questId]);
+
+  useEffect(() => {
+    if (startingCode) {
+      setCode(startingCode);
+    } else {
+      setCode(getStarterCode(language));
+    }
+  }, [startingCode, language]);
 
   useEffect(() => {
     setIsQuestActive(false);

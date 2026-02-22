@@ -582,6 +582,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           <CodeTerminal
             questId={activeExerciseId}
+            startingCode={activeExercise?.starting_code || ""}
             code={code}
             onCodeChange={setCode}
             output={output}
