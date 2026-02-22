@@ -7,13 +7,8 @@ import ProfileCard from "../components/ProfileCard";
 import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
-import { axiosPublic } from "../api/axios";
-
-// Import JavaScript course badges
-import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
-import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
-import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
-import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
+import useGetExercises from "../services/getExercise";
+import useGetCourseBadges from "../services/getCourseBadge";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -26,6 +21,8 @@ const JavaScriptCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const getExercises = useGetExercises();
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
   const [data, setData] = useState();
 
   useEffect(() => {
@@ -33,8 +30,7 @@ const JavaScriptCourse = () => {
 
     const fetchData = async () => {
       try {
-        const response = await axiosPublic.get("/v1/exercises/programming-language/3", { withCredentials: true });
-        const exercises = response?.data?.data || [];
+        const exercises = await getExercises(1);
         if (cancelled) return;
 
         const groupedModules = [
@@ -47,6 +43,7 @@ const JavaScriptCourse = () => {
 
         exercises.forEach((exercise) => {
           const order = Number(exercise.order_index || 0);
+
           if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
           else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
           else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
@@ -54,13 +51,15 @@ const JavaScriptCourse = () => {
         });
 
         setModules(groupedModules);
+
       } catch (error) {
-        console.error("Failed to fetch JavaScript exercises:", error);
+        console.error("Failed to fetch Python exercises:", error);
         if (!cancelled) setModules([]);
       }
     };
 
     fetchData();
+
     return () => {
       cancelled = true;
     };
@@ -335,10 +334,17 @@ const JavaScriptCourse = () => {
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
-              <img src={jsStage1Badge} alt="JavaScript Stage 1" className="javascript-course-badge" />
-              <img src={jsStage2Badge} alt="JavaScript Stage 2" className="javascript-course-badge" />
-              <img src={jsStage3Badge} alt="JavaScript Stage 3" className="javascript-course-badge" />
-              <img src={jsStage4Badge} alt="JavaScript Stage 4" className="javascript-course-badge" />
+              {badgesLoading && <p>Loading...</p>}
+
+              {!badgesLoading &&
+                courseBadges?.map((badge) => (
+                  <img
+                    key={badge.id}
+                    src={badge.badge_key}
+                    alt={badge.title}
+                    className="javascript-course-badge"
+                  />
+                ))}
             </div>
           </div>
         </div>

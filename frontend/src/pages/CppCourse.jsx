@@ -8,13 +8,7 @@ import TutorialPopup from "../components/Tutorialpopup";
 import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import useAuth from "../hooks/useAxios";
-import { axiosPublic } from "../api/axios";
-
-// Import C++ course badges
-import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
-import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
-import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
-import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
+import useGetCourseBadges from "../services/getCourseBadge";
 
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
@@ -23,6 +17,8 @@ const CppCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(2);
+  const getExercises = useGetExercises();
 
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,70 +31,70 @@ const CppCourse = () => {
      FETCH C++ EXERCISES (UNCHANGED)
   =============================== */
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchData = async () => {
-      try {
-        const response = await axiosPublic.get("/v1/exercises/programming-language/2", { withCredentials: true });
-        const exercises = response?.data?.data || [];
-        if (cancelled) return;
-
-        if (!exercises) return;
-
-        const groupedModules = [
-          {
-            id: 1,
-            title: "C++ Basics",
-            description: "Learn the fundamentals of C++.",
-            exercises: [],
-          },
-          {
-            id: 2,
-            title: "Variables & Data Types",
-            description: "Understand C++ variables and types.",
-            exercises: [],
-          },
-          {
-            id: 3,
-            title: "Control Flow",
-            description: "Master conditionals and logic.",
-            exercises: [],
-          },
-          {
-            id: 4,
-            title: "Loops",
-            description: "Work with repetition structures.",
-            exercises: [],
-          },
-          {
-            id: 5,
-            title: "Examination",
-            description:
-              "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
-            exercises: [{ id: 17, title: "C++ Exam" }],
-          },
+      let cancelled = false;
+  
+      const fetchData = async () => {
+        try {
+          const exercises = await getExercises(1);
+          if (cancelled) return;
+  
+          const groupedModules = [
+            {
+              id: 1,
+              title: "C++ Basics",
+              description: "Learn the fundamentals of C++.",
+              exercises: [],
+            },
+            {
+              id: 2,
+              title: "Variables & Data Types",
+              description: "Understand C++ variables and types.",
+              exercises: [],
+            },
+            {
+              id: 3,
+              title: "Control Flow",
+              description: "Master conditionals and logic.",
+              exercises: [],
+            },
+            {
+              id: 4,
+              title: "Loops",
+              description: "Work with repetition structures.",
+              exercises: [],
+            },
+            {
+              id: 5,
+              title: "Examination",
+              description:
+                "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
+              exercises: [{ id: 17, title: "C++ Exam" }],
+            },
         ];
-
-        exercises.forEach((exercise) => {
-          const order = Number(exercise.order_index || 0);
-          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
-        });
-
-        setModules(groupedModules);
-      } catch (err) {
-        console.error("Failed to fetch C++ exercises", err);
-        if (!cancelled) setModules([]);
-      }
-    };
-
-    fetchData();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  
+          exercises.forEach((exercise) => {
+            const order = Number(exercise.order_index || 0);
+  
+            if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+            else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+            else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+            else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+          });
+  
+          setModules(groupedModules);
+  
+        } catch (error) {
+          console.error("Failed to fetch Python exercises:", error);
+          if (!cancelled) setModules([]);
+        }
+      };
+  
+      fetchData();
+  
+      return () => {
+        cancelled = true;
+      };
+    }, []);
 
   /* ===============================
      LOAD C++ PROGRESS (FIXED)
@@ -364,10 +360,17 @@ const CppCourse = () => {
             <h4 className="progress-title">Course Badges</h4>
 
             <div className="course-badges-grid">
-              <img src={cppBadge1} alt="C++ Stage 1" className="cpp-course-badge" />
-              <img src={cppBadge2} alt="C++ Stage 2" className="cpp-course-badge" />
-              <img src={cppBadge3} alt="C++ Stage 3" className="cpp-course-badge" />
-              <img src={cppBadge4} alt="C++ Stage 4" className="cpp-course-badge" />
+              {badgesLoading && <p>Loading...</p>}
+
+              {!badgesLoading &&
+                courseBadges?.map((badge) => (
+                  <img
+                    key={badge.id}
+                    src={badge.badge_key}
+                    alt={badge.title}
+                    className="cpp-course-badge"
+                  />
+                ))}
             </div>
           </div>
         </div>
