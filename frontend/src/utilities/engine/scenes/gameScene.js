@@ -212,11 +212,8 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // 🏅 ONLY show badge UI if quest has badge
-    if (quest.badgeKey) {
-      const language = localStorage.getItem("lastCourseTitle") || "Python";
-
-
-      const badge = BADGES[quest.badgeKey];
+    if (quest.badge_key) {
+      const badge = quest.badge_key;
       if (badge) {
         this.badgeUnlockPopup.show({
           badgeKey: badge.key,
@@ -1277,7 +1274,7 @@ export default class GameScene extends Phaser.Scene {
 
 
   handleMapExit(player, zone) {
-    const { targetMap, requiredQuest } = zone.exitData;
+    const { requiredQuest } = zone.exitData;
 
     // Quest not finished → do nothing
     if (requiredQuest) {

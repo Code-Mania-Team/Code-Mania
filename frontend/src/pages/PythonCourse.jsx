@@ -20,7 +20,7 @@ const PythonCourse = () => {
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const getExercises = useGetExercises();
-const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); // 1 = Python
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); // 1 = Python
 
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,11 +72,11 @@ const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); 
         if (cancelled) return;
 
         const groupedModules = [
-          { id: 1, title: "Hello World", description: "Learn how to write your first line of Python by printing messages to the terminal.", exercises: []},
-          { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: []},
-          { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: []},
-          { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: []},
-          { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: []}
+          { id: 1, title: "Hello World", description: "Learn how to write your first line of Python by printing messages to the terminal.", exercises: [] },
+          { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: [] },
+          { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: [] },
+          { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: [] },
+          { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: [] }
         ];
 
         exercises.forEach((exercise) => {
@@ -105,44 +105,44 @@ const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); 
 
 
   useEffect(() => {
-      let cancelled = false;
+    let cancelled = false;
 
-      const fetchData = async () => {
-        try {
-          const response = await axiosPublic.get("/v1/exercises/programming-language/1", { withCredentials: true });
-          const exercises = response?.data?.data || [];
-          if (cancelled) return;
+    const fetchData = async () => {
+      try {
+        const response = await axiosPublic.get("/v1/exercises/programming-language/1", { withCredentials: true });
+        const exercises = response?.data?.data || [];
+        if (cancelled) return;
 
-          console.log("Fetched exercises:", exercises);
-   
-          const groupedModules = [
-            { id: 1, title: "Hello World", description: "Learn how to write your first line of Python by printing messages to the terminal.", exercises: []},
-            { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: []},
-            { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: []},
-            { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: []},
-            { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: []}
-          ];
-   
-          exercises.forEach((exercise) => {
-            const order = Number(exercise.order_index || 0);
-            if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-            else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-            else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-            else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
-          });
-   
-          setModules(groupedModules);
-        } catch (error) {
-          console.error("Failed to fetch Python exercises:", error);
-          if (!cancelled) setModules([]);
-        }
-      };
-  
-      fetchData();
-      return () => {
-        cancelled = true;
-      };
-    }, []);
+        console.log("Fetched exercises:", exercises);
+
+        const groupedModules = [
+          { id: 1, title: "Hello World", description: "Learn how to write your first line of Python by printing messages to the terminal.", exercises: [] },
+          { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: [] },
+          { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: [] },
+          { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: [] },
+          { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: [] }
+        ];
+
+        exercises.forEach((exercise) => {
+          const order = Number(exercise.order_index || 0);
+          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+        });
+
+        setModules(groupedModules);
+      } catch (error) {
+        console.error("Failed to fetch Python exercises:", error);
+        if (!cancelled) setModules([]);
+      }
+    };
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
 
   const onOpenModal = () => {
@@ -173,14 +173,17 @@ const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); 
   };
 
   const getQuizStatus = (moduleId) => {
+    // Check if quiz for this module is already completed
+    if (data?.completedQuizStages?.includes(moduleId)) return "completed";
+
     // Check if all exercises in the module are completed
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
+
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise =>
       completedExercises.has(exercise.id)
     );
-    
+
     return allExercisesCompleted ? "available" : "locked";
   };
 
@@ -278,7 +281,7 @@ const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); 
         <div className="modules-section">
           {modules.map((module) => (
             <div key={module.id} className="module-card">
-              <div 
+              <div
                 className="module-header"
                 onClick={() => toggleModule(module.id)}
               >
@@ -383,7 +386,7 @@ const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); 
         <div className="sidebar">
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
+
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
@@ -432,18 +435,18 @@ const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); 
           </div>
         </div>
       </div>
-      
-      <SignInModal 
+
+      <SignInModal
         isOpen={isModalOpen}
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-      
+
       {/* Tutorial Popup */}
       {showTutorial && (
-        <TutorialPopup 
-          open={showTutorial} 
-          onClose={handleTutorialClose} 
+        <TutorialPopup
+          open={showTutorial}
+          onClose={handleTutorialClose}
         />
       )}
     </div>

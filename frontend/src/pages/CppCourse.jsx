@@ -36,70 +36,70 @@ const CppCourse = () => {
      FETCH C++ EXERCISES (UNCHANGED)
   =============================== */
   useEffect(() => {
-      let cancelled = false;
-  
-      const fetchData = async () => {
-        try {
-          const exercises = await getExercises(2);
-          if (cancelled) return;
-  
-          const groupedModules = [
-            {
-              id: 1,
-              title: "C++ Basics",
-              description: "Learn the fundamentals of C++.",
-              exercises: [],
-            },
-            {
-              id: 2,
-              title: "Variables & Data Types",
-              description: "Understand C++ variables and types.",
-              exercises: [],
-            },
-            {
-              id: 3,
-              title: "Control Flow",
-              description: "Master conditionals and logic.",
-              exercises: [],
-            },
-            {
-              id: 4,
-              title: "Loops",
-              description: "Work with repetition structures.",
-              exercises: [],
-            },
-            {
-              id: 5,
-              title: "Examination",
-              description:
-                "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
-              exercises: [{ id: 17, title: "C++ Exam" }],
-            },
+    let cancelled = false;
+
+    const fetchData = async () => {
+      try {
+        const exercises = await getExercises(2);
+        if (cancelled) return;
+
+        const groupedModules = [
+          {
+            id: 1,
+            title: "C++ Basics",
+            description: "Learn the fundamentals of C++.",
+            exercises: [],
+          },
+          {
+            id: 2,
+            title: "Variables & Data Types",
+            description: "Understand C++ variables and types.",
+            exercises: [],
+          },
+          {
+            id: 3,
+            title: "Control Flow",
+            description: "Master conditionals and logic.",
+            exercises: [],
+          },
+          {
+            id: 4,
+            title: "Loops",
+            description: "Work with repetition structures.",
+            exercises: [],
+          },
+          {
+            id: 5,
+            title: "Examination",
+            description:
+              "Test your C++ knowledge. You must complete all previous modules to unlock this exam.",
+            exercises: [{ id: 17, title: "C++ Exam" }],
+          },
         ];
-  
-          exercises.forEach((exercise) => {
-            const order = Number(exercise.order_index || 0);
-  
-            if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-            else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-            else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-            else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
-          });
-  
-          setModules(groupedModules);
-  
-        } catch (error) {
-          console.error("Failed to fetch C++ exercises:", error);
-          if (!cancelled) setModules([]);
-        }
-      };
-  
-      fetchData();
-  
-      return () => {
-        cancelled = true;
-      };
-    }, []);
+
+        exercises.forEach((exercise) => {
+          const order = Number(exercise.order_index || 0);
+
+          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+        });
+
+        setModules(groupedModules);
+
+      } catch (error) {
+        console.error("Failed to fetch C++ exercises:", error);
+        if (!cancelled) setModules([]);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   /* ===============================
      LOAD C++ PROGRESS (FIXED)
@@ -110,25 +110,25 @@ const CppCourse = () => {
       setData(null);
       return;
     }
-  
+
     const loadProgress = async () => {
       try {
         const result = await getGameProgress(2);
-  
+
         if (!result) return; // handles 401 returning null
-  
+
         setData(result);
-  
+
         setCompletedExercises(
           new Set(result.completedQuests || [])
-          );
-  
+        );
+
       } catch (err) {
         console.error("Failed to load game progress", err);
         setCompletedExercises(new Set());
       }
     };
-  
+
     loadProgress();
   }, [isAuthenticated]);
 
@@ -146,14 +146,17 @@ const CppCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    // Check if quiz for this module is already completed
+    if (data?.completedQuizStages?.includes(moduleId)) return "completed";
+
     // Check if all exercises in the module are completed
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
+
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise =>
       completedExercises.has(exercise.id)
     );
-    
+
     return allExercisesCompleted ? "available" : "locked";
   };
 

@@ -107,14 +107,17 @@ const JavaScriptCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    // Check if quiz for this module is already completed
+    if (data?.completedQuizStages?.includes(moduleId)) return "completed";
+
     // Check if all exercises in the module are completed
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
+
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise =>
       completedExercises.has(exercise.id)
     );
-    
+
     return allExercisesCompleted ? "available" : "locked";
   };
 
@@ -315,7 +318,7 @@ const JavaScriptCourse = () => {
         <div className="sidebar">
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
+
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
