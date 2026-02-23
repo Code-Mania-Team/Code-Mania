@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
-import { ArrowLeft, Edit, Trash2, Save, X, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 
 const ExerciseManager = () => {
@@ -110,19 +110,6 @@ const ExerciseManager = () => {
     setFormData({});
   };
 
-  const toggleStatus = async (exercise) => {
-    const newStatus = exercise.status === 'published' ? 'draft' : 'published';
-    try {
-      await axiosPublic.patch(`/v1/admin/exercises/${exercise.id}`, {
-        ...exercise,
-        status: newStatus
-      }, { withCredentials: true });
-      await fetchExercises();
-    } catch (error) {
-      console.error("Error toggling status:", error);
-    }
-  };
-
   if (!selectedLanguageId) {
     return (
       <div className={styles.page}>
@@ -204,14 +191,6 @@ const ExerciseManager = () => {
                     )}
                   </div>
                   <div className={styles.exerciseActions}>
-                    <button 
-                      className={styles.button} 
-                      type="button" 
-                      onClick={() => toggleStatus(exercise)}
-                      title={exercise.status === 'published' ? 'Set to draft' : 'Publish'}
-                    >
-                      {exercise.status === 'published' ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
                     <button 
                       className={styles.button} 
                       type="button" 
