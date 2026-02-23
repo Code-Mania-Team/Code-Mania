@@ -5,6 +5,7 @@ import "../styles/FreedomWall.css";
 
 import useGetAllPosts from "../services/home";
 import useUserPost from "../services/postFreedomwall";
+import useAuth from "../hooks/useAxios";
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -15,8 +16,8 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const FreedomWall = ({ onOpenModal }) => {
   const getAllPosts = useGetAllPosts();
   const COOLDOWN_MINUTES = 30;
-  const COOLDOWN_KEY = 'freedomwallLastPost';
   const userPost = useUserPost();
+  const { isAuthenticated, user } = useAuth();
   const [comments, setComments] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [fetchError, setFetchError] = useState('');
@@ -25,6 +26,11 @@ const FreedomWall = ({ onOpenModal }) => {
 
   const [newComment, setNewComment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const cooldownKey = useMemo(() => {
+    if (!user?.user_id) return null;
+    return `freedomwallLastPost_${user.user_id}`;
+  }, [user?.user_id]);
 
   const iconByCharacterId = useMemo(() => {
     return {
@@ -102,8 +108,16 @@ const FreedomWall = ({ onOpenModal }) => {
   }, []);
 
   const handleAddComment = async () => {
-  const content = (newComment || '').trim();
-  console.log("content", content);
+    const content = (newComment || '').trim();
+    console.log("content", content);
+
+    if (!isAuthenticated || !user?.user_id) {
+      setPostError("Please sign in to post on the Freedom Wall.");
+      if (typeof onOpenModal === "function") {
+        onOpenModal();
+      }
+      return;
+    }
 
     if (!content) return;
 
@@ -114,7 +128,7 @@ const FreedomWall = ({ onOpenModal }) => {
     }
 
     // 🚫 COOLDOWN CHECK
-    const lastPostTimeRaw = localStorage.getItem(COOLDOWN_KEY);
+    const lastPostTimeRaw = cooldownKey ? localStorage.getItem(cooldownKey) : null;
 
     if (lastPostTimeRaw) {
       const lastPostTime = parseInt(lastPostTimeRaw, 10);
@@ -144,7 +158,9 @@ const FreedomWall = ({ onOpenModal }) => {
 
       if (res?.success) {
         // 🔥 SAVE POST TIME
-        localStorage.setItem(COOLDOWN_KEY, String(Date.now()));
+        if (cooldownKey) {
+          localStorage.setItem(cooldownKey, String(Date.now()));
+        }
 
         const created = res?.data ? mapApiPostToComment(res.data) : null;
 
@@ -211,13 +227,18 @@ const FreedomWall = ({ onOpenModal }) => {
           />
           <div className="comment-input">
             <textarea
-              placeholder="Share your thoughts on the FreedomWall..."
+              placeholder={
+                isAuthenticated
+                  ? "Share your thoughts on the FreedomWall..."
+                  : "Sign in to post on the Freedom Wall"
+              }
               value={newComment}
               onChange={(e) => {
                 setNewComment(e.target.value);
                 setPostError('');
               }}
               onKeyPress={handleKeyPress}
+              disabled={!isAuthenticated || isPosting}
             />
             <button
               onClick={handleAddComment}
@@ -225,7 +246,7 @@ const FreedomWall = ({ onOpenModal }) => {
               disabled={isPosting}
             >
               <Send className="send-icon" />
-              {isPosting ? 'Posting...' : 'Post'}
+              {isPosting ? 'Posting...' : isAuthenticated ? 'Post' : 'Sign in'}
             </button>
           </div>
         </div>
