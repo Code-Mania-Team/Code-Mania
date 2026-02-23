@@ -1,6 +1,9 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import { axiosPrivate } from "../api/axios";
 
+// Prevent duplicate auth bootstrap requests in React StrictMode dev.
+let authBootstrapPromise = null;
+
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -27,35 +30,20 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    const fetchProfile = async () => {
-      const response = await axiosPrivate.get("/v1/account");
-      if (response?.data?.success) {
-        return response.data.data;
-      }
-      return null;
-    };
-
     const checkAuth = async () => {
       try {
-        const profile = await fetchProfile();
-        applyProfile(profile);
-      } catch (error) {
-        const status = error?.response?.status;
-
-        if (status === 401) {
-          try {
-            const refreshRes = await axiosPrivate.get("/v1/refresh");
-            if (refreshRes?.data?.accessToken) {
-              const profile = await fetchProfile();
-              applyProfile(profile);
-              return;
-            }
-          } catch {
-            // ignore and sign out below
-          }
+        if (!authBootstrapPromise) {
+          authBootstrapPromise = (async () => {
+            const response = await axiosPrivate.get("/v1/account");
+            if (response?.data?.success) return response.data.data;
+            return null;
+          })();
         }
 
-        console.log("Auth check failed:", status);
+        const profile = await authBootstrapPromise;
+        applyProfile(profile);
+      } catch (error) {
+        // Keep boot quiet; axios interceptor handles refresh.
         setSignedOut();
       } finally {
         if (mounted) setIsLoading(false);
