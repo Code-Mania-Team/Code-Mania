@@ -2,13 +2,17 @@ import { Navigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAxios";
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+
+  // 🔒 WAIT until auth finishes checking
+  if (isLoading) {
+    return null; // or a spinner
+  }
 
   if (!isAuthenticated) {
     let redirectTo = "/";
 
-    // Exercise routes → go back to course
     if (location.pathname.includes("/learn/python/exercise")) {
       redirectTo = "/learn/python";
     } 
@@ -18,7 +22,6 @@ const ProtectedRoute = ({ children }) => {
     else if (location.pathname.includes("/learn/cpp/exercise")) {
       redirectTo = "/learn/cpp";
     }
-    // Quiz & exams → go back to learn page
     else if (
       location.pathname.includes("/quiz") ||
       location.pathname.includes("/exam") ||
@@ -26,7 +29,6 @@ const ProtectedRoute = ({ children }) => {
     ) {
       redirectTo = "/learn";
     }
-    // Dashboard → go home
     else if (location.pathname.includes("/dashboard")) {
       redirectTo = "/";
     }
