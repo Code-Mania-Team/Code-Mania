@@ -9,7 +9,6 @@ import pythonQuests from "../../data/pythonExercises.json";
 import jsQuests from "../../data/javascriptExercises.json";
 import cppQuests from "../../data/cppExercises.json";
 import { CHARACTERS } from "../config/characterConfig";
-import { BADGES } from "../config/badgeConfig";
 import QuestHUD from "../systems/questHUD";
 import ExitArrowManager from "../systems/exitArrowHUD";
 import QuestIconManager from "../systems/questIconManager";
@@ -19,7 +18,6 @@ import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
-import CongratulationsPopup from "../ui/congratulationsPopup";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
@@ -182,11 +180,6 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
     this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
 
-    // 🏅 Preload badges
-    Object.values(BADGES).forEach(badge => {
-      this.load.image(badge.key, badge.path);
-    });
-
 
   }
   onQuestComplete = async (e) => {
@@ -212,26 +205,22 @@ export default class GameScene extends Phaser.Scene {
 
 
     // ✅ ALWAYS show quest completed toast
-    // ✅ Get actual badge texture key from BADGES config
-    const badgeConfig = quest.badgeKey ? BADGES[quest.badgeKey] : null;
-    const badgeTextureKey = badgeConfig?.key || quest.badgeKey;
-
     this.questCompleteToast.show({
       title: quest.title,
-      badgeKey: badgeTextureKey,
+      badgeKey: quest.badgeKey || null, // toast can ignore if null
       exp: gainedExp
     });
 
     // 🏅 ONLY show badge UI if quest has badge
-    if (badgeTextureKey) {
-      this.badgeUnlockPopup.show({
-        badgeKey: badgeTextureKey,
-        label: quest.title
-      });
+    if (quest.badge_key) {
+      const badge = quest.badge_key;
+      if (badge) {
+        this.badgeUnlockPopup.show({
+          badgeKey: badge.key,
+          label: quest.title
+        });
+      }
     }
-
-    // 🎊 Congratulations message
-    this.congratulationsPopup?.show({ questTitle: quest.title });
 
   };
 
@@ -509,7 +498,6 @@ export default class GameScene extends Phaser.Scene {
     this.questValidator = new QuestValidator(this);
     this.questCompleteToast = new QuestCompleteToast(this);
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
-    this.congratulationsPopup = new CongratulationsPopup(this);
     this.cinematicBars = new CinematicBars(this);
 
 

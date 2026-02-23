@@ -5,13 +5,14 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  // Wait for auth check to complete before redirecting
-  if (isLoading) return null;
+  // 🔒 WAIT until auth finishes checking
+  if (isLoading) {
+    return null; // or a spinner
+  }
 
   if (!isAuthenticated) {
     let redirectTo = "/";
 
-    // Exercise routes → go back to course
     if (location.pathname.includes("/learn/python/exercise")) {
       redirectTo = "/learn/python";
     }
@@ -21,7 +22,6 @@ const ProtectedRoute = ({ children }) => {
     else if (location.pathname.includes("/learn/cpp/exercise")) {
       redirectTo = "/learn/cpp";
     }
-    // Quiz & exams → go back to learn page
     else if (
       location.pathname.includes("/quiz") ||
       location.pathname.includes("/exam") ||
@@ -29,7 +29,6 @@ const ProtectedRoute = ({ children }) => {
     ) {
       redirectTo = "/learn";
     }
-    // Dashboard → go home
     else if (location.pathname.includes("/dashboard")) {
       redirectTo = "/";
     }
