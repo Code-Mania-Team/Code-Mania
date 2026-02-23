@@ -8,9 +8,10 @@ export default class QuestUI {
 
     const { width, height } = scene.scale;
 
-    this.panelLeft = 50;
+    this.panelHorizontalPad = Math.max(40, Math.round(width * 0.12));
+    this.panelLeft = this.panelHorizontalPad;
     this.panelTop = 50;
-    this.panelWidth = width - 100;
+    this.panelWidth = width - this.panelHorizontalPad * 2;
     this.panelHeight = height - 100;
 
     this.titleY = 90;
@@ -63,7 +64,7 @@ export default class QuestUI {
     // 1. Description — normal readable font, cream colour
     this.bodyText = scene.add.text(this.contentLeft, this.bodyBaseY, "", {
       fontFamily: "'Georgia', serif",
-      fontSize: "17px",
+      fontSize: "18px",
       color: "#f5f0d6",
       lineSpacing: 8,
       wordWrap: { width: this.contentWidth }
@@ -72,7 +73,7 @@ export default class QuestUI {
     // 2. task — green challenge block shown at the END of description
     this.taskText = scene.add.text(this.contentLeft, this.bodyBaseY, "", {
       fontFamily: "'Courier New', Courier, monospace",
-      fontSize: "15px",
+      fontSize: "18px",
       color: "#a8ff60",
       backgroundColor: "#0d2b00",
       padding: { left: 14, right: 14, top: 12, bottom: 12 },

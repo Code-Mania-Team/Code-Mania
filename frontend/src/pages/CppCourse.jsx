@@ -25,6 +25,7 @@ const CppCourse = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [pendingRoute, setPendingRoute] = useState(null);
   const [completedExercises, setCompletedExercises] = useState(new Set());
+  const [completedQuizStages, setCompletedQuizStages] = useState(new Set());
   const [modules, setModules] = useState([]);
   const [data, setData] = useState();
 
@@ -107,6 +108,7 @@ const CppCourse = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       setCompletedExercises(new Set());
+      setCompletedQuizStages(new Set());
       setData(null);
       return;
     }
@@ -122,10 +124,12 @@ const CppCourse = () => {
         setCompletedExercises(
           new Set(result.completedQuests || [])
           );
-  
+        setCompletedQuizStages(new Set(result.completedQuizStages || []));
+
       } catch (err) {
         console.error("Failed to load game progress", err);
         setCompletedExercises(new Set());
+        setCompletedQuizStages(new Set());
       }
     };
   
@@ -146,15 +150,18 @@ const CppCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
-    // Check if all exercises in the module are completed
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
     
     const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
       completedExercises.has(exercise.id)
     );
+
+    if (!allExercisesCompleted) return "locked";
+    const completedByCount = Number(data?.availableQuiz || 0) >= Number(moduleId);
+    if (completedQuizStages.has(moduleId) || completedByCount) return "completed";
     
-    return allExercisesCompleted ? "available" : "locked";
+    return "available";
   };
 
   const toggleModule = (moduleId) => {

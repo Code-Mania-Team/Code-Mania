@@ -42,11 +42,24 @@ class UserGameDataController {
               id,
               earned_xp,
               quizzes!inner (
-                programming_language_id
+                programming_language_id,
+                route
               )
             `)
             .eq("user_id", user_id)
             .eq("quizzes.programming_language_id", programming_language_id);
+
+        const completedQuizStages = Array.from(
+            new Set(
+                (quizRows || [])
+                    .map((row) => {
+                        const route = row?.quizzes?.route || "";
+                        const match = String(route).match(/stage-(\d+)/i);
+                        return match ? Number(match[1]) : null;
+                    })
+                    .filter((value) => Number.isFinite(value) && value > 0)
+            )
+        ).sort((a, b) => a - b);
 
         const questXpEarned = rows.reduce(
             (sum, r) => sum + (r.quests?.experience || 0),
@@ -65,6 +78,7 @@ class UserGameDataController {
             questXpEarned,
             quizXpEarned,
             availableQuiz: (quizRows || []).length,
+            completedQuizStages,
             quests: rows.map(r => ({
             id: r.exercise_id,
             xp: r.quests?.experience || 0
