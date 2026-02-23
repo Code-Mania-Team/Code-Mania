@@ -43,26 +43,4 @@ export const BADGES = {
     key: "badge-js-complete",
     path: "/src/assets/badges/JavaScript/completed-javascript.png"
   },
-
-  // ===== C++ =====
-  CPP_STAGE_1: {
-    key: "badge-cpp-1",
-    path: "/src/assets/badges/C++/c++-badge1.png"
-  },
-  CPP_STAGE_2: {
-    key: "badge-cpp-2",
-    path: "/src/assets/badges/C++/c++-badge2.png"
-  },
-  CPP_STAGE_3: {
-    key: "badge-cpp-3",
-    path: "/src/assets/badges/C++/c++-badge3.png"
-  },
-  CPP_STAGE_4: {
-    key: "badge-cpp-4",
-    path: "/src/assets/badges/C++/c++-badge4.png"
-  },
-  CPP_COMPLETE: {
-    key: "badge-cpp-complete",
-    path: "/src/assets/badges/C++/completed-c++.png"
-  }
 };

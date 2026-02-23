@@ -14,7 +14,7 @@ import CodeTerminal from "../components/CodeTerminal";
 
 import MobileControls from "../components/MobileControls";
 
-import TutorialPopup from "../components/Tutorialpopup";
+import TutorialPopup from "../components/TutorialPopup";
 
 
 

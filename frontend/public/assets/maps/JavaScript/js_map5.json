@@ -76,11 +76,7 @@
                 {
                  "height":0,
                  "id":4,
-<<<<<<< HEAD
-                 "name":"",
-=======
                  "name":"exit",
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
                  "point":true,
                  "properties":[
                         {
@@ -96,11 +92,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-<<<<<<< HEAD
-                         "value":1
-=======
                          "value":5
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
                         }, 
                         {
                          "name":"target_map",
