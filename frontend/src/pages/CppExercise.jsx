@@ -501,6 +501,8 @@ const CppExercise = () => {
 
           <CodeTerminal
 
+            questId={activeExerciseId}
+
             language="cpp"
 
             code={code}
