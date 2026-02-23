@@ -56,6 +56,35 @@ const InteractiveTerminal = ({ questId }) => {
 
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
+  const editorRef = useRef(null);
+  const isRunningRef = useRef(false);
+  const waitingForInputRef = useRef(false);
+
+  useEffect(() => {
+    isRunningRef.current = isRunning;
+  }, [isRunning]);
+
+  useEffect(() => {
+    waitingForInputRef.current = waitingForInput;
+  }, [waitingForInput]);
+
+  useEffect(() => {
+    const phaserContainer = document.getElementById("phaser-container");
+    if (!phaserContainer) return;
+
+    const handleGameFocus = () => {
+      if (isRunningRef.current || waitingForInputRef.current) return;
+      window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+      if (document.activeElement && typeof document.activeElement.blur === "function") {
+        document.activeElement.blur();
+      }
+    };
+
+    phaserContainer.addEventListener("pointerdown", handleGameFocus);
+    return () => {
+      phaserContainer.removeEventListener("pointerdown", handleGameFocus);
+    };
+  }, []);
 
   /* ===============================
      DOCKER EXECUTION
@@ -227,6 +256,19 @@ const InteractiveTerminal = ({ questId }) => {
           theme="vs-dark"
           value={code}
           onChange={(v) => setCode(v ?? "")}
+          onMount={(editor) => {
+            editorRef.current = editor;
+
+            editor.onDidFocusEditorText(() => {
+              window.dispatchEvent(new Event("code-mania:terminal-active"));
+            });
+
+            editor.onDidBlurEditorText(() => {
+              if (!isRunningRef.current && !waitingForInputRef.current) {
+                window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+              }
+            });
+          }}
           options={{
             minimap: { enabled: false },
             fontSize: 14,

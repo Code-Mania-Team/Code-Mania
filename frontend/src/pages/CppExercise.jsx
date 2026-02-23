@@ -150,7 +150,7 @@ const CppExercise = () => {
 
     const loadProgress = async () => {
 
-      const result = await getGameProgress(3);
+      const result = await getGameProgress(2);
 
       if (result?.completedQuests) {
 

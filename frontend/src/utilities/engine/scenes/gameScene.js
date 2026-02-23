@@ -330,6 +330,9 @@ export default class GameScene extends Phaser.Scene {
     // ⌨ INPUT — ONLY ONCE
     this.cursors = this.input.keyboard.createCursorKeys();
 
+    // Allow typing spaces in Monaco/inputs while the game is mounted.
+    this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
     this.input.keyboard.on("keydown-E", () => {

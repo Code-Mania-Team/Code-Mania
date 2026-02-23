@@ -40,7 +40,7 @@ const CppCourse = () => {
   
       const fetchData = async () => {
         try {
-          const exercises = await getExercises(1);
+          const exercises = await getExercises(2);
           if (cancelled) return;
   
           const groupedModules = [
@@ -89,7 +89,7 @@ const CppCourse = () => {
           setModules(groupedModules);
   
         } catch (error) {
-          console.error("Failed to fetch Python exercises:", error);
+          console.error("Failed to fetch C++ exercises:", error);
           if (!cancelled) setModules([]);
         }
       };

@@ -34,7 +34,7 @@ const JavaScriptCourse = () => {
 
     const fetchData = async () => {
       try {
-        const exercises = await getExercises(1);
+        const exercises = await getExercises(3);
         if (cancelled) return;
 
         const groupedModules = [
@@ -57,7 +57,7 @@ const JavaScriptCourse = () => {
         setModules(groupedModules);
 
       } catch (error) {
-        console.error("Failed to fetch Python exercises:", error);
+        console.error("Failed to fetch JavaScript exercises:", error);
         if (!cancelled) setModules([]);
       }
     };
