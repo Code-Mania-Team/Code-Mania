@@ -370,112 +370,6 @@ const JavaScriptExercise = () => {
 
   /* ===============================
 
-     RUN CODE
-
-  =============================== */
-
-  const normalize = (text = "") =>
-
-    text
-
-      .replace(/\r\n/g, "\n")
-
-      .split("\n")
-
-      .map((line) => line.trim())
-
-      .join("\n")
-
-      .trim();
-
-
-
-  const handleRunCode = () => {
-
-    if (!terminalEnabled || isRunning) return;
-
-
-
-    setIsRunning(true);
-
-    setOutput("Running...");
-
-
-
-    try {
-
-      const logs = [];
-
-      const originalLog = console.log;
-
-
-
-      console.log = (...args) => {
-
-        logs.push(args.join(" "));
-
-        originalLog(...args);
-
-      };
-
-
-
-      eval(code);
-
-
-
-      console.log = originalLog;
-
-
-
-      const rawOutput = logs.join("\n");
-
-      setOutput(rawOutput);
-
-
-
-      const expected = normalize(activeExercise.expectedOutput);
-
-      const actual = normalize(rawOutput);
-
-
-
-      if (expected && actual === expected) {
-
-        window.dispatchEvent(
-
-          new CustomEvent("code-mania:quest-complete", {
-
-            detail: { questId: activeExercise.id }
-
-          })
-
-        );
-
-      }
-
-    } catch (err) {
-
-      setOutput(`❌ ${err.message}`);
-
-    } finally {
-
-      setIsRunning(false);
-
-      window.dispatchEvent(
-
-        new CustomEvent("code-mania:terminal-inactive")
-
-      );
-
-    }
-
-  };
-
-
-
-  /* ===============================
-
      AUTH
 
   =============================== */
@@ -583,8 +477,6 @@ const JavaScriptExercise = () => {
             code={code}
 
             onCodeChange={setCode}
-
-            onRun={handleRunCode}
 
             output={output}
 
