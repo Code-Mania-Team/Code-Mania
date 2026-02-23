@@ -16,6 +16,8 @@ import MobileControls from "../components/MobileControls";
 
 import TutorialPopup from "../components/TutorialPopup";
 
+import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
+
 
 
 import styles from "../styles/PythonExercise.module.css";
@@ -76,6 +78,8 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
   const [showTutorial, setShowTutorial] = useState(false);
+
+  const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
 
 
 
@@ -407,6 +411,20 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       }
 
+      if (Number(questId) === activeExerciseId) {
+
+        getNextExercise(activeExerciseId).then((next) => {
+
+          if (!next) {
+
+            setShowCourseCompletePrompt(true);
+
+          }
+
+        });
+
+      }
+
     };
 
 
@@ -594,6 +612,20 @@ const PythonExercise = ({ isAuthenticated }) => {
         </div>
 
       </div>
+
+
+
+      <CourseCompletionPromptModal
+
+        show={showCourseCompletePrompt}
+
+        languageLabel="Python"
+
+        onTakeExam={() => navigate("/exam/python")}
+
+        onClose={() => setShowCourseCompletePrompt(false)}
+
+      />
 
       
 

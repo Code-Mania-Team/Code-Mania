@@ -16,6 +16,8 @@ import TutorialPopup from "../components/TutorialPopup";
 
 import StageCompleteModal from "../components/StageCompleteModal";
 
+import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
+
 import styles from "../styles/JavaScriptExercise.module.css";
 
 import { startGame } from "../utilities/engine/main.js";
@@ -80,6 +82,8 @@ const JavaScriptExercise = () => {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
   const [showStageComplete, setShowStageComplete] = useState(false);
+
+  const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
 
 
 
@@ -238,7 +242,7 @@ const JavaScriptExercise = () => {
 
       if (!next) {
 
-        setShowStageComplete(true);
+        setShowCourseCompletePrompt(true);
 
         return;
 
@@ -290,6 +294,7 @@ const JavaScriptExercise = () => {
 
 
 
+
     startGame({
 
       exerciseId: activeExerciseId,
@@ -306,17 +311,14 @@ const JavaScriptExercise = () => {
 
     const onQuestStarted = (e) => {
 
+
       const questId = e.detail?.questId;
 
       if (!questId) return;
 
-
-
       setTerminalEnabled(true);
 
     };
-
-
 
     const onQuestComplete = (e) => {
 
@@ -324,13 +326,9 @@ const JavaScriptExercise = () => {
 
       if (!questId) return;
 
-
-
       const scene = window.game?.scene?.keys?.GameScene;
 
       scene?.questManager?.completeQuest(questId);
-
-
 
       if (scene) {
 
@@ -340,13 +338,24 @@ const JavaScriptExercise = () => {
 
       }
 
+      if (Number(questId) === activeExerciseId) {
+
+        getNextExercise(activeExerciseId).then((next) => {
+
+          if (!next) {
+
+            setShowCourseCompletePrompt(true);
+
+          }
+
+        });
+
+      }
+
     };
 
-
-
-    window.addEventListener("code-mania:quest-started", onQuestStarted);
-
     window.addEventListener("code-mania:quest-complete", onQuestComplete);
+
 
 
 
@@ -357,9 +366,13 @@ const JavaScriptExercise = () => {
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
 
       if (window.game) {
+
         window.game.sound?.stopAll();
+
         window.game.destroy(true);
+
         window.game = null;
+
       }
 
     };
@@ -609,6 +622,22 @@ const JavaScriptExercise = () => {
         languageLabel="JavaScript"
 
         onClose={() => setShowStageComplete(false)}
+
+      />
+
+
+
+      <CourseCompletionPromptModal
+
+        show={showCourseCompletePrompt}
+
+        languageLabel="JavaScript"
+
+        onTakeExam={() => navigate("/exam/javascript")}
+
+        onTakeQuiz={() => navigate("/quiz/javascript/1")}
+
+        onClose={() => setShowCourseCompletePrompt(false)}
 
       />
 

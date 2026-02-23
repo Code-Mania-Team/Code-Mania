@@ -12,6 +12,8 @@ import ProgressBar from "../components/ProgressBar";
 
 import StageCompleteModal from "../components/StageCompleteModal";
 
+import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
+
 import CodeTerminal from "../components/CodeTerminal";
 
 import TutorialPopup from "../components/TutorialPopup";
@@ -73,6 +75,8 @@ const CppExercise = () => {
   const [showTutorial, setShowTutorial] = useState(false);
 
   const [showStageComplete, setShowStageComplete] = useState(false);
+
+  const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
@@ -214,7 +218,7 @@ const CppExercise = () => {
 
       if (!next) {
 
-        setShowStageComplete(true);
+        setShowCourseCompletePrompt(true);
 
         return;
 
@@ -310,6 +314,14 @@ const CppExercise = () => {
 
         scene.gamePausedByTerminal = false;
 
+      }
+
+      if (Number(questId) === activeExerciseId) {
+        getNextExercise(activeExerciseId).then((next) => {
+          if (!next) {
+            setShowCourseCompletePrompt(true);
+          }
+        });
       }
 
     };
@@ -534,6 +546,20 @@ const CppExercise = () => {
         languageLabel="C++"
 
         onClose={() => setShowStageComplete(false)}
+
+      />
+
+
+
+      <CourseCompletionPromptModal
+
+        show={showCourseCompletePrompt}
+
+        languageLabel="C++"
+
+        onTakeExam={() => navigate("/exam/cpp")}
+
+        onClose={() => setShowCourseCompletePrompt(false)}
 
       />
 
