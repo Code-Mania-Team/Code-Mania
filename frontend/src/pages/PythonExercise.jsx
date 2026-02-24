@@ -266,6 +266,23 @@ const PythonExercise = ({ isAuthenticated }) => {
     setMobileActivePanel("game");
   }, [activeExerciseId]);
 
+  useEffect(() => {
+    if (!isMobileView || mobileActivePanel === "game") return;
+
+    window.dispatchEvent(new Event("code-mania:force-close-help"));
+
+    const sceneManager = window.game?.scene;
+    if (!sceneManager) return;
+
+    if (sceneManager.isActive?.("HelpScene")) {
+      sceneManager.stop("HelpScene");
+    }
+
+    if (sceneManager.isPaused?.("GameScene")) {
+      sceneManager.resume("GameScene");
+    }
+  }, [isMobileView, mobileActivePanel]);
+
 
 
   useEffect(() => {

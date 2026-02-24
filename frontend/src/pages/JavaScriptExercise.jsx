@@ -248,6 +248,23 @@ const JavaScriptExercise = () => {
     setMobileActivePanel("game");
   }, [activeExerciseId]);
 
+  useEffect(() => {
+    if (!isMobileView || mobileActivePanel === "game") return;
+
+    window.dispatchEvent(new Event("code-mania:force-close-help"));
+
+    const sceneManager = window.game?.scene;
+    if (!sceneManager) return;
+
+    if (sceneManager.isActive?.("HelpScene")) {
+      sceneManager.stop("HelpScene");
+    }
+
+    if (sceneManager.isPaused?.("GameScene")) {
+      sceneManager.resume("GameScene");
+    }
+  }, [isMobileView, mobileActivePanel]);
+
 
 
   /* ===============================
@@ -507,13 +524,11 @@ const JavaScriptExercise = () => {
         )}
 
         <div className={styles["main-layout"]}>
-          {(!isMobileView || mobileActivePanel === "game") && (
-            <div className={styles["game-container"]}>
-              <div id="phaser-container" className={styles["game-scene"]} />
-            </div>
-          )}
+          <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
+            <div id="phaser-container" className={styles["game-scene"]} />
+          </div>
 
-          {(!isMobileView || mobileActivePanel === "terminal") && (
+          <div className={isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}>
             <CodeTerminal
               questId={activeExerciseId}
               language="javascript"
@@ -526,7 +541,7 @@ const JavaScriptExercise = () => {
               showMobilePanelSwitcher={false}
               enableMobileSplit={false}
             />
-          )}
+          </div>
         </div>
       </div>
 

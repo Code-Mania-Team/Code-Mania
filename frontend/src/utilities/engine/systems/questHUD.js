@@ -105,47 +105,6 @@ export default class QuestUI {
     this.scrollbarTrack = scene.add.graphics();
     this.scrollbarThumb = scene.add.graphics();
 
-    // Close button (X)
-    this.closeButton = scene.add.text(
-      this.panelLeft + this.panelWidth - 30,
-      this.panelTop + 22,
-      "X",
-      {
-        fontFamily: "Arial",
-        fontSize: "24px",
-        color: "#ffd37a",
-        fontStyle: "bold",
-      }
-    )
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1001)
-      .setInteractive(
-        new Phaser.Geom.Rectangle(-18, -18, 36, 36),
-        Phaser.Geom.Rectangle.Contains
-      );
-
-    this.closeButton.on("pointerover", () => {
-      this.closeButton.setColor("#ffffff");
-    });
-
-    this.closeButton.on("pointerout", () => {
-      this.closeButton.setColor("#ffd37a");
-    });
-
-    this.closeButton.on("pointerdown", () => {
-      this.hide();
-    });
-
-    this.closeButton.on("pointerup", () => {
-      this.hide();
-    });
-
-    if (this.isMobile) {
-      this.closeButton.setVisible(false);
-      this.closeButton.disableInteractive();
-    }
-
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (!this.visible) return;
       if (this.scene.time.now < this.ignoreWheelUntil) return;
@@ -214,7 +173,6 @@ export default class QuestUI {
       this.bodyMaskGraphics,
       this.scrollbarTrack,
       this.scrollbarThumb,
-      this.closeButton,
     ]);
   }
 

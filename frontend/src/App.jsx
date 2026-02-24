@@ -269,6 +269,10 @@ function App() {
     location.pathname.startsWith("/coding-exam") ||
     location.pathname.startsWith("/exam");
 
+  const isExamRoute =
+    location.pathname.startsWith("/coding-exam") ||
+    location.pathname.startsWith("/exam");
+
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" || 
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/welcome"].includes(location.pathname);
@@ -285,7 +289,10 @@ function App() {
       )}
       <ScrollToTop />
 
-      <main className="main-content">
+      <main
+        className="main-content"
+        style={isExamRoute ? { paddingTop: 0 } : undefined}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
