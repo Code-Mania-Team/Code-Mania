@@ -1470,10 +1470,8 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
                 </div>
 
-                {passwordError && !showOtpField && (
-
-                  <p className={styles.errorText}>{passwordError}</p>
-
+                {confirmPasswordError && !showOtpField && (
+                  <p className={styles.errorText}>{confirmPasswordError}</p>
                 )}
 
               </div>
