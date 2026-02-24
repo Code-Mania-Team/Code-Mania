@@ -203,6 +203,12 @@ class ExerciseModel {
                         id,
                         name,
                         slug
+                    ),
+                    achievements:achievements_id (
+                        id,
+                        title,
+                        description,
+                        badge_key
                     )
                 `)
                 .eq('id', id)
@@ -212,6 +218,7 @@ class ExerciseModel {
                 console.error('Error getting exercise by ID:', error);
                 throw error;
             }
+
             return data;
         } catch (error) {
             console.error('Error in getExerciseById:', error);
