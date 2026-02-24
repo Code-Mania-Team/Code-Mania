@@ -20,11 +20,13 @@ import About from "./pages/About";
 import PageNotFound from "./pages/PageNotFound";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
-import ExamPage from "./pages/ExamPage";
+import CodingExamPage from "./pages/CodingExamPage";
+import QuizPage from "./pages/QuizPage";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
 import AuthLoadingOverlay from "./components/AuthLoadingOverlay";
+import ProtectedRoute from "./components/protectedRoutes";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -135,6 +137,12 @@ const WelcomeOnboardingWrapper = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (location.state?.openSignIn) {
+      setIsModalOpen(true);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       navigate('/', { replace: true });
       return;
@@ -187,8 +195,15 @@ function App() {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  
 
   const SessionOut = useSessionOut();
+
+  useEffect(() => {
+    if (location.state?.openSignIn) {
+      setIsModalOpen(true);
+    }
+  }, [location.state]);
 
   const handleSignOut = async () => {
     try {
@@ -207,56 +222,51 @@ function App() {
   };
 
   // Check for Google OAuth callback or login errors
-  // useEffect(() => {
-  //   const urlParams = new URLSearchParams(window.location.search);
-  //   const error = urlParams.get('error');
-  //   const success = urlParams.get('success');
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const success = urlParams.get('success');
     
-  //   if (error) {
-  //     console.log('OAuth error:', error);
-  //     setIsModalOpen(true);
-  //     return;
-  //   }
+    if (error) {
+      console.log('OAuth error:', error);
+      setIsModalOpen(true);
+      return;
+    }
     
-  //   if (success === 'true') {
-  //     console.log('OAuth successful');
-  //     // Small delay to ensure cookies are set
-  //     setTimeout(async () => {
-  //       setIsAuthenticated(true);
-  //       setIsModalOpen(false);
+    if (success === 'true') {
+      console.log('OAuth successful');
+      // Small delay to ensure cookies are set
+      setTimeout(async () => {
+        setIsAuthenticated(true);
+        setIsModalOpen(false);
 
-  //       try {
-  //         const res = await axiosPublic.get("/v1/account");
-  //         const profile = res?.data?.data || null;
-  //         console.log(profile)
-  //         setUser(profile);
+        try {
+          const res = await axiosPublic.get("/v1/account");
+          const profile = res?.data?.data || null;
+          setUser(profile);
 
-  //         if (!profile?.username) {
-  //           navigate('/welcome');
-  //           return;
-  //         }
-          
-  //         localStorage.setItem('selectedCharacter', String(profile.character_id));
-  //         localStorage.setItem('username', profile.username);
-  //         localStorage.setItem('needsUsername', 'false');
-  //         localStorage.setItem('hasSeenOnboarding', 'true');
-  //         localStorage.setItem('hasCompletedOnboarding', 'true');
+          if (!profile?.username) {
+            navigate('/welcome');
+            return;
+          }
 
-  //         navigate('/dashboard');
-  //       } catch {
-  //         navigate('/');
-  //       }
-  //     }, 500);
-  //     return;
-  //   }
-  // }, [location.search, navigate, setIsAuthenticated, navigate]);
+          navigate('/dashboard');
+        } catch {
+          navigate('/');
+        }
+      }, 500);
+      return;
+    }
+  }, [location.search, navigate, setIsAuthenticated, navigate]);
 
-  // hide header/footer on exercise routes and dashboard
+  // hide header/footer on exercise routes, dashboard, exams, and quizzes
   const hideGlobalHeaderFooter = 
     location.pathname.startsWith("/learn/python/exercise") || 
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard" ||
+    location.pathname.startsWith("/quiz") ||
+    location.pathname.startsWith("/coding-exam") ||
     location.pathname.startsWith("/exam");
 
   // hide only footer on freedom wall and PageNotFound
@@ -282,27 +292,44 @@ function App() {
           <Route path="/learn/python" element={<PythonCourse />} />
 
           <Route 
-            path="/learn/python/exercise/play" 
+            path="/learn/python/exercise/:exerciseId" 
             element={
-              <PythonExercise 
-                isAuthenticated={isAuthenticated}
-                onOpenModal={() => setIsModalOpen(true)}
-                onSignOut={handleSignOut}
-              />
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <PythonExercise 
+                  isAuthenticated={isAuthenticated}
+                  onOpenModal={() => setIsModalOpen(true)}
+                  onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>
+
             } 
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
-          <Route path="/learn/cpp/exercise/:exerciseId" element={<CppExercise />} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
+          <Route path="/learn/cpp/exercise/:exerciseId" element={<ProtectedRoute>
+      <CppExercise />
+    </ProtectedRoute>} />
+          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute>
+      <CppExercise />
+    </ProtectedRoute>} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-          <Route path="/learn/javascript/exercise/play" element={<JavaScriptExercise />} />
+          <Route path="/learn/javascript/exercise/:exerciseId" element={<ProtectedRoute>
+                                                                              <JavaScriptExercise />
+                                                                            </ProtectedRoute>
+                                                                        } />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
-          <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
+          <Route path="/dashboard" element={<ProtectedRoute>
+      <Dashboard onSignOut={handleSignOut} />
+    </ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
-          <Route path="/exam/:language" element={<ExamPage />} />
+          <Route path="/exam/:language/:problemId" element={<ProtectedRoute>
+      <CodingExamPage />
+    </ProtectedRoute>} />
+          <Route path="/quiz/:language/:quizId" element={<ProtectedRoute>
+      <QuizPage />
+    </ProtectedRoute>} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<PageNotFound />} />

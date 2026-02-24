@@ -1,7 +1,7 @@
 import { createContext, useEffect, useMemo, useState } from "react";
-import { axiosPublic } from "../api/axios";
+import { axiosPrivate } from "../api/axios";
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -11,43 +11,60 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    const bootstrap = async () => {
-      try {
-        const res = await axiosPublic.get("/v1/account");
-        if (!mounted) return;
+    const setSignedOut = () => {
+      if (!mounted) return;
+      setUser(null);
+      setIsAuthenticated(false);
+    };
 
-        const ok = res?.data?.success === true;
-        const profile = res?.data?.data;
-        const hasUserId = Boolean(profile && profile.user_id);
-
-        if (ok && hasUserId) {
-          setUser(profile);
-          setIsAuthenticated(true);
-          return;
-        }
-
-        setUser(null);
-        setIsAuthenticated(false);
-      } catch (err) {
-        if (!mounted) return;
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        if (!mounted) return;
-        setIsLoading(false);
+    const applyProfile = (profile) => {
+      if (!mounted) return;
+      if (profile?.user_id) {
+        setUser(profile);
+        setIsAuthenticated(true);
+      } else {
+        setSignedOut();
       }
     };
 
-    bootstrap();
-
-    const handleAuthChange = () => {
-      bootstrap();
+    const fetchProfile = async () => {
+      const response = await axiosPrivate.get("/v1/account");
+      if (response?.data?.success) {
+        return response.data.data;
+      }
+      return null;
     };
 
-    window.addEventListener("authchange", handleAuthChange);
+    const checkAuth = async () => {
+      try {
+        const profile = await fetchProfile();
+        applyProfile(profile);
+      } catch (error) {
+        const status = error?.response?.status;
+
+        if (status === 401) {
+          try {
+            const refreshRes = await axiosPrivate.get("/v1/refresh");
+            if (refreshRes?.data?.accessToken) {
+              const profile = await fetchProfile();
+              applyProfile(profile);
+              return;
+            }
+          } catch {
+            // ignore and sign out below
+          }
+        }
+
+        console.log("Auth check failed:", status);
+        setSignedOut();
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    checkAuth();
 
     return () => {
-      window.removeEventListener("authchange", handleAuthChange);
       mounted = false;
     };
   }, []);
@@ -67,4 +84,4 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export default AuthContext;
+export default AuthProvider;

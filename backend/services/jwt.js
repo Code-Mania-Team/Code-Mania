@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
+
 const JWT_SECRET = process.env.API_SECRET_KEY;
 const JWT_EXPIRES_IN = "90d";
+
 class jwtService {
   /**
    * Generate a JWT token
@@ -11,6 +13,7 @@ class jwtService {
   sign(payload, expiresIn = JWT_EXPIRES_IN) {
     return jwt.sign(payload, JWT_SECRET, { expiresIn });
   }
+
   /**
    * Verify a JWT token
    * @param {String} token - JWT token
@@ -23,6 +26,7 @@ class jwtService {
       throw new Error("Invalid or expired token");
     }
   }
+
   /**
    * Decode a JWT without verifying
    * @param {String} token
@@ -32,4 +36,5 @@ class jwtService {
     return jwt.decode(token);
   }
 }
+
 export default new jwtService();

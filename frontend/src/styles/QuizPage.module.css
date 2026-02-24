@@ -1,0 +1,377 @@
+/* Quiz Page Styles - Matching ExamPage Design */
+
+.page {
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hero/Header */
+.hero {
+  position: relative;
+  width: 100%;
+  background: url('/assets/python.gif') center/cover no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 265px;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroContentInner {
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.heroSubtitle {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  color: #e2e8f0;
+}
+
+.heroTitle {
+  font-family: 'Jersey 25', sans-serif;
+  font-size: 3rem;
+  margin: 0.5rem 0;
+  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+}
+
+.heroDescription {
+  font-family: 'VT323', monospace;
+  font-size: 1.2rem;
+  color: #e2e8f0;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Quiz Section */
+.section {
+  background: #0f172a;
+  padding: 3rem 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: calc(100vh - 265px);
+}
+
+.questionContainer {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  min-height: auto;
+  margin: 0 auto;
+  max-width: 600px;
+  width: 100%;
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.questionTitle {
+  font-family: 'Jersey 25', sans-serif;
+  font-size: 2rem;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.questionPoints {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.5rem;
+  color: #10b981;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.questionText {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  color: #e2e8f0;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Answer Options */
+.optionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.option {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid #334155;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.option:hover:not(.disabled) {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.option.selected {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+}
+
+.option.correct {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+}
+
+.option.incorrect {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+.option.disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.optionLetter {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #94a3b8;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.optionText {
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem;
+  color: #e2e8f0;
+  flex: 1;
+  white-space: pre-wrap;
+}
+
+/* Feedback */
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem;
+}
+
+.feedback.correct {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid #10b981;
+  color: #10b981;
+}
+
+.feedback.incorrect {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+/* Navigation */
+.quizNavigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.questionCounter {
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem;
+  color: #94a3b8;
+}
+
+.navButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.navButton:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.navButton:disabled {
+  background: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Results Section */
+.resultsContainer {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 3rem;
+  margin: 2rem auto;
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+}
+
+.resultsTitle {
+  font-family: 'Jersey 25', sans-serif;
+  font-size: 3rem;
+  color: #e2e8f0;
+  margin-bottom: 2rem;
+}
+
+.scoreDisplay {
+  font-family: 'Press Start 2P', 'monospace';
+  font-size: 4rem;
+  color: #10b981;
+  margin-bottom: 1rem;
+  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+}
+
+.scoreLabel {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  margin-bottom: 2rem;
+}
+
+.resultsMessage {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem;
+  color: #e2e8f0;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.resultsActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  margin-top: 50px;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actionButton:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.actionButton.secondary {
+  background: #6b7280;
+}
+
+.actionButton.secondary:hover {
+  background: #4b5563;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero {
+    padding: 1rem;
+  }
+  
+  .heroTitle {
+    font-size: 2rem;
+  }
+  
+  .heroDescription {
+    font-size: 1rem;
+  }
+  
+  .section {
+    padding: 2rem 1rem;
+  }
+  
+  .questionContainer {
+    padding: 1.5rem;
+    margin: 1rem auto;
+  }
+  
+  .questionTitle {
+    font-size: 1.5rem;
+  }
+  
+  .questionText {
+    font-size: 1.25rem;
+  }
+  
+  .option {
+    padding: 1rem;
+  }
+  
+  .optionText {
+    font-size: 1.1rem;
+  }
+  
+  .resultsContainer {
+    padding: 2rem;
+  }
+  
+  .scoreDisplay {
+    font-size: 3rem;
+  }
+  
+  .resultsActions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .actionButton {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+}

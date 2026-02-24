@@ -27,8 +27,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":385.333333333333,
-                 "y":934.666666666667
+                 "x":480.666666666666,
+                 "y":929.333333333334
                 }, 
                 {
                  "height":0,
@@ -93,7 +93,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-                         "value":1
+                         "value":10
                         }, 
                         {
                          "name":"target_map",

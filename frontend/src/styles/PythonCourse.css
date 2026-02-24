@@ -246,6 +246,8 @@
 .exercise-status {
   display: flex;
   align-items: center;
+  justify-content: center;
+  line-height: 0;
 }
 
 .start-btn {
@@ -274,6 +276,15 @@
 .status-icon {
   width: 1.5rem;
   height: 1.5rem;
+  display: block;
+}
+
+.status-icon-wrap {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .status-icon.completed {
@@ -477,4 +488,9 @@
   transform: scale(1.1);
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Total Quiz Progress Item - Purple Color */
+.python-course-page .progress-item:nth-child(2) .progress-icon {
+  background: linear-gradient(135deg, #9333ea, #a855f7);
 }
