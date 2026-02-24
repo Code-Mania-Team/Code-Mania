@@ -247,7 +247,6 @@ export default class GameScene extends Phaser.Scene {
         label: quest.achievements.title
       });
     }
-
   };
 
   // 🏅 Check if user completed a stage (every 4 exercises) and award badge
@@ -267,34 +266,34 @@ export default class GameScene extends Phaser.Scene {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (!response.ok) return;
-      
+
       const data = await response.json();
       const completedQuests = data.completedQuests || [];
 
       // Only award on stage boundary (4, 8, 12, 16 ...)
       if (!completedQuests.length || completedQuests.length % 4 !== 0) return;
-      
+
       // Calculate stage number (every 4 exercises = 1 stage)
       const stageNumber = Math.ceil(completedQuests.length / 4);
-      
+
       // Badge mapping based on language and stage
       const badgeMap = {
         'Python': `badge-python-${Math.min(stageNumber, 4)}`,
         'JavaScript': `badge-js-${Math.min(stageNumber, 4)}`,
         'Cpp': `badge-cpp-${Math.min(stageNumber, 4)}`
       };
-      
+
       const badgeKey = badgeMap[this.language];
-      
+
       if (badgeKey && this.textures.exists(badgeKey)) {
         // Show badge unlock popup
         this.badgeUnlockPopup.show({
           badgeKey: badgeKey,
           label: `Stage ${stageNumber} Complete!`
         });
-        
+
         // Optionally save badge to backend
         await this.saveBadgeToBackend(badgeKey, stageNumber);
       }
@@ -318,7 +317,7 @@ export default class GameScene extends Phaser.Scene {
           language: this.language
         })
       });
-      
+
       if (!response.ok) {
         console.error('Failed to save badge to backend');
       }
@@ -436,6 +435,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
     this.input.keyboard.on("keydown-E", () => {
+      if (this.isTypingInUI()) return;
       this.handleInteract();
     });
 
@@ -447,6 +447,7 @@ export default class GameScene extends Phaser.Scene {
     // });
 
     this.input.keyboard.on("keydown-Q", () => {
+      if (this.isTypingInUI()) return;
       if (this.gamePausedByTerminal) return;
       this.questHUD.toggle(this.questManager.activeQuest);
     });
@@ -702,8 +703,23 @@ export default class GameScene extends Phaser.Scene {
   }
 
 
+  isTypingInUI() {
+    const active = document.activeElement;
+    if (!active) return false;
+
+    const tag = active.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (active.isContentEditable) return true;
+
+    return Boolean(
+      active.closest?.(
+        ".monaco-editor, .terminal, .examTerminal, [contenteditable='true'], [role='textbox']"
+      )
+    );
+  }
+
   update() {
-    if (this.gamePausedByTerminal) {
+    if (this.gamePausedByTerminal || this.isTypingInUI()) {
       this.player.setVelocity(0);
       this.player.anims.stop();
       return;

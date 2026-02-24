@@ -885,7 +885,7 @@
   position: fixed;
   left: 16px;
   bottom: 16px;
-  width: min(340px, calc(100vw - 32px));
+  width: min(250px, calc(100vw - 32px));
   max-height: 48vh;
   overflow-y: auto;
   padding: 12px;
