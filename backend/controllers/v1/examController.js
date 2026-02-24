@@ -40,30 +40,31 @@ class ExamController {
   async startAttempt(req, res) {
     try {
       const userId = res.locals.user_id;
-      if (!userId) {
+      if (!userId)
         return res.status(401).json({ success: false, message: "Unauthorized" });
-      }
 
-      const problemId = Number(req.body?.problemId);
-      if (!Number.isFinite(problemId)) {
-        return res.status(400).json({ success: false, message: "problemId is required" });
-      }
+      const language = req.body?.language;
+      if (!language)
+        return res.status(400).json({ success: false, message: "language is required" });
 
-      const result = await this.examService.startAttempt({ userId, problemId });
-      if (!result.ok) {
-        return res.status(result.status || 500).json({ success: false, message: result.message });
-      }
+      const result = await this.examService.startAttempt({
+        userId,
+        languageSlug: language.toLowerCase()
+      });
+
+      if (!result.ok)
+        return res.status(result.status).json({
+          success: false,
+          message: result.message
+        });
 
       return res.status(201).json({ success: true, data: result.data });
+
     } catch (err) {
-      console.error("startAttempt FULL ERROR:", err);
-        return res.status(500).json({ 
-          success: false, 
-          message: err.message 
-        });
+      console.error("startAttempt error:", err);
+      return res.status(500).json({ success: false, message: "Failed to start attempt" });
     }
   }
-
   async submitAttempt(req, res) {
     try {
       const userId = res.locals.user_id;

@@ -324,7 +324,7 @@ function App() {
     </ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
-          <Route path="/exam/:language/:problemId" element={<ProtectedRoute>
+          <Route path="/exam/:language" element={<ProtectedRoute>
       <CodingExamPage />
     </ProtectedRoute>} />
           <Route path="/quiz/:language/:quizId" element={<ProtectedRoute>

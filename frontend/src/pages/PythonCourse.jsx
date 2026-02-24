@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 import useGetExercises from "../services/getExercise";
 import useGetCourseBadges from "../services/getCourseBadge";
 
+
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 
@@ -35,6 +36,8 @@ const PythonCourse = () => {
   const { exerciseId } = useParams();
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
+
+ 
   useEffect(() => {
     if (!isAuthenticated) {
       setCompletedExercises(new Set());
@@ -222,7 +225,7 @@ const PythonCourse = () => {
   };
 
   const handleStartExam = () => {
-    navigate(`/exam/python/6`);
+    navigate(`/exam/python`);
   };
 
 
