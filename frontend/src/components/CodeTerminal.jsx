@@ -56,35 +56,6 @@ const InteractiveTerminal = ({ questId }) => {
 
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
-  const editorRef = useRef(null);
-  const isRunningRef = useRef(false);
-  const waitingForInputRef = useRef(false);
-
-  useEffect(() => {
-    isRunningRef.current = isRunning;
-  }, [isRunning]);
-
-  useEffect(() => {
-    waitingForInputRef.current = waitingForInput;
-  }, [waitingForInput]);
-
-  useEffect(() => {
-    const phaserContainer = document.getElementById("phaser-container");
-    if (!phaserContainer) return;
-
-    const handleGameFocus = () => {
-      if (isRunningRef.current || waitingForInputRef.current) return;
-      window.dispatchEvent(new Event("code-mania:terminal-inactive"));
-      if (document.activeElement && typeof document.activeElement.blur === "function") {
-        document.activeElement.blur();
-      }
-    };
-
-    phaserContainer.addEventListener("pointerdown", handleGameFocus);
-    return () => {
-      phaserContainer.removeEventListener("pointerdown", handleGameFocus);
-    };
-  }, []);
 
   /* ===============================
      DOCKER EXECUTION
@@ -111,8 +82,9 @@ const InteractiveTerminal = ({ questId }) => {
 
 
   const runViaDocker = () => {
-    if (socketRef.current) socketRef.current.close();
-
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
     let finalOutput = ""; // prevent stale state issue
 
     const socket = new WebSocket("wss://terminal.codemania.fun");
@@ -121,6 +93,11 @@ const InteractiveTerminal = ({ questId }) => {
     socket.onopen = () => {
       window.dispatchEvent(new Event("code-mania:terminal-active"));
       socket.send(JSON.stringify({ language, code }));
+
+      // 🔥 FORCE FOCUS
+      setTimeout(() => {
+        terminalRef.current?.focus();
+      }, 0);
     };
 
     socket.onmessage = (e) => {
@@ -176,16 +153,18 @@ const InteractiveTerminal = ({ questId }) => {
   =============================== */
 
   const handleKeyDown = (e) => {
-    if (!waitingForInput || !socketRef.current) return;
-
     if (e.key === "Enter") {
-      socketRef.current.send(
-        JSON.stringify({ stdin: inputBuffer })
-      );
-
+      // Always show typed text
       setProgramOutput(prev => prev + inputBuffer + "\n");
+
+      // Only send to backend if container exists
+      if (socketRef.current) {
+        socketRef.current.send(
+          JSON.stringify({ stdin: inputBuffer })
+        );
+      }
+
       setInputBuffer("");
-      setWaitingForInput(false);
       e.preventDefault();
       return;
     }
@@ -256,19 +235,6 @@ const InteractiveTerminal = ({ questId }) => {
           theme="vs-dark"
           value={code}
           onChange={(v) => setCode(v ?? "")}
-          onMount={(editor) => {
-            editorRef.current = editor;
-
-            editor.onDidFocusEditorText(() => {
-              window.dispatchEvent(new Event("code-mania:terminal-active"));
-            });
-
-            editor.onDidBlurEditorText(() => {
-              if (!isRunningRef.current && !waitingForInputRef.current) {
-                window.dispatchEvent(new Event("code-mania:terminal-inactive"));
-              }
-            });
-          }}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
@@ -277,24 +243,20 @@ const InteractiveTerminal = ({ questId }) => {
         />
       </div>
 
-      <div
-        className={styles["terminal"]}
-        ref={terminalRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-      >
+        <div
+            className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
+            ref={terminalRef}
+            tabIndex={isRunning ? 0 : -1}
+            onClick={() => isRunning && terminalRef.current?.focus()}
+            onKeyDown={handleKeyDown}
+          >
         <div className={styles["terminal-header"]}>Terminal</div>
 
         <div className={styles["terminal-content"]}>
           <pre>
             {programOutput}
-            {waitingForInput && inputBuffer}
-            {waitingForInput && (
-              <span className={styles.cursor}></span>
-            )}
-            {!programOutput &&
-              !waitingForInput &&
-              "▶ Output will appear here"}
+            {inputBuffer}
+            <span className={styles.cursor}></span>
           </pre>
         </div>
 
