@@ -73,7 +73,7 @@ const CodingExamPage = () => {
             attemptNumber: attempt.attempt_number || 1,
             score: attempt.score_percentage || 0,
             earnedXp: attempt.earned_xp || 0,
-            locked: attempt.score_percentage === 100
+            locked: (attempt.attempt_number || 1) >= 5
           });
         }
 
@@ -207,7 +207,7 @@ const CodingExamPage = () => {
                       border: "1px solid #ef4444"
                     }}
                   >
-                    🔒 Locked (100%)
+                    🔒 Locked (5/5 attempts)
                   </span>
                 )}
               </div>
@@ -236,7 +236,7 @@ const CodingExamPage = () => {
                   <li>You have a maximum of <strong>5 attempts</strong>.</li>
                   <li>The first 2 attempts have no penalty.</li>
                   <li>After that, a small 5% XP penalty applies per attempt.</li>
-                  <li>If you reach <strong>100%</strong>, your score and XP are locked.</li>
+                  <li>Exam locks only when you use all <strong>5 attempts</strong>.</li>
                   <li>XP never decreases — improvement is always rewarded.</li>
                 </ul>
               </div>
@@ -329,7 +329,7 @@ const CodingExamPage = () => {
                       attemptNumber: data.attempt_number,
                       score: data.score_percentage,
                       earnedXp: data.earned_xp,
-                      locked: data.locked || false
+                      locked: (data.attempt_number || 0) >= 5
                     });
                   }}
                 />
