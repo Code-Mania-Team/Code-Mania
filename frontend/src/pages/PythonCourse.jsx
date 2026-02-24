@@ -222,7 +222,7 @@ const PythonCourse = () => {
   };
 
   const handleStartExam = () => {
-    navigate(`/exam/python`);
+    navigate(`/exam/python/6`);
   };
 
 

@@ -214,7 +214,7 @@ class AccountController {
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: cookieSameSite,
+                sameSite: "strict",
                 //maxAge: 1 * 60 * 1000, // 1 minute for testing
                 maxAge: 24 * 60 * 60 * 1000
                 });
@@ -222,7 +222,7 @@ class AccountController {
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: cookieSameSite,
+                sameSite: "strict",
                 maxAge: 30 * 24 * 60 * 60 * 1000,
                 //domain: 'localhost' // Explicit domain for cross-origin
             });
