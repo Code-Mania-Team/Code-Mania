@@ -1,49 +1,48 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import useAuth from "../hooks/useAxios";
+import { axiosPublic } from "../api/axios";
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
+  const { setIsAuthenticated, setUser } = useAuth();
+  const [authorized, setAuthorized] = useState(null);
 
-  // 🔒 WAIT until auth finishes checking
-  if (isLoading) {
-    return null; // or a spinner
-  }
+  useEffect(() => {
+    const verify = async () => {
+      try {
+        const res = await axiosPublic.get("/v1/account", {
+          withCredentials: true,
+        });
 
-  if (!isAuthenticated) {
-    let redirectTo = "/";
+        setUser(res.data.data);
+        setIsAuthenticated(true);
+        setAuthorized(true);
+      } catch {
+        try {
+          await axiosPublic.get("/v1/refresh", {
+            withCredentials: true,
+          });
 
-    if (location.pathname.includes("/learn/python/exercise")) {
-      redirectTo = "/learn/python";
-    } 
-    else if (location.pathname.includes("/learn/javascript/exercise")) {
-      redirectTo = "/learn/javascript";
-    } 
-    else if (location.pathname.includes("/learn/cpp/exercise")) {
-      redirectTo = "/learn/cpp";
-    }
-    else if (
-      location.pathname.includes("/quiz") ||
-      location.pathname.includes("/exam") ||
-      location.pathname.includes("/coding-exam")
-    ) {
-      redirectTo = "/learn";
-    }
-    else if (location.pathname.includes("/dashboard")) {
-      redirectTo = "/";
-    }
+          const retry = await axiosPublic.get("/v1/account", {
+            withCredentials: true,
+          });
 
-    return (
-      <Navigate
-        to={redirectTo}
-        replace
-        state={{
-          openSignIn: true,
-          redirectAfterLogin: location.pathname
-        }}
-      />
-    );
-  }
+          setUser(retry.data.data);
+          setIsAuthenticated(true);
+          setAuthorized(true);
+        } catch {
+          setIsAuthenticated(false);
+          setAuthorized(false);
+        }
+      }
+    };
+
+    verify();
+  }, []);
+
+  if (authorized === null) return null;
+
+  if (!authorized) return <Navigate to="/" replace />;
 
   return children;
 };

@@ -61,6 +61,51 @@
                  "width":0,
                  "x":407,
                  "y":463.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":22,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":472,
+                 "y":445.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":23,
+                 "name":"npc_spawn",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"id",
+                         "type":"string",
+                         "value":"intro_npc"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"npc_spawn"
+                        }, 
+                        {
+                         "name":"quest_id",
+                         "type":"int",
+                         "value":1
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"npc"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":466.666666666667,
+                 "y":461.333333333333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -586,7 +631,7 @@
          "y":0
         }],
  "nextlayerid":33,
- "nextobjectid":22,
+ "nextobjectid":24,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

@@ -133,7 +133,7 @@ const Home = () => (
 import axios from 'axios';
 // WelcomeOnboarding wrapper component
 const WelcomeOnboardingWrapper = () => {
-  const { isAuthenticated, user } = useAuth();
+  // const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
