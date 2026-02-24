@@ -446,56 +446,32 @@ const JavaScriptExercise = () => {
 
       )}
 
-
-
       <div className={styles["codex-fullscreen"]}>
-
         <ProgressBar
           currentLesson={activeExercise?.order_index || 1}
           totalLessons={activeExercise?.totalExercises || 16}
-          title="🌐 JavaScript Basics"
-
+          title={activeExercise?.lesson_header || activeExercise?.title || "JavaScript"}
         />
 
-
-
         <div className={styles["main-layout"]}>
-
           <div className={styles["game-container"]}>
-
             <div id="phaser-container" className={styles["game-scene"]} />
-
           </div>
-
-
 
           <CodeTerminal
             questId={activeExerciseId}
-
             language="javascript"
-
             code={code}
-
             onCodeChange={setCode}
-
             output={output}
-
             isRunning={isRunning}
-
             showRunButton={terminalEnabled}
-
             disabled={!terminalEnabled}
-
           />
-
         </div>
-
       </div>
 
-
-
       <StageCompleteModal
-
         show={showStageComplete}
 
         languageLabel="JavaScript"
