@@ -88,7 +88,7 @@ class ExamService {
     const attempt = await this.exam.createAttempt({
       userId,
       problemId,
-      languageId: languageSlug,
+      languageSlug,
       attemptNumber
     });
 
