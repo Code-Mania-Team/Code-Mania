@@ -34,8 +34,6 @@ import useGetExerciseById from "../services/getExerciseById";
 
 import useGetNextExercise from "../services/getNextExcercise.js";
 
-import useStartExercise from "../services/startExercise.js";
-
 
 
 const CppExercise = () => {
@@ -53,8 +51,6 @@ const CppExercise = () => {
   const getExerciseById = useGetExerciseById();
 
   const getNextExercise = useGetNextExercise();
-
-  const startExercise = useStartExercise();
 
 
 
@@ -85,24 +81,6 @@ const CppExercise = () => {
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
   
-  useEffect(() => {
-      const handleStart = async (e) => {
-        const questId = e.detail?.questId;
-        if (!questId) return;
-    
-        try {
-          await startExercise(questId);
-          console.log("✅ Quest started in backend");
-        } catch (err) {
-          console.error("Failed to start quest", err);
-        }
-      };
-    
-      window.addEventListener("code-mania:quest-started", handleStart);
-    
-      return () =>
-        window.removeEventListener("code-mania:quest-started", handleStart);
-    }, []);
 
   /* ===============================
 
@@ -522,8 +500,6 @@ const CppExercise = () => {
 
 
           <CodeTerminal
-
-            questId={activeExerciseId}
 
             language="cpp"
 
