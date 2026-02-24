@@ -372,66 +372,6 @@ const CppExercise = () => {
 
   }, [activeExercise, dbCompletedQuests]);
 
-
-
-  /* ===============================
-
-     RUN CODE (SIMULATED C++)
-
-  =============================== */
-
-  const handleRunCode = () => {
-
-    if (!terminalEnabled || isRunning) return;
-
-
-
-    setIsRunning(true);
-
-    setOutput("Compiling C++...\n");
-
-
-
-    setTimeout(() => {
-
-      try {
-
-        // In production this should hit a backend compiler
-
-        const expected = activeExercise.expectedOutput || "";
-
-
-
-        setOutput(expected || "Program ran successfully.");
-
-
-
-        window.dispatchEvent(
-
-          new CustomEvent("code-mania:quest-complete", {
-
-            detail: { questId: activeExercise.id }
-
-          })
-
-        );
-
-      } catch (err) {
-
-        setOutput(`❌ ${err.message}`);
-
-      } finally {
-
-        setIsRunning(false);
-
-      }
-
-    }, 800);
-
-  };
-
-
-
   /* ===============================
 
      AUTH
@@ -535,25 +475,7 @@ const CppExercise = () => {
 
           <CodeTerminal
 
-            questId={activeExerciseId}
-
-            language="cpp"
-
-            code={code}
-
-            onCodeChange={setCode}
-
-            onRun={handleRunCode}
-
-            output={output}
-
-            isRunning={isRunning}
-
-            showRunButton={terminalEnabled}
-
-            disabled={!terminalEnabled}
-
-          />
+            questId={activeExerciseId}/>
 
         </div>
 

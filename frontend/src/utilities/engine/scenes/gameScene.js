@@ -226,7 +226,7 @@ export default class GameScene extends Phaser.Scene {
     // ✅ ALWAYS show quest completed toast
     this.questCompleteToast.show({
       title: quest.title,
-      badgeKey: quest.badgeKey || null, // toast can ignore if null
+      badgeKey: quest.achievements?.badge_key || null, // toast can ignore if null
       exp: gainedExp
     });
 
@@ -241,14 +241,11 @@ export default class GameScene extends Phaser.Scene {
     await this.checkAndAwardStageBadge(questId);
 
     // 🏅 ONLY show badge UI if quest has badge
-    if (quest.badge_key) {
-      const badge = quest.badge_key;
-      if (badge) {
-        this.badgeUnlockPopup.show({
-          badgeKey: badge.key,
-          label: quest.title
-        });
-      }
+    if (quest.achievements?.badge_key) {
+      this.badgeUnlockPopup.show({
+        badgeKey: quest.achievements.badge_key,
+        label: quest.achievements.title
+      });
     }
 
   };
