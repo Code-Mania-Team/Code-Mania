@@ -40,7 +40,13 @@ print(a)`;
   }
 }
 
-const InteractiveTerminal = ({ questId }) => {
+const InteractiveTerminal = ({
+  questId,
+  mobileActivePanel,
+  onMobilePanelChange,
+  showMobilePanelSwitcher = true,
+  enableMobileSplit = true
+}) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
 
@@ -51,11 +57,28 @@ const InteractiveTerminal = ({ questId }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [isQuestActive, setIsQuestActive] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 900 : false
+  );
+  const [internalActivePanel, setInternalActivePanel] = useState("editor");
 
   const validateExercise = useValidateExercise();
 
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
+  const useMobileSplit = isMobileView && enableMobileSplit;
+
+  const activePanel = mobileActivePanel ?? internalActivePanel;
+  const setActivePanel = (panel) => {
+    if (onMobilePanelChange) onMobilePanelChange(panel);
+    else setInternalActivePanel(panel);
+  };
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth <= 900);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   /* ===============================
      DOCKER EXECUTION
@@ -78,6 +101,7 @@ const InteractiveTerminal = ({ questId }) => {
   useEffect(() => {
     setIsQuestActive(false);
     setValidationResult(null);
+    setActivePanel("editor");
   }, [questId]);
 
 
@@ -98,6 +122,10 @@ const InteractiveTerminal = ({ questId }) => {
       setTimeout(() => {
         terminalRef.current?.focus();
       }, 0);
+
+      if (useMobileSplit) {
+        setActivePanel("terminal");
+      }
     };
 
     socket.onmessage = (e) => {
@@ -154,16 +182,11 @@ const InteractiveTerminal = ({ questId }) => {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      // Always show typed text
-      setProgramOutput(prev => prev + inputBuffer + "\n");
-
-      // Only send to backend if container exists
+      const value = inputBuffer;
+      setProgramOutput(prev => prev + value + "\n");
       if (socketRef.current) {
-        socketRef.current.send(
-          JSON.stringify({ stdin: inputBuffer })
-        );
+        socketRef.current.send(JSON.stringify({ stdin: value }));
       }
-
       setInputBuffer("");
       e.preventDefault();
       return;
@@ -193,6 +216,15 @@ const InteractiveTerminal = ({ questId }) => {
     runViaDocker();
   };
 
+  const handleSubmitInput = () => {
+    const value = inputBuffer;
+    setProgramOutput(prev => prev + value + "\n");
+    if (socketRef.current) {
+      socketRef.current.send(JSON.stringify({ stdin: value }));
+    }
+    setInputBuffer("");
+  };
+
   const totalObjectives = validationResult
     ? Object.keys(validationResult).length
     : 0;
@@ -207,6 +239,25 @@ const InteractiveTerminal = ({ questId }) => {
 
   return (
     <div className={styles["code-container"]}>
+      {useMobileSplit && showMobilePanelSwitcher && (
+        <div className={styles["mobile-panel-switcher"]}>
+          <button
+            type="button"
+            className={`${styles["mobile-switch-btn"]} ${activePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+            onClick={() => setActivePanel("editor")}
+          >
+            Editor
+          </button>
+          <button
+            type="button"
+            className={`${styles["mobile-switch-btn"]} ${activePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+            onClick={() => setActivePanel("terminal")}
+          >
+            Terminal
+          </button>
+        </div>
+      )}
+
       <div className={styles["code-editor"]}>
         <div className={styles["editor-header"]}>
           <span>
@@ -229,8 +280,9 @@ const InteractiveTerminal = ({ questId }) => {
           </button>
         </div>
 
+        {(!useMobileSplit || activePanel === "editor") && (
         <Editor
-          height="300px"
+          height={isMobileView ? "240px" : "300px"}
           language={monacoLang}
           theme="vs-dark"
           value={code}
@@ -241,8 +293,10 @@ const InteractiveTerminal = ({ questId }) => {
             automaticLayout: true
           }}
         />
+        )}
       </div>
 
+      {(!useMobileSplit || activePanel === "terminal") && (
         <div
             className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
             ref={terminalRef}
@@ -258,9 +312,37 @@ const InteractiveTerminal = ({ questId }) => {
             {inputBuffer}
             <span className={styles.cursor}></span>
           </pre>
+
+          {isRunning && (
+            <div className={styles["terminal-input-row"]}>
+              <input
+                className={styles["terminal-input"]}
+                placeholder={waitingForInput ? "Type input and press Enter" : "Program running..."}
+                value={inputBuffer}
+                onChange={(e) => setInputBuffer(e.target.value)}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSubmitInput();
+                  }
+                }}
+                disabled={!waitingForInput}
+              />
+              <button
+                type="button"
+                className={styles["terminal-send-btn"]}
+                onClick={handleSubmitInput}
+                disabled={!waitingForInput}
+              >
+                Send
+              </button>
+            </div>
+          )}
         </div>
 
       </div>
+      )}
       {validationResult && (
           <div className={styles["validation-box"]}>
             <h4 className={styles["validation-summary"]}>

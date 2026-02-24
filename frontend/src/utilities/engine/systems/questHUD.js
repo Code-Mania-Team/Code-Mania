@@ -3,6 +3,9 @@ import Phaser from "phaser";
 export default class QuestUI {
   constructor(scene) {
     this.scene = scene;
+    this.isMobile =
+      scene.sys.game.device.os.android ||
+      scene.sys.game.device.os.iOS;
     this.visible = false;
     this.ignoreWheelUntil = 0;
 
@@ -32,6 +35,9 @@ export default class QuestUI {
     this.bodyScrollMax = 0;
     this._taskBaseY = 0;
     this._GAP = 16;
+    this.isDraggingScroll = false;
+    this.dragPointerId = null;
+    this.lastDragY = 0;
 
     // Container
     this.container = scene.add.container(0, 0)
@@ -135,16 +141,17 @@ export default class QuestUI {
       this.hide();
     });
 
+    if (this.isMobile) {
+      this.closeButton.setVisible(false);
+      this.closeButton.disableInteractive();
+    }
+
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (!this.visible) return;
       if (this.scene.time.now < this.ignoreWheelUntil) return;
       if (this.bodyScrollMax <= 0) return;
 
-      const insidePanel =
-        pointer.x >= this.panelLeft &&
-        pointer.x <= this.panelLeft + this.panelWidth &&
-        pointer.y >= this.panelTop &&
-        pointer.y <= this.panelTop + this.panelHeight;
+      const insidePanel = this._isInsidePanel(pointer.x, pointer.y);
 
       if (!insidePanel) return;
 
@@ -153,7 +160,50 @@ export default class QuestUI {
       this._updateScrollbarThumb();
     };
 
+    this.onPointerDown = (pointer) => {
+      if (!this.visible) return;
+
+      if (this.bodyScrollMax <= 0) return;
+      if (!this._isInsideScrollArea(pointer.x, pointer.y)) return;
+
+      this.isDraggingScroll = true;
+      this.dragPointerId = pointer.id;
+      this.lastDragY = pointer.y;
+    };
+
+    this.onPointerMove = (pointer) => {
+      if (!this.visible) return;
+      if (!this.isDraggingScroll) return;
+      if (pointer.id !== this.dragPointerId) return;
+      if (this.bodyScrollMax <= 0) return;
+
+      const deltaY = this.lastDragY - pointer.y;
+      this.lastDragY = pointer.y;
+
+      this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
+      this._applyScroll();
+      this._updateScrollbarThumb();
+    };
+
+    this.onPointerUp = (pointer) => {
+      if (!this.isDraggingScroll) return;
+      if (pointer.id !== this.dragPointerId) return;
+
+      this.isDraggingScroll = false;
+      this.dragPointerId = null;
+    };
+
     scene.input.on("wheel", this.onWheel);
+    scene.input.on("pointerdown", this.onPointerDown);
+    scene.input.on("pointermove", this.onPointerMove);
+    scene.input.on("pointerup", this.onPointerUp);
+
+    scene.events.once("shutdown", () => {
+      scene.input.off("wheel", this.onWheel);
+      scene.input.off("pointerdown", this.onPointerDown);
+      scene.input.off("pointermove", this.onPointerMove);
+      scene.input.off("pointerup", this.onPointerUp);
+    });
 
     this.container.add([
       this.bg,
@@ -229,6 +279,9 @@ export default class QuestUI {
   hide() {
     if (!this.visible) return;
 
+    this.isDraggingScroll = false;
+    this.dragPointerId = null;
+
     window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
 
     this.scene.tweens.add({
@@ -246,6 +299,24 @@ export default class QuestUI {
 
   toggle(quest) {
     this.visible ? this.hide() : this.showQuest(quest);
+  }
+
+  _isInsidePanel(x, y) {
+    return (
+      x >= this.panelLeft &&
+      x <= this.panelLeft + this.panelWidth &&
+      y >= this.panelTop &&
+      y <= this.panelTop + this.panelHeight
+    );
+  }
+
+  _isInsideScrollArea(x, y) {
+    return (
+      x >= this.contentLeft &&
+      x <= this.contentLeft + this.contentWidth + this.scrollbarWidth + this.scrollbarPadding &&
+      y >= this.bodyBaseY &&
+      y <= this.bodyBaseY + this.bodyMaskHeight
+    );
   }
 
   _getTotalContentHeight() {

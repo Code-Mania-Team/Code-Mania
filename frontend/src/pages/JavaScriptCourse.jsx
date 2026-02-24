@@ -23,6 +23,7 @@ const JavaScriptCourse = () => {
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState(null);
   const [data, setData] = useState();
 
   const tutorialSeenKey = user?.user_id
@@ -96,8 +97,18 @@ const JavaScriptCourse = () => {
     loadProgress();
   }, [isAuthenticated]);
 
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
@@ -172,11 +183,20 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExam = () => {
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = "/exam/javascript/21";
+
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
+      setShowTutorial(true);
+      return;
+    }
+
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
-    navigate("/exam/javascript/21");
+    navigate(route);
   };
 
   const handleTutorialClose = () => {
@@ -260,6 +280,7 @@ const JavaScriptCourse = () => {
                           : null;
 
                       const status = getExerciseStatus(
+                        module.id,
                         exercise.id,
                         previousExerciseId
                       );

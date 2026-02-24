@@ -72,6 +72,10 @@ const JavaScriptExercise = () => {
   const [output, setOutput] = useState("");
 
   const [isRunning, setIsRunning] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 900 : false
+  );
+  const [mobileActivePanel, setMobileActivePanel] = useState("game");
 
 
 
@@ -84,6 +88,32 @@ const JavaScriptExercise = () => {
 
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth <= 900);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileView) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+    };
+  }, [isMobileView]);
 
   useEffect(() => {
     const handleStart = async (e) => {
@@ -213,6 +243,10 @@ const JavaScriptExercise = () => {
     }
 
   }, [activeExerciseId, activeExercise]);
+
+  useEffect(() => {
+    setMobileActivePanel("game");
+  }, [activeExerciseId]);
 
 
 
@@ -453,21 +487,46 @@ const JavaScriptExercise = () => {
           title={activeExercise?.lesson_header || activeExercise?.title || "JavaScript"}
         />
 
-        <div className={styles["main-layout"]}>
-          <div className={styles["game-container"]}>
-            <div id="phaser-container" className={styles["game-scene"]} />
+        {isMobileView && (
+          <div className={styles["mobile-panel-switcher-top"]}>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "game" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("game")}
+            >
+              Game Scene
+            </button>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("terminal")}
+            >
+              Terminal
+            </button>
           </div>
+        )}
 
-          <CodeTerminal
-            questId={activeExerciseId}
-            language="javascript"
-            code={code}
-            onCodeChange={setCode}
-            output={output}
-            isRunning={isRunning}
-            showRunButton={terminalEnabled}
-            disabled={!terminalEnabled}
-          />
+        <div className={styles["main-layout"]}>
+          {(!isMobileView || mobileActivePanel === "game") && (
+            <div className={styles["game-container"]}>
+              <div id="phaser-container" className={styles["game-scene"]} />
+            </div>
+          )}
+
+          {(!isMobileView || mobileActivePanel === "terminal") && (
+            <CodeTerminal
+              questId={activeExerciseId}
+              language="javascript"
+              code={code}
+              onCodeChange={setCode}
+              output={output}
+              isRunning={isRunning}
+              showRunButton={terminalEnabled}
+              disabled={!terminalEnabled}
+              showMobilePanelSwitcher={false}
+              enableMobileSplit={false}
+            />
+          )}
         </div>
       </div>
 

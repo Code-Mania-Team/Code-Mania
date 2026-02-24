@@ -161,8 +161,18 @@ const PythonCourse = () => {
     }
   };
 
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     // unlock next exercise if previous is completed
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
@@ -304,7 +314,11 @@ const PythonCourse = () => {
                       const previousExercise =
                         index > 0 ? module.exercises[index - 1].id : null;
 
-                      const status = getExerciseStatus(exercise.id, previousExercise);
+                      const status = getExerciseStatus(
+                        module.id,
+                        exercise.id,
+                        previousExercise
+                      );
 
                       return (
                         <div key={exercise.id} className={`exercise-item ${status}`}>

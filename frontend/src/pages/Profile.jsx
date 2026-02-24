@@ -1224,15 +1224,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                    <span>Badges</span>
+                    <span className={styles.badgeHeader}>Badges</span>
 
 
 
-                    <span>Achievements</span>
+                    <span className={styles.achievementHeader}>Achievements</span>
 
 
 
-                    <span>Received</span>
+                    <span className={styles.receivedHeader}>Received</span>
 
 
 

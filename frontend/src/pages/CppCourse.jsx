@@ -135,8 +135,18 @@ const CppCourse = () => {
   /* ===============================
      HELPERS
   =============================== */
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
@@ -182,11 +192,20 @@ const CppCourse = () => {
   };
 
   const handleStartExam = () => {
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = "/exam/cpp/20";
+
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
+      setShowTutorial(true);
+      return;
+    }
+
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "C++");
     localStorage.setItem("lastCourseRoute", "/learn/cpp");
 
-    navigate("/exam/cpp/20");
+    navigate(route);
   };
 
   const handleTutorialClose = () => {
@@ -280,6 +299,7 @@ const CppCourse = () => {
                           : null;
 
                       const status = getExerciseStatus(
+                        module.id,
                         exercise.id,
                         previousExerciseId
                       );

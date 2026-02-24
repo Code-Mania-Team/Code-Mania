@@ -486,11 +486,13 @@ export default class GameScene extends Phaser.Scene {
       }
 
       this.input.keyboard.enabled = false;
+      this.syncMobileControlsVisibility();
     };
 
     this.handleTerminalInactive = () => {
       this.gamePausedByTerminal = false;
       this.input.keyboard.enabled = true;
+      this.syncMobileControlsVisibility();
     };
 
     window.addEventListener("code-mania:terminal-active", this.handleTerminalActive);
@@ -615,14 +617,29 @@ export default class GameScene extends Phaser.Scene {
 
     if (this.isMobile) {
       this.mobileControls = new MobileControls(this, {
-        onInteract: () => this.handleInteract()
+        onInteract: () => {
+          if (this.gamePausedByTerminal || this.isTypingInUI()) return;
+          this.handleInteract();
+        }
       });
 
     }
 
-    this.orientationManager = new OrientationManager(this);
+    this.orientationManager = new OrientationManager(this, {
+      requireLandscape: false
+    });
+    this.syncMobileControlsVisibility();
+
     this.scale.on("resize", () => {
       this.cinematicBars.resize();
+      const { width, height } = this.scale;
+      this.mobileControls?.resize(width, height);
+      this.syncMobileControlsVisibility();
+    });
+
+    this.events.once("shutdown", () => {
+      this.mobileControls?.destroy();
+      this.mobileControls = null;
     });
 
 
@@ -632,11 +649,24 @@ export default class GameScene extends Phaser.Scene {
       this.onQuestComplete
     );
 
+    this.handleQuestStartedForMobile = () => {
+      this.syncMobileControlsVisibility();
+    };
+
+    this.handleQuestCompletedForMobile = () => {
+      this.syncMobileControlsVisibility();
+    };
+
+    window.addEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
+    window.addEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
+
     this.events.once("shutdown", () => {
       window.removeEventListener(
         "code-mania:quest-complete",
         this.onQuestComplete
       );
+      window.removeEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
+      window.removeEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
     });
 
 
@@ -718,7 +748,21 @@ export default class GameScene extends Phaser.Scene {
     );
   }
 
+  shouldDisableMobileControls() {
+    const activeQuest = this.questManager?.activeQuest;
+    const questInProgress = Boolean(activeQuest && !activeQuest.completed);
+
+    return this.gamePausedByTerminal || this.isTypingInUI() || questInProgress;
+  }
+
+  syncMobileControlsVisibility() {
+    if (!this.isMobile || !this.mobileControls) return;
+    this.mobileControls.setEnabled(!this.shouldDisableMobileControls());
+  }
+
   update() {
+    this.syncMobileControlsVisibility();
+
     if (this.gamePausedByTerminal || this.isTypingInUI()) {
       this.player.setVelocity(0);
       this.player.anims.stop();
