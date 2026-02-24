@@ -82,8 +82,9 @@ const InteractiveTerminal = ({ questId }) => {
 
 
   const runViaDocker = () => {
-    if (socketRef.current) socketRef.current.close();
-
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
     let finalOutput = ""; // prevent stale state issue
 
     const socket = new WebSocket("wss://terminal.codemania.fun");
@@ -92,6 +93,11 @@ const InteractiveTerminal = ({ questId }) => {
     socket.onopen = () => {
       window.dispatchEvent(new Event("code-mania:terminal-active"));
       socket.send(JSON.stringify({ language, code }));
+
+      // 🔥 FORCE FOCUS
+      setTimeout(() => {
+        terminalRef.current?.focus();
+      }, 0);
     };
 
     socket.onmessage = (e) => {
@@ -147,16 +153,18 @@ const InteractiveTerminal = ({ questId }) => {
   =============================== */
 
   const handleKeyDown = (e) => {
-    if (!waitingForInput || !socketRef.current) return;
-
     if (e.key === "Enter") {
-      socketRef.current.send(
-        JSON.stringify({ stdin: inputBuffer })
-      );
-
+      // Always show typed text
       setProgramOutput(prev => prev + inputBuffer + "\n");
+
+      // Only send to backend if container exists
+      if (socketRef.current) {
+        socketRef.current.send(
+          JSON.stringify({ stdin: inputBuffer })
+        );
+      }
+
       setInputBuffer("");
-      setWaitingForInput(false);
       e.preventDefault();
       return;
     }
@@ -235,24 +243,20 @@ const InteractiveTerminal = ({ questId }) => {
         />
       </div>
 
-      <div
-        className={styles["terminal"]}
-        ref={terminalRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-      >
+        <div
+            className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
+            ref={terminalRef}
+            tabIndex={isRunning ? 0 : -1}
+            onClick={() => isRunning && terminalRef.current?.focus()}
+            onKeyDown={handleKeyDown}
+          >
         <div className={styles["terminal-header"]}>Terminal</div>
 
         <div className={styles["terminal-content"]}>
           <pre>
             {programOutput}
-            {waitingForInput && inputBuffer}
-            {waitingForInput && (
-              <span className={styles.cursor}></span>
-            )}
-            {!programOutput &&
-              !waitingForInput &&
-              "▶ Output will appear here"}
+            {inputBuffer}
+            <span className={styles.cursor}></span>
           </pre>
         </div>
 

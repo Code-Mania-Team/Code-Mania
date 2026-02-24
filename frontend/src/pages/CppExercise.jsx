@@ -12,6 +12,8 @@ import ProgressBar from "../components/ProgressBar";
 
 import StageCompleteModal from "../components/StageCompleteModal";
 
+import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
+
 import CodeTerminal from "../components/CodeTerminal";
 
 import TutorialPopup from "../components/TutorialPopup";
@@ -34,6 +36,8 @@ import useGetExerciseById from "../services/getExerciseById";
 
 import useGetNextExercise from "../services/getNextExcercise.js";
 
+import useStartExercise from "../services/startExercise.js";
+
 
 
 const CppExercise = () => {
@@ -51,6 +55,8 @@ const CppExercise = () => {
   const getExerciseById = useGetExerciseById();
 
   const getNextExercise = useGetNextExercise();
+
+  const startExercise = useStartExercise();
 
 
 
@@ -74,13 +80,33 @@ const CppExercise = () => {
 
   const [showStageComplete, setShowStageComplete] = useState(false);
 
+  const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
+
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
 
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
-
+  
+  useEffect(() => {
+      const handleStart = async (e) => {
+        const questId = e.detail?.questId;
+        if (!questId) return;
+    
+        try {
+          await startExercise(questId);
+          console.log("✅ Quest started in backend");
+        } catch (err) {
+          console.error("Failed to start quest", err);
+        }
+      };
+    
+      window.addEventListener("code-mania:quest-started", handleStart);
+    
+      return () =>
+        window.removeEventListener("code-mania:quest-started", handleStart);
+    }, []);
 
   /* ===============================
 
@@ -150,7 +176,7 @@ const CppExercise = () => {
 
     const loadProgress = async () => {
 
-      const result = await getGameProgress("C++");
+      const result = await getGameProgress(2);
 
       if (result?.completedQuests) {
 
@@ -214,7 +240,7 @@ const CppExercise = () => {
 
       if (!next) {
 
-        setShowStageComplete(true);
+        setShowCourseCompletePrompt(true);
 
         return;
 
@@ -312,6 +338,14 @@ const CppExercise = () => {
 
       }
 
+      if (Number(questId) === activeExerciseId) {
+        getNextExercise(activeExerciseId).then((next) => {
+          if (!next) {
+            setShowCourseCompletePrompt(true);
+          }
+        });
+      }
+
     };
 
 
@@ -337,66 +371,6 @@ const CppExercise = () => {
     };
 
   }, [activeExercise, dbCompletedQuests]);
-
-
-
-  /* ===============================
-
-     RUN CODE (SIMULATED C++)
-
-  =============================== */
-
-  const handleRunCode = () => {
-
-    if (!terminalEnabled || isRunning) return;
-
-
-
-    setIsRunning(true);
-
-    setOutput("Compiling C++...\n");
-
-
-
-    setTimeout(() => {
-
-      try {
-
-        // In production this should hit a backend compiler
-
-        const expected = activeExercise.expectedOutput || "";
-
-
-
-        setOutput(expected || "Program ran successfully.");
-
-
-
-        window.dispatchEvent(
-
-          new CustomEvent("code-mania:quest-complete", {
-
-            detail: { questId: activeExercise.id }
-
-          })
-
-        );
-
-      } catch (err) {
-
-        setOutput(`❌ ${err.message}`);
-
-      } finally {
-
-        setIsRunning(false);
-
-      }
-
-    }, 800);
-
-  };
-
-
 
   /* ===============================
 
@@ -483,7 +457,7 @@ const CppExercise = () => {
         <ProgressBar
           currentLesson={activeExercise?.order_index || 1}
           totalLessons={activeExercise?.totalExercises || 16}
-          title="💻 C++ Basics"
+          title={activeExercise?.lesson_header || activeExercise?.title || "C++ Exercise"}
 
         />
 
@@ -501,23 +475,7 @@ const CppExercise = () => {
 
           <CodeTerminal
 
-            language="cpp"
-
-            code={code}
-
-            onCodeChange={setCode}
-
-            onRun={handleRunCode}
-
-            output={output}
-
-            isRunning={isRunning}
-
-            showRunButton={terminalEnabled}
-
-            disabled={!terminalEnabled}
-
-          />
+            questId={activeExerciseId}/>
 
         </div>
 
@@ -532,6 +490,20 @@ const CppExercise = () => {
         languageLabel="C++"
 
         onClose={() => setShowStageComplete(false)}
+
+      />
+
+
+
+      <CourseCompletionPromptModal
+
+        show={showCourseCompletePrompt}
+
+        languageLabel="C++"
+
+        onTakeExam={() => navigate("/exam/cpp")}
+
+        onClose={() => setShowCourseCompletePrompt(false)}
 
       />
 

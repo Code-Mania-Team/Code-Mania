@@ -168,6 +168,16 @@
   animation: fadeIn 0.2s ease-in-out;
 }
 
+.successText {
+  background: linear-gradient(90deg, #00c6ff, #007bff, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }

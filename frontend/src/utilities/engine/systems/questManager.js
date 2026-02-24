@@ -81,13 +81,24 @@ export default class QuestManager {
 
     console.log("🏁 QUEST COMPLETED:", quest.title);
     let exitTarget = null;
+    const questOrder = Number(quest?.order_index);
 
     this.scene.mapExits?.children?.iterate(zone => {
-    if (Number(zone.exitData?.requiredQuest) === id) {
+    const required = Number(zone.exitData?.requiredQuest);
+    if (required === Number(id) || (Number.isFinite(questOrder) && required === questOrder)) {
       zone.exitArrow?.setVisible(true);
       exitTarget = zone;
     }
     });
+
+    // Fallback for maps without required_quest configured
+    if (!exitTarget) {
+      const firstExit = this.scene.mapExits?.getChildren?.()?.[0] || null;
+      if (firstExit) {
+        firstExit.exitArrow?.setVisible(true);
+        exitTarget = firstExit;
+      }
+    }
 
     // 🎯 Switch pointer to exit
     if (exitTarget) {

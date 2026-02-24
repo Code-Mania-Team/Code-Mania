@@ -53,6 +53,35 @@
   margin-bottom: 2rem;
 }
 
+.exercise-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.status-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+
+.status-icon-wrap {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon.locked {
+  color: #64748b;
+}
+
+.status-icon.available {
+  color: #3b82f6;
+}
+
 .status-icon.completed {
   width: 50px;
   height: 50px;

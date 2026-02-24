@@ -811,7 +811,7 @@ export const MAPS = {
     },
     map10: {
       mapKey: "cpp_map10",
-      mapJson: "/assets/maps/Cpp/cpp_10.json",
+      mapJson: "/assets/maps/Cpp/cpp_map10.json",
       tilesets: [
         { name: "MordernOuter_TileA4", key: "MordernOuter_TileA4", image: "/assets/tilesets/Cpp/MordernOuter_TileA4.png" },
         { name: "SP_Outside_A2", key: "SP_Outside_A2", image: "/assets/tilesets/Cpp/SP_Outside_A2.png" },

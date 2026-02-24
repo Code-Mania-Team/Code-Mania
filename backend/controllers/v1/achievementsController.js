@@ -79,6 +79,33 @@ class AchievementsController {
             });
         }
     }
+    async getCourseBadges(req, res) {
+        try {
+            const { languageId } = req.params;
+
+            if (!languageId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Language ID is required"
+                });
+            }
+
+            const badges = await this.achievements
+                .getAchievementsByLanguage(Number(languageId));
+
+            res.status(200).json({
+                success: true,
+                data: badges
+            });
+
+        } catch (error) {
+            console.error("getCourseBadges error:", error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
 }
 
 export default AchievementsController;

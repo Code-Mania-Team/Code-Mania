@@ -8,9 +8,10 @@ export default class QuestUI {
 
     const { width, height } = scene.scale;
 
-    this.panelLeft = 50;
+    this.panelHorizontalPad = Math.max(40, Math.round(width * 0.12));
+    this.panelLeft = this.panelHorizontalPad;
     this.panelTop = 50;
-    this.panelWidth = width - 100;
+    this.panelWidth = width - this.panelHorizontalPad * 2;
     this.panelHeight = height - 100;
 
     this.titleY = 90;
@@ -63,7 +64,7 @@ export default class QuestUI {
     // 1. Description — normal readable font, cream colour
     this.bodyText = scene.add.text(this.contentLeft, this.bodyBaseY, "", {
       fontFamily: "'Georgia', serif",
-      fontSize: "17px",
+      fontSize: "18px",
       color: "#f5f0d6",
       lineSpacing: 8,
       wordWrap: { width: this.contentWidth }
@@ -72,7 +73,7 @@ export default class QuestUI {
     // 2. task — green challenge block shown at the END of description
     this.taskText = scene.add.text(this.contentLeft, this.bodyBaseY, "", {
       fontFamily: "'Courier New', Courier, monospace",
-      fontSize: "15px",
+      fontSize: "18px",
       color: "#a8ff60",
       backgroundColor: "#0d2b00",
       padding: { left: 14, right: 14, top: 12, bottom: 12 },
@@ -97,6 +98,42 @@ export default class QuestUI {
 
     this.scrollbarTrack = scene.add.graphics();
     this.scrollbarThumb = scene.add.graphics();
+
+    // Close button (X)
+    this.closeButton = scene.add.text(
+      this.panelLeft + this.panelWidth - 30,
+      this.panelTop + 22,
+      "X",
+      {
+        fontFamily: "Arial",
+        fontSize: "24px",
+        color: "#ffd37a",
+        fontStyle: "bold",
+      }
+    )
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1001)
+      .setInteractive(
+        new Phaser.Geom.Rectangle(-18, -18, 36, 36),
+        Phaser.Geom.Rectangle.Contains
+      );
+
+    this.closeButton.on("pointerover", () => {
+      this.closeButton.setColor("#ffffff");
+    });
+
+    this.closeButton.on("pointerout", () => {
+      this.closeButton.setColor("#ffd37a");
+    });
+
+    this.closeButton.on("pointerdown", () => {
+      this.hide();
+    });
+
+    this.closeButton.on("pointerup", () => {
+      this.hide();
+    });
 
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (!this.visible) return;
@@ -127,6 +164,7 @@ export default class QuestUI {
       this.bodyMaskGraphics,
       this.scrollbarTrack,
       this.scrollbarThumb,
+      this.closeButton,
     ]);
   }
 
@@ -136,8 +174,6 @@ export default class QuestUI {
     this.ignoreWheelUntil = this.scene.time.now + 250;
 
     window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
 
     this.titleText.setText(quest.title || "");
 
@@ -204,8 +240,6 @@ export default class QuestUI {
         this.container.setVisible(false);
         this.visible = false;
         this.bodyScroll = 0;
-        document.body.style.overflow = "";
-        document.documentElement.style.overflow = "";
       }
     });
   }

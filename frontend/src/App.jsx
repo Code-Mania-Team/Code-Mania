@@ -26,6 +26,7 @@ import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
 import AuthLoadingOverlay from "./components/AuthLoadingOverlay";
+import ProtectedRoute from "./components/protectedRoutes";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -132,8 +133,14 @@ const Home = () => (
 import axios from 'axios';
 // WelcomeOnboarding wrapper component
 const WelcomeOnboardingWrapper = () => {
-  const { isAuthenticated, user } = useAuth();
+  // const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state?.openSignIn) {
+      setIsModalOpen(true);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -188,8 +195,15 @@ function App() {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  
 
   const SessionOut = useSessionOut();
+
+  useEffect(() => {
+    if (location.state?.openSignIn) {
+      setIsModalOpen(true);
+    }
+  }, [location.state]);
 
   const handleSignOut = async () => {
     try {
@@ -280,27 +294,45 @@ function App() {
           <Route 
             path="/learn/python/exercise/:exerciseId" 
             element={
-              <PythonExercise 
-                isAuthenticated={isAuthenticated}
-                onOpenModal={() => setIsModalOpen(true)}
-                onSignOut={handleSignOut}
-              />
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <PythonExercise 
+                  isAuthenticated={isAuthenticated}
+                  onOpenModal={() => setIsModalOpen(true)}
+                  onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>
+
             } 
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
-          <Route path="/learn/cpp/exercise/:exerciseId" element={<CppExercise />} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<CppExercise />} />
+          <Route path="/learn/cpp/exercise/:exerciseId" element={<ProtectedRoute>
+      <CppExercise />
+    </ProtectedRoute>} />
+          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute>
+      <CppExercise />
+    </ProtectedRoute>} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-          <Route path="/learn/javascript/exercise/:exerciseId" element={<JavaScriptExercise />} />
+          <Route path="/learn/javascript/exercise/:exerciseId" element={<ProtectedRoute>
+                                                                              <JavaScriptExercise />
+                                                                            </ProtectedRoute>
+                                                                        } />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
-          <Route path="/dashboard" element={<Dashboard onSignOut={handleSignOut} />} />
+          <Route path="/dashboard" element={<ProtectedRoute>
+      <Dashboard onSignOut={handleSignOut} />
+    </ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
-          <Route path="/coding-exam/:language" element={<CodingExamPage />} />
-          <Route path="/exam/:language" element={<CodingExamPage />} />
-          <Route path="/quiz/:language/:quizId" element={<QuizPage />} />
+          <Route path="/coding-exam/:language" element={<ProtectedRoute>
+      <CodingExamPage />
+    </ProtectedRoute>} />
+          <Route path="/exam/:language" element={<ProtectedRoute>
+      <CodingExamPage />
+    </ProtectedRoute>} />
+          <Route path="/quiz/:language/:quizId" element={<ProtectedRoute>
+      <QuizPage />
+    </ProtectedRoute>} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<PageNotFound />} />

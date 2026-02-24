@@ -93,11 +93,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-<<<<<<< HEAD
-                         "value":1
-=======
                          "value":6
->>>>>>> 56e5cef87a8dc875a9c142da84ca25116549c24a
                         }, 
                         {
                          "name":"target_map",

@@ -36,152 +36,6 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 
 
-import pythonBadge1 from '../assets/badges/Python/python-badge1.png';
-
-
-
-import pythonBadge2 from '../assets/badges/Python/python-badge2.png';
-
-
-
-import pythonBadge3 from '../assets/badges/Python/python-badge3.png';
-
-
-
-import pythonBadge4 from '../assets/badges/Python/python-badge4.png';
-
-
-
-import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
-
-import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
-
-import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
-
-import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
-
-
-
-import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
-
-
-
-import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
-
-
-
-import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
-
-
-
-import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
-
-
-
-import achievementsConfig from "../utilities/data/achievements.json";
-
-
-
-const badgeImageById = {
-
-
-
-  divine_warrior: pythonBadge3,
-
-
-
-  python_master: pythonBadge1,
-
-
-
-  bug_hunter: pythonBadge2,
-
-
-
-  speed_coder: cppBadge1,
-
-
-
-  first_steps: pythonBadge1,
-
-
-
-};
-
-
-
-const defaultBadgeImage = pythonBadge2;
-
-
-
-const badgeImageByKey = {
-
-
-
-  // JavaScript badges
-
-
-
-  "js-stage1": jsStage1Badge,
-
-
-
-  "js-stage2": jsStage2Badge,
-
-
-
-  "js-stage3": jsStage3Badge,
-
-
-
-  "js-stage4": jsStage4Badge,
-
-
-
-  // Python badges
-
-
-
-  "python-stage1": pythonBadge1,
-
-
-
-  "python-stage2": pythonBadge2,
-
-
-
-  "python-stage3": pythonBadge3,
-
-
-
-  "python-stage4": pythonBadge4,
-
-
-
-  // C++ badges
-
-
-
-  "cpp-stage1": cppBadge1,
-
-
-
-  "cpp-stage2": cppBadge2,
-
-
-
-  "cpp-stage3": cppBadge3,
-
-
-
-  "cpp-stage4": cppBadge4,
-
-
-
-};
-
-
-
 const Profile = ({ onSignOut }) => {
 
 
@@ -672,6 +526,7 @@ const Profile = ({ onSignOut }) => {
 
   const { achievements } = useGetAchievements();
 
+
   const learningProgress = {
     python: { progress: 0, total: 0, icon: <Terminal size={20} /> },
     cpp: { progress: 0, total: 0, icon: <Code size={20} /> },
@@ -701,8 +556,10 @@ const Profile = ({ onSignOut }) => {
     id: item?.id,
     title: item?.title || 'Achievement',
     description: item?.description || '',
-    received: item?.earned_at ? new Date(item.earned_at).toLocaleString() : 'Locked',
-    badgeKey: item?.badge_key,
+    received: item?.earned_at
+      ? new Date(item.earned_at).toLocaleString()
+      : 'Locked',
+    badgeUrl: item?.badge_key,
   }));
 
 
@@ -1368,13 +1225,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                          src={
-
-                            (badge.badgeKey && badgeImageByKey[badge.badgeKey]) ||
-
-                            badgeImageByKey['python-stage1']
-
-                          }
+                          src={badge.badgeUrl || "/default-badge.png"}
 
 
 

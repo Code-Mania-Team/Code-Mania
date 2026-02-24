@@ -8,12 +8,7 @@ import TutorialPopup from "../components/TutorialPopup";
 import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import useAuth from "../hooks/useAxios";
-
-// Import C++ course badges
-import cppBadge1 from "../assets/badges/C++/cpp-badges1.png";
-import cppBadge2 from "../assets/badges/C++/cpp-badges2.png";
-import cppBadge3 from "../assets/badges/C++/cpp-badge3.png";
-import cppBadge4 from "../assets/badges/C++/cpp-badge4.png";
+import useGetCourseBadges from "../services/getCourseBadge";
 
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
@@ -21,25 +16,32 @@ const checkmarkIcon =
 const CppCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const getExercises = useGetExercises();
   const getGameProgress = useGetGameProgress();
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(2);
+  const getExercises = useGetExercises();
 
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState(null);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [modules, setModules] = useState([]);
   const [data, setData] = useState();
+
+  const tutorialSeenKey = user?.user_id
+    ? `hasSeenTutorial_${user.user_id}`
+    : "hasSeenTutorial";
 
   /* ===============================
      FETCH C++ EXERCISES (UNCHANGED)
   =============================== */
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
-        const exercises = await getExercises(2); // 2 = C++
-
-        if (!exercises) return;
+        const exercises = await getExercises(2);
+        if (cancelled) return;
 
         const groupedModules = [
           {
@@ -77,6 +79,7 @@ const CppCourse = () => {
 
         exercises.forEach((exercise) => {
           const order = Number(exercise.order_index || 0);
+
           if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
           else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
           else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
@@ -84,12 +87,18 @@ const CppCourse = () => {
         });
 
         setModules(groupedModules);
-      } catch (err) {
-        console.error("Failed to fetch C++ exercises", err);
+
+      } catch (error) {
+        console.error("Failed to fetch C++ exercises:", error);
+        if (!cancelled) setModules([]);
       }
     };
 
     fetchData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /* ===============================
@@ -101,25 +110,25 @@ const CppCourse = () => {
       setData(null);
       return;
     }
-  
+
     const loadProgress = async () => {
       try {
         const result = await getGameProgress(2);
-  
+
         if (!result) return; // handles 401 returning null
-  
+
         setData(result);
-  
+
         setCompletedExercises(
           new Set(result.completedQuests || [])
-          );
-  
+        );
+
       } catch (err) {
         console.error("Failed to load game progress", err);
         setCompletedExercises(new Set());
       }
     };
-  
+
     loadProgress();
   }, [isAuthenticated]);
 
@@ -137,14 +146,17 @@ const CppCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    // Check if quiz for this module is already completed
+    if (data?.completedQuizStages?.includes(moduleId)) return "completed";
+
     // Check if all exercises in the module are completed
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
+
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise =>
       completedExercises.has(exercise.id)
     );
-    
+
     return allExercisesCompleted ? "available" : "locked";
   };
 
@@ -153,18 +165,31 @@ const CppCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
-    const authed = localStorage.getItem("isAuthenticated") === "true";
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}`;
 
-    if (authed && !hasSeenTutorial) {
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
       setShowTutorial(true);
+      return;
     }
 
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "C++");
     localStorage.setItem("lastCourseRoute", "/learn/cpp");
 
-    navigate(`/learn/cpp/exercise/${moduleId}/${exerciseId}`);
+    navigate(route);
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem(tutorialSeenKey, "true");
+
+    if (pendingRoute) {
+      const nextRoute = pendingRoute;
+      setPendingRoute(null);
+      navigate(nextRoute);
+    }
   };
 
   const getStatusIcon = (status) => {
@@ -356,10 +381,17 @@ const CppCourse = () => {
             <h4 className="progress-title">Course Badges</h4>
 
             <div className="course-badges-grid">
-              <img src={cppBadge1} alt="C++ Stage 1" className="cpp-course-badge" />
-              <img src={cppBadge2} alt="C++ Stage 2" className="cpp-course-badge" />
-              <img src={cppBadge3} alt="C++ Stage 3" className="cpp-course-badge" />
-              <img src={cppBadge4} alt="C++ Stage 4" className="cpp-course-badge" />
+              {badgesLoading && <p>Loading...</p>}
+
+              {!badgesLoading &&
+                courseBadges?.map((badge) => (
+                  <img
+                    key={badge.id}
+                    src={badge.badge_key}
+                    alt={badge.title}
+                    className="cpp-course-badge"
+                  />
+                ))}
             </div>
           </div>
         </div>
@@ -373,10 +405,7 @@ const CppCourse = () => {
       {showTutorial && (
         <TutorialPopup
           open={showTutorial}
-          onClose={() => {
-            setShowTutorial(false);
-            localStorage.setItem("hasSeenTutorial", "true");
-          }}
+          onClose={handleTutorialClose}
         />
       )}
     </div>

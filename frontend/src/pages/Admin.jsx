@@ -34,27 +34,49 @@ function Admin() {
   const fetchDatasets = async () => {
     setDatasetsLoading(true);
     try {
-      const response = await axiosPublic.get("/v1/admin/datasets", { withCredentials: true });
-      if (response.data.success) {
-        const summary = response.data.data;
-        const formattedDatasets = Object.entries(summary).map(([course, data]) => ({
-          name: `${course}Exercises.json`,
-          course,
-          total: data.total,
-          published: data.published,
-          draft: data.draft,
-          status: data.draft > 0 ? "draft" : "published",
-          updatedAt: new Date(data.lastUpdated).toLocaleDateString()
-        }));
-        setDatasets(formattedDatasets);
-      }
+      const courses = [
+        { course: 'python', languageId: 1, name: 'Python Quests' },
+        { course: 'cpp', languageId: 2, name: 'C++ Quests' },
+        { course: 'javascript', languageId: 3, name: 'JavaScript Quests' },
+      ];
+
+      const responses = await Promise.all(
+        courses.map((item) =>
+          axiosPublic.get(`/v1/exercises/programming-language/${item.languageId}`, { withCredentials: true })
+        )
+      );
+
+      const formattedDatasets = courses.map((item, index) => {
+        const rows = responses[index]?.data?.data || [];
+        const total = rows.length;
+        const published = rows.filter((row) => row?.status === 'published').length;
+        const draft = rows.filter((row) => row?.status === 'draft').length;
+
+        const latestTimestamp = rows.reduce((latest, row) => {
+          const candidate = row?.updated_at || row?.created_at;
+          if (!candidate) return latest;
+          if (!latest) return candidate;
+          return new Date(candidate) > new Date(latest) ? candidate : latest;
+        }, null);
+
+        return {
+          name: item.name,
+          course: item.course,
+          total,
+          published,
+          draft,
+          updatedAt: latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : '-',
+        };
+      });
+
+      setDatasets(formattedDatasets);
     } catch (error) {
       console.error("Error fetching datasets:", error);
       // Fallback to demo data on error
       setDatasets([
-        { name: "pythonExercises.json", status: "draft", updatedAt: "Today" },
-        { name: "cppExercises.json", status: "published", updatedAt: "Yesterday" },
-        { name: "jsExercises.json", status: "draft", updatedAt: "2 days ago" },
+        { name: "Python Quests", course: "python", total: 0, published: 0, draft: 0, status: "draft", updatedAt: "Today" },
+        { name: "C++ Quests", course: "cpp", total: 0, published: 0, draft: 0, status: "published", updatedAt: "Yesterday" },
+        { name: "JavaScript Quests", course: "javascript", total: 0, published: 0, draft: 0, status: "draft", updatedAt: "2 days ago" },
       ]);
     } finally {
       setDatasetsLoading(false);
@@ -235,7 +257,7 @@ function Admin() {
           
           // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
-            // fetchDatasets();
+            fetchDatasets();
             fetchMetrics();
             fetchQuizMetrics();
             fetchUserQuizSummary();
@@ -323,8 +345,6 @@ function Admin() {
           </div>
         </div>
 
-        <p className={styles.subtitle}>Simple dashboard (demo values for now).</p>
-
         <div className={styles.grid}>
           <StatCard title="Total Users" value={metricsLoading ? '…' : (metrics?.totalUsers ?? demo.totalUsers)} />
           <StatCard title="New Users (7 days)" value={metricsLoading ? '…' : (metrics?.newUsers7d ?? demo.newUsers7d)} />
@@ -367,11 +387,9 @@ function Admin() {
         <div className={styles.header} style={{ marginTop: 24 }}>
           <div className={styles.headerLeft}>
             <BarChart3 className={styles.icon} />
-            <h2 className={styles.title}>Exam Analytics & Statistics</h2>
+            <h2 className={styles.title}>Quiz Analytics & Statistics</h2>
           </div>
         </div>
-
-        <p className={styles.subtitle}>Real user quiz attempts from backend.</p>
 
         <div className={styles.grid}>
           <StatCard title="Quiz Attempts" value={quizMetricsLoading ? '…' : (quizMetrics?.totalAttempts ?? 0)} />
@@ -547,12 +565,11 @@ function Admin() {
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>
             <Database className={styles.icon} />
-            <h2 className={styles.title}>Datasets</h2>
+            <h2 className={styles.title}>Quest Database</h2>
           </div>
-          <button className={styles.button} type="button" onClick={() => alert("Next: Create dataset")}>Create Dataset</button>
         </div>
 
-        <p className={styles.subtitle}>Manage course exercise datasets.</p>
+        <p className={styles.subtitle}>Edit quest titles, descriptions, tasks, requirements, and other fields directly from the database.</p>
 
         {datasetsLoading ? (
           <div className={styles.panel}>
@@ -562,10 +579,10 @@ function Admin() {
           <div className={styles.panel}>
             <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
               {datasets.length === 0 ? (
-                <p>No datasets found. Create your first exercise dataset!</p>
+                <p>No quest collections found.</p>
               ) : (
                 datasets.map((d) => (
-                  <div key={d.name} className={styles.datasetRow}>
+                  <div key={d.course || d.name} className={styles.datasetRow}>
                     <div className={styles.datasetLeft}>
                       <div className={styles.datasetName}>{d.name}</div>
                       <div className={styles.datasetMeta}>
@@ -573,8 +590,14 @@ function Admin() {
                       </div>
                     </div>
                     <div className={styles.datasetActions}>
-                      <button className={styles.button} type="button" onClick={() => navigate(`/admin/exercises/${d.course}`)}>Manage</button>
-                      <button className={styles.button} type="button" onClick={() => alert(`Edit ${d.name}`)}>Edit</button>
+                      <button
+                        className={styles.button}
+                        type="button"
+                        onClick={() => navigate(`/admin/exercises/${d.course}`)}
+                        disabled={!d.course}
+                      >
+                        Edit Quests
+                      </button>
                     </div>
                   </div>
                 ))

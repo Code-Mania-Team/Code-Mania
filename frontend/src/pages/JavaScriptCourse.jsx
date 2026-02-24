@@ -8,12 +8,7 @@ import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import useGetExercises from "../services/getExercise";
-
-// Import JavaScript course badges
-import jsStage1Badge from "../assets/badges/JavaScript/js-stage1.png";
-import jsStage2Badge from "../assets/badges/JavaScript/js-stage2.png";
-import jsStage3Badge from "../assets/badges/JavaScript/js-stage3.png";
-import jsStage4Badge from "../assets/badges/JavaScript/js-stage4.png";
+import useGetCourseBadges from "../services/getCourseBadge";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
@@ -21,38 +16,57 @@ const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
-  const getExercises = useGetExercises();
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const getExercises = useGetExercises();
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
   const [data, setData] = useState();
 
+  const tutorialSeenKey = user?.user_id
+    ? `hasSeenTutorial_${user.user_id}`
+    : "hasSeenTutorial";
+
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
-      const exercises = await getExercises(3); // JS
+      try {
+        const exercises = await getExercises(3);
+        if (cancelled) return;
 
-      const groupedModules = [
-        { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
-        { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
-        { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
-        { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
-        { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
-      ];
+        const groupedModules = [
+          { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
+          { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
+          { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
+          { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
+          { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
+        ];
 
-      exercises.forEach((exercise) => {
-        const order = Number(exercise.order_index || 0);
-        if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-        else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-        else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-        else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
-      });
+        exercises.forEach((exercise) => {
+          const order = Number(exercise.order_index || 0);
 
-      setModules(groupedModules);
+          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
+          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
+          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
+          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
+        });
+
+        setModules(groupedModules);
+
+      } catch (error) {
+        console.error("Failed to fetch JavaScript exercises:", error);
+        if (!cancelled) setModules([]);
+      }
     };
 
     fetchData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -93,14 +107,17 @@ const JavaScriptCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    // Check if quiz for this module is already completed
+    if (data?.completedQuizStages?.includes(moduleId)) return "completed";
+
     // Check if all exercises in the module are completed
     const module = modules.find(m => m.id === moduleId);
     if (!module) return "locked";
-    
-    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise => 
+
+    const allExercisesCompleted = module.exercises.length > 0 && module.exercises.every(exercise =>
       completedExercises.has(exercise.id)
     );
-    
+
     return allExercisesCompleted ? "available" : "locked";
   };
 
@@ -138,18 +155,31 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExercise = (exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
-    const authed = localStorage.getItem("isAuthenticated") === "true";
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = `/learn/javascript/exercise/${exerciseId}`;
 
-    if (authed && !hasSeenTutorial) {
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
       setShowTutorial(true);
+      return;
     }
 
     localStorage.setItem("hasTouchedCourse", "true");
     localStorage.setItem("lastCourseTitle", "JavaScript");
     localStorage.setItem("lastCourseRoute", "/learn/javascript");
 
-    navigate(`/learn/javascript/exercise/${exerciseId}`);
+    navigate(route);
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem(tutorialSeenKey, "true");
+
+    if (pendingRoute) {
+      const nextRoute = pendingRoute;
+      setPendingRoute(null);
+      navigate(nextRoute);
+    }
   };
 
   const toggleModule = (moduleId) => {
@@ -248,9 +278,7 @@ const JavaScriptCourse = () => {
                                 Start
                               </button>
                             ) : (
-                              <button className="locked-btn" disabled>
-                                {getStatusIcon(status)}
-                              </button>
+                              <span className="status-icon-wrap">{getStatusIcon(status)}</span>
                             )}
                           </div>
                         </div>
@@ -273,7 +301,7 @@ const JavaScriptCourse = () => {
                               Start
                             </button>
                           ) : (
-                            getStatusIcon(getQuizStatus(module.id))
+                            <span className="status-icon-wrap">{getStatusIcon(getQuizStatus(module.id))}</span>
                           )}
                         </div>
                       </div>
@@ -290,7 +318,7 @@ const JavaScriptCourse = () => {
         <div className="sidebar">
           <div className="progress-card">
             <h4 className="progress-title">Course Progress</h4>
-            
+
             <div className="progress-item">
               <div className="progress-label">
                 <div className="progress-icon exercises"></div>
@@ -326,10 +354,17 @@ const JavaScriptCourse = () => {
           <div className="progress-card">
             <h4 className="progress-title">Course Badges</h4>
             <div className="course-badges-grid">
-              <img src={jsStage1Badge} alt="JavaScript Stage 1" className="javascript-course-badge" />
-              <img src={jsStage2Badge} alt="JavaScript Stage 2" className="javascript-course-badge" />
-              <img src={jsStage3Badge} alt="JavaScript Stage 3" className="javascript-course-badge" />
-              <img src={jsStage4Badge} alt="JavaScript Stage 4" className="javascript-course-badge" />
+              {badgesLoading && <p>Loading...</p>}
+
+              {!badgesLoading &&
+                courseBadges?.map((badge) => (
+                  <img
+                    key={badge.id}
+                    src={badge.badge_key}
+                    alt={badge.title}
+                    className="javascript-course-badge"
+                  />
+                ))}
             </div>
           </div>
         </div>
@@ -344,10 +379,7 @@ const JavaScriptCourse = () => {
       {showTutorial && (
         <TutorialPopup
           open={showTutorial}
-          onClose={() => {
-            setShowTutorial(false);
-            localStorage.setItem("hasSeenTutorial", "true");
-          }}
+          onClose={handleTutorialClose}
         />
       )}
     </div>

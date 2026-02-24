@@ -32,6 +32,7 @@ import useGetExerciseById from "../services/getExerciseById";
 
 import useGetNextExercise from "../services/getNextExcercise.js";
 
+import useStartExercise from "../services/startExercise.js";
 
 
 const JavaScriptExercise = () => {
@@ -49,6 +50,8 @@ const JavaScriptExercise = () => {
   const getExerciseById = useGetExerciseById();
 
   const getNextExercise = useGetNextExercise();
+
+  const startExercise = useStartExercise();
 
 
 
@@ -81,6 +84,25 @@ const JavaScriptExercise = () => {
 
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
+
+  useEffect(() => {
+    const handleStart = async (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+  
+      try {
+        await startExercise(questId);
+        console.log("✅ Quest started in backend");
+      } catch (err) {
+        console.error("Failed to start quest", err);
+      }
+    };
+  
+    window.addEventListener("code-mania:quest-started", handleStart);
+  
+    return () =>
+      window.removeEventListener("code-mania:quest-started", handleStart);
+  }, []);
 
 
 
@@ -152,7 +174,7 @@ const JavaScriptExercise = () => {
 
     const loadProgress = async () => {
 
-      const result = await getGameProgress("JavaScript");
+      const result = await getGameProgress(3);
 
       if (result?.completedQuests) {
 
@@ -348,112 +370,6 @@ const JavaScriptExercise = () => {
 
   /* ===============================
 
-     RUN CODE
-
-  =============================== */
-
-  const normalize = (text = "") =>
-
-    text
-
-      .replace(/\r\n/g, "\n")
-
-      .split("\n")
-
-      .map((line) => line.trim())
-
-      .join("\n")
-
-      .trim();
-
-
-
-  const handleRunCode = () => {
-
-    if (!terminalEnabled || isRunning) return;
-
-
-
-    setIsRunning(true);
-
-    setOutput("Running...");
-
-
-
-    try {
-
-      const logs = [];
-
-      const originalLog = console.log;
-
-
-
-      console.log = (...args) => {
-
-        logs.push(args.join(" "));
-
-        originalLog(...args);
-
-      };
-
-
-
-      eval(code);
-
-
-
-      console.log = originalLog;
-
-
-
-      const rawOutput = logs.join("\n");
-
-      setOutput(rawOutput);
-
-
-
-      const expected = normalize(activeExercise.expectedOutput);
-
-      const actual = normalize(rawOutput);
-
-
-
-      if (expected && actual === expected) {
-
-        window.dispatchEvent(
-
-          new CustomEvent("code-mania:quest-complete", {
-
-            detail: { questId: activeExercise.id }
-
-          })
-
-        );
-
-      }
-
-    } catch (err) {
-
-      setOutput(`❌ ${err.message}`);
-
-    } finally {
-
-      setIsRunning(false);
-
-      window.dispatchEvent(
-
-        new CustomEvent("code-mania:terminal-inactive")
-
-      );
-
-    }
-
-  };
-
-
-
-  /* ===============================
-
      AUTH
 
   =============================== */
@@ -554,14 +470,13 @@ const JavaScriptExercise = () => {
 
 
           <CodeTerminal
+            questId={activeExerciseId}
 
             language="javascript"
 
             code={code}
 
             onCodeChange={setCode}
-
-            onRun={handleRunCode}
 
             output={output}
 

@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import { authorization } from '../../middlewares/authorization.js';
 import { authentication } from '../../middlewares/authentication.js';
+import requireAdmin from '../../middlewares/requireAdmin.js';
 import { supabase } from '../../core/supabaseClient.js';
 
 const router = Router();
 
 router.use(authorization);
-
-const isAdminRequest = (res) => res.locals.role === 'admin';
 
 const mapQuizAttempt = (row) => {
   const language = row?.quizzes?.programming_languages?.slug || 'unknown';
@@ -172,12 +171,8 @@ router.get('/admin-summary', async (req, res) => {
   }
 });
 
-router.get('/quiz-attempts', authentication, async (req, res) => {
+router.get('/quiz-attempts', authentication, requireAdmin, async (req, res) => {
   try {
-    if (!isAdminRequest(res)) {
-      return res.status(403).json({ success: false, message: 'Forbidden: admin access required' });
-    }
-
     const { data: rows, error } = await supabase
       .from('user_quiz_attempts')
       .select(`
@@ -234,12 +229,8 @@ router.get('/quiz-attempts', authentication, async (req, res) => {
   }
 });
 
-router.get('/quiz-attempts/by-user', authentication, async (req, res) => {
+router.get('/quiz-attempts/by-user', authentication, requireAdmin, async (req, res) => {
   try {
-    if (!isAdminRequest(res)) {
-      return res.status(403).json({ success: false, message: 'Forbidden: admin access required' });
-    }
-
     const { data: rows, error } = await supabase
       .from('user_quiz_attempts')
       .select(`
@@ -333,12 +324,8 @@ router.get('/quiz-attempts/by-user', authentication, async (req, res) => {
   }
 });
 
-router.get('/quiz-attempts/by-user/:userId', authentication, async (req, res) => {
+router.get('/quiz-attempts/by-user/:userId', authentication, requireAdmin, async (req, res) => {
   try {
-    if (!isAdminRequest(res)) {
-      return res.status(403).json({ success: false, message: 'Forbidden: admin access required' });
-    }
-
     const { userId } = req.params;
 
     const { data: rows, error } = await supabase

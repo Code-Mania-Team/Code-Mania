@@ -155,12 +155,14 @@ class AccountService {
             .select(
                 `
                 exercise_id,
+                status,
                 quests (
                     experience
                 )
                 `
             )
-            .eq("user_id", user_id);
+            .eq("user_id", user_id)
+            .eq("status", "completed");
 
         if (questError) {
             throw questError;

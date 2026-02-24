@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import path from "path";
 
 const crownPath = path.resolve(process.cwd(), "public", "crown.png");
@@ -288,6 +291,7 @@ export async function sendOtpEmail({ toEmail, otp, type }) {
       })
     });
     console.log("Brevo API response status:", response.status);
+    console.log("Brevo API response headers:", process.env.BREVO_API_KEY);
 
     if (!response.ok) {
       const errorText = await response.text();
