@@ -61,9 +61,6 @@ export default class GameScene extends Phaser.Scene {
     this.openedChests = new Set();
   }
 
-
-
-
   setupLayerSwitching() {
     // Get the layer references
     this.groundLayer = this.mapLoader.map.getLayer("ground")?.tilemapLayer;
@@ -180,8 +177,30 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
     this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
 
+    // 🏅 Load badge images
+    const badgePaths = {
+      // Python badges
+      "badge-python-1": "/assets/badges/Python/python-badge1.png",
+      "badge-python-2": "/assets/badges/Python/python-badge2.png", 
+      "badge-python-3": "/assets/badges/Python/python-badge3.png",
+      "badge-python-4": "/assets/badges/Python/python-badge4.png",
+      // JavaScript badges
+      "badge-js-1": "/assets/badges/JavaScript/js-stage1.png",
+      "badge-js-2": "/assets/badges/JavaScript/js-stage2.png",
+      "badge-js-3": "/assets/badges/JavaScript/js-stage3.png", 
+      "badge-js-4": "/assets/badges/JavaScript/js-stage4.png",
+      // C++ badges
+      "badge-cpp-1": "/assets/badges/C++/cpp-badges1.png",
+      "badge-cpp-2": "/assets/badges/C++/cpp-badges2.png",
+      "badge-cpp-3": "/assets/badges/C++/cpp-badge3.png",
+      "badge-cpp-4": "/assets/badges/C++/cpp-badge4.png"
+    };
 
+    Object.entries(badgePaths).forEach(([key, path]) => {
+      this.load.image(key, path);
+    });
   }
+
   onQuestComplete = async (e) => {
     const questId = e.detail?.questId;
     console.log("questId", questId);
@@ -207,21 +226,105 @@ export default class GameScene extends Phaser.Scene {
     // ✅ ALWAYS show quest completed toast
     this.questCompleteToast.show({
       title: quest.title,
-      badgeKey: quest.badgeKey || null, // toast can ignore if null
+      badgeKey: quest.achievements?.badge_key || null, // toast can ignore if null
       exp: gainedExp
     });
 
+    // ✅ SECOND left-side toast for quest completion
+    this.questCongratsToast?.show({
+      title: quest.title,
+      badgeKey: null,
+      exp: 0
+    });
+
+    // �� Check for stage completion and award badges
+    await this.checkAndAwardStageBadge(questId);
+
     // 🏅 ONLY show badge UI if quest has badge
-    if (quest.badge_key) {
-      const badge = quest.badge_key;
-      if (badge) {
-        this.badgeUnlockPopup.show({
-          badgeKey: badge.key,
-          label: quest.title
-        });
-      }
+    if (quest.achievements?.badge_key) {
+      this.badgeUnlockPopup.show({
+        badgeKey: quest.achievements.badge_key,
+        label: quest.achievements.title
+      });
     }
 
+  };
+
+  // 🏅 Check if user completed a stage (every 4 exercises) and award badge
+  checkAndAwardStageBadge = async (completedQuestId) => {
+    try {
+      const languageSlugMap = {
+        Python: "python",
+        JavaScript: "javascript",
+        Cpp: "cpp"
+      };
+
+      const languageSlug = languageSlugMap[this.language] || this.language.toLowerCase();
+
+      // Get all completed quests for this user and language
+      const response = await fetch(`/v1/game/progress/${languageSlug}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const completedQuests = data.completedQuests || [];
+
+      // Only award on stage boundary (4, 8, 12, 16 ...)
+      if (!completedQuests.length || completedQuests.length % 4 !== 0) return;
+      
+      // Calculate stage number (every 4 exercises = 1 stage)
+      const stageNumber = Math.ceil(completedQuests.length / 4);
+      
+      // Badge mapping based on language and stage
+      const badgeMap = {
+        'Python': `badge-python-${Math.min(stageNumber, 4)}`,
+        'JavaScript': `badge-js-${Math.min(stageNumber, 4)}`,
+        'Cpp': `badge-cpp-${Math.min(stageNumber, 4)}`
+      };
+      
+      const badgeKey = badgeMap[this.language];
+      
+      if (badgeKey && this.textures.exists(badgeKey)) {
+        // Show badge unlock popup
+        this.badgeUnlockPopup.show({
+          badgeKey: badgeKey,
+          label: `Stage ${stageNumber} Complete!`
+        });
+        
+        // Optionally save badge to backend
+        await this.saveBadgeToBackend(badgeKey, stageNumber);
+      }
+    } catch (error) {
+      console.error('Error checking stage completion:', error);
+    }
+  };
+
+  // Save badge achievement to backend
+  saveBadgeToBackend = async (badgeKey, stageNumber) => {
+    try {
+      const response = await fetch('/v1/achievements/badge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          badgeKey: badgeKey,
+          stageNumber: stageNumber,
+          language: this.language
+        })
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to save badge to backend');
+      }
+    } catch (error) {
+      console.error('Error saving badge:', error);
+    }
   };
 
   create() {
@@ -488,7 +591,6 @@ export default class GameScene extends Phaser.Scene {
       this.completedQuestIds
     );
 
-
     this.dialogueManager = new DialogueManager(this);
     this.cutsceneManager = new CutsceneManager(this);
     this.exitArrowManager = new ExitArrowManager(this);
@@ -497,9 +599,14 @@ export default class GameScene extends Phaser.Scene {
     this.helpManager = new HelpManager(this);
     this.questValidator = new QuestValidator(this);
     this.questCompleteToast = new QuestCompleteToast(this);
+    this.questCongratsToast = new QuestCompleteToast(this, {
+      offsetY: 56,
+      titleText: "Quest Complete",
+      subtitleText: "Congratulations"
+    });
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
+    this.badgeUnlockPopup.container?.setDepth(30000);
     this.cinematicBars = new CinematicBars(this);
-
 
     this.isMobile =
       this.sys.game.device.os.android ||
