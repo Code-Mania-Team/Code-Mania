@@ -181,6 +181,14 @@ const CppCourse = () => {
     navigate(route);
   };
 
+  const handleStartExam = () => {
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "C++");
+    localStorage.setItem("lastCourseRoute", "/learn/cpp");
+
+    navigate("/exam/cpp/20");
+  };
+
   const handleTutorialClose = () => {
     setShowTutorial(false);
     localStorage.setItem(tutorialSeenKey, "true");
@@ -295,13 +303,13 @@ const CppCourse = () => {
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
-                                className="start-btn"
+                                className={`start-btn ${status}`}
                                 onClick={() =>
-                                  handleStartExercise(
-                                    module.id,
-                                    exercise.id
-                                  )
+                                  module.id === 5
+                                    ? handleStartExam()
+                                    : handleStartExercise(module.id, exercise.id)
                                 }
+                                disabled={status === "locked"}
                               >
                                 Start
                               </button>

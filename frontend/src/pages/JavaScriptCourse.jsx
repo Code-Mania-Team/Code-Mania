@@ -16,13 +16,13 @@ const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
+  const getExercises = useGetExercises();
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const getExercises = useGetExercises();
-  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
   const [data, setData] = useState();
 
   const tutorialSeenKey = user?.user_id
@@ -171,6 +171,14 @@ const JavaScriptCourse = () => {
     navigate(route);
   };
 
+  const handleStartExam = () => {
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "JavaScript");
+    localStorage.setItem("lastCourseRoute", "/learn/javascript");
+
+    navigate("/exam/javascript/21");
+  };
+
   const handleTutorialClose = () => {
     setShowTutorial(false);
     localStorage.setItem(tutorialSeenKey, "true");
@@ -272,8 +280,13 @@ const JavaScriptCourse = () => {
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
-                                className="start-btn"
-                                onClick={() => handleStartExercise(exercise.id)}
+                                className={`start-btn ${status}`}
+                                onClick={() =>
+                                  module.id === 5
+                                    ? handleStartExam()
+                                    : handleStartExercise(exercise.id)
+                                }
+                                disabled={status === "locked"}
                               >
                                 Start
                               </button>
