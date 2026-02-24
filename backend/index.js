@@ -9,6 +9,7 @@ import v1 from './routes/v1/index.js';
 import './core/supabaseClient.js';
 import './core/oauthSetup.js';
 
+
 const app = express();
 const port = process.env.PORT || 3000;
 
