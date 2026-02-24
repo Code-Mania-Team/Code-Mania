@@ -1,5 +1,5 @@
 import ExamModel from "../models/exam.js";
-import DockerService from "./dockerService.js";
+import axios from "axios";
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -12,8 +12,7 @@ function normalizeText(value) {
 
 class ExamService {
   constructor() {
-    this.exam = new ExamModel();
-    this.docker = new DockerService();
+    this.exam = new ExamModel();      
   }
 
   async listProblems({ languageSlug } = {}) {
@@ -152,12 +151,19 @@ class ExamService {
     /* =====================================
        RUN TESTS
     ===================================== */
-
-    const execution = await this.docker.runExam({
-      language: attempt.language,
-      code,
-      testCases: problem.test_cases || []
-    });
+    const { data: execution } = await axios.post(
+      "https://terminal.codemania.fun/exam/run",
+      {
+        language: attempt.language,
+        code,
+        testCases: problem.test_cases || []
+      },
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_KEY
+        }
+      }
+    );
 
     const totalTests = execution.total;
     const passedTests = execution.passed;
