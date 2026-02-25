@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
-import AdminModel from "../models/adminMmdel";
-import AdminExamService from "./adminExamService";
+import AdminModel from "../models/admin.js";
+import AdminExamService from "./adminExamService.js";
 
 class AdmminService {
   constructor() {

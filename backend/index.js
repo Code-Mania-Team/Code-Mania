@@ -12,23 +12,14 @@ import "./core/oauthSetup.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.disable("etag");
+// app.disable("etag");
 
-// app.set('trust-proxy', 1)
 /* ---------------------------------
    Middleware
 ----------------------------------- */
 app.use(morgan("combined"));
 app.use(cookieParser());
-
-// app.use(passport.initialize());
-// if (passport.initialize()) {
-//   console.log('Initialize passport')
-// } else { console.error('Passport initialization failed.')}
-// app.use(passport.session());
-// if (passport.session()) {
-//   console.log('Passport session.')
-// } else { console.error('Passport session failed.')}
+// app.set('trust-proxy', 1)
 
 app.use(
   cors({
@@ -53,7 +44,6 @@ app.use("/v1", v1);
    Health Check
 ----------------------------------- */
 app.get("/", (req, res) => {
-  // res.cookie('cookie', 'codemaniaBackend', {maxAge: 24 * 60 * 60 * 1000});
   res.json({ message: "Backend is running successfully!" });
 });
 
