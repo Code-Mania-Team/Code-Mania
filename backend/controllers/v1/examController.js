@@ -1,8 +1,32 @@
 import ExamService from "../../services/examService.js";
+import { supabase } from "../../core/supabaseClient.js";
 
 class ExamController {
   constructor() {
     this.examService = new ExamService();
+  }
+
+  async resolveIsAdmin(userId, tokenRole) {
+    if (tokenRole === "admin") return true;
+    if (!userId) return false;
+
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error("resolveIsAdmin error:", error);
+        return false;
+      }
+
+      return data?.role === "admin";
+    } catch (err) {
+      console.error("resolveIsAdmin exception:", err);
+      return false;
+    }
   }
 
   async listProblems(req, res) {
@@ -40,6 +64,7 @@ class ExamController {
   async startAttempt(req, res) {
     try {
       const userId = res.locals.user_id;
+      const isAdmin = await this.resolveIsAdmin(userId, res.locals.role);
       if (!userId)
         return res.status(401).json({ success: false, message: "Unauthorized" });
 
@@ -49,7 +74,8 @@ class ExamController {
 
       const result = await this.examService.startAttempt({
         userId,
-        languageSlug: language.toLowerCase()
+        languageSlug: language.toLowerCase(),
+        isAdmin,
       });
 
       if (!result.ok)
@@ -68,6 +94,7 @@ class ExamController {
   async submitAttempt(req, res) {
     try {
       const userId = res.locals.user_id;
+      const isAdmin = await this.resolveIsAdmin(userId, res.locals.role);
       if (!userId) {
         return res.status(401).json({ success: false, message: "Unauthorized" });
       }
@@ -78,11 +105,18 @@ class ExamController {
       }
 
       const code = req.body?.code;
+      const language = req.body?.language;
       if (typeof code !== "string" || !code.trim()) {
         return res.status(400).json({ success: false, message: "code is required" });
       }
 
-      const result = await this.examService.submitAttempt({ userId, attemptId, code });
+      const result = await this.examService.submitAttempt({
+        userId,
+        attemptId,
+        code,
+        languageSlug: typeof language === "string" ? language.toLowerCase() : undefined,
+        isAdmin,
+      });
       if (!result.ok) {
         return res
           .status(result.status || 500)

@@ -135,6 +135,7 @@ import axios from 'axios';
 const WelcomeOnboardingWrapper = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const postLoginPath = user?.role === "admin" ? "/admin" : "/dashboard";
 
   useEffect(() => {
     if (location.state?.openSignIn) {
@@ -150,10 +151,10 @@ const WelcomeOnboardingWrapper = () => {
 
     // Check if user actually needs onboarding
     if (user?.username) {
-      navigate('/dashboard', { replace: true });
+      navigate(postLoginPath, { replace: true });
       return;
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, postLoginPath]);
 
   if (!isAuthenticated || !user) {
     return null;
@@ -165,7 +166,7 @@ const WelcomeOnboardingWrapper = () => {
   }
 
   return <WelcomeOnboarding onComplete={() => {
-    navigate('/dashboard');
+    navigate(postLoginPath);
   }} />;
 };
 
@@ -190,7 +191,7 @@ function App() {
   }
   // getCookies();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isAuthenticated, setIsAuthenticated, setUser } = useAuth();
+  const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
   const [isNewUser, setIsNewUser] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const location = useLocation();
@@ -250,7 +251,7 @@ function App() {
             return;
           }
 
-          navigate('/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
         } catch {
           navigate('/');
         }
@@ -327,7 +328,7 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
-      <Dashboard onSignOut={handleSignOut} />
+      {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
     </ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
@@ -365,7 +366,7 @@ function App() {
             navigate('/welcome');
             return;
           }
-          navigate('/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
         }}
       />
     </div>

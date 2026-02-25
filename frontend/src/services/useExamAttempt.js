@@ -45,7 +45,7 @@ const useExamAttempt = () => {
   /* ===============================
      SUBMIT ATTEMPT
   =============================== */
-  const submitAttempt = async (code) => {
+  const submitAttempt = async (code, language) => {
     if (!attemptId) {
       const err = new Error("No active attempt");
       setError(err);
@@ -58,7 +58,7 @@ const useExamAttempt = () => {
     try {
       const response = await axiosPrivate.post(
         `/v1/exam/attempts/${attemptId}/submit`,
-        { code }
+        { code, language }
       );
 
       if (response.data?.success) {

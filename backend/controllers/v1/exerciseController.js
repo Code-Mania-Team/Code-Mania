@@ -113,6 +113,7 @@ class ExerciseController {
         try {
             const { id } = req.params;
             const userId = res.locals.user_id;
+            const isAdmin = res.locals.role === "admin" || await this.exerciseModel.isAdminUser(userId);
 
             // Validate ID
             if (!id || isNaN(id)) {
@@ -129,6 +130,13 @@ class ExerciseController {
                 return res.status(404).json({
                     success: false,
                     message: "Exercise not found"
+                });
+            }
+
+            if (isAdmin) {
+                return res.status(200).json({
+                    success: true,
+                    data: exercise
                 });
             }
 
@@ -430,6 +438,7 @@ class ExerciseController {
         try {
             const { questId, output, code } = req.body;
             const userId = res.locals.user_id;
+            const isAdmin = res.locals.role === "admin" || await this.exerciseModel.isAdminUser(userId);
 
             if (!userId) {
                 return res.status(401).json({
@@ -456,13 +465,15 @@ class ExerciseController {
             }
 
             // 2️⃣ Check quest state (must be active)
-            const questState = await this.exerciseModel.getQuestState(userId, questId);
+            if (!isAdmin) {
+                const questState = await this.exerciseModel.getQuestState(userId, questId);
 
-            if (!questState || questState.status !== "active") {
-                return res.status(403).json({
-                    success: false,
-                    message: "You must start this quest first"
-                });
+                if (!questState || questState.status !== "active") {
+                    return res.status(403).json({
+                        success: false,
+                        message: "You must start this quest first"
+                    });
+                }
             }
 
             // Normalize helper
@@ -590,18 +601,20 @@ class ExerciseController {
             // 🎮 PROGRESSION CHECK
             // ==================================================
 
-            const previousQuest =
-                await this.exerciseModel.getPreviousQuest(quest);
+            if (!isAdmin) {
+                const previousQuest =
+                    await this.exerciseModel.getPreviousQuest(quest);
 
-            if (previousQuest) {
-                const prevCompleted =
-                    await this.exerciseModel.isQuestCompleted(userId, previousQuest.id);
+                if (previousQuest) {
+                    const prevCompleted =
+                        await this.exerciseModel.isQuestCompleted(userId, previousQuest.id);
 
-                if (!prevCompleted) {
-                    return res.status(403).json({
-                        success: false,
-                        message: "Complete previous quest first"
-                    });
+                    if (!prevCompleted) {
+                        return res.status(403).json({
+                            success: false,
+                            message: "Complete previous quest first"
+                        });
+                    }
                 }
             }
 
@@ -609,20 +622,22 @@ class ExerciseController {
             // 🏆 MARK COMPLETE
             // ==================================================
 
-            await this.exerciseModel.markQuestComplete(userId, questId);
-            await this.exerciseModel.addXp(userId, quest.experience);
+            if (!isAdmin) {
+                await this.exerciseModel.markQuestComplete(userId, questId);
+                await this.exerciseModel.addXp(userId, quest.experience);
 
-            if (quest.achievements_id) {
-                await this.exerciseModel.grantAchievement(
-                    userId,
-                    quest.achievements_id
-                );
+                if (quest.achievements_id) {
+                    await this.exerciseModel.grantAchievement(
+                        userId,
+                        quest.achievements_id
+                    );
+                }
             }
 
             return res.status(200).json({
                 success: true,
-                message: "Quest completed",
-                xp: quest.experience,
+                message: isAdmin ? "Quest validated (admin preview)" : "Quest completed",
+                xp: isAdmin ? 0 : quest.experience,
                 objectives: validationResult.objectives || null
             });
 
@@ -639,10 +654,15 @@ class ExerciseController {
     async startExercise(req, res) {
         try {
             const userId = res.locals.user_id;
+            const isAdmin = res.locals.role === "admin" || await this.exerciseModel.isAdminUser(userId);
             const { questId } = req.body;
 
             if (!userId)
                 return res.status(401).json({ success: false });
+
+            if (isAdmin) {
+                return res.status(200).json({ success: true });
+            }
 
             await this.exerciseModel.startQuest(userId, questId);
 

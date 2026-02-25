@@ -19,7 +19,8 @@ class Leaderboard {
                 ),
                 users (
                     full_name,
-                    character_id
+                    character_id,
+                    role
                 )
             `)
             .eq("status", "completed");
@@ -42,7 +43,8 @@ class Leaderboard {
                 ),
                 users (
                     full_name,
-                    character_id
+                    character_id,
+                    role
                 )
             `);
 

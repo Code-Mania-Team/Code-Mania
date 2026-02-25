@@ -42,7 +42,7 @@ print("Hello world")`;
   }
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1 }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, isAdmin = false }) => {
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
   const [output, setOutput] = useState("");
@@ -52,7 +52,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const [testResults, setTestResults] = useState([]);
   const storageKey = `exam_code_${attemptId}_${language}`;
   const MAX_ATTEMPTS = 5;
-  const attemptsExhausted = attemptNumber >= MAX_ATTEMPTS;
+  const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS;
   const disableSubmit = isRunning || attemptsExhausted;
   const terminalBodyRef = useRef(null);
 
@@ -157,7 +157,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     setIsRunning(true);
 
     try {
-      const result = await submitAttempt(code);
+      const result = await submitAttempt(code, language);
 
       if (!result) {
         write("\n❌ Submission failed\n");

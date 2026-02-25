@@ -17,7 +17,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
   const [isLearnOpen, setIsLearnOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [characterIcon, setCharacterIcon] = useState(null);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
 
   // Load character icon from localStorage
@@ -71,7 +71,8 @@ const Header = ({ onOpenModal, onSignOut }) => {
     };
   }, []);
 
-  const homePath = isAuthenticated ? '/dashboard' : '/';
+  const isAdmin = isAuthenticated && user?.role === "admin";
+  const homePath = isAdmin ? '/admin' : isAuthenticated ? '/dashboard' : '/';
 
   const handleProfileClick = () => {
     navigate('/profile');
@@ -143,7 +144,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
       </button>
 
       <nav className={`nav ${isMenuOpen ? 'is-active' : ''}`}>
-        <NavLink to={homePath} className="nav-link" onClick={closeMobileMenu}>{isAuthenticated ? "DASHBOARD" : "HOME"}</NavLink>
+        <NavLink to={homePath} className="nav-link" onClick={closeMobileMenu}>{isAdmin ? "ADMIN" : isAuthenticated ? "DASHBOARD" : "HOME"}</NavLink>
 
         <div className="nav-dropdown">
           <NavLink to="/learn" className={`nav-link learn-trigger ${isLearnOpen ? "is-open" : ""}`} onClick={handleLearnClick}>

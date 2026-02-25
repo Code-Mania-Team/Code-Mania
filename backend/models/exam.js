@@ -1,6 +1,23 @@
 import { supabase } from "../core/supabaseClient.js";
 
 class ExamModel {
+  async isAdminUser(userId) {
+    if (!userId) return false;
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("isAdminUser error:", error);
+      return false;
+    }
+
+    return data?.role === "admin";
+  }
+
   async getLanguageBySlug(slug) {
     const { data, error } = await supabase
       .from("programming_languages")

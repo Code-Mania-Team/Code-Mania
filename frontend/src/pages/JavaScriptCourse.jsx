@@ -42,7 +42,7 @@ const JavaScriptCourse = () => {
           { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
           { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
           { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
-          { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
+          { id: 4, title: "Control Flow & Logic", description: "Master decision-making and looping.", exercises: [] },
           { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
         ];
 
@@ -98,6 +98,8 @@ const JavaScriptCourse = () => {
   }, [isAuthenticated]);
 
   const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+    if (user?.role === "admin") return "available";
+
     if (completedExercises.has(exerciseId)) return "completed";
 
     if (moduleId > 1 && !previousExerciseId) {
@@ -118,6 +120,8 @@ const JavaScriptCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    if (user?.role === "admin") return "available";
+
     // Check if quiz for this module is already completed
     if (data?.completedQuizStages?.includes(moduleId)) return "completed";
 
@@ -184,7 +188,7 @@ const JavaScriptCourse = () => {
 
   const handleStartExam = () => {
     const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
-    const route = "/exam/javascript/21";
+    const route = "/exam/javascript";
 
     if (isAuthenticated && hasSeenTutorial !== "true") {
       setPendingRoute(route);

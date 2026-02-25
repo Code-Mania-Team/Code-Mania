@@ -165,6 +165,8 @@ const PythonCourse = () => {
   };
 
   const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+    if (user?.role === "admin") return "available";
+
     if (completedExercises.has(exerciseId)) return "completed";
 
     if (moduleId > 1 && !previousExerciseId) {
@@ -186,6 +188,8 @@ const PythonCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    if (user?.role === "admin") return "available";
+
     // Check if quiz for this module is already completed
     if (data?.completedQuizStages?.includes(moduleId)) return "completed";
 
@@ -201,8 +205,18 @@ const PythonCourse = () => {
   };
 
   const getExamStatus = () => {
-    // Temporarily set to available for testing
-    return "available";
+    if (user?.role === "admin") return "available";
+
+    const learningModules = modules.filter((module) => module.id !== 5);
+    if (!learningModules.length) return "locked";
+
+    const allStagesCompleted = learningModules.every(
+      (module) =>
+        module.exercises.length > 0 &&
+        module.exercises.every((exercise) => completedExercises.has(exercise.id))
+    );
+
+    return allStagesCompleted ? "available" : "locked";
   };
 
   const handleStartExercise = (exerciseId) => {

@@ -62,7 +62,8 @@ class ExamService {
     };
   }
 
-  async startAttempt({ userId, languageSlug }) {
+  async startAttempt({ userId, languageSlug, isAdmin = false }) {
+    const effectiveIsAdmin = isAdmin || await this.exam.isAdminUser(userId);
 
     // 1️⃣ Get problem by language
     const problems = await this.exam.listProblems({ languageSlug });
@@ -73,6 +74,24 @@ class ExamService {
 
     // Because 1 exam per language
     const problemId = problems[0].id;
+
+    if (effectiveIsAdmin) {
+      return {
+        ok: true,
+        data: {
+          id: -1,
+          user_id: userId,
+          exam_problem_id: problemId,
+          language: languageSlug,
+          attempt_number: 1,
+          score_percentage: 0,
+          passed: false,
+          earned_xp: 0,
+          created_at: new Date().toISOString(),
+          preview: true,
+        },
+      };
+    }
 
     // 2️⃣ Check existing attempt
     const existing = await this.exam.getLatestAttempt({
@@ -104,9 +123,62 @@ class ExamService {
     };
   }
 
-  async submitAttempt({ userId, attemptId, code }) {
+  async submitAttempt({ userId, attemptId, code, languageSlug, isAdmin = false }) {
     const MAX_ATTEMPTS = 5;
     const PASS_THRESHOLD = 70;
+    const effectiveIsAdmin = isAdmin || await this.exam.isAdminUser(userId);
+
+    if (effectiveIsAdmin) {
+      if (!languageSlug) {
+        return { ok: false, status: 400, message: "language is required for admin preview" };
+      }
+
+      const problems = await this.exam.listProblems({ languageSlug });
+      const problem = problems?.[0];
+
+      if (!problem) {
+        return { ok: false, status: 404, message: "Exam not found for language" };
+      }
+
+      const fullProblem = await this.exam.getProblemById(Number(problem.id));
+      if (!fullProblem) {
+        return { ok: false, status: 404, message: "Problem not found" };
+      }
+
+      const { data: execution } = await axios.post(
+        "https://terminal.codemania.fun/exam/run",
+        {
+          language: languageSlug,
+          code,
+          testCases: fullProblem.test_cases || []
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_KEY
+          }
+        }
+      );
+
+      const totalTests = execution.total;
+      const passedTests = execution.passed;
+      const scorePercentage = execution.score;
+      const passed = scorePercentage >= PASS_THRESHOLD;
+
+      return {
+        ok: true,
+        data: {
+          score_percentage: scorePercentage,
+          passed,
+          earned_xp: 0,
+          xp_added: 0,
+          attempt_number: 1,
+          passed_tests: passedTests,
+          total_tests: totalTests,
+          results: execution.results,
+          preview: true,
+        },
+      };
+    }
 
     const attempt = await this.exam.getAttemptById({ attemptId });
     if (!attempt)

@@ -111,6 +111,23 @@ class ExerciseModel {
         return data;
     }
 
+    async isAdminUser(userId) {
+        if (!userId) return false;
+
+        const { data, error } = await this.db
+            .from('users')
+            .select('role')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error checking admin role:', error);
+            return false;
+        }
+
+        return data?.role === 'admin';
+    }
+
 
 
     async getLatestUnlockedQuest(userId, languageId) {

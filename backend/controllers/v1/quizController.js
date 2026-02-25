@@ -63,6 +63,7 @@ export const completeQuiz = async (req, res) => {
   } = req.body;
 
   const userId = res.locals.user_id;
+  const isAdmin = res.locals.role === 'admin';
 
   try {
     if (!userId) {
@@ -96,6 +97,10 @@ export const completeQuiz = async (req, res) => {
 
     if (quizError || !quizData) {
       return res.status(404).json({ message: 'Quiz not found' });
+    }
+
+    if (isAdmin) {
+      return res.json({ success: true, preview: true });
     }
 
     /* ---------------------------------

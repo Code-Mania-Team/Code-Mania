@@ -769,7 +769,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    const speed = 120;
+    const speed = 180;
     this.player.setVelocity(0);
 
     let moving = false;

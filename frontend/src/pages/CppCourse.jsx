@@ -136,6 +136,8 @@ const CppCourse = () => {
      HELPERS
   =============================== */
   const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+    if (user?.role === "admin") return "available";
+
     if (completedExercises.has(exerciseId)) return "completed";
 
     if (moduleId > 1 && !previousExerciseId) {
@@ -156,6 +158,8 @@ const CppCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    if (user?.role === "admin") return "available";
+
     // Check if quiz for this module is already completed
     if (data?.completedQuizStages?.includes(moduleId)) return "completed";
 
@@ -193,7 +197,7 @@ const CppCourse = () => {
 
   const handleStartExam = () => {
     const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
-    const route = "/exam/cpp/20";
+    const route = "/exam/cpp";
 
     if (isAuthenticated && hasSeenTutorial !== "true") {
       setPendingRoute(route);

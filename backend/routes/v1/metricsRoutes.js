@@ -28,6 +28,25 @@ const mapQuizAttempt = (row) => {
   };
 };
 
+const mapExamAttempt = (row) => {
+  const language = row?.exam_problems?.programming_languages?.slug || row?.language || 'unknown';
+  const score = Number(row?.score_percentage || 0);
+
+  return {
+    id: row.id,
+    userId: row.user_id,
+    username: row?.users?.username || row?.users?.full_name || 'Unknown user',
+    email: row?.users?.email || '',
+    language,
+    examTitle: row?.exam_problems?.problem_title || 'Exam',
+    scorePercentage: score,
+    attemptNumber: Number(row?.attempt_number || 0),
+    earnedXp: Number(row?.earned_xp || 0),
+    isPassed: Boolean(row?.passed),
+    submittedAt: row?.created_at || null,
+  };
+};
+
 // Public-ish (API key protected) metrics for admin dashboard cards
 router.get('/admin-summary', async (req, res) => {
   try {
@@ -372,6 +391,215 @@ router.get('/quiz-attempts/by-user/:userId', authentication, requireAdmin, async
   } catch (err) {
     console.error('Error fetching user quiz attempts:', err);
     return res.status(500).json({ success: false, message: err?.message || 'Failed to fetch user quiz attempts' });
+  }
+});
+
+router.get('/exam-attempts', authentication, requireAdmin, async (req, res) => {
+  try {
+    const { data: rows, error } = await supabase
+      .from('user_exam_attempts')
+      .select(`
+        id,
+        user_id,
+        exam_problem_id,
+        language,
+        score_percentage,
+        passed,
+        earned_xp,
+        attempt_number,
+        created_at,
+        users (
+          username,
+          full_name,
+          email
+        ),
+        exam_problems (
+          problem_title,
+          programming_languages (
+            slug
+          )
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(300);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    const attempts = (rows || []).map(mapExamAttempt);
+    const totalAttempts = attempts.length;
+    const totalXpAwarded = attempts.reduce((sum, item) => sum + Number(item.earnedXp || 0), 0);
+    const averageScore = totalAttempts
+      ? Number((attempts.reduce((sum, item) => sum + Number(item.scorePercentage || 0), 0) / totalAttempts).toFixed(2))
+      : 0;
+    const passedCount = attempts.filter((item) => item.isPassed).length;
+    const passRate = totalAttempts ? Number(((passedCount / totalAttempts) * 100).toFixed(2)) : 0;
+
+    return res.json({
+      success: true,
+      data: {
+        totalAttempts,
+        averageScore,
+        passRate,
+        totalXpAwarded,
+        attempts,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching exam attempts metrics:', err);
+    return res.status(500).json({ success: false, message: err?.message || 'Failed to fetch exam metrics' });
+  }
+});
+
+router.get('/exam-attempts/by-user', authentication, requireAdmin, async (req, res) => {
+  try {
+    const { data: rows, error } = await supabase
+      .from('user_exam_attempts')
+      .select(`
+        id,
+        user_id,
+        exam_problem_id,
+        language,
+        score_percentage,
+        passed,
+        earned_xp,
+        attempt_number,
+        created_at,
+        users (
+          username,
+          full_name,
+          email
+        ),
+        exam_problems (
+          problem_title,
+          programming_languages (
+            slug
+          )
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(3000);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    const attempts = (rows || []).map(mapExamAttempt);
+    const byUserMap = new Map();
+
+    attempts.forEach((attempt) => {
+      const key = String(attempt.userId);
+      const existing = byUserMap.get(key);
+
+      if (!existing) {
+        byUserMap.set(key, {
+          userId: attempt.userId,
+          username: attempt.username,
+          email: attempt.email,
+          totalAttempts: 1,
+          sumScore: Number(attempt.scorePercentage || 0),
+          passedCount: attempt.isPassed ? 1 : 0,
+          bestScore: Number(attempt.scorePercentage || 0),
+          totalXpAwarded: Number(attempt.earnedXp || 0),
+          latestAttemptAt: attempt.submittedAt,
+          languagesSet: new Set([attempt.language]),
+        });
+        return;
+      }
+
+      existing.totalAttempts += 1;
+      existing.sumScore += Number(attempt.scorePercentage || 0);
+      existing.passedCount += attempt.isPassed ? 1 : 0;
+      existing.bestScore = Math.max(existing.bestScore, Number(attempt.scorePercentage || 0));
+      existing.totalXpAwarded += Number(attempt.earnedXp || 0);
+      if (!existing.latestAttemptAt || new Date(attempt.submittedAt) > new Date(existing.latestAttemptAt)) {
+        existing.latestAttemptAt = attempt.submittedAt;
+      }
+      existing.languagesSet.add(attempt.language);
+    });
+
+    const users = Array.from(byUserMap.values())
+      .map((item) => ({
+        userId: item.userId,
+        username: item.username,
+        email: item.email,
+        totalAttempts: item.totalAttempts,
+        averageScore: Number((item.sumScore / item.totalAttempts).toFixed(2)),
+        passRate: Number(((item.passedCount / item.totalAttempts) * 100).toFixed(2)),
+        bestScore: item.bestScore,
+        totalXpAwarded: item.totalXpAwarded,
+        latestAttemptAt: item.latestAttemptAt,
+        languages: Array.from(item.languagesSet),
+      }))
+      .sort((a, b) => {
+        const dateA = new Date(a.latestAttemptAt || 0).getTime();
+        const dateB = new Date(b.latestAttemptAt || 0).getTime();
+        return dateB - dateA;
+      });
+
+    return res.json({
+      success: true,
+      data: {
+        totalUsers: users.length,
+        users,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching per-user exam metrics:', err);
+    return res.status(500).json({ success: false, message: err?.message || 'Failed to fetch per-user exam metrics' });
+  }
+});
+
+router.get('/exam-attempts/by-user/:userId', authentication, requireAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const { data: rows, error } = await supabase
+      .from('user_exam_attempts')
+      .select(`
+        id,
+        user_id,
+        exam_problem_id,
+        language,
+        score_percentage,
+        passed,
+        earned_xp,
+        attempt_number,
+        created_at,
+        users (
+          username,
+          full_name,
+          email
+        ),
+        exam_problems (
+          problem_title,
+          programming_languages (
+            slug
+          )
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    const attempts = (rows || []).map(mapExamAttempt);
+
+    return res.json({
+      success: true,
+      data: {
+        userId,
+        totalAttempts: attempts.length,
+        attempts,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching user exam attempts:', err);
+    return res.status(500).json({ success: false, message: err?.message || 'Failed to fetch user exam attempts' });
   }
 });
 

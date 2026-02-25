@@ -5,16 +5,24 @@ import { getCodingExamData } from "../data/codingExamData";
 import ExamCodeTerminal from "../components/ExamCodeTerminal";
 import useGetExamProblem from "../services/useGetExamProblem";
 import useExamAttempt from "../services/useExamAttempt";
+import useGetExercises from "../services/getExercise";
+import useGetGameProgress from "../services/getGameProgress";
+import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+import useAuth from "../hooks/useAxios";
 
 const CodingExamPage = () => {
   const navigate = useNavigate();
   const { language } = useParams();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [examData, setExamData] = useState(null);
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [showHints, setShowHints] = useState(false);
   const [examCompleted, setExamCompleted] = useState(false);
   const [userCode, setUserCode] = useState("");
   const getExamProblem = useGetExamProblem();
+  const getExercises = useGetExercises();
+  const getGameProgress = useGetGameProgress();
   const [examState, setExamState] = useState({
     attemptNumber: 1,
     score: 0,
@@ -27,6 +35,14 @@ const CodingExamPage = () => {
     attemptId
   } = useExamAttempt();
   const [attemptStarted, setAttemptStarted] = useState(false);
+  const [accessLoading, setAccessLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+
+  const languageToId = {
+    python: 1,
+    cpp: 2,
+    javascript: 3,
+  };
   
 
   const languageBackgrounds = {
@@ -39,6 +55,73 @@ const CodingExamPage = () => {
     languageBackgrounds[language] || languageBackgrounds.python;
 
   useEffect(() => {
+    let cancelled = false;
+
+    const verifyAccess = async () => {
+      setAccessLoading(true);
+
+      if (isAdmin) {
+        if (!cancelled) {
+          setHasAccess(true);
+          setAccessLoading(false);
+        }
+        return;
+      }
+
+      const languageId = languageToId[language];
+
+      if (!languageId) {
+        if (!cancelled) {
+          setHasAccess(false);
+          setAccessLoading(false);
+        }
+        navigate("/learn", { replace: true });
+        return;
+      }
+
+      try {
+        const [exercises, progress] = await Promise.all([
+          getExercises(languageId),
+          getGameProgress(languageId),
+        ]);
+
+        const completedQuests = new Set((progress?.completedQuests || []).map(Number));
+        const requiredExercises = (exercises || []).filter((exercise) => {
+          const order = Number(exercise.order_index || 0);
+          return order >= 1 && order <= 16;
+        });
+
+        const allowed =
+          requiredExercises.length > 0 &&
+          requiredExercises.every((exercise) => completedQuests.has(Number(exercise.id)));
+
+        if (!cancelled) {
+          setHasAccess(allowed);
+          setAccessLoading(false);
+        }
+
+        if (!allowed) {
+          navigate(`/learn/${language}`, { replace: true });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setHasAccess(false);
+          setAccessLoading(false);
+        }
+        navigate(`/learn/${language}`, { replace: true });
+      }
+    };
+
+    verifyAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [language, navigate, isAdmin]);
+
+  useEffect(() => {
+    if (!hasAccess) return;
+
     const loadExam = async () => {
       try {
         const attempt = await startAttempt(language);
@@ -73,9 +156,13 @@ const CodingExamPage = () => {
     };
 
     loadExam();
-  }, [language]);
+  }, [language, hasAccess]);
 
-  if (!examData) return <div>Loading...</div>;
+  if (accessLoading) return <AuthLoadingOverlay />;
+
+  if (!hasAccess) return null;
+
+  if (!examData) return <AuthLoadingOverlay />;
 
   const challenge = examData.challenges[currentChallenge];
   console.log("🚀 Current challenge data:", examData);
@@ -142,13 +229,15 @@ const CodingExamPage = () => {
                     }`
                   }}
                 >
-                  Attempt {examState.attemptNumber} / 5
+                  Attempt {examState.attemptNumber} {isAdmin ? "/ ∞" : "/ 5"}
                 </span>
 
                 {/* Remaining Attempts */}
-                <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>
-                  Remaining: {Math.max(0, 5 - examState.attemptNumber)}
-                </span>
+                {!isAdmin && (
+                  <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>
+                    Remaining: {Math.max(0, 5 - examState.attemptNumber)}
+                  </span>
+                )}
 
                 {/* Score Badge */}
                 {examState.score > 0 && (
@@ -306,18 +395,19 @@ const CodingExamPage = () => {
                   attemptId={attemptId}
                   submitAttempt={submitAttempt}
                   attemptNumber={examState.attemptNumber}
+                  isAdmin={isAdmin}
                   locked={examState.locked}
                   onResult={(data) => {
                     setExamState({
                       attemptNumber: data.attempt_number,
                       score: data.score_percentage,
                       earnedXp: data.earned_xp,
-                      locked: (data.attempt_number || 0) >= 5
+                      locked: !isAdmin && (data.attempt_number || 0) >= 5
                     });
                   }}
                 />
               ) : (
-                <div>Preparing exam session...</div>
+                <AuthLoadingOverlay />
               )}
             </div>
           </div>
