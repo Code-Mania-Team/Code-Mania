@@ -1043,6 +1043,10 @@
   border-radius: 0%;
 }
 
+.mobileCoverStats {
+  display: none;
+}
+
 .coverBanner::before {
   content: '';
   position: absolute;
@@ -1181,6 +1185,7 @@
 
   .layout {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
   .layout {
@@ -1189,32 +1194,89 @@
 
   .layout .sidebar {
     position: static;
+    margin-top: 0;
   }
 
   .layout .header {
     margin-top: -48px;
   }
+
+  .layout .container {
+    bottom: 0;
+  }
 }
 
 @media (max-width: 520px) {
+  .desktopStatsCard {
+    display: none;
+  }
+
+  .learningProgramCard {
+    display: none;
+  }
+
+  .layout {
+    padding-top: 0.75rem;
+  }
+
   .coverBannerImage {
     height: 210px;
     object-position: center top;
   }
 
   .coverOverlayInner {
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "avatar action"
+      "userinfo actionmeta";
+    align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem 1.35rem;
   }
 
   .coverAvatarContainer {
+    grid-area: avatar;
     transform: none;
   }
 
   .coverUserInfo {
+    grid-area: userinfo;
     width: 100%;
+  }
+
+  .mobileCoverStats {
+    grid-area: actionmeta;
+    display: flex;
+    gap: 0.45rem;
+    justify-self: end;
+    align-self: start;
+  }
+
+  .mobileCoverStatItem {
+    min-width: 80px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.28);
+    padding: 0.2rem 0.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .mobileCoverStatValue {
+    font-family: 'Press Start 2P', sans-serif;
+    font-size: 0.58rem;
+    color: #fff;
+  }
+
+  .mobileCoverStatLabel {
+    margin-top: 0.2rem;
+    font-family: 'Press Start 2P', sans-serif;
+    font-size: 0.42rem;
+    color: rgba(255, 255, 255, 0.82);
+    text-transform: uppercase;
   }
 
   .userName {
@@ -1222,13 +1284,19 @@
   }
 
   .coverEditProfileBtn {
-    width: 100%;
-    font-size: 1.25rem;
+    grid-area: action;
+    width: auto;
+    min-width: 170px;
+    justify-self: end;
+    align-self: end;
+    font-size: 1.1rem;
+    padding: 0.42rem 0.75rem;
   }
 
   .tabs {
     flex-wrap: wrap;
     border-radius: 16px;
+    margin: 0.85rem auto 1rem;
   }
 
   .tab {

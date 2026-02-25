@@ -117,6 +117,19 @@
   .sidebar {
     position: static;
   }
+
+  .course-badges-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 75px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    justify-content: center;
+  }
+
+  .cpp-course-badge {
+    flex: 0 0 auto;
+  }
 }
 
 @media (max-width: 768px) {
@@ -232,6 +245,21 @@
   .cpp-course-badge {
     width: 52px;
     height: 52px;
+    flex: 0 0 auto;
+  }
+}
+
+@media (min-width: 521px) and (max-width: 1024px) {
+  .course-badges-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 75px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    justify-content: center;
+  }
+
+  .cpp-course-badge {
     flex: 0 0 auto;
   }
 }

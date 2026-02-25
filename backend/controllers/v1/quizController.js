@@ -1,5 +1,28 @@
 import { supabase } from '../../core/supabaseClient.js';
 
+const resolveIsAdmin = async (userId, tokenRole) => {
+  if (tokenRole === 'admin') return true;
+  if (!userId) return false;
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('resolveIsAdmin error:', error);
+      return false;
+    }
+
+    return data?.role === 'admin';
+  } catch (err) {
+    console.error('resolveIsAdmin exception:', err);
+    return false;
+  }
+};
+
 export const getQuizById = async (req, res) => {
   const { language, quizId } = req.params;
   const stageNumber = Number(quizId);
@@ -63,7 +86,7 @@ export const completeQuiz = async (req, res) => {
   } = req.body;
 
   const userId = res.locals.user_id;
-  const isAdmin = res.locals.role === 'admin';
+  const isAdmin = await resolveIsAdmin(userId, res.locals.role);
 
   try {
     if (!userId) {
