@@ -25,7 +25,7 @@ accountRouter.post(
   account.setUsernameAndCharacter.bind(account),
 );
 
-accountRouter.post("/login", authLimiter(), account.login.bind(account));
+accountRouter.post("/login", /* authLimiter(), */ account.login.bind(account));
 
 accountRouter.get(
   "/login/google",

@@ -1,5 +1,4 @@
 import ExamModel from "../models/exam.js";
-import DockerService from "./dockerService.js";
 import axios from "axios";
 
 function normalizeText(value) {
@@ -14,7 +13,6 @@ function normalizeText(value) {
 class ExamService {
   constructor() {
     this.exam = new ExamModel();
-    this.docker = new DockerService();
   }
 
   async listProblems({ languageSlug } = {}) {
@@ -66,7 +64,9 @@ class ExamService {
     };
   }
 
-  async startAttempt({ userId, languageSlug }) {
+  async startAttempt({ userId, languageSlug, isAdmin = false }) {
+    const effectiveIsAdmin = isAdmin || (await this.exam.isAdminUser(userId));
+
     // 1️⃣ Get problem by language
     const problems = await this.exam.listProblems({ languageSlug });
 
@@ -76,6 +76,24 @@ class ExamService {
 
     // Because 1 exam per language
     const problemId = problems[0].id;
+
+    if (effectiveIsAdmin) {
+      return {
+        ok: true,
+        data: {
+          id: -1,
+          user_id: userId,
+          exam_problem_id: problemId,
+          language: languageSlug,
+          attempt_number: 1,
+          score_percentage: 0,
+          passed: false,
+          earned_xp: 0,
+          created_at: new Date().toISOString(),
+          preview: true,
+        },
+      };
+    }
 
     // 2️⃣ Check existing attempt
     const existing = await this.exam.getLatestAttempt({
@@ -89,12 +107,6 @@ class ExamService {
         data: existing,
       };
     }
-
-    const problem = await this.exam.getProblemById(problemId);
-    if (!problem)
-      return { ok: false, status: 404, message: "Problem not found" };
-
-    const languageSlug = problem.programming_languages?.slug;
 
     // 3️⃣ Create new attempt
     const attemptNumber = await this.exam.getNextAttemptNumber({
@@ -115,9 +127,76 @@ class ExamService {
     };
   }
 
-  async submitAttempt({ userId, attemptId, code }) {
+  async submitAttempt({
+    userId,
+    attemptId,
+    code,
+    languageSlug,
+    isAdmin = false,
+  }) {
     const MAX_ATTEMPTS = 5;
     const PASS_THRESHOLD = 70;
+    const effectiveIsAdmin = isAdmin || (await this.exam.isAdminUser(userId));
+
+    if (effectiveIsAdmin) {
+      if (!languageSlug) {
+        return {
+          ok: false,
+          status: 400,
+          message: "language is required for admin preview",
+        };
+      }
+
+      const problems = await this.exam.listProblems({ languageSlug });
+      const problem = problems?.[0];
+
+      if (!problem) {
+        return {
+          ok: false,
+          status: 404,
+          message: "Exam not found for language",
+        };
+      }
+
+      const fullProblem = await this.exam.getProblemById(Number(problem.id));
+      if (!fullProblem) {
+        return { ok: false, status: 404, message: "Problem not found" };
+      }
+
+      const { data: execution } = await axios.post(
+        "https://terminal.codemania.fun/exam/run",
+        {
+          language: languageSlug,
+          code,
+          testCases: fullProblem.test_cases || [],
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_KEY,
+          },
+        },
+      );
+
+      const totalTests = execution.total;
+      const passedTests = execution.passed;
+      const scorePercentage = execution.score;
+      const passed = scorePercentage >= PASS_THRESHOLD;
+
+      return {
+        ok: true,
+        data: {
+          score_percentage: scorePercentage,
+          passed,
+          earned_xp: 0,
+          xp_added: 0,
+          attempt_number: 1,
+          passed_tests: passedTests,
+          total_tests: totalTests,
+          results: execution.results,
+          preview: true,
+        },
+      };
+    }
 
     const attempt = await this.exam.getAttemptById({ attemptId });
     if (!attempt)
@@ -126,21 +205,20 @@ class ExamService {
     if (String(attempt.user_id) !== String(userId))
       return { ok: false, status: 403, message: "Forbidden" };
 
-    if (attempt.attempt_number >= MAX_ATTEMPTS)
-      if (attempt.score_percentage === 100) {
-        // 🔒 LOCK IF 100%
-        return {
-          ok: true,
-          data: {
-            score_percentage: 100,
-            passed: true,
-            earned_xp: attempt.earned_xp,
-            xp_added: 0,
-            attempt_number: attempt.attempt_number,
-            locked: true,
-          },
-        };
-      }
+    // 🔒 LOCK IF 100%
+    if (attempt.score_percentage === 100) {
+      return {
+        ok: true,
+        data: {
+          score_percentage: 100,
+          passed: true,
+          earned_xp: attempt.earned_xp,
+          xp_added: 0,
+          attempt_number: attempt.attempt_number,
+          locked: true,
+        },
+      };
+    }
 
     // Submission number = current + 1
     const submissionNumber = attempt.attempt_number + 1;
@@ -160,44 +238,6 @@ class ExamService {
     if (!problem)
       return { ok: false, status: 404, message: "Problem not found" };
 
-    const newAttemptNumber = attempt.attempt_number + 1;
-
-    /* =====================================
-      IF USER ALREADY HAS 100% → LOCK
-    ===================================== */
-
-    if (attempt.score_percentage === 100) {
-      const updated = await this.exam.updateAttemptFull({
-        attemptId,
-        scorePercentage: 100,
-        passed: true,
-        earnedXp: attempt.earned_xp,
-        attemptNumber: newAttemptNumber,
-      });
-
-      return {
-        ok: true,
-        data: {
-          attempt: updated,
-          score_percentage: 100,
-          passed: true,
-          earned_xp: attempt.earned_xp,
-          xp_added: 0,
-          attempt_number: newAttemptNumber,
-          locked: true,
-        },
-      };
-    }
-
-    /* =====================================
-      RUN TESTS
-    ===================================== */
-
-    // const execution = await this.docker.runExam({
-    //   language: attempt.language,
-    //   code,
-    //   testCases: problem.test_cases || []
-    // });
     /* =====================================
        RUN TESTS
     ===================================== */
@@ -220,10 +260,6 @@ class ExamService {
     const scorePercentage = execution.score;
 
     /* =====================================
-      SOFT PENALTY SYSTEM
-      - 2 free attempts
-      - 5% penalty after
-      - minimum 85% modifier
        PENALTY SYSTEM (0-based attempts)
        1st submission → no penalty
        2nd submission → no penalty
@@ -246,25 +282,6 @@ class ExamService {
 
     const calculatedXp = Math.round(baseXp * scoreRatio * attemptModifier);
 
-    /* =====================================
-      XP NEVER DECREASES
-    ===================================== */
-
-    // const previousXp = attempt.earned_xp || 0;
-
-    // let finalXp = previousXp;
-    // let xpDifference = 0;
-
-    // if (calculatedXp > previousXp) {
-    //   finalXp = calculatedXp;
-    //   xpDifference = calculatedXp - previousXp;
-    //   await this.exam.addXp(userId, xpDifference);
-    // }
-
-    const passed = scorePercentage >= PASS_THRESHOLD;
-
-    /* =====================================
-      UPDATE SAME ROW
     const passed = scorePercentage >= PASS_THRESHOLD;
 
     /* =====================================

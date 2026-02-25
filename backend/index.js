@@ -20,7 +20,7 @@ app.disable("etag");
 app.use(morgan("combined"));
 app.use(cookieParser());
 app.set("trust-proxy", 1);
-app.use(globalLimiter());
+// app.use(globalLimiter());
 
 app.use(
   cors({
@@ -45,23 +45,7 @@ app.use("/v1", v1);
    Health Check
 ----------------------------------- */
 app.get("/", (req, res) => {
-  // res.cookie('cookie', 'codemaniaBackend', {maxAge: 24 * 60 * 60 * 1000});
   res.json({ message: "Backend is running successfully!" });
-});
-
-/* ---------------------------------
-   Set cookies to client side
------------------------------------ */
-app.get("/set-cookies", (req, res) => {
-  res.cookie("Set-cookie", "SweetCookies", {
-    httpOnly: true,
-  });
-  res.send("Successfully set cookies");
-});
-
-app.get("/get-cookies", (req, res) => {
-  console.log(req);
-  res.send(req.cookies);
 });
 
 /* ---------------------------------

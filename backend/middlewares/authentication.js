@@ -25,24 +25,6 @@ export default function authentication(req, res, next) {
       res.locals.user_id = decoded.user_id;
     }
 
-        // ✅ Only assign user_id if exists
-        if (decoded.user_id) {
-            res.locals.user_id = decoded.user_id;
-        }
-
-        // ✅ Assign email for onboarding users
-        if (decoded.email) {
-            res.locals.email = decoded.email;
-        }
-
-
-        req.user = decoded;
-        res.locals.user_id = decoded.user_id;
-        res.locals.username = decoded.username;
-        res.locals.role = decoded.role;
-        next();
-    });
-
     // ✅ Assign email for onboarding users
     if (decoded.email) {
       res.locals.email = decoded.email;
@@ -57,4 +39,3 @@ export default function authentication(req, res, next) {
 }
 
 export { authentication };
-
