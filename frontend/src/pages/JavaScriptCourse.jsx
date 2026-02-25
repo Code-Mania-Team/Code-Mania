@@ -16,13 +16,14 @@ const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
+  const getExercises = useGetExercises();
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const getExercises = useGetExercises();
-  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
+  const [pendingRoute, setPendingRoute] = useState(null);
   const [data, setData] = useState();
 
   const tutorialSeenKey = user?.user_id
@@ -96,8 +97,18 @@ const JavaScriptCourse = () => {
     loadProgress();
   }, [isAuthenticated]);
 
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
@@ -157,6 +168,23 @@ const JavaScriptCourse = () => {
   const handleStartExercise = (exerciseId) => {
     const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = `/learn/javascript/exercise/${exerciseId}`;
+
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
+      setShowTutorial(true);
+      return;
+    }
+
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "JavaScript");
+    localStorage.setItem("lastCourseRoute", "/learn/javascript");
+
+    navigate(route);
+  };
+
+  const handleStartExam = () => {
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = "/exam/javascript/21";
 
     if (isAuthenticated && hasSeenTutorial !== "true") {
       setPendingRoute(route);
@@ -252,6 +280,7 @@ const JavaScriptCourse = () => {
                           : null;
 
                       const status = getExerciseStatus(
+                        module.id,
                         exercise.id,
                         previousExerciseId
                       );
@@ -272,8 +301,13 @@ const JavaScriptCourse = () => {
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
-                                className="start-btn"
-                                onClick={() => handleStartExercise(exercise.id)}
+                                className={`start-btn ${status}`}
+                                onClick={() =>
+                                  module.id === 5
+                                    ? handleStartExam()
+                                    : handleStartExercise(exercise.id)
+                                }
+                                disabled={status === "locked"}
                               >
                                 Start
                               </button>

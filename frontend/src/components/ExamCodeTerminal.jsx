@@ -42,7 +42,7 @@ print("Hello world")`;
   }
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, locked = false }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1 }) => {
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
   const [output, setOutput] = useState("");
@@ -53,7 +53,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const storageKey = `exam_code_${attemptId}_${language}`;
   const MAX_ATTEMPTS = 5;
   const attemptsExhausted = attemptNumber >= MAX_ATTEMPTS;
-  const disableSubmit = isRunning || locked || attemptsExhausted;
+  const disableSubmit = isRunning || attemptsExhausted;
   const terminalBodyRef = useRef(null);
 
   const socketRef = useRef(null);
@@ -255,9 +255,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
               }}
               onClick={handleSubmit}
             >
-              {locked
-                ? "Locked (100%)"
-                : attemptsExhausted
+              {attemptsExhausted
                 ? "No Attempts Left"
                 : "Submit"}
             </button>

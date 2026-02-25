@@ -226,7 +226,7 @@ export default class GameScene extends Phaser.Scene {
     // ✅ ALWAYS show quest completed toast
     this.questCompleteToast.show({
       title: quest.title,
-      badgeKey: quest.badgeKey || null, // toast can ignore if null
+      badgeKey: quest.achievements?.badge_key || null, // toast can ignore if null
       exp: gainedExp
     });
 
@@ -241,16 +241,12 @@ export default class GameScene extends Phaser.Scene {
     await this.checkAndAwardStageBadge(questId);
 
     // 🏅 ONLY show badge UI if quest has badge
-    if (quest.badge_key) {
-      const badge = quest.badge_key;
-      if (badge) {
-        this.badgeUnlockPopup.show({
-          badgeKey: badge.key,
-          label: quest.title
-        });
-      }
+    if (quest.achievements?.badge_key) {
+      this.badgeUnlockPopup.show({
+        badgeKey: quest.achievements.badge_key,
+        label: quest.achievements.title
+      });
     }
-
   };
 
   // 🏅 Check if user completed a stage (every 4 exercises) and award badge
@@ -270,34 +266,34 @@ export default class GameScene extends Phaser.Scene {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (!response.ok) return;
-      
+
       const data = await response.json();
       const completedQuests = data.completedQuests || [];
 
       // Only award on stage boundary (4, 8, 12, 16 ...)
       if (!completedQuests.length || completedQuests.length % 4 !== 0) return;
-      
+
       // Calculate stage number (every 4 exercises = 1 stage)
       const stageNumber = Math.ceil(completedQuests.length / 4);
-      
+
       // Badge mapping based on language and stage
       const badgeMap = {
         'Python': `badge-python-${Math.min(stageNumber, 4)}`,
         'JavaScript': `badge-js-${Math.min(stageNumber, 4)}`,
         'Cpp': `badge-cpp-${Math.min(stageNumber, 4)}`
       };
-      
+
       const badgeKey = badgeMap[this.language];
-      
+
       if (badgeKey && this.textures.exists(badgeKey)) {
         // Show badge unlock popup
         this.badgeUnlockPopup.show({
           badgeKey: badgeKey,
           label: `Stage ${stageNumber} Complete!`
         });
-        
+
         // Optionally save badge to backend
         await this.saveBadgeToBackend(badgeKey, stageNumber);
       }
@@ -321,7 +317,7 @@ export default class GameScene extends Phaser.Scene {
           language: this.language
         })
       });
-      
+
       if (!response.ok) {
         console.error('Failed to save badge to backend');
       }
@@ -439,6 +435,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
     this.input.keyboard.on("keydown-E", () => {
+      if (this.isTypingInUI()) return;
       this.handleInteract();
     });
 
@@ -450,6 +447,7 @@ export default class GameScene extends Phaser.Scene {
     // });
 
     this.input.keyboard.on("keydown-Q", () => {
+      if (this.isTypingInUI()) return;
       if (this.gamePausedByTerminal) return;
       this.questHUD.toggle(this.questManager.activeQuest);
     });
@@ -488,11 +486,13 @@ export default class GameScene extends Phaser.Scene {
       }
 
       this.input.keyboard.enabled = false;
+      this.syncMobileControlsVisibility();
     };
 
     this.handleTerminalInactive = () => {
       this.gamePausedByTerminal = false;
       this.input.keyboard.enabled = true;
+      this.syncMobileControlsVisibility();
     };
 
     window.addEventListener("code-mania:terminal-active", this.handleTerminalActive);
@@ -617,14 +617,29 @@ export default class GameScene extends Phaser.Scene {
 
     if (this.isMobile) {
       this.mobileControls = new MobileControls(this, {
-        onInteract: () => this.handleInteract()
+        onInteract: () => {
+          if (this.gamePausedByTerminal || this.isTypingInUI()) return;
+          this.handleInteract();
+        }
       });
 
     }
 
-    this.orientationManager = new OrientationManager(this);
+    this.orientationManager = new OrientationManager(this, {
+      requireLandscape: false
+    });
+    this.syncMobileControlsVisibility();
+
     this.scale.on("resize", () => {
       this.cinematicBars.resize();
+      const { width, height } = this.scale;
+      this.mobileControls?.resize(width, height);
+      this.syncMobileControlsVisibility();
+    });
+
+    this.events.once("shutdown", () => {
+      this.mobileControls?.destroy();
+      this.mobileControls = null;
     });
 
 
@@ -634,11 +649,24 @@ export default class GameScene extends Phaser.Scene {
       this.onQuestComplete
     );
 
+    this.handleQuestStartedForMobile = () => {
+      this.syncMobileControlsVisibility();
+    };
+
+    this.handleQuestCompletedForMobile = () => {
+      this.syncMobileControlsVisibility();
+    };
+
+    window.addEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
+    window.addEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
+
     this.events.once("shutdown", () => {
       window.removeEventListener(
         "code-mania:quest-complete",
         this.onQuestComplete
       );
+      window.removeEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
+      window.removeEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
     });
 
 
@@ -705,14 +733,43 @@ export default class GameScene extends Phaser.Scene {
   }
 
 
+  isTypingInUI() {
+    const active = document.activeElement;
+    if (!active) return false;
+
+    const tag = active.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (active.isContentEditable) return true;
+
+    return Boolean(
+      active.closest?.(
+        ".monaco-editor, .terminal, .examTerminal, [contenteditable='true'], [role='textbox']"
+      )
+    );
+  }
+
+  shouldDisableMobileControls() {
+    const activeQuest = this.questManager?.activeQuest;
+    const questInProgress = Boolean(activeQuest && !activeQuest.completed);
+
+    return this.gamePausedByTerminal || this.isTypingInUI() || questInProgress;
+  }
+
+  syncMobileControlsVisibility() {
+    if (!this.isMobile || !this.mobileControls) return;
+    this.mobileControls.setEnabled(!this.shouldDisableMobileControls());
+  }
+
   update() {
-    if (this.gamePausedByTerminal) {
+    this.syncMobileControlsVisibility();
+
+    if (this.gamePausedByTerminal || this.isTypingInUI()) {
       this.player.setVelocity(0);
       this.player.anims.stop();
       return;
     }
 
-    const speed = 500;
+    const speed = 120;
     this.player.setVelocity(0);
 
     let moving = false;

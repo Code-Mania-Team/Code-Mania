@@ -10,28 +10,29 @@ const useExamAttempt = () => {
   const [error, setError] = useState(null);
 
   /* ===============================
-     START ATTEMPT
+     START ATTEMPT (LANGUAGE-BASED)
   =============================== */
-  const startAttempt = async (problemId) => {
+  const startAttempt = async (language) => {
     setLoading(true);
     setError(null);
 
     try {
       const response = await axiosPrivate.post(
         "/v1/exam/attempts/start",
-        { problemId }
+        { language } // 🔥 send language instead of problemId
       );
-      console.log("Start attempt response:", response);
 
       if (response.data?.success) {
         const attempt = response.data.data;
+
         setAttemptId(attempt.id);
-        setResult(attempt); // 🔥 store full attempt
+        setResult(attempt);
 
         return attempt;
       }
 
       throw new Error(response.data?.message || "Failed to start attempt");
+
     } catch (err) {
       console.error("Start attempt error:", err);
       setError(err);
@@ -59,7 +60,6 @@ const useExamAttempt = () => {
         `/v1/exam/attempts/${attemptId}/submit`,
         { code }
       );
-      console.log("Submit attempt response:", response);
 
       if (response.data?.success) {
         setResult(response.data.data);
@@ -67,6 +67,7 @@ const useExamAttempt = () => {
       }
 
       throw new Error(response.data?.message || "Submission failed");
+
     } catch (err) {
       console.error("Submit attempt error:", err);
       setError(err);
@@ -77,6 +78,7 @@ const useExamAttempt = () => {
   };
 
   const reset = () => {
+    setAttemptId(null);
     setResult(null);
     setError(null);
   };

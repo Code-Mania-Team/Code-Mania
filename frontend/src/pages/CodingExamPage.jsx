@@ -8,7 +8,7 @@ import useExamAttempt from "../services/useExamAttempt";
 
 const CodingExamPage = () => {
   const navigate = useNavigate();
-  const { language, problemId } = useParams();
+  const { language } = useParams();
   const [examData, setExamData] = useState(null);
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [showHints, setShowHints] = useState(false);
@@ -39,14 +39,15 @@ const CodingExamPage = () => {
     languageBackgrounds[language] || languageBackgrounds.python;
 
   useEffect(() => {
-    const loadProblems = async () => {
+    const loadExam = async () => {
       try {
-        const response = await getExamProblem(problemId);
+        const attempt = await startAttempt(language);
+        if (!attempt) return;
 
-        // 🔥 Extract the actual problem
-        const problem = response.data;
+        const problem = await getExamProblem(language);
+        if (!problem) return;
 
-        const formatted = {
+        setExamData({
           examTitle: `${language.toUpperCase()} Exam`,
           challenges: [
             {
@@ -54,43 +55,25 @@ const CodingExamPage = () => {
               title: problem.problem_title,
               description: problem.problem_description,
               starterCode: problem.starting_code,
-              points: problem.exp,
-              testCases: [],
-              hints: [],
-              solution: ""
+              points: problem.exp
             }
           ]
-        };
+        });
 
-        console.log("📊 Formatted exam data:", formatted);
-
-        setExamData(formatted);
-        setUserCode(problem.starting_code || "");
-        const attempt = await startAttempt(problem.id);
-
-        if (attempt) {
-          setExamState({
-            attemptNumber: attempt.attempt_number || 1,
-            score: attempt.score_percentage || 0,
-            earnedXp: attempt.earned_xp || 0,
-            locked: attempt.score_percentage === 100
-          });
-        }
+        setExamState({
+          attemptNumber: attempt.attempt_number,
+          score: attempt.score_percentage,
+          earnedXp: attempt.earned_xp,
+          locked: attempt.score_percentage === 100
+        });
 
       } catch (err) {
-        console.error("Failed to load exam problems", err);
+        console.error("Load exam error:", err);
       }
     };
 
-    loadProblems();
-
-    document.body.classList.add('exam-page');
-
-    return () => {
-      document.body.classList.remove('exam-page');
-    };
-
-  }, [problemId]);
+    loadExam();
+  }, [language]);
 
   if (!examData) return <div>Loading...</div>;
 
@@ -207,7 +190,7 @@ const CodingExamPage = () => {
                       border: "1px solid #ef4444"
                     }}
                   >
-                    🔒 Locked (100%)
+                    🔒 Locked (5/5 attempts)
                   </span>
                 )}
               </div>
@@ -236,7 +219,7 @@ const CodingExamPage = () => {
                   <li>You have a maximum of <strong>5 attempts</strong>.</li>
                   <li>The first 2 attempts have no penalty.</li>
                   <li>After that, a small 5% XP penalty applies per attempt.</li>
-                  <li>If you reach <strong>100%</strong>, your score and XP are locked.</li>
+                  <li>Exam locks only when you use all <strong>5 attempts</strong>.</li>
                   <li>XP never decreases — improvement is always rewarded.</li>
                 </ul>
               </div>
@@ -329,7 +312,7 @@ const CodingExamPage = () => {
                       attemptNumber: data.attempt_number,
                       score: data.score_percentage,
                       earnedXp: data.earned_xp,
-                      locked: data.locked || false
+                      locked: (data.attempt_number || 0) >= 5
                     });
                   }}
                 />

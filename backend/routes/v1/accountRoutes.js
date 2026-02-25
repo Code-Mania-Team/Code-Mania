@@ -3,8 +3,8 @@ import express from "express";
 import AccountController from "../../controllers/v1/accountController.js";
 import { authentication } from "../../middlewares/authentication.js";
 import { authorization } from "../../middlewares/authorization.js";
-import passport from "passport";
 import { authLimiter } from "../../middlewares/rateLimiter.js";
+import passport from "passport";
 
 const accountRouter = express.Router();
 const account = new AccountController();

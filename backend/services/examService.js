@@ -1,5 +1,6 @@
 import ExamModel from "../models/exam.js";
 import DockerService from "./dockerService.js";
+import axios from "axios";
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -40,7 +41,9 @@ class ExamService {
     const problem = await this.exam.getProblemById(problemId);
     if (!problem) return null;
 
-    const testCases = Array.isArray(problem.test_cases) ? problem.test_cases : [];
+    const testCases = Array.isArray(problem.test_cases)
+      ? problem.test_cases
+      : [];
 
     return {
       id: problem.id,
@@ -63,16 +66,27 @@ class ExamService {
     };
   }
 
-  async startAttempt({ userId, problemId }) {
+  async startAttempt({ userId, languageSlug }) {
+    // 1️⃣ Get problem by language
+    const problems = await this.exam.listProblems({ languageSlug });
+
+    if (!problems.length) {
+      return { ok: false, status: 404, message: "Exam not found for language" };
+    }
+
+    // Because 1 exam per language
+    const problemId = problems[0].id;
+
+    // 2️⃣ Check existing attempt
     const existing = await this.exam.getLatestAttempt({
       userId,
-      problemId
+      problemId,
     });
 
     if (existing) {
       return {
         ok: true,
-        data: existing
+        data: existing,
       };
     }
 
@@ -82,19 +96,22 @@ class ExamService {
 
     const languageSlug = problem.programming_languages?.slug;
 
-    const attemptNumber =
-      await this.exam.getNextAttemptNumber({ userId, problemId });
+    // 3️⃣ Create new attempt
+    const attemptNumber = await this.exam.getNextAttemptNumber({
+      userId,
+      problemId,
+    });
 
     const attempt = await this.exam.createAttempt({
       userId,
       problemId,
       languageSlug,
-      attemptNumber
+      attemptNumber,
     });
 
     return {
       ok: true,
-      data: attempt
+      data: attempt,
     };
   }
 
@@ -110,14 +127,34 @@ class ExamService {
       return { ok: false, status: 403, message: "Forbidden" };
 
     if (attempt.attempt_number >= MAX_ATTEMPTS)
+      if (attempt.score_percentage === 100) {
+        // 🔒 LOCK IF 100%
+        return {
+          ok: true,
+          data: {
+            score_percentage: 100,
+            passed: true,
+            earned_xp: attempt.earned_xp,
+            xp_added: 0,
+            attempt_number: attempt.attempt_number,
+            locked: true,
+          },
+        };
+      }
+
+    // Submission number = current + 1
+    const submissionNumber = attempt.attempt_number + 1;
+
+    if (submissionNumber > MAX_ATTEMPTS) {
       return {
         ok: false,
         status: 400,
-        message: "Maximum attempts reached"
+        message: "Maximum attempts reached",
       };
+    }
 
     const problem = await this.exam.getProblemById(
-      Number(attempt.exam_problem_id)
+      Number(attempt.exam_problem_id),
     );
 
     if (!problem)
@@ -135,7 +172,7 @@ class ExamService {
         scorePercentage: 100,
         passed: true,
         earnedXp: attempt.earned_xp,
-        attemptNumber: newAttemptNumber
+        attemptNumber: newAttemptNumber,
       });
 
       return {
@@ -147,8 +184,8 @@ class ExamService {
           earned_xp: attempt.earned_xp,
           xp_added: 0,
           attempt_number: newAttemptNumber,
-          locked: true
-        }
+          locked: true,
+        },
       };
     }
 
@@ -156,11 +193,27 @@ class ExamService {
       RUN TESTS
     ===================================== */
 
-    const execution = await this.docker.runExam({
-      language: attempt.language,
-      code,
-      testCases: problem.test_cases || []
-    });
+    // const execution = await this.docker.runExam({
+    //   language: attempt.language,
+    //   code,
+    //   testCases: problem.test_cases || []
+    // });
+    /* =====================================
+       RUN TESTS
+    ===================================== */
+    const { data: execution } = await axios.post(
+      "https://terminal.codemania.fun/exam/run",
+      {
+        language: attempt.language,
+        code,
+        testCases: problem.test_cases || [],
+      },
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_KEY,
+        },
+      },
+    );
 
     const totalTests = execution.total;
     const passedTests = execution.passed;
@@ -171,52 +224,70 @@ class ExamService {
       - 2 free attempts
       - 5% penalty after
       - minimum 85% modifier
+       PENALTY SYSTEM (0-based attempts)
+       1st submission → no penalty
+       2nd submission → no penalty
+       3rd submission → 5%
+       4th submission → 10%
+       5th submission → 15%
     ===================================== */
 
     const baseXp = Number(problem.exp || 0);
-    const scoreRatio =
-      totalTests === 0 ? 0 : passedTests / totalTests;
+    const scoreRatio = totalTests === 0 ? 0 : passedTests / totalTests;
 
-    const penaltySteps = Math.max(0, newAttemptNumber - 2);
+    const penaltySteps = Math.max(0, submissionNumber - 2);
     const penaltyRate = 0.05;
     const minModifier = 0.85;
 
     const attemptModifier = Math.max(
       minModifier,
-      1 - (penaltySteps * penaltyRate)
+      1 - penaltySteps * penaltyRate,
     );
 
-    const calculatedXp = Math.round(
-      baseXp * scoreRatio * attemptModifier
-    );
+    const calculatedXp = Math.round(baseXp * scoreRatio * attemptModifier);
 
     /* =====================================
       XP NEVER DECREASES
     ===================================== */
 
-    const previousXp = attempt.earned_xp || 0;
+    // const previousXp = attempt.earned_xp || 0;
 
-    let finalXp = previousXp;
-    let xpDifference = 0;
+    // let finalXp = previousXp;
+    // let xpDifference = 0;
 
-    if (calculatedXp > previousXp) {
-      finalXp = calculatedXp;
-      xpDifference = calculatedXp - previousXp;
-      await this.exam.addXp(userId, xpDifference);
-    }
+    // if (calculatedXp > previousXp) {
+    //   finalXp = calculatedXp;
+    //   xpDifference = calculatedXp - previousXp;
+    //   await this.exam.addXp(userId, xpDifference);
+    // }
 
     const passed = scorePercentage >= PASS_THRESHOLD;
 
     /* =====================================
       UPDATE SAME ROW
+    const passed = scorePercentage >= PASS_THRESHOLD;
+
+    /* =====================================
+       APPLY XP DIFFERENCE (ADD OR SUBTRACT)
+    ===================================== */
+
+    const previousXp = attempt.earned_xp || 0;
+    const xpDifference = calculatedXp - previousXp;
+
+    if (xpDifference !== 0) {
+      await this.exam.addXp(userId, xpDifference);
+    }
+
+    /* =====================================
+       UPDATE ATTEMPT
     ===================================== */
 
     const updated = await this.exam.updateAttemptFull({
       attemptId,
       scorePercentage,
       passed,
-      earnedXp: finalXp,
-      attemptNumber: newAttemptNumber
+      earnedXp: calculatedXp,
+      attemptNumber: submissionNumber,
     });
 
     return {
@@ -225,13 +296,13 @@ class ExamService {
         attempt: updated,
         score_percentage: scorePercentage,
         passed,
-        earned_xp: finalXp,
+        earned_xp: calculatedXp,
         xp_added: xpDifference,
-        attempt_number: newAttemptNumber,
+        attempt_number: submissionNumber,
         passed_tests: passedTests,
         total_tests: totalTests,
-        results: execution.results
-      }
+        results: execution.results,
+      },
     };
   }
 

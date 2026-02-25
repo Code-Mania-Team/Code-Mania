@@ -11,8 +11,16 @@ examRouter.get("/problems", exam.listProblems.bind(exam));
 examRouter.get("/problems/:problemId", exam.getProblem.bind(exam));
 
 // Authenticated: attempts & status
-examRouter.post("/attempts/start", authentication, exam.startAttempt.bind(exam));
-examRouter.post("/attempts/:attemptId/submit", authentication, exam.submitAttempt.bind(exam));
+examRouter.post(
+  "/attempts/start",
+  authentication,
+  exam.startAttempt.bind(exam),
+);
+examRouter.post(
+  "/attempts/:attemptId/submit",
+  authentication,
+  exam.submitAttempt.bind(exam),
+);
 
 //URL: {{baseUrl}}/v1/exam/attempts?language=cpp&limit=50
 examRouter.get("/attempts", authentication, exam.listAttempts.bind(exam));

@@ -32,7 +32,7 @@ class ExamModel {
         created_at,
         updated_at,
         programming_languages ( id, slug, name )
-      `
+      `,
       )
       .order("id", { ascending: true });
 
@@ -61,7 +61,7 @@ class ExamModel {
         created_at,
         updated_at,
         programming_languages ( id, slug, name )
-      `
+      `,
       )
       .eq("id", problemId)
       .maybeSingle();
@@ -93,7 +93,7 @@ class ExamModel {
         created_at,
         updated_at,
         programming_languages ( id, slug, name )
-      `
+      `,
       )
       .maybeSingle();
 
@@ -128,13 +128,14 @@ class ExamModel {
         passed: false,
         earned_xp: 0,
       })
-      .select("id, user_id, exam_problem_id, language, attempt_number, score_percentage, passed, earned_xp, created_at")
+      .select(
+        "id, user_id, exam_problem_id, language, attempt_number, score_percentage, passed, earned_xp, created_at",
+      )
       .single();
 
     if (error) throw error;
     return data;
   }
-
 
   async getAttemptById({ attemptId }) {
     const { data, error } = await supabase
@@ -166,7 +167,7 @@ class ExamModel {
     scorePercentage,
     passed,
     earnedXp,
-    attemptNumber
+    attemptNumber,
   }) {
     const { data, error } = await supabase
       .from("user_exam_attempts")
@@ -174,7 +175,7 @@ class ExamModel {
         score_percentage: scorePercentage,
         passed,
         earned_xp: earnedXp,
-        attempt_number: attemptNumber
+        attempt_number: attemptNumber,
       })
       .eq("id", attemptId)
       .select("*")
@@ -199,7 +200,7 @@ class ExamModel {
         attempt_number,
         created_at,
         exam_problems ( id, problem_title, exp, programming_language_id, programming_languages ( slug, name ) )
-      `
+      `,
       )
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
@@ -216,13 +217,17 @@ class ExamModel {
   async getUserExamStatus({ userId, languageSlug }) {
     // Aggregate attempts for the user; Supabase JS doesn't provide server-side SUM easily without RPC.
     // We'll compute in JS for now.
-    const attempts = await this.listUserAttempts({ userId, languageSlug, limit: 500 });
+    const attempts = await this.listUserAttempts({
+      userId,
+      languageSlug,
+      limit: 500,
+    });
     const passedProblemIds = new Set(
-      attempts.filter((a) => a.passed).map((a) => a.exam_problem_id)
+      attempts.filter((a) => a.passed).map((a) => a.exam_problem_id),
     );
     const totalEarnedXp = attempts.reduce(
       (sum, a) => sum + Number(a.earned_xp || 0),
-      0
+      0,
     );
 
     return {

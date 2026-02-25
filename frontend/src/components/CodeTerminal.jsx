@@ -40,7 +40,13 @@ print(a)`;
   }
 }
 
-const InteractiveTerminal = ({ questId }) => {
+const InteractiveTerminal = ({
+  questId,
+  mobileActivePanel,
+  onMobilePanelChange,
+  showMobilePanelSwitcher = true,
+  enableMobileSplit = true
+}) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
 
@@ -51,39 +57,27 @@ const InteractiveTerminal = ({ questId }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [isQuestActive, setIsQuestActive] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 900 : false
+  );
+  const [internalActivePanel, setInternalActivePanel] = useState("editor");
 
   const validateExercise = useValidateExercise();
 
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
-  const editorRef = useRef(null);
-  const isRunningRef = useRef(false);
-  const waitingForInputRef = useRef(false);
+  const useMobileSplit = isMobileView && enableMobileSplit;
+
+  const activePanel = mobileActivePanel ?? internalActivePanel;
+  const setActivePanel = (panel) => {
+    if (onMobilePanelChange) onMobilePanelChange(panel);
+    else setInternalActivePanel(panel);
+  };
 
   useEffect(() => {
-    isRunningRef.current = isRunning;
-  }, [isRunning]);
-
-  useEffect(() => {
-    waitingForInputRef.current = waitingForInput;
-  }, [waitingForInput]);
-
-  useEffect(() => {
-    const phaserContainer = document.getElementById("phaser-container");
-    if (!phaserContainer) return;
-
-    const handleGameFocus = () => {
-      if (isRunningRef.current || waitingForInputRef.current) return;
-      window.dispatchEvent(new Event("code-mania:terminal-inactive"));
-      if (document.activeElement && typeof document.activeElement.blur === "function") {
-        document.activeElement.blur();
-      }
-    };
-
-    phaserContainer.addEventListener("pointerdown", handleGameFocus);
-    return () => {
-      phaserContainer.removeEventListener("pointerdown", handleGameFocus);
-    };
+    const handleResize = () => setIsMobileView(window.innerWidth <= 900);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   /* ===============================
@@ -107,12 +101,14 @@ const InteractiveTerminal = ({ questId }) => {
   useEffect(() => {
     setIsQuestActive(false);
     setValidationResult(null);
+    setActivePanel("editor");
   }, [questId]);
 
 
   const runViaDocker = () => {
-    if (socketRef.current) socketRef.current.close();
-
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
     let finalOutput = ""; // prevent stale state issue
 
     const socket = new WebSocket("wss://terminal.codemania.fun");
@@ -121,6 +117,15 @@ const InteractiveTerminal = ({ questId }) => {
     socket.onopen = () => {
       window.dispatchEvent(new Event("code-mania:terminal-active"));
       socket.send(JSON.stringify({ language, code }));
+
+      // 🔥 FORCE FOCUS
+      setTimeout(() => {
+        terminalRef.current?.focus();
+      }, 0);
+
+      if (useMobileSplit) {
+        setActivePanel("terminal");
+      }
     };
 
     socket.onmessage = (e) => {
@@ -176,16 +181,13 @@ const InteractiveTerminal = ({ questId }) => {
   =============================== */
 
   const handleKeyDown = (e) => {
-    if (!waitingForInput || !socketRef.current) return;
-
     if (e.key === "Enter") {
-      socketRef.current.send(
-        JSON.stringify({ stdin: inputBuffer })
-      );
-
-      setProgramOutput(prev => prev + inputBuffer + "\n");
+      const value = inputBuffer;
+      setProgramOutput(prev => prev + value + "\n");
+      if (socketRef.current) {
+        socketRef.current.send(JSON.stringify({ stdin: value }));
+      }
       setInputBuffer("");
-      setWaitingForInput(false);
       e.preventDefault();
       return;
     }
@@ -214,6 +216,15 @@ const InteractiveTerminal = ({ questId }) => {
     runViaDocker();
   };
 
+  const handleSubmitInput = () => {
+    const value = inputBuffer;
+    setProgramOutput(prev => prev + value + "\n");
+    if (socketRef.current) {
+      socketRef.current.send(JSON.stringify({ stdin: value }));
+    }
+    setInputBuffer("");
+  };
+
   const totalObjectives = validationResult
     ? Object.keys(validationResult).length
     : 0;
@@ -228,6 +239,25 @@ const InteractiveTerminal = ({ questId }) => {
 
   return (
     <div className={styles["code-container"]}>
+      {useMobileSplit && showMobilePanelSwitcher && (
+        <div className={styles["mobile-panel-switcher"]}>
+          <button
+            type="button"
+            className={`${styles["mobile-switch-btn"]} ${activePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+            onClick={() => setActivePanel("editor")}
+          >
+            Editor
+          </button>
+          <button
+            type="button"
+            className={`${styles["mobile-switch-btn"]} ${activePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+            onClick={() => setActivePanel("terminal")}
+          >
+            Terminal
+          </button>
+        </div>
+      )}
+
       <div className={styles["code-editor"]}>
         <div className={styles["editor-header"]}>
           <span>
@@ -250,55 +280,69 @@ const InteractiveTerminal = ({ questId }) => {
           </button>
         </div>
 
+        {(!useMobileSplit || activePanel === "editor") && (
         <Editor
-          height="300px"
+          height={isMobileView ? "240px" : "300px"}
           language={monacoLang}
           theme="vs-dark"
           value={code}
           onChange={(v) => setCode(v ?? "")}
-          onMount={(editor) => {
-            editorRef.current = editor;
-
-            editor.onDidFocusEditorText(() => {
-              window.dispatchEvent(new Event("code-mania:terminal-active"));
-            });
-
-            editor.onDidBlurEditorText(() => {
-              if (!isRunningRef.current && !waitingForInputRef.current) {
-                window.dispatchEvent(new Event("code-mania:terminal-inactive"));
-              }
-            });
-          }}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
             automaticLayout: true
           }}
         />
+        )}
       </div>
 
-      <div
-        className={styles["terminal"]}
-        ref={terminalRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-      >
+      {(!useMobileSplit || activePanel === "terminal") && (
+        <div
+            className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
+            ref={terminalRef}
+            tabIndex={isRunning ? 0 : -1}
+            onClick={() => isRunning && terminalRef.current?.focus()}
+            onKeyDown={handleKeyDown}
+          >
         <div className={styles["terminal-header"]}>Terminal</div>
 
         <div className={styles["terminal-content"]}>
           <pre>
             {programOutput}
-            {waitingForInput && inputBuffer}
-            {waitingForInput && (
-              <span className={styles.cursor}></span>
-            )}
-            {!programOutput &&
-              !waitingForInput &&
-              "▶ Output will appear here"}
+            {inputBuffer}
+            <span className={styles.cursor}></span>
           </pre>
+
+          {isRunning && (
+            <div className={styles["terminal-input-row"]}>
+              <input
+                className={styles["terminal-input"]}
+                placeholder={waitingForInput ? "Type input and press Enter" : "Program running..."}
+                value={inputBuffer}
+                onChange={(e) => setInputBuffer(e.target.value)}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSubmitInput();
+                  }
+                }}
+                disabled={!waitingForInput}
+              />
+              <button
+                type="button"
+                className={styles["terminal-send-btn"]}
+                onClick={handleSubmitInput}
+                disabled={!waitingForInput}
+              >
+                Send
+              </button>
+            </div>
+          )}
         </div>
 
       </div>
+      )}
       {validationResult && (
           <div className={styles["validation-box"]}>
             <h4 className={styles["validation-summary"]}>

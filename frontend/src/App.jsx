@@ -44,8 +44,8 @@ const Home = () => (
       <div className="hero-content">
         <h1 className="hero-title">LEARN TO CODE</h1>
         <p className="hero-description">
-          Master programming with interactive courses and hands-on projects.
-          Build real-world applications while learning.
+          Learn programming fundamentals through interactive story-based adventures.
+          Build logic step by step while exploring new worlds.
         </p>
         <Link to="/learn" className="get-started-btn">Get Started</Link>
       </div>
@@ -92,8 +92,7 @@ const Home = () => (
           <h2>Start Your Coding Quest</h2>
           <p>
             Embark on an epic journey where programming is your weapon.
-            Complete challenges, unlock new skills, and level up as you build
-            real projects.
+            Complete challenges, unlock new skills, and level up as you strengthen your coding foundations.
           </p>
         </div>
         <div className="learn-image">
@@ -105,9 +104,9 @@ const Home = () => (
         <div className="learn-text">
           <h2>Level Up Your Skills</h2>
           <p>
-            Coding is your next adventure. Master quests, earn achievements,
-            and progress from beginner to pro while creating powerful
-            applications.
+            Strengthen your logic, master core programming concepts,
+            and progress from beginner to confident coder through
+            guided adventures and hands-on exercises.
           </p>
         </div>
         <div className="learn-image">
@@ -117,10 +116,11 @@ const Home = () => (
 
       <div className="learn-content">
         <div className="learn-text">
-          <h2>Play. Code. Conquer.</h2>
+          <h2>Play. Code. Grow.</h2>
           <p>
-            Turn coding into your next big win. Face challenges, build
-            real-world projects, and climb the leaderboard of your own success.
+            Turn learning into an adventure. Solve challenges,
+            earn achievements, and build strong programming
+            foundations one mission at a time.
           </p>
         </div>
         <div className="learn-image">
@@ -269,6 +269,10 @@ function App() {
     location.pathname.startsWith("/coding-exam") ||
     location.pathname.startsWith("/exam");
 
+  const isExamRoute =
+    location.pathname.startsWith("/coding-exam") ||
+    location.pathname.startsWith("/exam");
+
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" || 
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/welcome"].includes(location.pathname);
@@ -285,7 +289,10 @@ function App() {
       )}
       <ScrollToTop />
 
-      <main className="main-content">
+      <main
+        className="main-content"
+        style={isExamRoute ? { paddingTop: 0 } : undefined}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
@@ -324,7 +331,7 @@ function App() {
     </ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
-          <Route path="/exam/:language/:problemId" element={<ProtectedRoute>
+          <Route path="/exam/:language" element={<ProtectedRoute>
       <CodingExamPage />
     </ProtectedRoute>} />
           <Route path="/quiz/:language/:quizId" element={<ProtectedRoute>

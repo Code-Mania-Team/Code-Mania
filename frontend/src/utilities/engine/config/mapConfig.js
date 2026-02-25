@@ -330,6 +330,151 @@ export const MAPS = {
           }
         ],
         nextMap: "map12"
+      },
+      map12: {
+        mapKey: "map12",
+        mapJson: "/assets/maps/Python/map12.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D1",
+            key: "fsm_C_Inside01_D1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D1.png"
+          },
+          {
+            name: "ADBTileB_interior",
+            key: "ADBTileB_interior",
+            image: "/assets/tilesets/Python/ADBTileB_interior.png"
+          }
+        ],
+        nextMap: "map13"
+      },
+      map13: {
+        mapKey: "map13",
+        mapJson: "/assets/maps/Python/map13.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A4",
+            key: "fsm_C_Inside01_A4",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A4.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D3",
+            key: "fsm_C_Inside01_D3",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D3.png"
+          },
+          {
+            name: "Dungeon_B_for_mineral",
+            key: "Dungeon_B_for_mineral",
+            image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+          }
+        ],
+        nextMap: "map14"
+      },
+      map14: {
+        mapKey: "map14",
+        mapJson: "/assets/maps/Python/map14.json",
+        tilesets: [
+          {
+            name: "commu_church-B",
+            key: "commu_church-B",
+            image: "/assets/tilesets/Python/commu_church-B.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_2",
+            key: "fsm_C_Inside01_A5_2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_2.png"
+          },
+          {
+            name: "fsm_C_Inside01_B2",
+            key: "fsm_C_Inside01_B2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B2.png"
+          }
+        ],
+        nextMap: "map15"
+      },
+      map15: {
+        mapKey: "map15",
+        mapJson: "/assets/maps/Python/map15.json",
+        tilesets: [
+          {
+            name: "commu_church-B",
+            key: "commu_church-B",
+            image: "/assets/tilesets/Python/commu_church-B.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_2",
+            key: "fsm_C_Inside01_A5_2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_2.png"
+          },
+          {
+            name: "fsm_C_Inside01_B2",
+            key: "fsm_C_Inside01_B2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B2.png"
+          }
+        ],
+        nextMap: "map16"
+      },
+      map16: {
+        mapKey: "map16",
+        mapJson: "/assets/maps/Python/map16.json",
+        tilesets: [
+          {
+            name: "commu_church-B",
+            key: "commu_church-B",
+            image: "/assets/tilesets/Python/commu_church-B.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_2",
+            key: "fsm_C_Inside01_A5_2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_2.png"
+          },
+          {
+            name: "fsm_C_Inside01_B2",
+            key: "fsm_C_Inside01_B2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B2.png"
+          },
+          {
+            name: "CMSH_Church_A4",
+            key: "CMSH_Church_A4",
+            image: "/assets/tilesets/Python/CMSH_Church_A4.png"
+          },
+          {
+            name: "hidden_B",
+            key: "hidden_B",
+            image: "/assets/tilesets/Python/hidden_B.png"
+          }
+        ],
+        nextMap: null
       }
 
   },

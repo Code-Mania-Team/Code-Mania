@@ -206,10 +206,14 @@
   }
 
   .title {
-    font-size: 2rem;
+    font-size: 1.7rem;
   }
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .subtitle {
+    font-size: 1rem;
   }
 }

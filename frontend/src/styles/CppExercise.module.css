@@ -552,9 +552,35 @@
   }
 }
 
+.mobile-panel-switcher-top {
+  display: none;
+}
+
+.mobile-switch-btn {
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #cbd5e1;
+  border-radius: 999px;
+  padding: 0.38rem 0.85rem;
+  font-size: 0.66rem;
+  font-family: "Press Start 2P", cursive;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mobile-switch-btn-active {
+  background: #1d4ed8;
+  border-color: #60a5fa;
+  color: #fff;
+}
+
+.mobile-panel-hidden {
+  display: none;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
-  .codex-grid {
+  .main-layout {
     flex-direction: column;
     gap: 1rem;
   }
@@ -570,10 +596,36 @@
   }
 }
 
+@media (max-width: 900px) {
+  .cpp-exercise-page {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .codex-fullscreen {
+    height: calc(100dvh - 72px);
+    overflow: hidden;
+  }
+
+  .mobile-panel-switcher-top {
+    width: 95%;
+    margin: 0 auto 0.65rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .mobile-panel-switcher-top .mobile-switch-btn {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
 @media (max-width: 768px) {
-  .codex-grid {
-    width: 100%;
-    padding: 0 0.5rem;
+  .main-layout {
+    width: 95%;
     gap: 0.8rem;
   }
 
