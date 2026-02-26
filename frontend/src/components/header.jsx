@@ -169,7 +169,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
             <span className="learn-arrow">&gt;</span>
           </NavLink>
           <div className={`dropdown-menu ${isLearnOpen ? "is-open" : ""}`}>
-            <Link to="/learn" className="dropdown-item" onClick={closeMobileMenu}>All Courses</Link>
+            <Link to="/learn" className="dropdown-item mobile-only-item" onClick={closeMobileMenu}>All Courses</Link>
             <Link to="/learn/python" className="dropdown-item" onClick={closeMobileMenu}>Python</Link>
             <Link to="/learn/cpp" className="dropdown-item" onClick={closeMobileMenu}>C++</Link>
             <Link to="/learn/javascript" className="dropdown-item" onClick={closeMobileMenu}>JavaScript</Link>

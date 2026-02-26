@@ -259,6 +259,10 @@ body,
   cursor: pointer;
 }
 
+.mobile-only-item {
+  display: none;
+}
+
 .dropdown-item:hover {
   background: rgba(251, 191, 36, 0.1);
   color: #fbbf24;
@@ -1207,6 +1211,10 @@ width: 100%;
     padding: 0.9rem 2.25rem;
     font-size: 1rem;
     color: #cbd5e1;
+  }
+
+  .mobile-only-item {
+    display: block;
   }
 
   .account-trigger {
