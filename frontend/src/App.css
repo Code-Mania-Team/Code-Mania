@@ -411,7 +411,7 @@ body,
 
 .hero-title {
   font-family: "Jersey 25", sans-serif;
-  font-size: 2rem;
+  font-size: 3.5rem;
   line-height: 1.2;
   color: white;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
@@ -419,7 +419,7 @@ body,
 }
 
 .hero-description {
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: #ffffff;
   margin-bottom: 2.5rem;
   line-height: 1.6;
@@ -432,10 +432,10 @@ body,
 .get-started-btn {
   background: #fbbf24;
   font-family: "Jersey 25", sans-serif;
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: bold;
   color: black;
-  padding: 0.5rem 3rem;
+  padding: 1rem 2.5rem;
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -520,15 +520,6 @@ body,
 }
 
 @media (max-width: 768px) {
-  .hero-section {
-    align-items: flex-start;
-    padding: 5.75rem 1rem 3rem;
-  }
-
-  .hero-content {
-    margin-top: 0;
-  }
-
   .learn-section {
     padding: 0 1rem 4rem;
   }
@@ -1348,5 +1339,38 @@ width: 100%;
     border-color: rgba(255, 255, 255, 0.2);
     color: white;
     transform: translateY(-2px);
+  }
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .hero-content {
+    padding: 0 1rem;
+  }
+
+  .hero-description {
+    font-size: 1.5rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .learn-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .languages-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-columns {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 }
