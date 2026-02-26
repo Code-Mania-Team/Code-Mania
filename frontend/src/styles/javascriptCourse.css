@@ -269,9 +269,9 @@
   .course-badges-grid,
   .javascript-course-badges-grid {
     display: flex;
-    flex-wrap: nowrap;
-    gap: 20px;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow-x: visible;
     padding-bottom: 4px;
     justify-content: center;
   }

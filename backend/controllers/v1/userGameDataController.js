@@ -1,5 +1,4 @@
 import GameDataService from "../../services/gameDataService.js";
-import { supabase } from "../../core/supabaseClient.js";
 
 class UserGameDataController {
     constructor() {
@@ -21,8 +20,6 @@ class UserGameDataController {
             req.query.programming_language
         );
 
-        console.log("Language requested:", programming_language_id)
-
         if (!Number.isFinite(programming_language_id)) {
             return res.status(400).json({
             success: false,
@@ -34,20 +31,10 @@ class UserGameDataController {
             user_id,
             programming_language_id
         );
-        console.log("Fetched learning data:", rows);
-
-        const { data: quizRows } = await supabase
-            .from("user_quiz_attempts")
-            .select(`
-              id,
-              earned_xp,
-              quizzes!inner (
-                programming_language_id,
-                route
-              )
-            `)
-            .eq("user_id", user_id)
-            .eq("quizzes.programming_language_id", programming_language_id);
+        const quizRows = await this.gameDataService.getQuizAttemptsByLanguage(
+            user_id,
+            programming_language_id
+        );
 
         const completedQuizStages = Array.from(
             new Set(

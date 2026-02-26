@@ -216,15 +216,6 @@ const InteractiveTerminal = ({
     runViaDocker();
   };
 
-  const handleSubmitInput = () => {
-    const value = inputBuffer;
-    setProgramOutput(prev => prev + value + "\n");
-    if (socketRef.current) {
-      socketRef.current.send(JSON.stringify({ stdin: value }));
-    }
-    setInputBuffer("");
-  };
-
   const totalObjectives = validationResult
     ? Object.keys(validationResult).length
     : 0;
@@ -313,32 +304,6 @@ const InteractiveTerminal = ({
             <span className={styles.cursor}></span>
           </pre>
 
-          {isRunning && (
-            <div className={styles["terminal-input-row"]}>
-              <input
-                className={styles["terminal-input"]}
-                placeholder={waitingForInput ? "Type input and press Enter" : "Program running..."}
-                value={inputBuffer}
-                onChange={(e) => setInputBuffer(e.target.value)}
-                onKeyDown={(e) => {
-                  e.stopPropagation();
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleSubmitInput();
-                  }
-                }}
-                disabled={!waitingForInput}
-              />
-              <button
-                type="button"
-                className={styles["terminal-send-btn"]}
-                onClick={handleSubmitInput}
-                disabled={!waitingForInput}
-              >
-                Send
-              </button>
-            </div>
-          )}
         </div>
 
       </div>

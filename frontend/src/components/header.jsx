@@ -32,7 +32,24 @@ const Header = ({ onOpenModal, onSignOut }) => {
     const loadCharacterIcon = () => {
       const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
       const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
+
       if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
+        const userCharacterId = user?.character_id;
+        const normalizedUserCharacterId =
+          userCharacterId === null || userCharacterId === undefined
+            ? null
+            : Number(userCharacterId);
+
+        if (normalizedUserCharacterId !== null && !Number.isNaN(normalizedUserCharacterId)) {
+          const iconFromUser = iconByCharacterId[normalizedUserCharacterId] || null;
+          if (iconFromUser) {
+            localStorage.setItem('selectedCharacter', String(normalizedUserCharacterId));
+            localStorage.setItem('selectedCharacterIcon', iconFromUser);
+            setCharacterIcon(iconFromUser);
+            return;
+          }
+        }
+
         const storedIcon = localStorage.getItem('selectedCharacterIcon');
         setCharacterIcon(storedIcon || null);
         return;
@@ -69,7 +86,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('characterUpdated', handleCharacterUpdate);
     };
-  }, []);
+  }, [user?.character_id]);
 
   const isAdmin = isAuthenticated && user?.role === "admin";
   const homePath = isAdmin ? '/admin' : isAuthenticated ? '/dashboard' : '/';
@@ -152,6 +169,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
             <span className="learn-arrow">&gt;</span>
           </NavLink>
           <div className={`dropdown-menu ${isLearnOpen ? "is-open" : ""}`}>
+            <Link to="/learn" className="dropdown-item" onClick={closeMobileMenu}>All Courses</Link>
             <Link to="/learn/python" className="dropdown-item" onClick={closeMobileMenu}>Python</Link>
             <Link to="/learn/cpp" className="dropdown-item" onClick={closeMobileMenu}>C++</Link>
             <Link to="/learn/javascript" className="dropdown-item" onClick={closeMobileMenu}>JavaScript</Link>

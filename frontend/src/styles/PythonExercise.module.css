@@ -1265,6 +1265,7 @@
   .main-layout {
     flex-direction: column;
     width: 95%;
+    margin: 0 auto 0.5rem;
   }
 
   .mobile-panel-switcher {
@@ -1275,7 +1276,7 @@
 
   .mobile-panel-switcher-top {
     width: 95%;
-    margin: 0 auto 0.65rem;
+    margin: -0.2rem auto 0.45rem;
     display: flex;
     gap: 0.5rem;
     justify-content: center;

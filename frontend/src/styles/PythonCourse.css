@@ -560,10 +560,11 @@
 
   .course-badges-grid {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 10px;
-    overflow-x: auto;
+    overflow-x: visible;
     padding-bottom: 4px;
+    justify-content: center;
   }
 
   .python-course-badge {

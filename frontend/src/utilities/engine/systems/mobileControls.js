@@ -10,9 +10,9 @@ export default class MobileControls {
     this.enabled = true;
     this.joystickPointerId = null;
     this.deadZone = 0.18;
-    this.joystickRadius = 46;
-    this.joystickMaxDistance = 40;
-    this.interactRadius = 38;
+    this.joystickRadius = 38;
+    this.joystickMaxDistance = 32;
+    this.interactRadius = 32;
     this.questRadius = 30;
 
     this.createJoystick();
@@ -32,7 +32,7 @@ export default class MobileControls {
       .setScrollFactor(0)
       .setDepth(10000);
 
-    this.thumb = this.scene.add.circle(100, height - 100, 22, 0xe2e8f0, 0.68)
+    this.thumb = this.scene.add.circle(100, height - 100, 18, 0xe2e8f0, 0.68)
       .setStrokeStyle(2, 0xffffff, 0.42)
       .setScrollFactor(0)
       .setDepth(10001);
@@ -53,7 +53,7 @@ export default class MobileControls {
       const dy = p.y - this.base.y;
       const dist = Math.hypot(dx, dy);
 
-      if (dist <= 70) {
+      if (dist <= this.joystickRadius + 18) {
         this.joystickPointerId = p.id;
       }
     };
@@ -111,10 +111,10 @@ export default class MobileControls {
       .setStrokeStyle(2, 0xffffff, 0.4)
       .setScrollFactor(0)
       .setDepth(10000)
-      .setInteractive(new Phaser.Geom.Circle(0, 0, 48), Phaser.Geom.Circle.Contains);
+      .setInteractive(new Phaser.Geom.Circle(0, 0, this.interactRadius + 10), Phaser.Geom.Circle.Contains);
 
     this.interactLabel = this.scene.add.text(width - 80, height - 100, "E", {
-      fontSize: "22px",
+      fontSize: "18px",
       color: "#ffffff",
       fontStyle: "bold"
     })
@@ -123,7 +123,7 @@ export default class MobileControls {
       .setDepth(10001);
 
     this.interactHint = this.scene.add.text(width - 80, height - 45, "INTERACT", {
-      fontSize: "10px",
+      fontSize: "9px",
       color: "#dbeafe",
       fontStyle: "bold"
     })

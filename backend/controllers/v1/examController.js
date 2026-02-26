@@ -1,32 +1,14 @@
 import ExamService from "../../services/examService.js";
-import { supabase } from "../../core/supabaseClient.js";
+import ActorService from "../../services/actorService.js";
 
 class ExamController {
   constructor() {
     this.examService = new ExamService();
+    this.actorService = new ActorService();
   }
 
   async resolveIsAdmin(userId, tokenRole) {
-    if (tokenRole === "admin") return true;
-    if (!userId) return false;
-
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error("resolveIsAdmin error:", error);
-        return false;
-      }
-
-      return data?.role === "admin";
-    } catch (err) {
-      console.error("resolveIsAdmin exception:", err);
-      return false;
-    }
+    return this.actorService.isAdmin(userId, tokenRole);
   }
 
   async listProblems(req, res) {
