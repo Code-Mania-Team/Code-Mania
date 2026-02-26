@@ -344,7 +344,7 @@ class User {
 
             .from("users")
 
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role")
+            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role, hasSeen_tutorial")
 
             .eq("user_id", user_id)
 
@@ -359,7 +359,7 @@ class User {
     async getAllForAdmin() {
         const { data, error } = await this.db
             .from("users")
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role")
+            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role, hasSeen_tutorial")
             .order("created_at", { ascending: false });
 
         if (error) throw error;

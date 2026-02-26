@@ -4,18 +4,21 @@ import { useNavigate } from "react-router-dom";
 import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
+import TutorialOverlay from "../components/Tutorialpopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import useGetExercises from "../services/getExercise";
 import useGetCourseBadges from "../services/getCourseBadge";
+import useMarkTutorialSeen from "../services/markTutorialSeen";
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const JavaScriptCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, setUser } = useAuth();
   const getGameProgress = useGetGameProgress();
   const getExercises = useGetExercises();
+  const markTutorialSeen = useMarkTutorialSeen();
   const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
@@ -24,10 +27,6 @@ const JavaScriptCourse = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [pendingRoute, setPendingRoute] = useState(null);
   const [data, setData] = useState();
-
-  const tutorialSeenKey = user?.user_id
-    ? `hasSeenTutorial_${user.user_id}`
-    : "hasSeenTutorial";
 
   useEffect(() => {
     let cancelled = false;
@@ -169,10 +168,9 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExercise = (exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = `/learn/javascript/exercise/${exerciseId}`;
 
-    if (isAuthenticated && hasSeenTutorial !== "true") {
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -186,10 +184,9 @@ const JavaScriptCourse = () => {
   };
 
   const handleStartExam = () => {
-    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = "/exam/javascript";
 
-    if (isAuthenticated && hasSeenTutorial !== "true") {
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -202,9 +199,17 @@ const JavaScriptCourse = () => {
     navigate(route);
   };
 
-  const handleTutorialClose = () => {
+  const handleTutorialClose = async () => {
     setShowTutorial(false);
-    localStorage.setItem(tutorialSeenKey, "true");
+
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
+      try {
+        await markTutorialSeen();
+        setUser((prev) => (prev ? { ...prev, hasSeen_tutorial: true } : prev));
+      } catch (err) {
+        console.error("Failed to mark tutorial as seen", err);
+      }
+    }
 
     if (pendingRoute) {
       const nextRoute = pendingRoute;
@@ -412,6 +417,8 @@ const JavaScriptCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
+
+      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
     </div>
   );
 };

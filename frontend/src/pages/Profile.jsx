@@ -34,6 +34,8 @@ const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 
+const FULL_NAME_MAX_LENGTH = 40;
+
 
 
 const Profile = ({ onSignOut }) => {
@@ -53,6 +55,10 @@ const Profile = ({ onSignOut }) => {
 
 
   const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
+
+  const [fullNameDraft, setFullNameDraft] = useState('');
+
+  const [editError, setEditError] = useState('');
 
 
 
@@ -821,9 +827,8 @@ const Profile = ({ onSignOut }) => {
 
 
   const handleEditAccount = () => {
-
-
-
+    setFullNameDraft(editFormData.userName || '');
+    setEditError('');
     setIsEditModalOpen(true);
 
 
@@ -838,13 +843,33 @@ const Profile = ({ onSignOut }) => {
 
   const handleSaveEdit = async () => {
 
+    const normalizedName = (fullNameDraft || '').trim();
+
+    if (!normalizedName) {
+
+      setEditError('Full name is required.');
+
+      return;
+
+    }
+
+    if (normalizedName.length > FULL_NAME_MAX_LENGTH) {
+
+      setEditError(`Full name must be ${FULL_NAME_MAX_LENGTH} characters or fewer.`);
+
+      return;
+
+    }
+
+    setEditError('');
+
 
 
     try {
 
 
 
-      const response = await editAccount(editFormData.userName);
+      const response = await editAccount(normalizedName);
 
 
 
@@ -898,6 +923,8 @@ const Profile = ({ onSignOut }) => {
 
       console.error('Edit account failed:', error);
 
+      setEditError(error?.response?.data?.message || 'Failed to update profile name.');
+
 
 
     }
@@ -913,28 +940,11 @@ const Profile = ({ onSignOut }) => {
 
 
   const handleEditInputChange = (e) => {
+    const value = String(e.target.value || '').slice(0, FULL_NAME_MAX_LENGTH);
 
+    setFullNameDraft(value);
 
-
-    const { name, value } = e.target;
-
-
-
-    setEditFormData(prev => ({
-
-
-
-      ...prev,
-
-
-
-      [name]: value
-
-
-
-    }));
-
-
+    if (editError) setEditError('');
 
   };
 
@@ -1060,7 +1070,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <h1 className={styles.userName}>{editFormData.userName}</h1>
+              <h1 className={styles.userName} title={editFormData.userName}>{editFormData.userName}</h1>
 
 
 
@@ -1493,11 +1503,13 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                value={editFormData.userName}
+                value={fullNameDraft}
 
 
 
                 onChange={handleEditInputChange}
+
+                maxLength={FULL_NAME_MAX_LENGTH}
 
 
 
@@ -1506,6 +1518,18 @@ const Profile = ({ onSignOut }) => {
 
 
               />
+
+              <small style={{ display: 'block', marginTop: '8px', opacity: 0.7 }}>
+
+                {fullNameDraft.length}/{FULL_NAME_MAX_LENGTH}
+
+              </small>
+
+              {editError ? (
+
+                <p style={{ marginTop: '8px', color: '#f87171', fontSize: '0.9rem' }}>{editError}</p>
+
+              ) : null}
 
 
 
@@ -1737,7 +1761,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-          <div className={styles.sidebarCardTitle}>{editFormData.userName}</div>
+          <div className={styles.sidebarCardTitle} title={editFormData.userName}>{editFormData.userName}</div>
 
 
 
