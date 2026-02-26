@@ -520,6 +520,15 @@ body,
 }
 
 @media (max-width: 768px) {
+  .hero-section {
+    align-items: flex-start;
+    padding: 5.75rem 1rem 3rem;
+  }
+
+  .hero-content {
+    margin-top: 0;
+  }
+
   .learn-section {
     padding: 0 1rem 4rem;
   }
