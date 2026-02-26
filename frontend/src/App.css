@@ -414,7 +414,7 @@ body,
   font-size: 3.5rem;
   line-height: 1.2;
   color: white;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 2px 2px 4px rgba(0,0,0,1);
   margin-bottom: 1.5rem;
 }
 
@@ -1346,6 +1346,12 @@ width: 100%;
 @media (max-width: 768px) {
   .hero-content {
     padding: 0 1rem;
+    position: relative;
+    bottom: 50px;
+  }
+
+  .get-started-btn {
+    padding: 0.5rem 2.5rem;
   }
 
   .hero-description {
