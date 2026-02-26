@@ -319,9 +319,7 @@ function App() {
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
-          <Route path="/dashboard" element={<ProtectedRoute>
-      <Dashboard onSignOut={handleSignOut} />
-    </ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard onSignOut={handleSignOut} /></ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/coding-exam/:language" element={<ProtectedRoute>
