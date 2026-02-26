@@ -1,0 +1,154 @@
+.credits-page {
+  position: relative;
+  min-height: calc(100vh - 70px);
+  padding: 3.5rem 1.2rem 4.5rem;
+  background: radial-gradient(circle at 20% 20%, #1f1b5a 0%, #0a1135 42%, #070f2c 100%);
+  overflow: hidden;
+}
+
+.credits-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image:
+    radial-gradient(2px 2px at 12% 18%, rgba(255, 255, 255, 0.65), transparent 60%),
+    radial-gradient(2px 2px at 78% 15%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(2px 2px at 56% 42%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(2px 2px at 32% 70%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(2px 2px at 86% 82%, rgba(255, 255, 255, 0.45), transparent 60%);
+  pointer-events: none;
+}
+
+.credits-content {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.credits-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(121, 153, 255, 0.24);
+  background: rgba(9, 21, 60, 0.55);
+  color: #9db6ff;
+  padding: 0.85rem 1.35rem;
+  border-radius: 999px;
+  font-family: "VT323", monospace;
+  font-size: 1.55rem;
+  letter-spacing: 0.4px;
+  margin-bottom: 2.6rem;
+}
+
+.credits-title {
+  font-family: "Press Start 2P", cursive;
+  font-size: clamp(2rem, 5vw, 3.3rem);
+  color: #ffe447;
+  letter-spacing: 1px;
+  margin-bottom: 1.25rem;
+  text-shadow: 0 3px 0 #1f2337;
+}
+
+.credits-subtitle {
+  max-width: 700px;
+  margin: 0 auto 2.6rem;
+  color: #9dc0ff;
+  font-family: "VT323", monospace;
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  line-height: 1.35;
+}
+
+.credits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.credit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-decoration: none;
+  border: 1px solid rgba(157, 192, 255, 0.35);
+  background: rgba(9, 18, 48, 0.78);
+  border-radius: 14px;
+  padding: 1rem 0.9rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.credit-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 228, 71, 0.72);
+  background: rgba(15, 30, 73, 0.9);
+}
+
+.credit-label {
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: #eef3ff;
+}
+
+.credit-creator {
+  font-family: "VT323", monospace;
+  font-size: 1.4rem;
+  color: #8db0ff;
+}
+
+.credits-footnote {
+  margin-top: 2.8rem;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.8rem;
+  color: #f1f5ff;
+  letter-spacing: 0.4px;
+}
+
+@media (max-width: 900px) {
+  .credits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .credits-page {
+    padding: 2.4rem 0.9rem 3rem;
+  }
+
+  .credits-pill {
+    margin-bottom: 1.9rem;
+    font-size: 1.3rem;
+    padding: 0.72rem 1rem;
+  }
+
+  .credits-title {
+    font-size: 1.65rem;
+    line-height: 1.4;
+  }
+
+  .credits-subtitle {
+    font-size: 1.22rem;
+    line-height: 1.38;
+    margin-bottom: 1.8rem;
+  }
+
+  .credits-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .credit-label {
+    font-size: 0.57rem;
+  }
+
+  .credit-creator {
+    font-size: 1.2rem;
+  }
+
+  .credits-footnote {
+    margin-top: 2rem;
+    font-size: 0.63rem;
+    line-height: 1.45;
+  }
+}

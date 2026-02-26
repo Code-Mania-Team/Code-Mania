@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
+import Credits from "./pages/credits";
 import PageNotFound from "./pages/PageNotFound";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
@@ -276,7 +277,7 @@ function App() {
 
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" || 
-    !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/welcome"].includes(location.pathname);
+    !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
 
   return (
     <div className="app">
@@ -340,6 +341,7 @@ function App() {
     </ProtectedRoute>} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />
+          <Route path="/credits" element={<Credits />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
