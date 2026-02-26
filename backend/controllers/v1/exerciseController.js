@@ -554,50 +554,6 @@ class ExerciseController {
             }
 
             // ==================================================
-            // 🧱 FUNDAMENTALS MODE
-            // ==================================================
-            else if (mode === "FUNDAMENTALS") {
-                if (quest.requirements?.mustInclude) {
-                    const missing = quest.requirements.mustInclude.find(keyword =>
-                        !code.includes(keyword)
-                    );
-
-                    if (missing) {
-                        return res.status(200).json({
-                            success: false,
-                            message: `Code must include "${missing}"`
-                        });
-                    }
-                }
-            }
-
-            // ==================================================
-            // 🔥 HYBRID MODE
-            // ==================================================
-            else if (mode === "HYBRID") {
-
-                if (quest.requirements?.mustInclude) {
-                    const missing = quest.requirements.mustInclude.find(keyword =>
-                        !code.includes(keyword)
-                    );
-
-                    if (missing) {
-                        return res.status(200).json({
-                            success: false,
-                            message: `Code must include "${missing}"`
-                        });
-                    }
-                }
-
-                if (expected !== actual) {
-                    return res.status(200).json({
-                        success: false,
-                        message: "Output incorrect"
-                    });
-                }
-            }
-
-            // ==================================================
             // 🎮 PROGRESSION CHECK
             // ==================================================
 

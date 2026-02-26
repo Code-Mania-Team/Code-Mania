@@ -540,6 +540,7 @@ const JavaScriptExercise = () => {
               disabled={!terminalEnabled}
               showMobilePanelSwitcher={false}
               enableMobileSplit={false}
+              quest={activeExercise}
             />
           </div>
         </div>

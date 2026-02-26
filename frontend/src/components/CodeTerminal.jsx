@@ -45,7 +45,8 @@ const InteractiveTerminal = ({
   mobileActivePanel,
   onMobilePanelChange,
   showMobilePanelSwitcher = true,
-  enableMobileSplit = true
+  enableMobileSplit = true,
+  quest
 }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
@@ -66,13 +67,19 @@ const InteractiveTerminal = ({
 
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
+  const iframeRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
+  const [iframeContent, setIframeContent] = useState("");
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
   const setActivePanel = (panel) => {
     if (onMobilePanelChange) onMobilePanelChange(panel);
     else setInternalActivePanel(panel);
   };
+
+  useEffect(() => {
+    console.log("Quest object:", quest);
+  }, [quest]);
 
   useEffect(() => {
     const handleResize = () => setIsMobileView(window.innerWidth <= 900);
@@ -103,7 +110,6 @@ const InteractiveTerminal = ({
     setValidationResult(null);
     setActivePanel("editor");
   }, [questId]);
-
 
   const runViaDocker = () => {
     if (socketRef.current) {
@@ -212,10 +218,85 @@ const InteractiveTerminal = ({
     setProgramOutput("");
     setInputBuffer("");
     setWaitingForInput(false);
-    setIsRunning(true);
-    runViaDocker();
+    if (quest?.quest_type === "dom") {
+      runDOM();
+      setIsRunning(false);
+  } else {
+      runViaDocker();
+      setIsRunning(true);
+}
   };
 
+  useEffect(() => {
+    if (quest?.quest_type === "dom" && iframeRef.current) {
+      // write content here
+    }
+  }, [quest, code]);
+  
+  // Need Validation for DOM
+  const runDOM = () => {
+  if (!quest) return;
+
+  setIframeContent(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <style>
+        body { font-family: sans-serif; padding: 12px; }
+      </style>
+    </head>
+    <body>
+      ${quest.base_html || ""}
+
+      <script>
+        // Wait for DOM to fully load
+        window.addEventListener("load", function () {
+          try {
+            ${code}
+          } catch (e) {
+            const errorBox = document.createElement("pre");
+            errorBox.style.color = "red";
+            errorBox.style.whiteSpace = "pre-wrap";
+            errorBox.textContent = e.toString();
+            document.body.appendChild(errorBox);
+          }
+        });
+      </script>
+    </body>
+    </html>
+  `);
+};
+
+  useEffect(() => {
+    if (quest?.quest_type === "dom") {
+      setIframeContent(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: sans-serif; padding: 12px; }
+          </style>
+        </head>
+        <body>
+          ${quest?.base_html || ""}
+        </body>
+        </html>
+      `);
+      setCode(`
+        /*
+        Base HTML Structure:
+
+        ${quest.base_html}
+        */
+
+        // Write your DOM code below 👇
+
+      `);
+    }
+  }, [quest]);
+
+  
   const handleSubmitInput = () => {
     const value = inputBuffer;
     setProgramOutput(prev => prev + value + "\n");
@@ -297,6 +378,18 @@ const InteractiveTerminal = ({
       </div>
 
       {(!useMobileSplit || activePanel === "terminal") && (
+        quest?.quest_type === "dom" ? (
+          <iframe
+            sandbox="allow-scripts"
+            srcDoc={iframeContent}
+            style={{
+              width: "100%",
+              height: "400px",
+              border: "2px solid red",
+              background: "white"
+            }}
+          />
+        ) : (
         <div
             className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
             ref={terminalRef}
@@ -342,6 +435,7 @@ const InteractiveTerminal = ({
         </div>
 
       </div>
+        )
       )}
       {validationResult && (
           <div className={styles["validation-box"]}>

@@ -107,47 +107,6 @@ const PythonCourse = () => {
   }, []);
 
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchData = async () => {
-      try {
-        const response = await axiosPublic.get("/v1/exercises/programming-language/1", { withCredentials: true });
-        const exercises = response?.data?.data || [];
-        if (cancelled) return;
-
-        console.log("Fetched exercises:", exercises);
-
-        const groupedModules = [
-          { id: 1, title: "Hello World", description: "Learn how to write your first line of Python by printing messages to the terminal.", exercises: [] },
-          { id: 2, title: "Variables & Data Types", description: "Understand how to store and manipulate data using variables in Python.", exercises: [] },
-          { id: 3, title: "Control Flow", description: "Master conditional statements and decision-making in your programs.", exercises: [] },
-          { id: 4, title: "Loops", description: "Learn how to repeat code efficiently using for and while loops.", exercises: [] },
-          { id: 5, title: "Examination", description: "Test your Python knowledge. Complete all previous modules to unlock this exam.", exercises: [] }
-        ];
-
-        exercises.forEach((exercise) => {
-          const order = Number(exercise.order_index || 0);
-          if (order >= 1 && order <= 4) groupedModules[0].exercises.push(exercise);
-          else if (order >= 5 && order <= 8) groupedModules[1].exercises.push(exercise);
-          else if (order >= 9 && order <= 12) groupedModules[2].exercises.push(exercise);
-          else if (order >= 13 && order <= 16) groupedModules[3].exercises.push(exercise);
-        });
-
-        setModules(groupedModules);
-      } catch (error) {
-        console.error("Failed to fetch Python exercises:", error);
-        if (!cancelled) setModules([]);
-      }
-    };
-
-    fetchData();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-
   const onOpenModal = () => {
     setIsModalOpen(true);
   };
