@@ -16,7 +16,6 @@ import CourseCompletionPromptModal from "../components/CourseCompletionPromptMod
 
 import CodeTerminal from "../components/CodeTerminal";
 
-import TutorialPopup from "../components/TutorialPopup";
 
 
 
@@ -584,30 +583,8 @@ const CppExercise = () => {
 
 
 
-      {showTutorial && (
-
-        <TutorialPopup
-
-          open={showTutorial}
-
-          onClose={() => {
-
-            setShowTutorial(false);
-
-            localStorage.setItem("hasSeenTutorial", "true");
-
-          }}
-
-        />
-
-      )}
-
     </div>
-
   );
-
 };
-
-
 
 export default CppExercise;

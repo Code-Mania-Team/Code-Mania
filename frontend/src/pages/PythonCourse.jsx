@@ -3,7 +3,6 @@ import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
-import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
@@ -472,14 +471,6 @@ const PythonCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-
-      {/* Tutorial Popup */}
-      {showTutorial && (
-        <TutorialPopup
-          open={showTutorial}
-          onClose={handleTutorialClose}
-        />
-      )}
     </div>
   );
 };

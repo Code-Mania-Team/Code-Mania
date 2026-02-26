@@ -14,7 +14,6 @@ import CodeTerminal from "../components/CodeTerminal";
 
 import MobileControls from "../components/MobileControls";
 
-import TutorialPopup from "../components/TutorialPopup";
 
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
@@ -703,27 +702,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       />
 
-      
 
-      {/* Tutorial Popup */}
-
-      {showTutorial && (
-
-        <TutorialPopup 
-
-          open={showTutorial} 
-
-          onClose={() => {
-
-            setShowTutorial(false);
-
-            localStorage.setItem('hasSeenTutorial', 'true');
-
-          }} 
-
-        />
-
-      )}
 
     </div>
 

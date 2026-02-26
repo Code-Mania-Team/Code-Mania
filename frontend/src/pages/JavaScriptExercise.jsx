@@ -12,7 +12,6 @@ import ProgressBar from "../components/ProgressBar";
 
 import CodeTerminal from "../components/CodeTerminal";
 
-import TutorialPopup from "../components/TutorialPopup";
 
 import StageCompleteModal from "../components/StageCompleteModal";
 
@@ -547,37 +546,11 @@ const JavaScriptExercise = () => {
 
       <StageCompleteModal
         show={showStageComplete}
-
         languageLabel="JavaScript"
-
         onClose={() => setShowStageComplete(false)}
-
       />
-
-
-
-      {showTutorial && (
-
-        <TutorialPopup
-
-          open={showTutorial}
-
-          onClose={() => {
-
-            setShowTutorial(false);
-
-            localStorage.setItem("hasSeenTutorial", "true");
-
-          }}
-
-        />
-
-      )}
-
     </div>
-
   );
-
 };
 
 
