@@ -4,20 +4,23 @@ import { useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
+import TutorialOverlay from "../components/Tutorialpopup";
 import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import useAuth from "../hooks/useAxios";
 import useGetCourseBadges from "../services/getCourseBadge";
+import useMarkTutorialSeen from "../services/markTutorialSeen";
 
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const CppCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, setUser } = useAuth();
   const getGameProgress = useGetGameProgress();
   const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(2);
   const getExercises = useGetExercises();
+  const markTutorialSeen = useMarkTutorialSeen();
 
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,10 +29,6 @@ const CppCourse = () => {
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [modules, setModules] = useState([]);
   const [data, setData] = useState();
-
-  const tutorialSeenKey = user?.user_id
-    ? `hasSeenTutorial_${user.user_id}`
-    : "hasSeenTutorial";
 
   /* ===============================
      FETCH C++ EXERCISES (UNCHANGED)
@@ -178,10 +177,9 @@ const CppCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}`;
 
-    if (isAuthenticated && hasSeenTutorial !== "true") {
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -195,10 +193,9 @@ const CppCourse = () => {
   };
 
   const handleStartExam = () => {
-    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = "/exam/cpp";
 
-    if (isAuthenticated && hasSeenTutorial !== "true") {
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -211,9 +208,17 @@ const CppCourse = () => {
     navigate(route);
   };
 
-  const handleTutorialClose = () => {
+  const handleTutorialClose = async () => {
     setShowTutorial(false);
-    localStorage.setItem(tutorialSeenKey, "true");
+
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
+      try {
+        await markTutorialSeen();
+        setUser((prev) => (prev ? { ...prev, hasSeen_tutorial: true } : prev));
+      } catch (err) {
+        console.error("Failed to mark tutorial as seen", err);
+      }
+    }
 
     if (pendingRoute) {
       const nextRoute = pendingRoute;
@@ -432,6 +437,8 @@ const CppCourse = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+
+      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
     </div>
   );
 

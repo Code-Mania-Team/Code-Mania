@@ -22,10 +22,29 @@ const ProtectedRoute = ({ children }) => {
           await axiosPublic.get("/v1/refresh", {
             withCredentials: true,
           });
+          // const retry = await axiosPublic.get("/v1/account", {
+          //   withCredentials: true,
+          // });
 
-          const retry = await axiosPublic.get("/v1/account", {
-            withCredentials: true,
-          });
+    if (location.pathname.includes("/learn/python/exercise")) {
+      redirectTo = "/learn/python";
+    }
+    else if (location.pathname.includes("/learn/javascript/exercise")) {
+      redirectTo = "/learn/javascript";
+    }
+    else if (location.pathname.includes("/learn/cpp/exercise")) {
+      redirectTo = "/learn/cpp";
+    }
+    else if (
+      location.pathname.includes("/quiz") ||
+      location.pathname.includes("/exam") ||
+      location.pathname.includes("/coding-exam")
+    ) {
+      redirectTo = "/learn";
+    }
+    else if (location.pathname.includes("/dashboard")) {
+      redirectTo = "/";
+    }
 
           setUser(retry.data.data);
           setIsAuthenticated(true);
