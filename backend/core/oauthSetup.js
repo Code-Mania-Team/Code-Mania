@@ -6,7 +6,7 @@ dotenv.config();
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/v1/account/login/google/redirect',
+    callbackURL: 'https://code-mania-production.up.railway.app/v1/account/login/google/redirect',
     scope: ['profile', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
     return done(null, profile);

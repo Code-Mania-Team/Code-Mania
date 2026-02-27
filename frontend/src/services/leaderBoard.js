@@ -1,10 +1,9 @@
-import axios from "axios";
-
+import { axiosPublic } from "../api/axios";
 const useGetAllLeaderboard = () => {
   const getAllLeaderboard = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:3000/v1/leaderboard",
+      const response = await axiosPublic.get(
+        "/v1/leaderboard",
         {
           headers: {
             apikey: import.meta.env.VITE_API_KEY,
