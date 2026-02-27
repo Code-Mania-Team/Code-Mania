@@ -1,67 +1,38 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAxios";
-import { axiosPublic } from "../api/axios";
 
-const ProtectedRoute = ({ children }) => {
-  const { setIsAuthenticated, setUser } = useAuth();
-  const [authorized, setAuthorized] = useState(null);
+const ProtectedRoute = ({ children, onRequireAuth }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const verify = async () => {
-      try {
-        const res = await axiosPublic.get("/v1/account", {
-          withCredentials: true,
-        });
+    if (!isLoading && !isAuthenticated) {
+      onRequireAuth?.();
 
-        setUser(res.data.data);
-        setIsAuthenticated(true);
-        setAuthorized(true);
-      } catch {
-        try {
-          await axiosPublic.get("/v1/refresh", {
-            withCredentials: true,
-          });
-          // const retry = await axiosPublic.get("/v1/account", {
-          //   withCredentials: true,
-          // });
-
-    if (location.pathname.includes("/learn/python/exercise")) {
-      redirectTo = "/learn/python";
-    }
-    else if (location.pathname.includes("/learn/javascript/exercise")) {
-      redirectTo = "/learn/javascript";
-    }
-    else if (location.pathname.includes("/learn/cpp/exercise")) {
-      redirectTo = "/learn/cpp";
-    }
-    else if (
-      location.pathname.includes("/quiz") ||
-      location.pathname.includes("/exam") ||
-      location.pathname.includes("/coding-exam")
-    ) {
-      redirectTo = "/learn";
-    }
-    else if (location.pathname.includes("/dashboard")) {
-      redirectTo = "/";
-    }
-
-          setUser(retry.data.data);
-          setIsAuthenticated(true);
-          setAuthorized(true);
-        } catch {
-          setIsAuthenticated(false);
-          setAuthorized(false);
-        }
+      // Redirect back to safe page
+      if (location.pathname.includes("/learn/python/exercise")) {
+        navigate("/learn/python", { replace: true });
+      } else if (location.pathname.includes("/learn/javascript/exercise")) {
+        navigate("/learn/javascript", { replace: true });
+      } else if (location.pathname.includes("/learn/cpp/exercise")) {
+        navigate("/learn/cpp", { replace: true });
+      } else if (
+        location.pathname.includes("/quiz") ||
+        location.pathname.includes("/exam") ||
+        location.pathname.includes("/coding-exam")
+      ) {
+        navigate("/learn", { replace: true });
+      } else if (location.pathname.includes("/dashboard")) {
+        navigate("/", { replace: true });
       }
-    };
+    }
+  }, [isAuthenticated, isLoading, onRequireAuth, navigate, location.pathname]);
 
-    verify();
-  }, []);
+  if (isLoading) return null;
 
-  if (authorized === null) return null;
-
-  if (!authorized) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return null;
 
   return children;
 };

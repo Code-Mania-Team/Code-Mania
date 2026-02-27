@@ -297,17 +297,36 @@ function App() {
             } 
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
-          <Route path="/learn/cpp/exercise/:exerciseId" element={<ProtectedRoute>
-      <CppExercise />
-    </ProtectedRoute>} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute>
-      <CppExercise />
+          <Route 
+            path="/learn/cpp/exercise/:exerciseId" 
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <CppExercise
+                  isAuthenticated={isAuthenticated}
+                            onOpenModal={() => setIsModalOpen(true)}
+                            onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>} />
+          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+      <CppExercise
+        isAuthenticated={isAuthenticated}
+        onOpenModal={() => setIsModalOpen(true)}
+        onSignOut={handleSignOut}
+      />
     </ProtectedRoute>} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-          <Route path="/learn/javascript/exercise/:exerciseId" element={<ProtectedRoute>
-                                                                              <JavaScriptExercise />
-                                                                            </ProtectedRoute>
-                                                                        } />
+          <Route 
+            path="/learn/javascript/exercise/:exerciseId" 
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <JavaScriptExercise
+                  isAuthenticated={isAuthenticated}
+                            onOpenModal={() => setIsModalOpen(true)}
+                            onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
