@@ -323,13 +323,14 @@ class AccountController {
           maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        return res.redirect(`https://codemania.fun/dashboard?success=true`);
+        // return res.redirect(`https://codemania.fun/dashboard?success=true`);
+        return res.redirect("http://localhost:5173/dashboard?success=true");
       } else {
-        return res.redirect(`https://codemania.fun/login?error=auth_failed`);
+        return res.redirect(`http://localhost:5173/login?error=auth_failed`);
       }
     } catch (err) {
       console.error("Google login error:", err);
-      return res.redirect(`https://codemania.fun/login?error=server_error`);
+      return res.redirect(`http://localhost:5173/login?error=server_error`);
     }
   }
 
