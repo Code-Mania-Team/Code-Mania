@@ -8,6 +8,10 @@ const controller = new UserGameDataController();
 
 userGameDataRouter.use(authorization);
 
-userGameDataRouter.get("/learning-data", authentication, controller.learningData.bind(controller));
+userGameDataRouter.get(
+  "/learning-data",
+  authentication,
+  controller.learningData.bind(controller),
+);
 
 export default userGameDataRouter;

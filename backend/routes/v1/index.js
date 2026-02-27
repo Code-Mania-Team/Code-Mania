@@ -19,7 +19,7 @@ v1.use("/account", accountRouter);
 v1.use("/", homeRouter);
 v1.use("/leaderboard", leaderboardRouter);
 v1.use("/exam", examRouter);
-v1.use("/", userGameDataRouter);
+v1.use("/game", userGameDataRouter);
 v1.use("/freedom-wall", freedomWallRouter);
 v1.use("/refresh", refreshRouter);
 v1.use("/admin", adminRouter);

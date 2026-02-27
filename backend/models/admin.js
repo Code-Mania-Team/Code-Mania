@@ -9,7 +9,7 @@ class AdminModel {
   async getTotalUsers() {
     const { count, error } = await supabase
       .from("users")
-      .select("*", { count: "exact", head: true });
+      .select("user_id", { count: "exact", head: true });
 
     if (error) throw error;
     return count;
@@ -21,7 +21,7 @@ class AdminModel {
     const { count, error } = await supabase
       .from("users")
       .select("*", { count: "exact", head: true })
-      .gte("created_at", data);
+      .gte("created_at", date);
     if (error) throw error;
     return count;
   }
@@ -35,6 +35,18 @@ class AdminModel {
       .gte("created_at", start);
 
     if (error) throw error;
+    return data;
+  }
+
+  async getUserQuizzes() {
+    const { data, error } = await supabase
+      .from("user_quiz_attempts")
+      .select(
+        "id, quiz_id, score_percentage, total_correct, total_questions, earned_xp",
+      );
+
+    if (error) throw error;
+    console.log(data);
     return data;
   }
 }

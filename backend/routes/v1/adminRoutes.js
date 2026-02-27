@@ -6,7 +6,7 @@ import { Router } from "express";
 // import ExerciseController from "../../controllers/v1/exerciseController.js";
 import AdminController from "../../controllers/v1/adminController.js";
 
-const router = Router();
+const adminRouter = Router();
 
 // const adminExam = new AdminExamController();
 // const exerciseController = new ExerciseController();
@@ -14,6 +14,9 @@ const adminController = new AdminController();
 
 // router.use(authorization);
 
-router.get("/", adminController.getDashboard.bind(adminController));
+adminRouter.get(
+  "/dashboard",
+  adminController.getDashboard.bind(adminController),
+);
 
-export default router;
+export default adminRouter;

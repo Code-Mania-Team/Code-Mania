@@ -8,7 +8,11 @@ class AdminController {
   async getDashboard(req, res) {
     try {
       const users = await this.adminService.getUserAnalytics();
-      console.log(users);
+      const quizzes = await this.adminService.getQuizAnalytics();
+      res.status(200).json({
+        data: users,
+        quizzes,
+      });
     } catch (error) {
       console.error(error);
     }
