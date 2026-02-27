@@ -1,4 +1,5 @@
 import ExamModel from "../models/exam.js";
+import axios from "axios";
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -11,7 +12,7 @@ function normalizeText(value) {
 
 class ExamService {
   constructor() {
-    this.exam = new ExamModel();
+    this.exam = new ExamModel();      
   }
 
   async listProblems({ languageSlug } = {}) {
@@ -61,90 +62,235 @@ class ExamService {
     };
   }
 
-  async startAttempt({ userId, problemId }) {
-    const problem = await this.exam.getProblemById(problemId);
-    if (!problem) return { ok: false, status: 404, message: "Problem not found" };
+  async startAttempt({ userId, languageSlug, isAdmin = false }) {
+    const effectiveIsAdmin = isAdmin || await this.exam.isAdminUser(userId);
 
-    const languageSlug = problem.programming_languages?.slug;
-    if (!languageSlug) {
-      return { ok: false, status: 400, message: "Problem language not found" };
+    // 1️⃣ Get problem by language
+    const problems = await this.exam.listProblems({ languageSlug });
+
+    if (!problems.length) {
+      return { ok: false, status: 404, message: "Exam not found for language" };
     }
 
-    const attemptNumber = await this.exam.getNextAttemptNumber({ userId, problemId });
+    // Because 1 exam per language
+    const problemId = problems[0].id;
+
+    if (effectiveIsAdmin) {
+      return {
+        ok: true,
+        data: {
+          id: -1,
+          user_id: userId,
+          exam_problem_id: problemId,
+          language: languageSlug,
+          attempt_number: 1,
+          score_percentage: 0,
+          passed: false,
+          earned_xp: 0,
+          created_at: new Date().toISOString(),
+          preview: true,
+        },
+      };
+    }
+
+    // 2️⃣ Check existing attempt
+    const existing = await this.exam.getLatestAttempt({
+      userId,
+      problemId
+    });
+
+    if (existing) {
+      return {
+        ok: true,
+        data: existing
+      };
+    }
+
+    // 3️⃣ Create new attempt
+    const attemptNumber =
+      await this.exam.getNextAttemptNumber({ userId, problemId });
+
     const attempt = await this.exam.createAttempt({
       userId,
       problemId,
       languageSlug,
-      attemptNumber,
+      attemptNumber
     });
 
     return {
       ok: true,
-      data: {
-        attemptId: attempt.id,
-        attempt_number: attempt.attempt_number,
-        problem: {
-          id: problem.id,
-          problem_title: problem.problem_title,
-          problem_description: problem.problem_description,
-          starting_code: problem.starting_code,
-          exp: problem.exp,
-          programming_language: problem.programming_languages
-            ? {
-                id: problem.programming_languages.id,
-                slug: problem.programming_languages.slug,
-                name: problem.programming_languages.name,
-              }
-            : null,
-        },
-      },
+      data: attempt
     };
   }
 
-  async submitAttempt({ userId, attemptId, code }) {
-    const attempt = await this.exam.getAttemptById({ attemptId });
-    if (!attempt) return { ok: false, status: 404, message: "Attempt not found" };
-    if (String(attempt.user_id) !== String(userId)) {
-      return { ok: false, status: 403, message: "Forbidden" };
-    }
+  async submitAttempt({ userId, attemptId, code, languageSlug, isAdmin = false }) {
+    const MAX_ATTEMPTS = 5;
+    const PASS_THRESHOLD = 70;
+    const effectiveIsAdmin = isAdmin || await this.exam.isAdminUser(userId);
 
-    const problemId = Number(attempt.exam_problem_id);
-    const problem = await this.exam.getProblemById(problemId);
-    if (!problem) return { ok: false, status: 404, message: "Problem not found" };
+    if (effectiveIsAdmin) {
+      if (!languageSlug) {
+        return { ok: false, status: 400, message: "language is required for admin preview" };
+      }
 
-    const mode = String(process.env.EXAM_EVALUATION_MODE || "solution_match");
-    let scorePercentage = 0;
-    let passed = false;
-    const details = { mode };
+      const problems = await this.exam.listProblems({ languageSlug });
+      const problem = problems?.[0];
 
-    if (mode === "solution_match") {
-      const normalizedSubmitted = normalizeText(code);
-      const normalizedSolution = normalizeText(problem.solution);
-      passed = normalizedSubmitted === normalizedSolution;
-      scorePercentage = passed ? 100 : 0;
-      details.match = passed;
-    } else {
+      if (!problem) {
+        return { ok: false, status: 404, message: "Exam not found for language" };
+      }
+
+      const fullProblem = await this.exam.getProblemById(Number(problem.id));
+      if (!fullProblem) {
+        return { ok: false, status: 404, message: "Problem not found" };
+      }
+
+      const { data: execution } = await axios.post(
+        "https://terminal.codemania.fun/exam/run",
+        {
+          language: languageSlug,
+          code,
+          testCases: fullProblem.test_cases || []
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_KEY
+          }
+        }
+      );
+
+      const totalTests = execution.total;
+      const passedTests = execution.passed;
+      const scorePercentage = execution.score;
+      const passed = scorePercentage >= PASS_THRESHOLD;
+
       return {
-        ok: false,
-        status: 501,
-        message: "Exam evaluation mode not implemented",
-        data: { mode },
+        ok: true,
+        data: {
+          score_percentage: scorePercentage,
+          passed,
+          earned_xp: 0,
+          xp_added: 0,
+          attempt_number: 1,
+          passed_tests: passedTests,
+          total_tests: totalTests,
+          results: execution.results,
+          preview: true,
+        },
       };
     }
 
-    // Award XP only once per problem per user (first pass).
-    let earnedXp = 0;
-    const alreadyPassed = await this.exam.userHasPassedProblem({ userId, problemId: problem.id });
-    if (passed && !alreadyPassed) earnedXp = Number(problem.exp || 0);
+    const attempt = await this.exam.getAttemptById({ attemptId });
+    if (!attempt)
+      return { ok: false, status: 404, message: "Attempt not found" };
 
-    const updated = await this.exam.updateAttemptResult({
+    if (String(attempt.user_id) !== String(userId))
+      return { ok: false, status: 403, message: "Forbidden" };
+
+    // 🔒 LOCK IF 100%
+    if (attempt.score_percentage === 100) {
+      return {
+        ok: true,
+        data: {
+          score_percentage: 100,
+          passed: true,
+          earned_xp: attempt.earned_xp,
+          xp_added: 0,
+          attempt_number: attempt.attempt_number,
+          locked: true
+        }
+      };
+    }
+
+    // Submission number = current + 1
+    const submissionNumber = attempt.attempt_number + 1;
+
+    if (submissionNumber > MAX_ATTEMPTS) {
+      return {
+        ok: false,
+        status: 400,
+        message: "Maximum attempts reached"
+      };
+    }
+
+    const problem = await this.exam.getProblemById(
+      Number(attempt.exam_problem_id)
+    );
+
+    if (!problem)
+      return { ok: false, status: 404, message: "Problem not found" };
+
+    /* =====================================
+       RUN TESTS
+    ===================================== */
+    const { data: execution } = await axios.post(
+      "https://terminal.codemania.fun/exam/run",
+      {
+        language: attempt.language,
+        code,
+        testCases: problem.test_cases || []
+      },
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_KEY
+        }
+      }
+    );
+
+    const totalTests = execution.total;
+    const passedTests = execution.passed;
+    const scorePercentage = execution.score;
+
+    /* =====================================
+       PENALTY SYSTEM (0-based attempts)
+       1st submission → no penalty
+       2nd submission → no penalty
+       3rd submission → 5%
+       4th submission → 10%
+       5th submission → 15%
+    ===================================== */
+
+    const baseXp = Number(problem.exp || 0);
+    const scoreRatio =
+      totalTests === 0 ? 0 : passedTests / totalTests;
+
+    const penaltySteps = Math.max(0, submissionNumber - 2);
+    const penaltyRate = 0.05;
+    const minModifier = 0.85;
+
+    const attemptModifier = Math.max(
+      minModifier,
+      1 - (penaltySteps * penaltyRate)
+    );
+
+    const calculatedXp = Math.round(
+      baseXp * scoreRatio * attemptModifier
+    );
+
+    const passed = scorePercentage >= PASS_THRESHOLD;
+
+    /* =====================================
+       APPLY XP DIFFERENCE (ADD OR SUBTRACT)
+    ===================================== */
+
+    const previousXp = attempt.earned_xp || 0;
+    const xpDifference = calculatedXp - previousXp;
+
+    if (xpDifference !== 0) {
+      await this.exam.addXp(userId, xpDifference);
+    }
+
+    /* =====================================
+       UPDATE ATTEMPT
+    ===================================== */
+
+    const updated = await this.exam.updateAttemptFull({
       attemptId,
       scorePercentage,
       passed,
-      earnedXp,
+      earnedXp: calculatedXp,
+      attemptNumber: submissionNumber
     });
-
-    await this.exam.addXp(userId, earnedXp);
 
     return {
       ok: true,
@@ -152,12 +298,17 @@ class ExamService {
         attempt: updated,
         score_percentage: scorePercentage,
         passed,
-        earned_xp: earnedXp,
-        alreadyPassed,
-        details,
-      },
+        earned_xp: calculatedXp,
+        xp_added: xpDifference,
+        attempt_number: submissionNumber,
+        passed_tests: passedTests,
+        total_tests: totalTests,
+        results: execution.results
+      }
     };
   }
+
+
 
   async listAttempts({ userId, languageSlug, problemId, limit }) {
     const attempts = await this.exam.listUserAttempts({

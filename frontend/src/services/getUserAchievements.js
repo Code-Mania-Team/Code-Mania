@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAuth from "../hooks/useAxios"; // adjust path if needed
 
 const useGetAchievements = () => {
   const axiosPrivate = useAxiosPrivate();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,8 @@ const useGetAchievements = () => {
       if (err.response?.status === 401) {
         setAchievements([]);
       } else {
-        console.error("Error fetching achievements:", err);
+        // Optional: reduce console noise
+        // console.error("Error fetching achievements:", err);
         setError(err);
       }
     } finally {
@@ -31,8 +34,12 @@ const useGetAchievements = () => {
   }, [axiosPrivate]);
 
   useEffect(() => {
+    // 🚫 Wait for authentication to resolve
+    if (isLoading) return;
+    if (!isAuthenticated) return;
+
     fetchAchievements();
-  }, [fetchAchievements]);
+  }, [fetchAchievements, isAuthenticated, isLoading]);
 
   return {
     achievements,

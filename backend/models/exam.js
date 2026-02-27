@@ -1,6 +1,23 @@
 import { supabase } from "../core/supabaseClient.js";
 
 class ExamModel {
+  async isAdminUser(userId) {
+    if (!userId) return false;
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("isAdminUser error:", error);
+      return false;
+    }
+
+    return data?.role === "admin";
+  }
+
   async getLanguageBySlug(slug) {
     const { data, error } = await supabase
       .from("programming_languages")
@@ -135,6 +152,7 @@ class ExamModel {
     return data;
   }
 
+
   async getAttemptById({ attemptId }) {
     const { data, error } = await supabase
       .from("user_exam_attempts")
@@ -160,16 +178,23 @@ class ExamModel {
     return !!data;
   }
 
-  async updateAttemptResult({ attemptId, scorePercentage, passed, earnedXp }) {
+  async updateAttemptFull({
+    attemptId,
+    scorePercentage,
+    passed,
+    earnedXp,
+    attemptNumber
+  }) {
     const { data, error } = await supabase
       .from("user_exam_attempts")
       .update({
         score_percentage: scorePercentage,
         passed,
         earned_xp: earnedXp,
+        attempt_number: attemptNumber
       })
       .eq("id", attemptId)
-      .select("id, user_id, exam_problem_id, language, attempt_number, score_percentage, passed, earned_xp, created_at")
+      .select("*")
       .single();
 
     if (error) throw error;
@@ -222,6 +247,34 @@ class ExamModel {
       totalAttempts: attempts.length,
       totalEarnedXp,
     };
+  }
+
+  async getLatestAttempt({ userId, problemId }) {
+    const { data, error } = await supabase
+      .from("user_exam_attempts")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("exam_problem_id", problemId)
+      .order("attempt_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getBestXpForProblem({ userId, problemId }) {
+    const { data, error } = await supabase
+      .from("user_exam_attempts")
+      .select("earned_xp")
+      .eq("user_id", userId)
+      .eq("exam_problem_id", problemId)
+      .order("earned_xp", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.earned_xp || 0;
   }
 
   async addXp(userId, xp) {

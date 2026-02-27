@@ -1,18 +1,22 @@
 export default class OrientationManager {
-  constructor(scene) {
+  constructor(scene, options = {}) {
     this.scene = scene;
+    this.requireLandscape = Boolean(options.requireLandscape);
 
     this.isMobile =
       scene.sys.game.device.os.android ||
       scene.sys.game.device.os.iOS;
 
-    if (!this.isMobile) return;
+    if (!this.isMobile || !this.requireLandscape) return;
 
     this.createOverlay();
     this.check();
 
     // Browser resize (orientation change)
-    window.addEventListener("resize", () => this.check());
+    this.handleResize = () => this.check();
+    window.addEventListener("resize", this.handleResize);
+
+    this.scene.events.once("shutdown", () => this.destroy());
   }
 
   isLandscape() {
@@ -87,6 +91,11 @@ export default class OrientationManager {
   }
 
   destroy() {
+    if (this.handleResize) {
+      window.removeEventListener("resize", this.handleResize);
+      this.handleResize = null;
+    }
+
     this.bg?.destroy();
     this.text?.destroy();
   }

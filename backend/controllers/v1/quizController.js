@@ -1,133 +1,58 @@
-import { supabase } from '../../core/supabaseClient.js';
+import QuizService from "../../services/quizService.js";
 
-export const getQuizById = async (req, res) => {
-  const { language, quizId } = req.params;
-  const stageNumber = Number(quizId);
-
-  try {
-    res.set('Cache-Control', 'no-store');
-
-    // 1️⃣ Find programming language ID
-    const { data: languageData, error: langError } = await supabase
-      .from('programming_languages')
-      .select('id')
-      .eq('slug', language)
-      .single();
-
-    if (langError || !languageData) {
-      return res.status(404).json({ message: 'Language not found' });
-    }
-
-    // 2️⃣ Find quiz by language + stage number
-    const { data: quizData, error: quizError } = await supabase
-      .from('quizzes')
-      .select('*')
-      .eq('programming_language_id', languageData.id)
-      .ilike('route', `%stage-${stageNumber}`)
-      .single();
-
-    if (quizError || !quizData) {
-      return res.status(404).json({ message: 'Quiz not found' });
-    }
-
-    // 3️⃣ Fetch questions
-    const { data: questions, error: questionsError } = await supabase
-      .from('questions')
-      .select('*')
-      .eq('quiz_id', quizData.id);
-
-    if (questionsError) throw questionsError;
-
-    res.json({
-      quiz_title: quizData.quiz_title,
-      questions: questions || [],
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: 'Failed to fetch quiz',
-      questions: [],
-    });
+class QuizController {
+  constructor(service = new QuizService()) {
+    this.service = service;
   }
-};
 
-export const completeQuiz = async (req, res) => {
-  const { language, quizId } = req.params;
+  async getQuizById(req, res) {
+    const { language, quizId } = req.params;
 
-  const {
-    score_percentage,
-    total_correct,
-    total_questions,
-    earned_xp
-  } = req.body;
+    try {
+      res.set("Cache-Control", "no-store");
+      const result = await this.service.getQuizByLanguageAndStage(language, quizId);
 
-  const userId = res.locals.user_id;
+      if (!result.ok) {
+        return res.status(result.status || 500).json({
+          message: result.message || "Failed to fetch quiz",
+          questions: [],
+        });
+      }
 
-  try {
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    /* ---------------------------------
-       1️⃣ Resolve quiz id
-    ----------------------------------- */
-    const stageNumber = Number(quizId);
-    if (!Number.isFinite(stageNumber)) {
-      return res.status(400).json({ message: 'Invalid quizId' });
-    }
-
-    const { data: languageData, error: langError } = await supabase
-      .from('programming_languages')
-      .select('id')
-      .eq('slug', language)
-      .single();
-
-    if (langError || !languageData) {
-      return res.status(404).json({ message: 'Language not found' });
-    }
-
-    const { data: quizData, error: quizError } = await supabase
-      .from('quizzes')
-      .select('id')
-      .eq('programming_language_id', languageData.id)
-      .ilike('route', `%stage-${stageNumber}`)
-      .single();
-
-    if (quizError || !quizData) {
-      return res.status(404).json({ message: 'Quiz not found' });
-    }
-
-    /* ---------------------------------
-       2️⃣ Insert quiz attempt
-       (Fails if already completed)
-    ----------------------------------- */
-    const { error: attemptError } = await supabase
-      .from("user_quiz_attempts")
-      .insert({
-        user_id: userId,
-        quiz_id: quizData.id,
-        score_percentage,
-        total_correct,
-        total_questions,
-        earned_xp
-      });
-
-    if (attemptError) {
-      return res.status(400).json({
-        message: "Quiz already completed"
+      return res.json(result.data);
+    } catch (err) {
+      console.error("getQuizById error:", err);
+      return res.status(500).json({
+        message: "Failed to fetch quiz",
+        questions: [],
       });
     }
-
-    /* ---------------------------------
-       SUCCESS
-    ----------------------------------- */
-    res.json({ success: true });
-
-  } catch (err) {
-    console.error("completeQuiz error:", err);
-    res.status(500).json({
-      message: "Failed to complete quiz"
-    });
   }
-};
+
+  async completeQuiz(req, res) {
+    const { language, quizId } = req.params;
+    const userId = res.locals.user_id;
+    const tokenRole = res.locals.role;
+
+    try {
+      const result = await this.service.completeQuiz({
+        userId,
+        tokenRole,
+        language,
+        quizId,
+        payload: req.body || {},
+      });
+
+      if (!result.ok) {
+        return res.status(result.status || 500).json({ message: result.message || "Failed to complete quiz" });
+      }
+
+      return res.json(result.data);
+    } catch (err) {
+      console.error("completeQuiz error:", err);
+      return res.status(500).json({ message: "Failed to complete quiz" });
+    }
+  }
+}
+
+export default QuizController;

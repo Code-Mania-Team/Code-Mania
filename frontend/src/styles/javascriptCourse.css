@@ -45,8 +45,7 @@
 }
 
 .javascript-hero-description {
-  font-family: 'VT323', monospace;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: #ffffff;
   line-height: 1.6;
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
@@ -148,6 +147,20 @@
   .sidebar {
     position: static;
   }
+
+  .course-badges-grid,
+  .javascript-course-badges-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 75px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    justify-content: center;
+  }
+
+  .javascript-course-badge {
+    flex: 0 0 auto;
+  }
 }
 
 @media (max-width: 768px) {
@@ -174,6 +187,7 @@
 }
 
 /* Course Badges Styles */
+.course-badges-grid,
 .javascript-course-badges-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -194,6 +208,95 @@
   transform: scale(1.1);
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 520px) {
+  .javascript-badge-text {
+    font-size: 0.62rem;
+    padding: 0.32rem 0.75rem;
+  }
+
+  .javascript-hero-title {
+    font-size: 2.35rem;
+  }
+
+  .javascript-hero-description {
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .javascript-course-page .module-header {
+    padding: 1rem;
+  }
+
+  .javascript-course-page .module-title {
+    font-size: 1.18rem;
+  }
+
+  .javascript-course-page .module-description {
+    font-size: 0.88rem;
+    line-height: 1.45;
+    margin: 1rem 0;
+  }
+
+  .javascript-course-page .exercise-item {
+    padding: 0.8rem 1rem;
+  }
+
+  .javascript-course-page .exercise-number {
+    font-size: 0.68rem;
+  }
+
+  .javascript-course-page .exercise-name {
+    font-size: 0.92rem;
+  }
+
+  .javascript-course-page .start-btn {
+    font-size: 0.9rem;
+    padding: 0.42rem 0.95rem;
+  }
+
+  .javascript-course-page .progress-title {
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+  }
+
+  .javascript-course-page .progress-label span,
+  .javascript-course-page .progress-value {
+    font-size: 0.82rem;
+  }
+
+  .course-badges-grid,
+  .javascript-course-badges-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow-x: visible;
+    padding-bottom: 4px;
+    justify-content: center;
+  }
+
+  .javascript-course-badge {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+  }
+}
+
+@media (min-width: 521px) and (max-width: 1024px) {
+  .course-badges-grid,
+  .javascript-course-badges-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 75px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    justify-content: center;
+  }
+
+  .javascript-course-badge {
+    flex: 0 0 auto;
+  }
 }
 
 /* Total Quiz Progress Item - Purple Color */

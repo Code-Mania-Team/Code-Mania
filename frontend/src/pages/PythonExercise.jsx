@@ -14,7 +14,8 @@ import CodeTerminal from "../components/CodeTerminal";
 
 import MobileControls from "../components/MobileControls";
 
-import TutorialPopup from "../components/TutorialPopup";
+
+import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
 
 
@@ -76,6 +77,8 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
   const [showTutorial, setShowTutorial] = useState(false);
+
+  const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
 
 
 
@@ -227,6 +230,57 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [output, setOutput] = useState("");
 
   const [isRunning, setIsRunning] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 900 : false
+  );
+  const [mobileActivePanel, setMobileActivePanel] = useState("game");
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth <= 900);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileView) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+    };
+  }, [isMobileView]);
+
+  useEffect(() => {
+    setMobileActivePanel("game");
+  }, [activeExerciseId]);
+
+  useEffect(() => {
+    if (!isMobileView || mobileActivePanel === "game") return;
+
+    window.dispatchEvent(new Event("code-mania:force-close-help"));
+
+    const sceneManager = window.game?.scene;
+    if (!sceneManager) return;
+
+    if (sceneManager.isActive?.("HelpScene")) {
+      sceneManager.stop("HelpScene");
+    }
+
+    if (sceneManager.isPaused?.("GameScene")) {
+      sceneManager.resume("GameScene");
+    }
+  }, [isMobileView, mobileActivePanel]);
 
 
 
@@ -407,6 +461,20 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       }
 
+      if (Number(questId) === activeExerciseId) {
+
+        getNextExercise(activeExerciseId).then((next) => {
+
+          if (!next) {
+
+            setShowCourseCompletePrompt(true);
+
+          }
+
+        });
+
+      }
+
     };
 
 
@@ -558,6 +626,25 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         />
 
+        {isMobileView && (
+          <div className={styles["mobile-panel-switcher-top"]}>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "game" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("game")}
+            >
+              Game Scene
+            </button>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("terminal")}
+            >
+              Terminal
+            </button>
+          </div>
+        )}
+
 
 
         <div className={styles["main-layout"]}>
@@ -565,6 +652,7 @@ const PythonExercise = ({ isAuthenticated }) => {
           {/* ===== GAME ===== */}
 
           <div className={styles["game-container"]}>
+          <div className={isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}>
 
             <div
 
@@ -573,6 +661,7 @@ const PythonExercise = ({ isAuthenticated }) => {
                   className={styles["game-scene"]}
 
                 />
+          </div>
 
           </div>
 
@@ -580,42 +669,40 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           {/* ===== TERMINAL ===== */}
 
-          <CodeTerminal
-            questId={activeExerciseId}
-            code={code}
-            onCodeChange={setCode}
-            output={output}
-            isRunning={isRunning}
-            showRunButton={terminalEnabled}
-            disabled={!terminalEnabled}
-          />
+          <div className={isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}>
+            <CodeTerminal
+              questId={activeExerciseId}
+              code={code}
+              onCodeChange={setCode}
+              output={output}
+              isRunning={isRunning}
+              showRunButton={terminalEnabled}
+              disabled={!terminalEnabled}
+              showMobilePanelSwitcher={false}
+              enableMobileSplit={false}
+            />
+          </div>
 
 
         </div>
 
       </div>
 
-      
 
-      {/* Tutorial Popup */}
 
-      {showTutorial && (
+      <CourseCompletionPromptModal
 
-        <TutorialPopup 
+        show={showCourseCompletePrompt}
 
-          open={showTutorial} 
+        languageLabel="Python"
 
-          onClose={() => {
+        onTakeExam={() => navigate("/exam/python")}
 
-            setShowTutorial(false);
+        onClose={() => setShowCourseCompletePrompt(false)}
 
-            localStorage.setItem('hasSeenTutorial', 'true');
+      />
 
-          }} 
 
-        />
-
-      )}
 
     </div>
 

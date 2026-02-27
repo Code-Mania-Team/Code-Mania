@@ -525,7 +525,7 @@ const Profile = ({ onSignOut }) => {
   const { progress: learningProgressRows } = useLearningProgress();
 
   const { achievements } = useGetAchievements();
-
+  console.log("Achievements data:", achievements);
 
   const learningProgress = {
     python: { progress: 0, total: 0, icon: <Terminal size={20} /> },
@@ -1090,6 +1090,17 @@ const Profile = ({ onSignOut }) => {
 
             </button>
 
+            <div className={styles.mobileCoverStats}>
+              <div className={styles.mobileCoverStatItem}>
+                <span className={styles.mobileCoverStatValue}>{totalXp || 0}</span>
+                <span className={styles.mobileCoverStatLabel}>XP</span>
+              </div>
+              <div className={styles.mobileCoverStatItem}>
+                <span className={styles.mobileCoverStatValue}>{badgeCount || badges.length || 0}</span>
+                <span className={styles.mobileCoverStatLabel}>Badges</span>
+              </div>
+            </div>
+
 
 
           </div>
@@ -1101,8 +1112,6 @@ const Profile = ({ onSignOut }) => {
 
 
       </div>
-
-
 
       <div className={styles.layout}>
 
@@ -1224,15 +1233,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                    <span>Badges</span>
+                    <span className={styles.badgeHeader}>Badges</span>
 
 
 
-                    <span>Achievements</span>
+                    <span className={styles.achievementHeader}>Achievements</span>
 
 
 
-                    <span>Received</span>
+                    <span className={styles.receivedHeader}>Received</span>
 
 
 
@@ -1724,7 +1733,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-        <div className={styles.sidebarCard}>
+        <div className={`${styles.sidebarCard} ${styles.desktopStatsCard}`}>
 
 
 
@@ -1780,7 +1789,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-        <div className={styles.sidebarCard}>
+        <div className={`${styles.sidebarCard} ${styles.learningProgramCard}`}>
 
 
 

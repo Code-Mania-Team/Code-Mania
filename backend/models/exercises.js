@@ -111,6 +111,23 @@ class ExerciseModel {
         return data;
     }
 
+    async isAdminUser(userId) {
+        if (!userId) return false;
+
+        const { data, error } = await this.db
+            .from('users')
+            .select('role')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error checking admin role:', error);
+            return false;
+        }
+
+        return data?.role === 'admin';
+    }
+
 
 
     async getLatestUnlockedQuest(userId, languageId) {
@@ -203,6 +220,12 @@ class ExerciseModel {
                         id,
                         name,
                         slug
+                    ),
+                    achievements:achievements_id (
+                        id,
+                        title,
+                        description,
+                        badge_key
                     )
                 `)
                 .eq('id', id)
@@ -212,6 +235,7 @@ class ExerciseModel {
                 console.error('Error getting exercise by ID:', error);
                 throw error;
             }
+
             return data;
         } catch (error) {
             console.error('Error in getExerciseById:', error);

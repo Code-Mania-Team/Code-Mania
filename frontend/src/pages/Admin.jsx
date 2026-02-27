@@ -30,6 +30,16 @@ function Admin() {
   const [selectedUserAttempts, setSelectedUserAttempts] = useState([]);
   const [selectedUserAttemptsLoading, setSelectedUserAttemptsLoading] = useState(false);
   const [selectedUserAttemptsError, setSelectedUserAttemptsError] = useState('');
+  const [examMetrics, setExamMetrics] = useState(null);
+  const [examMetricsLoading, setExamMetricsLoading] = useState(false);
+  const [examMetricsError, setExamMetricsError] = useState('');
+  const [userExamSummary, setUserExamSummary] = useState([]);
+  const [userExamSummaryLoading, setUserExamSummaryLoading] = useState(false);
+  const [userExamSummaryError, setUserExamSummaryError] = useState('');
+  const [selectedExamUser, setSelectedExamUser] = useState(null);
+  const [selectedExamAttempts, setSelectedExamAttempts] = useState([]);
+  const [selectedExamAttemptsLoading, setSelectedExamAttemptsLoading] = useState(false);
+  const [selectedExamAttemptsError, setSelectedExamAttemptsError] = useState('');
 
   const fetchDatasets = async () => {
     setDatasetsLoading(true);
@@ -210,6 +220,69 @@ function Admin() {
     }
   };
 
+  const fetchExamMetrics = async () => {
+    setExamMetricsLoading(true);
+    setExamMetricsError('');
+    try {
+      const response = await axiosPublic.get('/v1/metrics/exam-attempts', { withCredentials: true });
+      if (response.data?.success) {
+        setExamMetrics(response.data.data || null);
+      } else {
+        setExamMetrics(null);
+        setExamMetricsError(response.data?.message || 'Failed to fetch exam metrics');
+      }
+    } catch (error) {
+      console.error('Error fetching exam metrics:', error);
+      setExamMetrics(null);
+      setExamMetricsError(error?.response?.data?.message || error?.message || 'Failed to fetch exam metrics');
+    } finally {
+      setExamMetricsLoading(false);
+    }
+  };
+
+  const fetchUserExamSummary = async () => {
+    setUserExamSummaryLoading(true);
+    setUserExamSummaryError('');
+    try {
+      const response = await axiosPublic.get('/v1/metrics/exam-attempts/by-user', { withCredentials: true });
+      if (response.data?.success) {
+        setUserExamSummary(response.data?.data?.users || []);
+      } else {
+        setUserExamSummary([]);
+        setUserExamSummaryError(response.data?.message || 'Failed to fetch per-user exam performance');
+      }
+    } catch (error) {
+      console.error('Error fetching per-user exam summary:', error);
+      setUserExamSummary([]);
+      setUserExamSummaryError(error?.response?.data?.message || error?.message || 'Failed to fetch per-user exam performance');
+    } finally {
+      setUserExamSummaryLoading(false);
+    }
+  };
+
+  const fetchUserExamAttempts = async (userRow) => {
+    if (!userRow?.userId) return;
+
+    setSelectedExamUser(userRow);
+    setSelectedExamAttemptsLoading(true);
+    setSelectedExamAttemptsError('');
+    try {
+      const response = await axiosPublic.get(`/v1/metrics/exam-attempts/by-user/${userRow.userId}`, { withCredentials: true });
+      if (response.data?.success) {
+        setSelectedExamAttempts(response.data?.data?.attempts || []);
+      } else {
+        setSelectedExamAttempts([]);
+        setSelectedExamAttemptsError(response.data?.message || 'Failed to fetch exam attempt history');
+      }
+    } catch (error) {
+      console.error('Error fetching exam attempt history:', error);
+      setSelectedExamAttempts([]);
+      setSelectedExamAttemptsError(error?.response?.data?.message || error?.message || 'Failed to fetch exam attempt history');
+    } finally {
+      setSelectedExamAttemptsLoading(false);
+    }
+  };
+
   const demo = {
     
     signupsPerDay: [
@@ -261,6 +334,8 @@ function Admin() {
             fetchMetrics();
             fetchQuizMetrics();
             fetchUserQuizSummary();
+            fetchExamMetrics();
+            fetchUserExamSummary();
           }
         }
       } catch (e) {
@@ -561,6 +636,189 @@ function Admin() {
           </div>
         )}
 
+
+        <div className={styles.header} style={{ marginTop: 24 }}>
+          <div className={styles.headerLeft}>
+            <BarChart3 className={styles.icon} />
+            <h2 className={styles.title}>Exam Analytics & Statistics</h2>
+          </div>
+        </div>
+
+        <div className={styles.grid}>
+          <StatCard title="Exam Attempts" value={examMetricsLoading ? '…' : (examMetrics?.totalAttempts ?? 0)} />
+          <StatCard title="Average Score" value={examMetricsLoading ? '…' : `${examMetrics?.averageScore ?? 0}%`} />
+          <StatCard title="Pass Rate" value={examMetricsLoading ? '…' : `${examMetrics?.passRate ?? 0}%`} />
+          <StatCard title="XP Awarded" value={examMetricsLoading ? '…' : (examMetrics?.totalXpAwarded ?? 0)} />
+        </div>
+
+        {examMetricsError ? <p className={styles.errorText}>{examMetricsError}</p> : null}
+
+        <div className={styles.panel} style={{ marginTop: 12 }}>
+          <div className={styles.quizHeaderRow}>
+            <h3 className={styles.panelTitle}>Latest Exam Attempts</h3>
+            <button className={styles.button} type="button" onClick={fetchExamMetrics} disabled={examMetricsLoading}>
+              Refresh Exam Data
+            </button>
+          </div>
+
+          <div className={styles.quizTableWrap}>
+            <table className={styles.quizTable}>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Language</th>
+                  <th>Exam</th>
+                  <th>Attempt</th>
+                  <th>Score</th>
+                  <th>Status</th>
+                  <th>XP</th>
+                  <th>Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(examMetrics?.attempts || []).length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className={styles.quizEmpty}>No exam attempts found.</td>
+                  </tr>
+                ) : (
+                  (examMetrics?.attempts || []).map((attempt) => (
+                    <tr key={attempt.id}>
+                      <td>{attempt.username}</td>
+                      <td>{attempt.language}</td>
+                      <td>{attempt.examTitle}</td>
+                      <td>{attempt.attemptNumber}</td>
+                      <td className={attempt.isPassed ? styles.passed : styles.failed}>{attempt.scorePercentage}%</td>
+                      <td className={attempt.isPassed ? styles.passed : styles.failed}>{attempt.isPassed ? 'Passed' : 'Failed'}</td>
+                      <td>{attempt.earnedXp}</td>
+                      <td>{attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {selectedExamUser ? (
+          <div className={styles.panel} style={{ marginTop: 12 }}>
+            <div className={styles.quizHeaderRow}>
+              <h3 className={styles.panelTitle}>Exam Attempt History: {selectedExamUser.username}</h3>
+              <div className={styles.inlineActions}>
+                <button className={styles.button} type="button" onClick={() => fetchUserExamAttempts(selectedExamUser)} disabled={selectedExamAttemptsLoading}>
+                  Refresh History
+                </button>
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={() => {
+                    setSelectedExamUser(null);
+                    setSelectedExamAttempts([]);
+                    setSelectedExamAttemptsError('');
+                  }}
+                >
+                  Back to Users
+                </button>
+              </div>
+            </div>
+            {selectedExamAttemptsError ? <p className={styles.errorText}>{selectedExamAttemptsError}</p> : null}
+            <div className={styles.quizTableWrap}>
+              <table className={styles.quizTable}>
+                <thead>
+                  <tr>
+                    <th>Language</th>
+                    <th>Exam</th>
+                    <th>Attempt</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th>XP</th>
+                    <th>Submitted</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedExamAttemptsLoading ? (
+                    <tr>
+                      <td colSpan={7} className={styles.quizEmpty}>Loading exam attempt history...</td>
+                    </tr>
+                  ) : selectedExamAttempts.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className={styles.quizEmpty}>No exam attempts found for this user.</td>
+                    </tr>
+                  ) : (
+                    selectedExamAttempts.map((attempt) => (
+                      <tr key={attempt.id}>
+                        <td>{attempt.language}</td>
+                        <td>{attempt.examTitle}</td>
+                        <td>{attempt.attemptNumber}</td>
+                        <td className={attempt.isPassed ? styles.passed : styles.failed}>{attempt.scorePercentage}%</td>
+                        <td className={attempt.isPassed ? styles.passed : styles.failed}>{attempt.isPassed ? 'Passed' : 'Failed'}</td>
+                        <td>{attempt.earnedXp}</td>
+                        <td>{attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : '-'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.panel} style={{ marginTop: 16 }}>
+            <div className={styles.quizHeaderRow}>
+              <h3 className={styles.panelTitle}>User Exam Performance</h3>
+              <button className={styles.button} type="button" onClick={fetchUserExamSummary} disabled={userExamSummaryLoading}>
+                Refresh Users
+              </button>
+            </div>
+
+            {userExamSummaryError ? <p className={styles.errorText}>{userExamSummaryError}</p> : null}
+
+            <div className={styles.quizTableWrap}>
+              <table className={styles.quizTable}>
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Attempts</th>
+                    <th>Avg Score</th>
+                    <th>Pass Rate</th>
+                    <th>Best Score</th>
+                    <th>XP Awarded</th>
+                    <th>Languages</th>
+                    <th>Latest</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userExamSummaryLoading ? (
+                    <tr>
+                      <td colSpan={9} className={styles.quizEmpty}>Loading user exam data...</td>
+                    </tr>
+                  ) : userExamSummary.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className={styles.quizEmpty}>No user exam data found.</td>
+                    </tr>
+                  ) : (
+                    userExamSummary.map((user) => (
+                      <tr key={user.userId}>
+                        <td>{user.username}</td>
+                        <td>{user.totalAttempts}</td>
+                        <td>{user.averageScore}%</td>
+                        <td>{user.passRate}%</td>
+                        <td>{user.bestScore}%</td>
+                        <td>{user.totalXpAwarded}</td>
+                        <td>{(user.languages || []).join(', ')}</td>
+                        <td>{user.latestAttemptAt ? new Date(user.latestAttemptAt).toLocaleString() : '-'}</td>
+                        <td>
+                          <button className={styles.button} type="button" onClick={() => fetchUserExamAttempts(user)}>
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>

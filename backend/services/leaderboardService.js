@@ -11,6 +11,8 @@ class LeaderboardService {
 
         // Process Quest XP
         questData.forEach(row => {
+            if (row.users?.role === "admin") return;
+
             const userId = row.user_id;
             const xp = row.quests?.experience || 0;
             const slug = row.quests?.programming_languages?.slug;
@@ -36,6 +38,8 @@ class LeaderboardService {
 
         // Process Quiz XP
         quizData.forEach(row => {
+            if (row.users?.role === "admin") return;
+
             const userId = row.user_id;
             const xp = row.earned_xp || 0;
             const slug = row.quizzes?.programming_languages?.slug;

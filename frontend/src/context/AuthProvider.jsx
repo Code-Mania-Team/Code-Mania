@@ -1,9 +1,6 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import { axiosPrivate } from "../api/axios";
 
-// Prevent duplicate auth bootstrap requests in React StrictMode dev.
-let authBootstrapPromise = null;
-
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -32,25 +29,32 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuth = async () => {
       try {
-        if (!authBootstrapPromise) {
-          authBootstrapPromise = (async () => {
-            const response = await axiosPrivate.get("/v1/account");
-            if (response?.data?.success) return response.data.data;
-            return null;
-          })();
+        const response = await axiosPrivate.get("/v1/account");
+        if (response?.data?.success) {
+          applyProfile(response.data.data);
+        } else {
+          setSignedOut();
         }
-
-        const profile = await authBootstrapPromise;
-        applyProfile(profile);
       } catch (error) {
-        // Keep boot quiet; axios interceptor handles refresh.
         setSignedOut();
       } finally {
         if (mounted) setIsLoading(false);
       }
     };
 
-    checkAuth();
+    const path = (typeof window !== 'undefined' && window.location && typeof window.location.pathname === 'string')
+      ? window.location.pathname
+      : '/';
+    const isLandingPath = path === '/' || path.includes('landing') || path.includes('home');
+    if (!isLandingPath) {
+      checkAuth();
+    } else {
+      if (mounted) {
+        setUser(null);
+        setIsAuthenticated(false);
+        setIsLoading(false);
+      }
+    }
 
     return () => {
       mounted = false;

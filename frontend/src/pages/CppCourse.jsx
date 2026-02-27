@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
-import TutorialPopup from "../components/TutorialPopup";
 import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import useAuth from "../hooks/useAxios";
@@ -135,8 +134,20 @@ const CppCourse = () => {
   /* ===============================
      HELPERS
   =============================== */
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+    if (user?.role === "admin") return "available";
+
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
@@ -146,6 +157,8 @@ const CppCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    if (user?.role === "admin") return "available";
+
     // Check if quiz for this module is already completed
     if (data?.completedQuizStages?.includes(moduleId)) return "completed";
 
@@ -167,6 +180,23 @@ const CppCourse = () => {
   const handleStartExercise = (moduleId, exerciseId) => {
     const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}`;
+
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
+      setShowTutorial(true);
+      return;
+    }
+
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "C++");
+    localStorage.setItem("lastCourseRoute", "/learn/cpp");
+
+    navigate(route);
+  };
+
+  const handleStartExam = () => {
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = "/exam/cpp";
 
     if (isAuthenticated && hasSeenTutorial !== "true") {
       setPendingRoute(route);
@@ -272,6 +302,7 @@ const CppCourse = () => {
                           : null;
 
                       const status = getExerciseStatus(
+                        module.id,
                         exercise.id,
                         previousExerciseId
                       );
@@ -295,13 +326,13 @@ const CppCourse = () => {
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
-                                className="start-btn"
+                                className={`start-btn ${status}`}
                                 onClick={() =>
-                                  handleStartExercise(
-                                    module.id,
-                                    exercise.id
-                                  )
+                                  module.id === 5
+                                    ? handleStartExam()
+                                    : handleStartExercise(module.id, exercise.id)
                                 }
+                                disabled={status === "locked"}
                               >
                                 Start
                               </button>
@@ -401,13 +432,6 @@ const CppCourse = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-
-      {showTutorial && (
-        <TutorialPopup
-          open={showTutorial}
-          onClose={handleTutorialClose}
-        />
-      )}
     </div>
   );
 

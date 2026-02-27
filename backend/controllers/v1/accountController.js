@@ -11,6 +11,8 @@ class AccountController {
         this.userToken = new UserToken();
         this.refreshInProgress = false; // Prevent race conditions
     }
+
+    
     // REQUEST OTP (SIGNUP)
     async requestOtp(req, res) {
         try {

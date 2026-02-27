@@ -18,6 +18,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
   const [usernameError, setUsernameError] = useState('');
+  const [fullNameError, setFullNameError] = useState('');
 
   const onBoardUsername = useOnBoardUsername();
 
@@ -64,16 +65,24 @@ const WelcomeOnboarding = ({ onComplete }) => {
         setUsernameError('Please enter a username');
         return;
       }
-      // if (username.length < 3) {
-      //   setUsernameError('Username must be at least 3 characters');
-      //   return;
-      // }
-      // // In a real app, check if username is taken
-      // // For now, simulate a check
-      // if (username.toLowerCase() === 'was') {
-      //   setUsernameError('Username is already taken :(');
-      //   return;
-      // }
+
+      const trimmedFullName = fullName.trim();
+      if (!trimmedFullName) {
+        setFullNameError('Please enter your full name');
+        return;
+      }
+
+      if (!/^[A-Za-z ]+$/.test(trimmedFullName)) {
+        setFullNameError('Full name must only contain letters and spaces');
+        return;
+      }
+
+      const nameParts = trimmedFullName.split(/\s+/).filter(Boolean);
+      if (nameParts.length < 2) {
+        setFullNameError('Please enter your first and last name');
+        return;
+      }
+
       try {
         // Save to backend
         const res = await onBoardUsername(username, characters[selectedCharacter].id, fullName);
@@ -95,6 +104,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
         return;
       }
       setUsernameError('');
+      setFullNameError('');
     }
 
     if (currentStep < steps.length - 1) {
@@ -108,6 +118,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
       setUsernameError('');
+      setFullNameError('');
     }
   };
 
@@ -244,15 +255,21 @@ const WelcomeOnboarding = ({ onComplete }) => {
               <div className={styles.inputWrapper}>
                 <input
                   type="text"
-                  className={`${styles.usernameInput} ${usernameError ? styles.error : ''}`}
+                  className={`${styles.usernameInput} ${fullNameError ? styles.error : ''}`}
                   placeholder="Enter full name"
                   value={fullName}
                   onChange={(e) => {
                     setFullName(e.target.value);
-                    setUsernameError('');
+                    setFullNameError('');
                   }}
                   maxLength={30}
                 />
+                {fullNameError && (
+                  <div className={styles.errorMessage}>
+                    <span className={styles.errorIcon}>⚠</span>
+                    {fullNameError}
+                  </div>
+                )}
               </div>
             </div>
           )}

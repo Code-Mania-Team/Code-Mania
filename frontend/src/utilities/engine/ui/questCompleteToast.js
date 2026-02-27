@@ -1,6 +1,6 @@
 // src/game/ui/QuestCompleteToast.js
 export default class QuestCompleteToast {
-  constructor(scene) {
+  constructor(scene, { offsetY = 0, titleText = "EARNED EXP" } = {}) {
     this.scene = scene;
 
     const marginX = 16;
@@ -10,7 +10,7 @@ export default class QuestCompleteToast {
 
     // Start off-screen (left)
     this.container = scene.add
-      .container(-320, marginY)
+      .container(-320, marginY + offsetY)
       .setDepth(10000)
       .setAlpha(0)
       .setScrollFactor(0);
@@ -22,17 +22,18 @@ export default class QuestCompleteToast {
       .setStrokeStyle(2, 0x00ff88);
 
     // Title
-    this.titleText = scene.add.text(10, 6, "QUEST COMPLETED", {
+    this.titleText = scene.add.text(10, 6, titleText, {
       fontSize: "13px",
       fontStyle: "bold",
       color: "#00ff88"
     });
 
-    // Subtitle (quest title)
+    // Subtitle (quest title) - Hidden now
     this.subtitle = scene.add.text(10, 24, "", {
       fontSize: "12px",
       color: "#ffffff",
-      wordWrap: { width: 150 }
+      wordWrap: { width: 150 },
+      visible: false
     });
 
     // ⭐ EXP text
@@ -80,7 +81,8 @@ export default class QuestCompleteToast {
     if (this.isShowing) return;
     this.isShowing = true;
 
-    this.subtitle.setText(title);
+    // Don't show quest title anymore - subtitle is hidden
+    // this.subtitle.setText(title);
 
     if (badgeKey && this.scene.textures.exists(badgeKey)) {
       this.badgeIcon.setTexture(badgeKey);

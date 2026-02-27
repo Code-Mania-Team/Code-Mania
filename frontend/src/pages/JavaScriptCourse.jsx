@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import "../styles/javascriptCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
-import TutorialPopup from "../components/TutorialPopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import useGetExercises from "../services/getExercise";
@@ -16,13 +15,14 @@ const JavaScriptCourse = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const getGameProgress = useGetGameProgress();
+  const getExercises = useGetExercises();
+  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const getExercises = useGetExercises();
-  const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(3); // 3 = JavaScript
+  const [pendingRoute, setPendingRoute] = useState(null);
   const [data, setData] = useState();
 
   const tutorialSeenKey = user?.user_id
@@ -41,7 +41,7 @@ const JavaScriptCourse = () => {
           { id: 1, title: "JavaScript Basics", description: "Learn fundamentals of JavaScript.", exercises: [] },
           { id: 2, title: "Functions & Scope", description: "Understand functions and parameters.", exercises: [] },
           { id: 3, title: "Arrays & Objects", description: "Work with arrays and objects.", exercises: [] },
-          { id: 4, title: "DOM Manipulation", description: "Interact with the DOM.", exercises: [] },
+          { id: 4, title: "Control Flow & Logic", description: "Master decision-making and looping.", exercises: [] },
           { id: 5, title: "Examination", description: "Test your JavaScript knowledge. You must complete all previous modules to unlock this exam.", exercises: [{ id: 17, title: "JavaScript Exam", status: "locked" }] }
         ];
 
@@ -96,8 +96,20 @@ const JavaScriptCourse = () => {
     loadProgress();
   }, [isAuthenticated]);
 
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+    if (user?.role === "admin") return "available";
+
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
@@ -107,6 +119,8 @@ const JavaScriptCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    if (user?.role === "admin") return "available";
+
     // Check if quiz for this module is already completed
     if (data?.completedQuizStages?.includes(moduleId)) return "completed";
 
@@ -157,6 +171,23 @@ const JavaScriptCourse = () => {
   const handleStartExercise = (exerciseId) => {
     const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = `/learn/javascript/exercise/${exerciseId}`;
+
+    if (isAuthenticated && hasSeenTutorial !== "true") {
+      setPendingRoute(route);
+      setShowTutorial(true);
+      return;
+    }
+
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "JavaScript");
+    localStorage.setItem("lastCourseRoute", "/learn/javascript");
+
+    navigate(route);
+  };
+
+  const handleStartExam = () => {
+    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
+    const route = "/exam/javascript";
 
     if (isAuthenticated && hasSeenTutorial !== "true") {
       setPendingRoute(route);
@@ -252,6 +283,7 @@ const JavaScriptCourse = () => {
                           : null;
 
                       const status = getExerciseStatus(
+                        module.id,
                         exercise.id,
                         previousExerciseId
                       );
@@ -272,8 +304,13 @@ const JavaScriptCourse = () => {
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
-                                className="start-btn"
-                                onClick={() => handleStartExercise(exercise.id)}
+                                className={`start-btn ${status}`}
+                                onClick={() =>
+                                  module.id === 5
+                                    ? handleStartExam()
+                                    : handleStartExercise(exercise.id)
+                                }
+                                disabled={status === "locked"}
                               >
                                 Start
                               </button>
@@ -375,13 +412,6 @@ const JavaScriptCourse = () => {
         onClose={onCloseModal}
         onSignInSuccess={onCloseModal}
       />
-
-      {showTutorial && (
-        <TutorialPopup
-          open={showTutorial}
-          onClose={handleTutorialClose}
-        />
-      )}
     </div>
   );
 };

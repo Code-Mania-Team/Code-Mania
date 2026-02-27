@@ -330,6 +330,151 @@ export const MAPS = {
           }
         ],
         nextMap: "map12"
+      },
+      map12: {
+        mapKey: "map12",
+        mapJson: "/assets/maps/Python/map12.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D1",
+            key: "fsm_C_Inside01_D1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D1.png"
+          },
+          {
+            name: "ADBTileB_interior",
+            key: "ADBTileB_interior",
+            image: "/assets/tilesets/Python/ADBTileB_interior.png"
+          }
+        ],
+        nextMap: "map13"
+      },
+      map13: {
+        mapKey: "map13",
+        mapJson: "/assets/maps/Python/map13.json",
+        tilesets: [
+          {
+            name: "fsm_C_Inside01_A4",
+            key: "fsm_C_Inside01_A4",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A4.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_1",
+            key: "fsm_C_Inside01_A5_1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_1.png"
+          },
+          {
+            name: "fsm_C_Inside01_B1",
+            key: "fsm_C_Inside01_B1",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B1.png"
+          },
+          {
+            name: "fsm_C_Inside01_C",
+            key: "fsm_C_Inside01_C",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_C.png"
+          },
+          {
+            name: "fsm_C_Inside01_D3",
+            key: "fsm_C_Inside01_D3",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_D3.png"
+          },
+          {
+            name: "Dungeon_B_for_mineral",
+            key: "Dungeon_B_for_mineral",
+            image: "/assets/tilesets/Python/Dungeon_B_for_mineral.png"
+          }
+        ],
+        nextMap: "map14"
+      },
+      map14: {
+        mapKey: "map14",
+        mapJson: "/assets/maps/Python/map14.json",
+        tilesets: [
+          {
+            name: "commu_church-B",
+            key: "commu_church-B",
+            image: "/assets/tilesets/Python/commu_church-B.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_2",
+            key: "fsm_C_Inside01_A5_2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_2.png"
+          },
+          {
+            name: "fsm_C_Inside01_B2",
+            key: "fsm_C_Inside01_B2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B2.png"
+          }
+        ],
+        nextMap: "map15"
+      },
+      map15: {
+        mapKey: "map15",
+        mapJson: "/assets/maps/Python/map15.json",
+        tilesets: [
+          {
+            name: "commu_church-B",
+            key: "commu_church-B",
+            image: "/assets/tilesets/Python/commu_church-B.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_2",
+            key: "fsm_C_Inside01_A5_2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_2.png"
+          },
+          {
+            name: "fsm_C_Inside01_B2",
+            key: "fsm_C_Inside01_B2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B2.png"
+          }
+        ],
+        nextMap: "map16"
+      },
+      map16: {
+        mapKey: "map16",
+        mapJson: "/assets/maps/Python/map16.json",
+        tilesets: [
+          {
+            name: "commu_church-B",
+            key: "commu_church-B",
+            image: "/assets/tilesets/Python/commu_church-B.png"
+          },
+          {
+            name: "fsm_C_Inside01_A5_2",
+            key: "fsm_C_Inside01_A5_2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_A5_2.png"
+          },
+          {
+            name: "fsm_C_Inside01_B2",
+            key: "fsm_C_Inside01_B2",
+            image: "/assets/tilesets/Python/fsm_C_Inside01_B2.png"
+          },
+          {
+            name: "CMSH_Church_A4",
+            key: "CMSH_Church_A4",
+            image: "/assets/tilesets/Python/CMSH_Church_A4.png"
+          },
+          {
+            name: "hidden_B",
+            key: "hidden_B",
+            image: "/assets/tilesets/Python/hidden_B.png"
+          }
+        ],
+        nextMap: null
       }
 
   },
@@ -509,12 +654,10 @@ export const MAPS = {
       mapKey: "js_map13",
       mapJson: "/assets/maps/JavaScript/js_map13.json",
       tilesets: [
-        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
-        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
-        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
-        { name: "B.rpgmvp", key: "B.rpgmvp", image: "/assets/tilesets/Javascript/B.rpgmvp.png" },
-        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
-        { name: "Outside_B.rpgmvp", key: "Outside_B.rpgmvp", image: "/assets/tilesets/Javascript/Outside_B.rpgmvp.png" }
+        { name: "A4b.rpgmvp", key: "A4b.rpgmvp", image: "/assets/tilesets/Javascript/A4b.rpgmvp.png" },
+        { name: "wa_02.rpgmvp", key: "wa_02.rpgmvp", image: "/assets/tilesets/Javascript/wa_02.rpgmvp.png" },
+        { name: "Outside_C.rpgmvp", key: "Outside_C.rpgmvp", image: "/assets/tilesets/Javascript/Outside_C.rpgmvp.png" },
+        { name: "touhu_02.rpgmvp", key: "touhu_02.rpgmvp", image: "/assets/tilesets/Javascript/touhu_02.rpgmvp.png" }
       ],
       nextMap: "map14"
     },
@@ -522,12 +665,9 @@ export const MAPS = {
       mapKey: "js_map14",
       mapJson: "/assets/maps/JavaScript/js_map14.json",
       tilesets: [
-        { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
-        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
-        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
-        { name: "B.rpgmvp", key: "B.rpgmvp", image: "/assets/tilesets/Javascript/B.rpgmvp.png" },
-        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
-        { name: "Outside_B.rpgmvp", key: "Outside_B.rpgmvp", image: "/assets/tilesets/Javascript/Outside_B.rpgmvp.png" }
+        { name: "Outside_A2.rpgmvp", key: "Outside_A2.rpgmvp", image: "/assets/tilesets/Javascript/Outside_A2.rpgmvp.png" },
+        { name: "wa_02.rpgmvp", key: "wa_02.rpgmvp", image: "/assets/tilesets/Javascript/wa_02.rpgmvp.png" },
+        { name: "komyu_01.rpgmvp", key: "komyu_01.rpgmvp", image: "/assets/tilesets/Javascript/komyu_01.rpgmvp.png" }
       ],
       nextMap: "map15"
     },
@@ -536,11 +676,10 @@ export const MAPS = {
       mapJson: "/assets/maps/JavaScript/js_map15.json",
       tilesets: [
         { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
-        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
-        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
         { name: "B.rpgmvp", key: "B.rpgmvp", image: "/assets/tilesets/Javascript/B.rpgmvp.png" },
-        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
-        { name: "Outside_B.rpgmvp", key: "Outside_B.rpgmvp", image: "/assets/tilesets/Javascript/Outside_B.rpgmvp.png" }
+        { name: "bu_Outside.rpgmvp", key: "bu_Outside.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside.rpgmvp.png" },
+        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
+        { name: "bu_Outside2.rpgmvp", key: "bu_Outside2.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside2.rpgmvp.png" }
       ],
       nextMap: "map16"
     },
@@ -548,12 +687,10 @@ export const MAPS = {
       mapKey: "js_map16",
       mapJson: "/assets/maps/JavaScript/js_map16.json",
       tilesets: [
+        { name: "bu_shrine2.rpgmvp", key: "bu_shrine2.rpgmvp", image: "/assets/tilesets/Javascript/bu_shrine2.rpgmvp.png" },
         { name: "A2_01.rpgmvp", key: "A2_01.rpgmvp", image: "/assets/tilesets/Javascript/A2_01.rpgmvp.png" },
-        { name: "touhu_01.rpgmvp", key: "touhu_01.rpgmvp", image: "/assets/tilesets/Javascript/touhu_01.rpgmvp.png" },
-        { name: "sekaiju1.rpgmvp", key: "sekaiju1.rpgmvp", image: "/assets/tilesets/Javascript/sekaiju1.rpgmvp.png" },
-        { name: "B.rpgmvp", key: "B.rpgmvp", image: "/assets/tilesets/Javascript/B.rpgmvp.png" },
-        { name: "No1-3.rpgmvp", key: "No1-3.rpgmvp", image: "/assets/tilesets/Javascript/No1-3.rpgmvp.png" },
-        { name: "Outside_B.rpgmvp", key: "Outside_B.rpgmvp", image: "/assets/tilesets/Javascript/Outside_B.rpgmvp.png" }
+        { name: "fsm_Forest01_A1.rpgmvp", key: "fsm_Forest01_A1.rpgmvp", image: "/assets/tilesets/Javascript/fsm_Forest01_A1.rpgmvp.png" },
+        { name: "bu_Outside2.rpgmvp", key: "bu_Outside2.rpgmvp", image: "/assets/tilesets/Javascript/bu_Outside2.rpgmvp.png" }
       ],
       nextMap: null
     },
@@ -811,7 +948,7 @@ export const MAPS = {
     },
     map10: {
       mapKey: "cpp_map10",
-      mapJson: "/assets/maps/Cpp/cpp_map10.json",
+      mapJson: "/assets/maps/Cpp/cpp_10.json",
       tilesets: [
         { name: "MordernOuter_TileA4", key: "MordernOuter_TileA4", image: "/assets/tilesets/Cpp/MordernOuter_TileA4.png" },
         { name: "SP_Outside_A2", key: "SP_Outside_A2", image: "/assets/tilesets/Cpp/SP_Outside_A2.png" },

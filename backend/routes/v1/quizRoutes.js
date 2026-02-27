@@ -1,16 +1,17 @@
 import { Router } from 'express';
 import authentication from '../../middlewares/authentication.js';
 import { authorization } from '../../middlewares/authorization.js';
-import { getQuizById, completeQuiz } from '../../controllers/v1/quizController.js';  
+import QuizController from '../../controllers/v1/quizController.js';
 
 const router = Router();
+const quizController = new QuizController();
 
-router.get('/:language/:quizId', getQuizById);
+router.get('/:language/:quizId', quizController.getQuizById.bind(quizController));
 router.post(
   '/:language/:quizId/complete',
   authentication,
   authorization,
-  completeQuiz
+  quizController.completeQuiz.bind(quizController)
 );
 
 export default router;

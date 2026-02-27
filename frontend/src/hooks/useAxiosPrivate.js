@@ -6,86 +6,68 @@ import useRefreshToken from "./useRefreshToken";
 let isRefreshing = false;
 let refreshQueue = [];
 
-// Ensure only one interceptor is attached globally
-let interceptorUsers = 0;
-let responseInterceptorId = null;
-
 const useAxiosPrivate = () => {
   const refresh = useRefreshToken();
 
   useEffect(() => {
-    interceptorUsers += 1;
+    const responseIntercept = axiosPrivate.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const prevRequest = error?.config;
 
-    const isNoRefreshEndpoint = (url) => {
-      const u = String(url || "");
-      return (
-        u.includes("/v1/refresh") ||
-        u.includes("/v1/account/login") ||
-        u.includes("/v1/account/logout") ||
-        u.includes("/v1/account/signup") ||
-        u.includes("/v1/account/signup/verify-otp") ||
-        u.includes("/v1/forgot-password")
-      );
-    };
-
-    if (responseInterceptorId === null) {
-      responseInterceptorId = axiosPrivate.interceptors.response.use(
-        (response) => response,
-        async (error) => {
-          const prevRequest = error?.config;
-          const status = error?.response?.status;
-
-          if (status === 401 && prevRequest && !prevRequest._retry) {
-            prevRequest._retry = true;
-
-            if (isNoRefreshEndpoint(prevRequest?.url)) {
-              return Promise.reject(error);
-            }
-
-            if (isRefreshing) {
-              return new Promise((resolve, reject) => {
-                refreshQueue.push({ resolve, reject, config: prevRequest });
-              });
-            }
-
-            isRefreshing = true;
-
-            try {
-              const token = await refresh();
-              if (!token) throw error;
-
-              refreshQueue.forEach(({ resolve, config }) => {
-                resolve(axiosPrivate(config));
-              });
-              refreshQueue = [];
-              isRefreshing = false;
-
-              return axiosPrivate(prevRequest);
-            } catch (refreshError) {
-              refreshQueue.forEach(({ reject }) => {
-                reject(refreshError);
-              });
-              refreshQueue = [];
-              isRefreshing = false;
-
-              return Promise.reject(refreshError);
-            }
+        if (error?.response?.status === 401 && prevRequest && !prevRequest._retry) {
+          prevRequest._retry = true;
+          
+          // Don't auto-refresh for auth/refresh endpoints
+          
+          // if (
+          //   prevRequest?.url?.includes('/v1/account') ||
+          //   prevRequest?.url?.includes('/v1/refresh')
+          // ) {
+          //   console.log("Skipping refresh for auth endpoint");
+          //   return Promise.reject(error);
+          // }
+          // Add to queue if refresh is already in progress
+          if (isRefreshing) {
+            return new Promise((resolve, reject) => {
+              refreshQueue.push({ resolve, reject, config: prevRequest });
+            });
           }
-
-          return Promise.reject(error);
+          
+          // Set refresh flag
+          isRefreshing = true;
+          
+          try {
+            await refresh();
+            
+            // Process queued requests
+            refreshQueue.forEach(({ resolve, config }) => {
+              resolve(axiosPrivate(config));
+            });
+            refreshQueue = [];
+            
+            // Clear refresh flag
+            isRefreshing = false;
+            
+            return axiosPrivate(prevRequest);
+          } catch (refreshError) {
+            // Reject all queued requests on failure
+            refreshQueue.forEach(({ reject }) => {
+              reject(refreshError);
+            });
+            refreshQueue = [];
+            isRefreshing = false;
+            
+            return Promise.reject(refreshError);
+          }
         }
-      );
-    }
+
+        return Promise.reject(error);
+      }
+    );
 
     return () => {
-      interceptorUsers -= 1;
-      if (interceptorUsers <= 0) {
-        interceptorUsers = 0;
-        if (responseInterceptorId !== null) {
-          axiosPrivate.interceptors.response.eject(responseInterceptorId);
-          responseInterceptorId = null;
-        }
-      }
+      axiosPrivate.interceptors.response.eject(responseIntercept);
     };
   }, [refresh]);
 

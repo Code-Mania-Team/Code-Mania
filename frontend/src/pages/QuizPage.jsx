@@ -3,7 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useQuiz } from "../hooks/useQuiz";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAuth from "../hooks/useAxios";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+import useGetExercises from "../services/getExercise";
+import useGetGameProgress from "../services/getGameProgress";
 import styles from "../styles/QuizPage.module.css";
 
 const QuizPage = () => {
@@ -12,6 +15,10 @@ const QuizPage = () => {
 
   const { quizData, loading } = useQuiz(language, quizId);
   const axiosPrivate = useAxiosPrivate();
+  const { user } = useAuth();
+  const getExercises = useGetExercises();
+  const getGameProgress = useGetGameProgress();
+  const isAdmin = user?.role === "admin";
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -19,6 +26,14 @@ const QuizPage = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [accessLoading, setAccessLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+
+  const languageToId = {
+    python: 1,
+    cpp: 2,
+    javascript: 3,
+  };
 
   const languageBackgrounds = {
     python:
@@ -31,6 +46,79 @@ const QuizPage = () => {
 
   const heroBackground =
     languageBackgrounds[language] || languageBackgrounds.python;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const verifyAccess = async () => {
+      setAccessLoading(true);
+
+      if (isAdmin) {
+        if (!cancelled) {
+          setHasAccess(true);
+          setAccessLoading(false);
+        }
+        return;
+      }
+
+      const languageId = languageToId[language];
+      const moduleId = Number(quizId);
+
+      if (!languageId || !Number.isInteger(moduleId) || moduleId < 1 || moduleId > 4) {
+        if (!cancelled) {
+          setHasAccess(false);
+          setAccessLoading(false);
+        }
+        navigate(`/learn/${language || "python"}`, { replace: true });
+        return;
+      }
+
+      try {
+        const [exercises, progress] = await Promise.all([
+          getExercises(languageId),
+          getGameProgress(languageId),
+        ]);
+
+        const completedQuests = new Set((progress?.completedQuests || []).map(Number));
+        const completedQuizStages = progress?.completedQuizStages || [];
+
+        const startOrder = (moduleId - 1) * 4 + 1;
+        const endOrder = startOrder + 3;
+
+        const moduleExercises = (exercises || []).filter((exercise) => {
+          const order = Number(exercise.order_index || 0);
+          return order >= startOrder && order <= endOrder;
+        });
+
+        const moduleCompleted =
+          moduleExercises.length > 0 &&
+          moduleExercises.every((exercise) => completedQuests.has(Number(exercise.id)));
+
+        const allowed = completedQuizStages.includes(moduleId) || moduleCompleted;
+
+        if (!cancelled) {
+          setHasAccess(allowed);
+          setAccessLoading(false);
+        }
+
+        if (!allowed) {
+          navigate(`/learn/${language}`, { replace: true });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setHasAccess(false);
+          setAccessLoading(false);
+        }
+        navigate(`/learn/${language}`, { replace: true });
+      }
+    };
+
+    verifyAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [language, quizId, navigate, isAdmin]);
 
   /* ---------------------------------
      Initialize Quiz
@@ -116,6 +204,8 @@ const QuizPage = () => {
   useEffect(() => {
     if (!quizCompleted || !quizData) return;
 
+    if (isAdmin) return;
+
     const submitQuiz = async () => {
       try {
         const score = calculateScore();
@@ -135,13 +225,15 @@ const QuizPage = () => {
     };
 
     submitQuiz();
-  }, [quizCompleted]);
+  }, [quizCompleted, quizData, isAdmin, language, quizId]);
 
   const handleReturnToCourse = () => {
     navigate(`/learn/${language}`);
   };
 
-  if (loading) return <AuthLoadingOverlay />;
+  if (loading || accessLoading) return <AuthLoadingOverlay />;
+
+  if (!hasAccess) return null;
 
   if (!Array.isArray(quizData?.questions) || quizData.questions.length === 0) {
     return (
