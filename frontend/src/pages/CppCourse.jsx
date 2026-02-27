@@ -4,21 +4,23 @@ import { useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
-import TutorialPopup from "../components/TutorialPopup";
+import TutorialOverlay from "../components/Tutorialpopup";
 import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import useAuth from "../hooks/useAxios";
 import useGetCourseBadges from "../services/getCourseBadge";
+import useMarkTutorialSeen from "../services/markTutorialSeen";
 
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 const CppCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, setUser } = useAuth();
   const getGameProgress = useGetGameProgress();
   const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(2);
   const getExercises = useGetExercises();
+  const markTutorialSeen = useMarkTutorialSeen();
 
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,10 +29,6 @@ const CppCourse = () => {
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const [modules, setModules] = useState([]);
   const [data, setData] = useState();
-
-  const tutorialSeenKey = user?.user_id
-    ? `hasSeenTutorial_${user.user_id}`
-    : "hasSeenTutorial";
 
   /* ===============================
      FETCH C++ EXERCISES (UNCHANGED)
@@ -135,8 +133,20 @@ const CppCourse = () => {
   /* ===============================
      HELPERS
   =============================== */
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+    if (user?.role === "admin") return "available";
+
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
       return "available";
@@ -146,6 +156,8 @@ const CppCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    if (user?.role === "admin") return "available";
+
     // Check if quiz for this module is already completed
     if (data?.completedQuizStages?.includes(moduleId)) return "completed";
 
@@ -165,10 +177,9 @@ const CppCourse = () => {
   };
 
   const handleStartExercise = (moduleId, exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}`;
 
-    if (isAuthenticated && hasSeenTutorial !== "true") {
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -181,9 +192,33 @@ const CppCourse = () => {
     navigate(route);
   };
 
-  const handleTutorialClose = () => {
+  const handleStartExam = () => {
+    const route = "/exam/cpp";
+
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
+      setPendingRoute(route);
+      setShowTutorial(true);
+      return;
+    }
+
+    localStorage.setItem("hasTouchedCourse", "true");
+    localStorage.setItem("lastCourseTitle", "C++");
+    localStorage.setItem("lastCourseRoute", "/learn/cpp");
+
+    navigate(route);
+  };
+
+  const handleTutorialClose = async () => {
     setShowTutorial(false);
-    localStorage.setItem(tutorialSeenKey, "true");
+
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
+      try {
+        await markTutorialSeen();
+        setUser((prev) => (prev ? { ...prev, hasSeen_tutorial: true } : prev));
+      } catch (err) {
+        console.error("Failed to mark tutorial as seen", err);
+      }
+    }
 
     if (pendingRoute) {
       const nextRoute = pendingRoute;
@@ -272,6 +307,7 @@ const CppCourse = () => {
                           : null;
 
                       const status = getExerciseStatus(
+                        module.id,
                         exercise.id,
                         previousExerciseId
                       );
@@ -295,13 +331,13 @@ const CppCourse = () => {
                           <div className="exercise-status">
                             {status === "available" ? (
                               <button
-                                className="start-btn"
+                                className={`start-btn ${status}`}
                                 onClick={() =>
-                                  handleStartExercise(
-                                    module.id,
-                                    exercise.id
-                                  )
+                                  module.id === 5
+                                    ? handleStartExam()
+                                    : handleStartExercise(module.id, exercise.id)
                                 }
+                                disabled={status === "locked"}
                               >
                                 Start
                               </button>
@@ -402,12 +438,7 @@ const CppCourse = () => {
         onClose={() => setIsModalOpen(false)}
       />
 
-      {showTutorial && (
-        <TutorialPopup
-          open={showTutorial}
-          onClose={handleTutorialClose}
-        />
-      )}
+      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
     </div>
   );
 

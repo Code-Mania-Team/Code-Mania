@@ -39,3 +39,19 @@
   margin-top: 0.5rem;
   font-family: "Fira Code", monospace;
 }
+
+@media (max-width: 900px) {
+  .lesson-progress {
+    margin: 0 auto 0.75rem;
+    padding: 0.85rem 1rem 0.45rem;
+  }
+
+  .lesson-stage {
+    margin-bottom: 0.55rem;
+    font-size: 0.9rem;
+  }
+
+  .progress-text {
+    margin-top: 0.35rem;
+  }
+}

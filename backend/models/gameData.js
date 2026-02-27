@@ -45,6 +45,24 @@ class GameData {
     }));
   }
 
+  async getQuizAttemptsByLanguage(user_id, programming_language_id) {
+    const { data, error } = await this.db
+      .from("user_quiz_attempts")
+      .select(`
+        id,
+        earned_xp,
+        quizzes!inner (
+          programming_language_id,
+          route
+        )
+      `)
+      .eq("user_id", user_id)
+      .eq("quizzes.programming_language_id", programming_language_id);
+
+    if (error) throw error;
+    return data || [];
+  }
+
 }
 
 export default GameData;

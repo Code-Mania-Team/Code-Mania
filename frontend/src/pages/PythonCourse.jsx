@@ -3,23 +3,26 @@ import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
-import TutorialPopup from "../components/TutorialPopup";
+import TutorialOverlay from "../components/Tutorialpopup";
 import useAuth from "../hooks/useAxios";
 import useGetGameProgress from "../services/getGameProgress";
 import { useParams } from "react-router-dom";
 import useGetExercises from "../services/getExercise";
 import useGetCourseBadges from "../services/getCourseBadge";
+import useMarkTutorialSeen from "../services/markTutorialSeen";
+
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
 
 
 const PythonCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, setUser } = useAuth();
   const getGameProgress = useGetGameProgress();
   const [modules, setModules] = useState([]);
   const [completedExercises, setCompletedExercises] = useState(new Set());
   const getExercises = useGetExercises();
+  const markTutorialSeen = useMarkTutorialSeen();
   const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); // 1 = Python
 
   const [expandedModule, setExpandedModule] = useState(1);
@@ -27,14 +30,12 @@ const PythonCourse = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [pendingRoute, setPendingRoute] = useState(null);
 
-  const tutorialSeenKey = user?.user_id
-    ? `hasSeenTutorial_${user.user_id}`
-    : "hasSeenTutorial";
-
   // Tutorial will be shown only when clicking Start button
   const { exerciseId } = useParams();
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
+
+ 
   useEffect(() => {
     if (!isAuthenticated) {
       setCompletedExercises(new Set());
@@ -103,9 +104,6 @@ const PythonCourse = () => {
     };
   }, []);
 
-
-
-
   const onOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -122,8 +120,20 @@ const PythonCourse = () => {
     }
   };
 
-  const getExerciseStatus = (exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+    if (user?.role === "admin") return "available";
+
     if (completedExercises.has(exerciseId)) return "completed";
+
+    if (moduleId > 1 && !previousExerciseId) {
+      const prevModule = modules.find(m => m.id === moduleId - 1);
+      const prevModuleCompleted =
+        !!prevModule &&
+        prevModule.exercises.length > 0 &&
+        prevModule.exercises.every(ex => completedExercises.has(ex.id));
+
+      if (!prevModuleCompleted) return "locked";
+    }
 
     // unlock next exercise if previous is completed
     if (!previousExerciseId || completedExercises.has(previousExerciseId)) {
@@ -134,6 +144,8 @@ const PythonCourse = () => {
   };
 
   const getQuizStatus = (moduleId) => {
+    if (user?.role === "admin") return "available";
+
     // Check if quiz for this module is already completed
     if (data?.completedQuizStages?.includes(moduleId)) return "completed";
 
@@ -149,15 +161,24 @@ const PythonCourse = () => {
   };
 
   const getExamStatus = () => {
-    // Temporarily set to available for testing
-    return "available";
+    if (user?.role === "admin") return "available";
+
+    const learningModules = modules.filter((module) => module.id !== 5);
+    if (!learningModules.length) return "locked";
+
+    const allStagesCompleted = learningModules.every(
+      (module) =>
+        module.exercises.length > 0 &&
+        module.exercises.every((exercise) => completedExercises.has(exercise.id))
+    );
+
+    return allStagesCompleted ? "available" : "locked";
   };
 
   const handleStartExercise = (exerciseId) => {
-    const hasSeenTutorial = localStorage.getItem(tutorialSeenKey);
     const route = `/learn/python/exercise/${exerciseId}`;
 
-    if (isAuthenticated && hasSeenTutorial !== "true") {
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -171,9 +192,17 @@ const PythonCourse = () => {
 
   };
 
-  const handleTutorialClose = () => {
+  const handleTutorialClose = async () => {
     setShowTutorial(false);
-    localStorage.setItem(tutorialSeenKey, 'true');
+
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
+      try {
+        await markTutorialSeen();
+        setUser((prev) => (prev ? { ...prev, hasSeen_tutorial: true } : prev));
+      } catch (err) {
+        console.error("Failed to mark tutorial as seen", err);
+      }
+    }
 
     if (pendingRoute) {
       const nextRoute = pendingRoute;
@@ -183,7 +212,15 @@ const PythonCourse = () => {
   };
 
   const handleStartExam = () => {
-    navigate(`/exam/python`);
+    const route = "/exam/python";
+
+    if (isAuthenticated && !user?.hasSeen_tutorial) {
+      setPendingRoute(route);
+      setShowTutorial(true);
+      return;
+    }
+
+    navigate(route);
   };
 
 
@@ -265,7 +302,11 @@ const PythonCourse = () => {
                       const previousExercise =
                         index > 0 ? module.exercises[index - 1].id : null;
 
-                      const status = getExerciseStatus(exercise.id, previousExercise);
+                      const status = getExerciseStatus(
+                        module.id,
+                        exercise.id,
+                        previousExercise
+                      );
 
                       return (
                         <div key={exercise.id} className={`exercise-item ${status}`}>
@@ -403,13 +444,7 @@ const PythonCourse = () => {
         onSignInSuccess={onCloseModal}
       />
 
-      {/* Tutorial Popup */}
-      {showTutorial && (
-        <TutorialPopup
-          open={showTutorial}
-          onClose={handleTutorialClose}
-        />
-      )}
+      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
     </div>
   );
 };

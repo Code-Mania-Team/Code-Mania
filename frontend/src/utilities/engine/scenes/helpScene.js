@@ -7,6 +7,15 @@ export default class HelpScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale;
+    const isMobile =
+      this.sys.game.device.os.android ||
+      this.sys.game.device.os.iOS;
+
+    const headerFontSize = isMobile ? "24px" : "34px";
+    const pageTitleFontSize = isMobile ? "20px" : "26px";
+    const pageTextFontSize = isMobile ? "16px" : "18px";
+    const navFontSize = isMobile ? "16px" : "18px";
+    const indicatorFontSize = isMobile ? "14px" : "16px";
 
     this.currentPage = 0;
 
@@ -14,13 +23,20 @@ export default class HelpScene extends Phaser.Scene {
     this.pages = [
       {
         title: "🎮 Controls",
-        content: `
+        content: isMobile
+          ? `
+Left joystick  —   Move
+E button       —   Interact
+Tap buttons    —   Navigate UI
+✕              —   Close Help
+          `
+          : `
 Arrow Keys   —   Move
 E            —   Interact
 Q            —   Quest Log
 H / ESC      —   Close Help
-Left click    —   Advance Dialogue
-        `
+Left click   —   Advance Dialogue
+          `
       },
       {
         title: "🧑 NPCs",
@@ -57,6 +73,7 @@ NPCs guide you through the world.
     // 📜 Book panel
     this.panelWidth = Math.min(760, width - 80);
     this.panelHeight = Math.min(560, height - 80);
+    const pageWrapWidth = isMobile ? Math.max(240, this.panelWidth - 90) : 420;
 
     this.panelX = width / 2 - this.panelWidth / 2;
     this.panelY = height / 2 - this.panelHeight / 2;
@@ -78,7 +95,7 @@ NPCs guide you through the world.
       "📖  How to Play",
       {
         fontFamily: "Georgia, serif",
-        fontSize: "34px",
+        fontSize: headerFontSize,
         color: "#3b2a1a",
         fontStyle: "bold"
       }
@@ -91,7 +108,7 @@ NPCs guide you through the world.
       "",
       {
         fontFamily: "Georgia, serif",
-        fontSize: "26px",
+        fontSize: pageTitleFontSize,
         color: "#3b2a1a",
         fontStyle: "bold"
       }
@@ -104,11 +121,11 @@ NPCs guide you through the world.
       "",
       {
         fontFamily: "Georgia, serif",
-        fontSize: "18px",
+        fontSize: pageTextFontSize,
         color: "#2e1f14",
-        lineSpacing: 12,
+        lineSpacing: isMobile ? 8 : 12,
         align: "center",
-        wordWrap: { width: 420 }
+        wordWrap: { width: pageWrapWidth }
       }
     ).setOrigin(0.5, 0);
 
@@ -119,7 +136,7 @@ NPCs guide you through the world.
       "◀ Prev",
       {
         fontFamily: "Georgia, serif",
-        fontSize: "18px",
+        fontSize: navFontSize,
         color: "#3b2a1a"
       }
     )
@@ -133,7 +150,7 @@ NPCs guide you through the world.
       "Next ▶",
       {
         fontFamily: "Georgia, serif",
-        fontSize: "18px",
+        fontSize: navFontSize,
         color: "#3b2a1a"
       }
     )
@@ -148,7 +165,7 @@ NPCs guide you through the world.
       "",
       {
         fontFamily: "Georgia, serif",
-        fontSize: "16px",
+        fontSize: indicatorFontSize,
         color: "#3b2a1a"
       }
     ).setOrigin(0.5, 0);
@@ -174,11 +191,20 @@ NPCs guide you through the world.
     this.input.keyboard.once("keydown-ESC", () => this.close());
     this.input.keyboard.once("keydown-H", () => this.close());
 
+    this.handleForceClose = () => this.close();
+    window.addEventListener("code-mania:force-close-help", this.handleForceClose);
+
     // Initial render
     this.renderPage();
 
     // 📐 Handle resize
     this.scale.on("resize", () => this.scene.restart());
+    this.events.once("shutdown", () => {
+      this.scale.off("resize");
+      if (this.handleForceClose) {
+        window.removeEventListener("code-mania:force-close-help", this.handleForceClose);
+      }
+    });
   }
 
   changePage(dir) {

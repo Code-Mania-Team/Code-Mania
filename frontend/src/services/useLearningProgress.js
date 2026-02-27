@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAuth from "../hooks/useAxios"; // adjust path if needed
 
 const useLearningProgress = () => {
   const axiosPrivate = useAxiosPrivate();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [progress, setProgress] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // 🚫 Wait for auth to finish
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
     const fetchProgress = async () => {
@@ -20,11 +29,12 @@ const useLearningProgress = () => {
         if (res.data?.success) {
           setProgress(res.data.progress || []);
         }
-
       } catch (err) {
         if (!isMounted) return;
 
-        console.error("Failed to fetch learning progress:", err);
+        // Optional: remove noisy console log
+        // console.error("Failed to fetch learning progress:", err);
+
         setError(err);
       } finally {
         if (isMounted) setLoading(false);
@@ -36,7 +46,7 @@ const useLearningProgress = () => {
     return () => {
       isMounted = false;
     };
-  }, [axiosPrivate]);
+  }, [axiosPrivate, isAuthenticated, isLoading]);
 
   return { progress, loading, error };
 };

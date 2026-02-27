@@ -168,16 +168,6 @@
   animation: fadeIn 0.2s ease-in-out;
 }
 
-.successText {
-  background: linear-gradient(90deg, #00c6ff, #007bff, #3b82f6);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
-  font-weight: 600;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
@@ -320,6 +310,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow-y: auto; /* Enable vertical scrolling when content overflows */
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   scrollbar-width: thin;
@@ -348,29 +339,23 @@ input:not(:placeholder-shown):not(:focus):invalid {
 /* Ensure the modal content takes full width and height */
 .signinForm {
   width: 100%;
-  max-height: 70vh; /* Adjust based on your needs */
-  overflow-y: auto;
-  padding-right: 8px; /* Add padding to prevent content from being hidden behind scrollbar */
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
 }
 
-/* Style the scrollbar for the form */
-.signinForm::-webkit-scrollbar {
-  width: 4px;
-}
+@media (max-width: 520px) {
+  .signinModal {
+    max-height: 92vh;
+    padding: 1.5rem 1.25rem;
+  }
 
-.signinForm::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.signinForm::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-
-/* For Firefox */
-.signinForm {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  .signinForm {
+    max-height: none;
+    overflow-y: visible;
+    padding-right: 0;
+    scrollbar-gutter: auto;
+  }
 }
 
 /* OTP Sent Message */

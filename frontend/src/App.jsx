@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
+import Credits from "./pages/credits";
 import PageNotFound from "./pages/PageNotFound";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
@@ -44,8 +45,8 @@ const Home = () => (
       <div className="hero-content">
         <h1 className="hero-title">LEARN TO CODE</h1>
         <p className="hero-description">
-          Master programming with interactive courses and hands-on projects.
-          Build real-world applications while learning.
+          Learn programming fundamentals through interactive story-based adventures.
+          Build logic step by step while exploring new worlds.
         </p>
         <Link to="/learn" className="get-started-btn">Get Started</Link>
       </div>
@@ -92,8 +93,7 @@ const Home = () => (
           <h2>Start Your Coding Quest</h2>
           <p>
             Embark on an epic journey where programming is your weapon.
-            Complete challenges, unlock new skills, and level up as you build
-            real projects.
+            Complete challenges, unlock new skills, and level up as you strengthen your coding foundations.
           </p>
         </div>
         <div className="learn-image">
@@ -105,9 +105,9 @@ const Home = () => (
         <div className="learn-text">
           <h2>Level Up Your Skills</h2>
           <p>
-            Coding is your next adventure. Master quests, earn achievements,
-            and progress from beginner to pro while creating powerful
-            applications.
+            Strengthen your logic, master core programming concepts,
+            and progress from beginner to confident coder through
+            guided adventures and hands-on exercises.
           </p>
         </div>
         <div className="learn-image">
@@ -117,10 +117,11 @@ const Home = () => (
 
       <div className="learn-content">
         <div className="learn-text">
-          <h2>Play. Code. Conquer.</h2>
+          <h2>Play. Code. Grow.</h2>
           <p>
-            Turn coding into your next big win. Face challenges, build
-            real-world projects, and climb the leaderboard of your own success.
+            Turn learning into an adventure. Solve challenges,
+            earn achievements, and build strong programming
+            foundations one mission at a time.
           </p>
         </div>
         <div className="learn-image">
@@ -133,8 +134,9 @@ const Home = () => (
 import axios from 'axios';
 // WelcomeOnboarding wrapper component
 const WelcomeOnboardingWrapper = () => {
-  // const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const postLoginPath = user?.role === "admin" ? "/admin" : "/dashboard";
 
   useEffect(() => {
     if (location.state?.openSignIn) {
@@ -150,10 +152,10 @@ const WelcomeOnboardingWrapper = () => {
 
     // Check if user actually needs onboarding
     if (user?.username) {
-      navigate('/dashboard', { replace: true });
+      navigate(postLoginPath, { replace: true });
       return;
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, postLoginPath]);
 
   if (!isAuthenticated || !user) {
     return null;
@@ -165,32 +167,15 @@ const WelcomeOnboardingWrapper = () => {
   }
 
   return <WelcomeOnboarding onComplete={() => {
-    navigate('/dashboard');
+    navigate(postLoginPath);
   }} />;
 };
 
 function App() {
   const { isLoading } = useAuth();
-  const setCookie = async() => {
-    try {
-      await axios.get('https://code-mania-production.up.railway.app/set-cookies', {
-        withCredentials: true
-      })
-      console.log('Cookies setup successfully.')
-    } catch (error) { console.log('Error setting up cookies. ')}
-  }
-  // setCookie();
-  const getCookies = async () => {
-    try {
-      await axios.get('https://code-mania-production.up.railway.app/get-cookies', {
-        withCredentials: true
-      })
-      console.log('Cookies sent to server.')
-    } catch (error) { console.log('Error in sending cookies to server.') }
-  }
-  // getCookies();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isAuthenticated, setIsAuthenticated, setUser } = useAuth();
+  const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
   const [isNewUser, setIsNewUser] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const location = useLocation();
@@ -250,7 +235,7 @@ function App() {
             return;
           }
 
-          navigate('/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
         } catch {
           navigate('/');
         }
@@ -269,9 +254,13 @@ function App() {
     location.pathname.startsWith("/coding-exam") ||
     location.pathname.startsWith("/exam");
 
+  const isExamRoute =
+    location.pathname.startsWith("/coding-exam") ||
+    location.pathname.startsWith("/exam");
+
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" || 
-    !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/welcome"].includes(location.pathname);
+    !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
 
   return (
     <div className="app">
@@ -285,7 +274,10 @@ function App() {
       )}
       <ScrollToTop />
 
-      <main className="main-content">
+      <main
+        className="main-content"
+        style={isExamRoute ? { paddingTop: 0 } : undefined}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/learn" element={<Learn />} />
@@ -305,28 +297,44 @@ function App() {
             } 
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
-          <Route path="/learn/cpp/exercise/:exerciseId" element={<ProtectedRoute>
-      <CppExercise />
-    </ProtectedRoute>} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute>
-      <CppExercise />
+          <Route 
+            path="/learn/cpp/exercise/:exerciseId" 
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <CppExercise
+                  isAuthenticated={isAuthenticated}
+                            onOpenModal={() => setIsModalOpen(true)}
+                            onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>} />
+          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+      <CppExercise
+        isAuthenticated={isAuthenticated}
+        onOpenModal={() => setIsModalOpen(true)}
+        onSignOut={handleSignOut}
+      />
     </ProtectedRoute>} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-          <Route path="/learn/javascript/exercise/:exerciseId" element={<ProtectedRoute>
-                                                                              <JavaScriptExercise />
-                                                                            </ProtectedRoute>
-                                                                        } />
+          <Route 
+            path="/learn/javascript/exercise/:exerciseId" 
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <JavaScriptExercise
+                  isAuthenticated={isAuthenticated}
+                            onOpenModal={() => setIsModalOpen(true)}
+                            onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
-      <Dashboard onSignOut={handleSignOut} />
+      {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
     </ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
-          <Route path="/coding-exam/:language" element={<ProtectedRoute>
-      <CodingExamPage />
-    </ProtectedRoute>} />
           <Route path="/exam/:language" element={<ProtectedRoute>
       <CodingExamPage />
     </ProtectedRoute>} />
@@ -335,6 +343,7 @@ function App() {
     </ProtectedRoute>} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
           <Route path="/about" element={<About />} />
+          <Route path="/credits" element={<Credits />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
@@ -349,9 +358,12 @@ function App() {
           setIsModalOpen(false);
           setIsNewUser(!!isNew);
 
+          let profile = null;
+
           try {
             const res = await axiosPublic.get("/v1/account");
-            const profile = res?.data?.data || null;
+            const profile = res?.data?.data;
+            console.log("Fetched user profile after sign-in:", profile);
             setUser(profile);
           } catch {
             setUser(null);
@@ -361,7 +373,7 @@ function App() {
             navigate('/welcome');
             return;
           }
-          navigate('/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
         }}
       />
     </div>

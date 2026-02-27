@@ -9,6 +9,8 @@ const useStartExercise = () => {
       { questId }
     );
 
+    console.log("✅ Quest started in backend", response.data);
+
     return response.data;
   };
 

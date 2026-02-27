@@ -11,6 +11,8 @@ class AccountController {
         this.userToken = new UserToken();
         this.refreshInProgress = false; // Prevent race conditions
     }
+
+    
     // REQUEST OTP (SIGNUP)
     async requestOtp(req, res) {
         try {
@@ -470,7 +472,7 @@ class AccountController {
 
     async updateProfile(req, res) {
 
-        const { username, full_name } = req.body || {};
+        const { username, full_name, hasSeen_tutorial } = req.body || {};
 
         console.log("UPDATE PROFILE", username, full_name);
 
@@ -488,7 +490,28 @@ class AccountController {
                                                            
         try {
 
-            const updated = await this.user.updateProfile(userId, { username, full_name });
+            const updateFields = {};
+
+            if (typeof username === "string") {
+                updateFields.username = username;
+            }
+
+            if (typeof full_name === "string") {
+                updateFields.full_name = full_name;
+            }
+
+            if (typeof hasSeen_tutorial === "boolean") {
+                updateFields.hasSeen_tutorial = hasSeen_tutorial;
+            }
+
+            if (!Object.keys(updateFields).length) {
+                return res.status(400).json({
+                    success: false,
+                    message: "No valid fields provided",
+                });
+            }
+
+            const updated = await this.user.updateProfile(userId, updateFields);
 
             if (!updated) {
                 return res.status(400).json({ 
@@ -512,6 +535,7 @@ class AccountController {
                 success: true,
                 message: "Profile updated successfully",
                 full_name: updated?.full_name,
+                hasSeen_tutorial: updated?.hasSeen_tutorial,
                 accessToken // frontend updates memory if present
             });
 

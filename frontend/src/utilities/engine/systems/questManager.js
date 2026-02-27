@@ -73,6 +73,8 @@ export default class QuestManager {
       localStorage.removeItem("activeQuestId");
     }
 
+    this.scene.questHUD?.hide();
+
     window.dispatchEvent(
       new CustomEvent("code-mania:quest-complete", {
         detail: { questId: id }

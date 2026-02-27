@@ -1,8 +1,14 @@
 import ExamService from "../../services/examService.js";
+import ActorService from "../../services/actorService.js";
 
 class ExamController {
   constructor() {
     this.examService = new ExamService();
+    this.actorService = new ActorService();
+  }
+
+  async resolveIsAdmin(userId, tokenRole) {
+    return this.actorService.isAdmin(userId, tokenRole);
   }
 
   async listProblems(req, res) {
@@ -40,30 +46,37 @@ class ExamController {
   async startAttempt(req, res) {
     try {
       const userId = res.locals.user_id;
-      if (!userId) {
+      const isAdmin = await this.resolveIsAdmin(userId, res.locals.role);
+      if (!userId)
         return res.status(401).json({ success: false, message: "Unauthorized" });
-      }
 
-      const problemId = Number(req.body?.problemId);
-      if (!Number.isFinite(problemId)) {
-        return res.status(400).json({ success: false, message: "problemId is required" });
-      }
+      const language = req.body?.language;
+      if (!language)
+        return res.status(400).json({ success: false, message: "language is required" });
 
-      const result = await this.examService.startAttempt({ userId, problemId });
-      if (!result.ok) {
-        return res.status(result.status || 500).json({ success: false, message: result.message });
-      }
+      const result = await this.examService.startAttempt({
+        userId,
+        languageSlug: language.toLowerCase(),
+        isAdmin,
+      });
+
+      if (!result.ok)
+        return res.status(result.status).json({
+          success: false,
+          message: result.message
+        });
 
       return res.status(201).json({ success: true, data: result.data });
+
     } catch (err) {
       console.error("startAttempt error:", err);
-      return res.status(500).json({ success: false, message: "Failed to start exam attempt" });
+      return res.status(500).json({ success: false, message: "Failed to start attempt" });
     }
   }
-
   async submitAttempt(req, res) {
     try {
       const userId = res.locals.user_id;
+      const isAdmin = await this.resolveIsAdmin(userId, res.locals.role);
       if (!userId) {
         return res.status(401).json({ success: false, message: "Unauthorized" });
       }
@@ -74,11 +87,18 @@ class ExamController {
       }
 
       const code = req.body?.code;
+      const language = req.body?.language;
       if (typeof code !== "string" || !code.trim()) {
         return res.status(400).json({ success: false, message: "code is required" });
       }
 
-      const result = await this.examService.submitAttempt({ userId, attemptId, code });
+      const result = await this.examService.submitAttempt({
+        userId,
+        attemptId,
+        code,
+        languageSlug: typeof language === "string" ? language.toLowerCase() : undefined,
+        isAdmin,
+      });
       if (!result.ok) {
         return res
           .status(result.status || 500)

@@ -3,12 +3,19 @@ import { axiosPublic } from "../api/axios";
 const useRefreshToken = () => {
   const refresh = async () => {
     try {
-      // Use the public client to avoid any private interceptor loops.
       const response = await axiosPublic.get("/v1/refresh");
       return response.data.accessToken;
     } catch (error) {
-      // Keep refresh failures silent; caller decides next steps.
-      return null;
+      // Silent 401 handling - don't log to console
+      if (error.response?.status === 401) {
+        console.warn("Session expired - redirecting to login...");
+        // Optional: Redirect to login page
+        window.location.href = '/';
+        return null;
+      }
+      // Log other errors (network issues, server errors)
+      console.error("Refresh token error:", error);
+      throw error;
     }
   };
 

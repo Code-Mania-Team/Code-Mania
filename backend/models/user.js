@@ -12,7 +12,18 @@ class User {
 
     // Helper: find user by email
 
+    async getUserRole(userId) {
+        const { data, error } = await supabase
+        .from("users")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
 
+        if (error) throw new Error("Database error");
+
+        return data?.role || null;
+    }
+    
 
     async findByEmail(email) {
 
@@ -344,7 +355,7 @@ class User {
 
             .from("users")
 
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role")
+            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role, hasSeen_tutorial")
 
             .eq("user_id", user_id)
 
@@ -354,6 +365,16 @@ class User {
 
 
 
+    }
+
+    async getAllForAdmin() {
+        const { data, error } = await this.db
+            .from("users")
+            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role, hasSeen_tutorial")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        return data || [];
     }
 
 
