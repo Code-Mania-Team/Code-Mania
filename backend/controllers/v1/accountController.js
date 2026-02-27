@@ -323,7 +323,6 @@ class AccountController {
           maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        // return res.redirect(`https://codemania.fun/dashboard?success=true`);
         return res.redirect("https://codemania.fun/dashboard?success=true");
       } else {
         return res.redirect(`https://codemania.fun/login?error=auth_failed`);
