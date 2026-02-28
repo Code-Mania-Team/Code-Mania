@@ -233,7 +233,6 @@
   transform: translateY(0);
   opacity: 1;
   font-size: 25px;
-  font-family: 'Jersey 10';
 }
 
 /* Navigation Controls */
@@ -308,40 +307,147 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .tutorial-container {
-    padding: 30px 20px;
-    width: 95%;
+  .tutorial-overlay {
+    padding: 10px;
   }
 
-  .tutorial-section {
+  .tutorial-container {
+    width: 100%;
+    max-width: none;
+    max-height: 100vh;
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .sections-wrapper {
+    gap: 30px;
+    padding: 10px;
+    height: calc(100vh - 80px);
+  }
+
+  .tutorial-section.scroll-section {
     grid-template-columns: 1fr;
     gap: 20px;
+    padding: 20px 10px;
+    min-height: auto;
+  }
+
+  /* Remove reversed layout on mobile */
+  .tutorial-section.scroll-section.reversed {
+    direction: ltr;
+  }
+
+  .section-image {
+    aspect-ratio: 16/9;
+    transform: scale(0.9);
+  }
+
+  .tutorial-section.scroll-section.visible .section-image {
+    transform: scale(1);
+  }
+
+  .section-text {
+    padding: 15px;
+    text-align: center;
   }
 
   .section-text h2 {
-    font-size: 22px;
+    font-size: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  .tutorial-section.scroll-section.visible .section-text h2 {
+    font-size: 18px;
   }
 
   .section-text p {
     font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
   }
 
-  .tabs-navigation {
-    gap: 8px;
+  .tutorial-section.scroll-section.visible .section-text p {
+    font-size: 14px;
   }
 
-  .tab-button {
-    width: 40px;
-    height: 40px;
+  .lets-go-button {
+    margin: 15px auto;
+    padding: 12px 24px;
+    font-size: 14px;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .navigation-controls {
+    flex-direction: column;
+    gap: 15px;
+    padding-top: 15px;
+  }
+
+  .nav-button {
+    padding: 12px 24px;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .progress-dots {
+    order: -1;
+  }
+
+  .question-mark {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+    top: 10px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tutorial-container {
+    padding: 10px;
+  }
+
+  .sections-wrapper {
+    gap: 20px;
+    padding: 5px;
+  }
+
+  .tutorial-section.scroll-section {
+    padding: 15px 5px;
+  }
+
+  .section-text {
+    padding: 10px;
+  }
+
+  .section-text h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .tutorial-section.scroll-section.visible .section-text h2 {
     font-size: 16px;
+  }
+
+  .section-text p {
+    font-size: 13px;
+  }
+
+  .lets-go-button {
+    padding: 10px 20px;
+    font-size: 13px;
   }
 
   .nav-button {
     padding: 10px 20px;
-    font-size: 14px;
+    font-size: 13px;
   }
 
-  .sections-wrapper {
-    min-height: 500px;
+  .question-mark {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
   }
 }
