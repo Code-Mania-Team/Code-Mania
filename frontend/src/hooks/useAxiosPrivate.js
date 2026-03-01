@@ -29,6 +29,7 @@ const useAxiosPrivate = () => {
           // }
           // Add to queue if refresh is already in progress
           if (isRefreshing) {
+            console.log("Refresh in progress - queuing request");
             return new Promise((resolve, reject) => {
               refreshQueue.push({ resolve, reject, config: prevRequest });
             });
@@ -38,6 +39,7 @@ const useAxiosPrivate = () => {
           isRefreshing = true;
           
           try {
+            console.log("Attempting token refresh...");
             await refresh();
             
             // Process queued requests
