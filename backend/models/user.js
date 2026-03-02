@@ -53,9 +53,13 @@ class User {
 
   async create({ email, password, provider }) {
     const { data, error } = await this.db
+
       .from("users")
+
       .insert({ email, password, provider })
-      .select("user_id, username, email, full_name, provider, created_at")
+
+      .select("*")
+
       .maybeSingle();
 
     if (error) throw error;
@@ -268,9 +272,15 @@ class User {
 
   async delete(user_id) {
     const { data } = await this.db
+
       .from("users")
-      .select("user_id, email, username, full_name, character_id, created_at, role")
+
+      .delete()
+
       .eq("user_id", user_id)
+
+      .select()
+
       .single();
 
     return data;

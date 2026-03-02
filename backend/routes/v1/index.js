@@ -12,6 +12,8 @@ import refreshRouter from "./refreshRoute.js";
 
 import userGameDataRouter from "./userGameDataRoutes.js";
 
+import leaderboardRouter from "./leaderboardRoutes.js";
+
 import adminRouter from "./adminRoutes.js";
 
 import metricsRouter from "./metricsRoutes.js";
