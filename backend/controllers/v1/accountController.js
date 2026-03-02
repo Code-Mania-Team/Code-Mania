@@ -308,6 +308,7 @@ class AccountController {
     // REFRESH TOKEN (ROTATION)
     async refresh(req, res) {
         try {
+            const {} = req.body || {};
             // Prevent race conditions
             if (this.refreshInProgress) {
                 return res.status(429).json({ 

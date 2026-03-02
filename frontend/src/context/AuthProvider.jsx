@@ -30,24 +30,32 @@ export const AuthProvider = ({ children }) => {
     };
 
     const checkAuth = async () => {
-      try {
-        await refresh(); 
-        console.log("Checking authentication status...");
-        const response = await axiosPrivate.get("/v1/account");
-        console.log("Auth check response:", response);
-        if (response?.data?.success) {
-          applyProfile(response.data.data);
-        } else {
-          console.log("Auth check failed - no success flag");
-          setSignedOut();
-        }
-      } catch (error) {
-        console.error("catch auth check error:", error);
-        setSignedOut();
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
+  try {
+    // 1️⃣ Try refresh FIRST
+    await refresh(); // this will throw if session invalid
+
+    // 2️⃣ Only call account if refresh succeeded
+    const response = await axiosPrivate.get("/v1/account");
+
+    if (response?.data?.success) {
+      applyProfile(response.data.data);
+    } else {
+      setSignedOut();
+    }
+
+  } catch (error) {
+    // 🔥 If refresh fails (401), reload immediately
+    if (error?.response?.status === 401) {
+      window.location.href = "/";
+      return;
+    }
+
+    console.error("Auth check error:", error);
+    setSignedOut();
+  } finally {
+    if (mounted) setIsLoading(false);
+  }
+};
 
     const path = (typeof window !== 'undefined' && window.location && typeof window.location.pathname === 'string')
       ? window.location.pathname
@@ -56,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     if (!isLandingPath) {
       checkAuth();
     } else {
-      if (mounted) {
+      if (mounted) {  
         setUser(null);
         setIsAuthenticated(false);
         setIsLoading(false);
