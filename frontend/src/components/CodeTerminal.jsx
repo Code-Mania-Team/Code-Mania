@@ -3,6 +3,9 @@ import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
 import useValidateExercise from "../services/validateExercise";
+import useCreateDomSession from "../services/useCreateDomSession";
+import useUpdateDomSession from "../services/useUpdateDomSession";
+import useDeleteDomSession from "../services/useDeleteDomSession";
 
 /* ===============================
    LANGUAGE DETECTION
@@ -60,10 +63,15 @@ const InteractiveTerminal = ({
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
   );
+  const [domSessionId, setDomSessionId] = useState(null);
+  const [sandboxUrl, setSandboxUrl] = useState(null);
   const [internalActivePanel, setInternalActivePanel] = useState("editor");
 
   const validateExercise = useValidateExercise();
 
+  const createDomSession = useCreateDomSession();
+  const updateDomSession = useUpdateDomSession();
+  const deleteDomSession = useDeleteDomSession();
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
@@ -73,6 +81,37 @@ const InteractiveTerminal = ({
     if (onMobilePanelChange) onMobilePanelChange(panel);
     else setInternalActivePanel(panel);
   };
+
+  useEffect(() => {
+    console.log("Quest object:", quest);
+  }, [quest]);
+
+  useEffect(() => {
+    if (!quest || quest.quest_type !== "dom") return;
+
+    const initSession = async () => {
+      const result = await createDomSession({
+        questId: quest.id,
+        baseHtml: quest.base_html
+      });
+      console.log("Session result:", result);
+
+      if (result.success) {
+        setDomSessionId(result.data.sessionId);
+        setSandboxUrl(result.data.sandboxUrl);
+      }
+    };
+
+    initSession();
+  }, [quest]);
+
+  useEffect(() => {
+    return () => {
+      if (domSessionId) {
+        deleteDomSession(domSessionId).catch(() => {});
+      }
+    };
+  }, [domSessionId]);
 
   useEffect(() => {
     const handleResize = () => setIsMobileView(window.innerWidth <= 900);
@@ -177,17 +216,56 @@ const InteractiveTerminal = ({
   };
 
   /* ===============================
-     TERMINAL INPUT HANDLER
+     RUN BUTTON
   =============================== */
+
+  const handleRun = () => {
+    setProgramOutput("");
+    setInputBuffer("");
+    setWaitingForInput(false);
+    if (quest?.quest_type === "dom") {
+      runDOM();
+      setIsRunning(false);
+    } else {
+      setIsRunning(true);
+      runViaDocker();
+    }
+  };
+
+  useEffect(() => {
+    if (quest?.quest_type === "dom" && iframeRef.current) {
+      // write content here
+    }
+  }, [quest, code]);
+  
+  // Need Validation for DOM
+  const runDOM = async () => {
+    if (!domSessionId) return;
+
+    try {
+      await updateDomSession(domSessionId, code);
+
+      // Force iframe reload
+      setSandboxUrl(prev => `${prev.split("?")[0]}?t=${Date.now()}`);
+
+    } catch (err) {
+      console.error("DOM run error:", err);
+    }
+  };
+
+  
+  const handleSubmitInput = () => {
+    const value = inputBuffer;
+    setProgramOutput(prev => prev + value + "\n");
+    if (socketRef.current) {
+      socketRef.current.send(JSON.stringify({ stdin: value }));
+    }
+    setInputBuffer("");
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      const value = inputBuffer;
-      setProgramOutput(prev => prev + value + "\n");
-      if (socketRef.current) {
-        socketRef.current.send(JSON.stringify({ stdin: value }));
-      }
-      setInputBuffer("");
+      handleSubmitInput();
       e.preventDefault();
       return;
     }
@@ -203,26 +281,6 @@ const InteractiveTerminal = ({
       e.preventDefault();
     }
   };
-
-  /* ===============================
-     RUN BUTTON
-  =============================== */
-
-  const handleRun = () => {
-    setProgramOutput("");
-    setInputBuffer("");
-    setWaitingForInput(false);
-    setIsRunning(true);
-    runViaDocker();
-  };
-
-  const totalObjectives = validationResult
-    ? Object.keys(validationResult).length
-    : 0;
-
-  const passedObjectives = validationResult
-    ? Object.values(validationResult).filter(obj => obj.passed).length
-    : 0;
 
   /* ===============================
      RENDER
@@ -288,6 +346,18 @@ const InteractiveTerminal = ({
       </div>
 
       {(!useMobileSplit || activePanel === "terminal") && (
+        quest?.quest_type === "dom" ? (
+          <iframe
+            sandbox="allow-scripts"
+            src={sandboxUrl}
+            style={{
+              width: "100%",
+              height: "400px",
+              border: "2px solid red",
+              background: "white"
+            }}
+          />
+        ) : (
         <div
             className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
             ref={terminalRef}

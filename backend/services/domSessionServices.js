@@ -1,0 +1,105 @@
+import crypto from "crypto";
+
+class DomSessionService {
+  constructor() {
+    this.sessions = new Map();
+    this.TTL = 1000 * 60 * 30; // 30 minutes
+    this.startCleanup();
+  }
+
+  /* ===============================
+     CREATE SESSION
+  =============================== */
+  async createSession({ userId, questId, baseHtml }) {
+    if (!questId || !baseHtml) {
+      return { ok: false, status: 400, message: "Missing required fields" };
+    }
+
+    const id = crypto.randomBytes(32).toString("hex");
+
+    this.sessions.set(id, {
+      id,
+      userId,
+      questId,
+      baseHtml,
+      userCode: "",
+      createdAt: Date.now()
+    });
+
+    return {
+      ok: true,
+      data: {
+        sessionId: id,
+        sandboxUrl: `http://localhost:3000/v1/dom/sandbox/${id}`
+      }
+    };
+  }
+
+  /* ===============================
+     UPDATE CODE
+  =============================== */
+  async updateSession({ sessionId, userId, code }) {
+    const session = this.sessions.get(sessionId);
+
+    if (!session) {
+      return { ok: false, status: 404, message: "Session not found" };
+    }
+
+    if (String(session.userId) !== String(userId)) {
+      return { ok: false, status: 403, message: "Forbidden" };
+    }
+
+    session.userCode = code;
+
+    return { ok: true };
+  }
+
+  /* ===============================
+     GET SESSION
+  =============================== */
+  async getSession(sessionId) {
+    const session = this.sessions.get(sessionId);
+
+    if (!session) {
+      return { ok: false, status: 404, message: "Session not found" };
+    }
+
+    return { ok: true, data: session };
+  }
+
+  /* ===============================
+     DELETE SESSION
+  =============================== */
+  async deleteSession({ sessionId, userId }) {
+    const session = this.sessions.get(sessionId);
+
+    if (!session) {
+      return { ok: false, status: 404, message: "Session not found" };
+    }
+
+    if (String(session.userId) !== String(userId)) {
+      return { ok: false, status: 403, message: "Forbidden" };
+    }
+
+    this.sessions.delete(sessionId);
+
+    return { ok: true };
+  }
+
+  /* ===============================
+     AUTO CLEANUP
+  =============================== */
+  startCleanup() {
+    setInterval(() => {
+      const now = Date.now();
+
+      for (const [id, session] of this.sessions.entries()) {
+        if (now - session.createdAt > this.TTL) {
+          this.sessions.delete(id);
+        }
+      }
+    }, 60000);
+  }
+}
+
+export default DomSessionService;

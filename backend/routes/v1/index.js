@@ -24,13 +24,16 @@ import quizRouter from "./quizRoutes.js";
 
 import { publicExerciseRouter } from "./exercisesRoutes.js";
 
-import leaderboardRouter from "./leaderboardRoutes.js";
+import domRouter from './domRoutes.js';
+
 
 import examRouter from "./examRoutes.js";
 
 const v1 = new Router();
 
-v1.use("/account", accountRouter);
+v1.use('/dom', domRouter);
+
+v1.use('/account', accountRouter);
 
 v1.use("/", homeRouter);
 
