@@ -7,37 +7,42 @@ import ExerciseController from '../../controllers/v1/exerciseController.js';
 import AdminController from '../../controllers/v1/adminController.js';
 
 const router = Router();
-const adminController = new AdminController();
 const adminExam = new AdminExamController();
 const exerciseController = new ExerciseController();
+const adminController = new AdminController();
 
-router.use(authorization);
+// router.use(authorization);
 
-router.get('/users', authentication, requireAdmin, adminController.listUsers.bind(adminController));
+router.get("/activeUsers", adminController.activeUsers.bind(adminController));
+
+router.get(
+  "/trafficLog7Days",
+  adminController.trafficLogs7Days.bind(adminController),
+);
 
 // ---------------- EXAM (ADMIN) ----------------
-// Update exam problem 
+// Update exam problem
 router.patch(
-  '/exam/problems/:problemId',
+  "/exam/problems/:problemId",
   authentication,
   requireAdmin,
-  adminExam.updateProblem.bind(adminExam)
+  adminExam.updateProblem.bind(adminExam),
 );
 
 // ---------------- EXERCISES (ADMIN) ----------------
 // Moved from exercisesRoutes admin router into /admin.
 router.post(
-  '/exercises',
+  "/exercises",
   authentication,
   requireAdmin,
-  exerciseController.createExercise.bind(exerciseController)
+  exerciseController.createExercise.bind(exerciseController),
 );
 
 router.patch(
-  '/exercises/:id',
+  "/exercises/:id",
   authentication,
   requireAdmin,
-  exerciseController.updateExercise.bind(exerciseController)
+  exerciseController.updateExercise.bind(exerciseController),
 );
 
 // Frontend admin uses PUT; accept it as alias of PATCH.
@@ -45,14 +50,14 @@ router.put(
   '/exercises/:id',
   authentication,
   requireAdmin,
-  exerciseController.updateExercise.bind(exerciseController)
+  exerciseController.updateExercise.bind(exerciseController),
 );
 
 router.delete(
-  '/exercises/:id',
+  "/exercises/:id",
   authentication,
   requireAdmin,
-  exerciseController.deleteExercise.bind(exerciseController)
+  exerciseController.deleteExercise.bind(exerciseController),
 );
 
 export default router;

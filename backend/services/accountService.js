@@ -1,6 +1,9 @@
 import User from "../models/user.js";
+
 import TempUser from "../models/tempUser.js";
+
 import { encryptPassword } from "../utils/hash.js";
+
 import { generateOtp, sendOtpEmail } from "../utils/otp.js";
 import { supabase } from "../core/supabaseClient.js";
 
@@ -8,20 +11,6 @@ class AccountService {
   constructor() {
     this.user = new User();
     this.tempUser = new TempUser();
-  }
-
-  async ensureAdmin(userId) {
-    if (!userId) {
-      throw new Error("Forbidden");
-    }
-
-    const role = await this.userModel.getUserRole(userId);
-
-    if (role !== "admin") {
-      throw new Error("Forbidden");
-    }
-
-    return true;
   }
 
   async requestSignupOtp(email, password) {
