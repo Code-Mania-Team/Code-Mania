@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
 import Editor from "@monaco-editor/react";
-import { Play } from "lucide-react";
+import { Play, Check } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
 import useValidateExercise from "../services/validateExercise";
 
@@ -42,6 +42,7 @@ print(a)`;
 
 const InteractiveTerminal = ({
   questId,
+  quest,
   mobileActivePanel,
   onMobilePanelChange,
   showMobilePanelSwitcher = true,
@@ -216,6 +217,38 @@ const InteractiveTerminal = ({
     runViaDocker();
   };
 
+  const handleSubmit = async () => {
+    if (!quest || !isQuestActive) return;
+    
+    try {
+      setProgramOutput("Submitting solution...\n");
+      
+      const result = await validateExercise(
+        questId,
+        programOutput,
+        code
+      );
+
+      if (result?.success) {
+        setProgramOutput(prev => prev + "✅ Solution submitted successfully!\n");
+        window.dispatchEvent(
+          new CustomEvent("code-mania:quest-complete", {
+            detail: { questId }
+          })
+        );
+      } else {
+        setProgramOutput(prev => prev + `❌ ${result?.message || "Submission failed"}\n`);
+      }
+
+      if (result?.objectives) {
+        setValidationResult(result.objectives);
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      setProgramOutput(prev => prev + "❌ Submission error\n");
+    }
+  };
+
   const totalObjectives = validationResult
     ? Object.keys(validationResult).length
     : 0;
@@ -259,16 +292,28 @@ const InteractiveTerminal = ({
               : "script.py"}
           </span>
 
-          <button
-            className={`${styles["submit-btn"]} ${
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className={`${styles["submit-btn"]} ${
                         !isQuestActive ? styles["btn-disabled"] : ""
                       }`}
-            onClick={handleRun}
-            disabled={isRunning || !isQuestActive}
-          >
-            <Play size={16} />
-            {isRunning ? "Running..." : "Run"}
-          </button>
+              onClick={handleRun}
+              disabled={isRunning || !isQuestActive}
+            >
+              <Play size={16} />
+              {isRunning ? "Running..." : "Run"}
+            </button>
+            <button
+              className={`${styles["submit-btn"]} ${
+                        !isQuestActive ? styles["btn-disabled"] : ""
+                      }`}
+              onClick={handleSubmit}
+              disabled={isRunning || !isQuestActive}
+            >
+              <Check size={16} />
+              Submit
+            </button>
+          </div>
         </div>
 
         {(!useMobileSplit || activePanel === "editor") && (
