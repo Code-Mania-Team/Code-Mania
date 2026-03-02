@@ -29,12 +29,19 @@
   max-width: 1600px;
   margin: 0 auto 1rem;
   min-height: 60vh;
+  align-items: stretch;
 }
 
 /* Game container - Left side */
 .game-container {
-  flex: 1;
-  min-height: 600px;
+  flex: 1 1 60%;
+  min-height: clamp(420px, 56vh, 560px);
+  max-height: 560px;
+}
+
+.terminal-pane {
+  flex: 0 0 min(40%, 620px);
+  min-width: 420px;
 }
 
 
@@ -67,11 +74,16 @@
   backface-visibility: hidden;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
   border-radius: 8px;
   overflow: hidden;
   background: #0f172a;
   min-height: 200px;
+}
+
+.game-scene canvas {
+  display: block;
+  margin-top: auto;
 }
 
 /* Show Scroll Button */
@@ -542,10 +554,15 @@
     gap: 1rem;
   }
 
+  .terminal-pane,
   .code-container,
   .game-container {
     width: 100%;
     min-width: auto;
+  }
+
+  .game-container {
+    max-height: none;
   }
 }
 

@@ -64,6 +64,7 @@
   max-width: 1600px;
   margin: 0 auto 1rem;
   min-height: 60vh;
+  align-items: stretch;
 }
 
 .btn-disabled {
@@ -74,9 +75,15 @@
 
 /* Game container - Left side */
 .game-container {
-  flex: 1;
-  height: 65vh;
-  min-width: 800px;
+  flex: 1 1 60%;
+  min-width: 0;
+  min-height: clamp(420px, 56vh, 560px);
+  max-height: 560px;
+}
+
+.terminal-pane {
+  flex: 0 0 min(40%, 620px);
+  min-width: 420px;
 }
 
 .game-preview {
@@ -229,6 +236,11 @@
   justify-content: center;
   background: #0f172a;
 
+}
+
+.game-scene canvas {
+  display: block;
+  margin-top: auto;
 }
 
 .game-blur {
@@ -1266,6 +1278,13 @@
     flex-direction: column;
     width: 95%;
     margin: 0 auto 0.5rem;
+  }
+
+  .terminal-pane,
+  .game-container {
+    width: 100%;
+    min-width: 0;
+    max-height: none;
   }
 
   .mobile-panel-switcher {

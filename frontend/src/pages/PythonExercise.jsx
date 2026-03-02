@@ -669,7 +669,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           {/* ===== TERMINAL ===== */}
 
-          <div className={isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}>
+          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}

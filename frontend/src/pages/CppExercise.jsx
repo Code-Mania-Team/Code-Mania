@@ -537,7 +537,7 @@ const CppExercise = () => {
             <div id="phaser-container" className={styles["game-scene"]} />
           </div>
 
-          <div className={isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}>
+          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}

@@ -163,8 +163,14 @@
 
 /* Game container - Left side */
 .game-container {
-  flex: 1;
-  min-height: 600px;
+  flex: 1 1 60%;
+  min-height: clamp(420px, 56vh, 560px);
+  max-height: 560px;
+}
+
+.terminal-pane {
+  flex: 0 0 min(40%, 620px);
+  min-width: 420px;
 }
 
 .game-preview {
@@ -197,6 +203,11 @@
   overflow: hidden;
   background: #0f172a;
   flex-grow: 1;
+}
+
+.game-scene canvas {
+  display: block;
+  margin-top: auto;
 }
 
 .game-bg {
@@ -585,10 +596,15 @@
     gap: 1rem;
   }
 
+  .terminal-pane,
   .code-container,
   .game-container {
     width: 100%;
     min-width: auto;
+  }
+
+  .game-container {
+    max-height: none;
   }
 
   .lesson-progress {
