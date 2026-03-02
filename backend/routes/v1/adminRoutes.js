@@ -18,7 +18,7 @@ const adminController = new AdminController();
 router.get("/activeUsers", adminController.activeUsers.bind(adminController));
 
 router.get(
-  "/trafficLog7Days",
+  "/trafficLogs7Days",
   adminController.trafficLogs7Days.bind(adminController),
 );
 
