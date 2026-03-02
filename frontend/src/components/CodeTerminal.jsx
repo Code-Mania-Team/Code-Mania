@@ -3,6 +3,9 @@ import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
 import useValidateExercise from "../services/validateExercise";
+import useCreateDomSession from "../services/useCreateDomSession";
+import useUpdateDomSession from "../services/useUpdateDomSession";
+import useDeleteDomSession from "../services/useDeleteDomSession";
 
 /* ===============================
    LANGUAGE DETECTION
@@ -61,15 +64,19 @@ const InteractiveTerminal = ({
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
   );
+  const [domSessionId, setDomSessionId] = useState(null);
+  const [sandboxUrl, setSandboxUrl] = useState(null);
   const [internalActivePanel, setInternalActivePanel] = useState("editor");
 
   const validateExercise = useValidateExercise();
 
+  const createDomSession = useCreateDomSession();
+  const updateDomSession = useUpdateDomSession();
+  const deleteDomSession = useDeleteDomSession();
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
   const iframeRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
-  const [iframeContent, setIframeContent] = useState("");
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
   const setActivePanel = (panel) => {
@@ -80,6 +87,33 @@ const InteractiveTerminal = ({
   useEffect(() => {
     console.log("Quest object:", quest);
   }, [quest]);
+
+  useEffect(() => {
+    if (!quest || quest.quest_type !== "dom") return;
+
+    const initSession = async () => {
+      const result = await createDomSession({
+        questId: quest.id,
+        baseHtml: quest.base_html
+      });
+      console.log("Session result:", result);
+
+      if (result.success) {
+        setDomSessionId(result.data.sessionId);
+        setSandboxUrl(result.data.sandboxUrl);
+      }
+    };
+
+    initSession();
+  }, [quest]);
+
+  useEffect(() => {
+    return () => {
+      if (domSessionId) {
+        deleteDomSession(domSessionId).catch(() => {});
+      }
+    };
+  }, [domSessionId]);
 
   useEffect(() => {
     const handleResize = () => setIsMobileView(window.innerWidth <= 900);
@@ -234,67 +268,19 @@ const InteractiveTerminal = ({
   }, [quest, code]);
   
   // Need Validation for DOM
-  const runDOM = () => {
-  if (!quest) return;
+  const runDOM = async () => {
+    if (!domSessionId) return;
 
-  setIframeContent(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <style>
-        body { font-family: sans-serif; padding: 12px; }
-      </style>
-    </head>
-    <body>
-      ${quest.base_html || ""}
+    try {
+      await updateDomSession(domSessionId, code);
 
-      <script>
-        // Wait for DOM to fully load
-        window.addEventListener("load", function () {
-          try {
-            ${code}
-          } catch (e) {
-            const errorBox = document.createElement("pre");
-            errorBox.style.color = "red";
-            errorBox.style.whiteSpace = "pre-wrap";
-            errorBox.textContent = e.toString();
-            document.body.appendChild(errorBox);
-          }
-        });
-      </script>
-    </body>
-    </html>
-  `);
-};
+      // Force iframe reload
+      setSandboxUrl(prev => `${prev.split("?")[0]}?t=${Date.now()}`);
 
-  useEffect(() => {
-    if (quest?.quest_type === "dom") {
-      setIframeContent(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: sans-serif; padding: 12px; }
-          </style>
-        </head>
-        <body>
-          ${quest?.base_html || ""}
-        </body>
-        </html>
-      `);
-      setCode(`
-        /*
-        Base HTML Structure:
-
-        ${quest.base_html}
-        */
-
-        // Write your DOM code below 👇
-
-      `);
+    } catch (err) {
+      console.error("DOM run error:", err);
     }
-  }, [quest]);
+  };
 
   
   const handleSubmitInput = () => {
@@ -381,7 +367,7 @@ const InteractiveTerminal = ({
         quest?.quest_type === "dom" ? (
           <iframe
             sandbox="allow-scripts"
-            srcDoc={iframeContent}
+            src={sandboxUrl}
             style={{
               width: "100%",
               height: "400px",

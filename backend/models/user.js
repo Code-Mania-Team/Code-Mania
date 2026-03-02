@@ -38,7 +38,7 @@ class User {
 
             .from("users")
 
-            .select("user_id, username, email, full_name, profile_image, provider, created_at")
+            .select("user_id, username, email, full_name, provider, created_at")
 
             .eq("email", email)
 
@@ -344,7 +344,7 @@ class User {
 
             .from("users")
 
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role")
+            .select("user_id, email, username, full_name, character_id, created_at, role")
 
             .eq("user_id", user_id)
 

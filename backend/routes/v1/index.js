@@ -28,9 +28,13 @@ import leaderboardRouter from './leaderboardRoutes.js';
 
 import examRouter from './examRoutes.js';
 
+import domRouter from './domRoutes.js';
+
 
 
 const v1 = new Router();
+
+v1.use('/dom', domRouter);
 
 v1.use('/account', accountRouter);
 
@@ -57,6 +61,7 @@ v1.use('/achievements', achievementsRouter);
 v1.use('/quizzes', quizRouter);
 
 v1.use('/', publicExerciseRouter);
+
 
 
 
