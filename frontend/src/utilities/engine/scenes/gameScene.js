@@ -176,29 +176,6 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio("bgm-python", "/assets/audio/python.mp3");
     this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
     this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
-
-    // 🏅 Load badge images
-    const badgePaths = {
-      // Python badges
-      "badge-python-1": "/assets/badges/Python/python-badge1.png",
-      "badge-python-2": "/assets/badges/Python/python-badge2.png", 
-      "badge-python-3": "/assets/badges/Python/python-badge3.png",
-      "badge-python-4": "/assets/badges/Python/python-badge4.png",
-      // JavaScript badges
-      "badge-js-1": "/assets/badges/JavaScript/js-stage1.png",
-      "badge-js-2": "/assets/badges/JavaScript/js-stage2.png",
-      "badge-js-3": "/assets/badges/JavaScript/js-stage3.png", 
-      "badge-js-4": "/assets/badges/JavaScript/js-stage4.png",
-      // C++ badges
-      "badge-cpp-1": "/assets/badges/C++/cpp-badges1.png",
-      "badge-cpp-2": "/assets/badges/C++/cpp-badges2.png",
-      "badge-cpp-3": "/assets/badges/C++/cpp-badge3.png",
-      "badge-cpp-4": "/assets/badges/C++/cpp-badge4.png"
-    };
-
-    Object.entries(badgePaths).forEach(([key, path]) => {
-      this.load.image(key, path);
-    });
   }
 
   onQuestComplete = async (e) => {

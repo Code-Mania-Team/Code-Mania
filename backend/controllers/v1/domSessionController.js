@@ -46,6 +46,40 @@ class DomController {
     }
   }
 
+  async validateSession(req, res) {
+    try {
+      const userId = res.locals.user_id;
+      const sessionId = req.params.sessionId;
+      const { requirements } = req.body;
+      console.log("Session ID:",sessionId);
+
+      const result = await this.domService.validateSession({
+        sessionId,
+        userId, 
+        requirements
+      });
+
+      if (!result.ok) {
+        return res.status(result.status).json({
+          success: false,
+          message: result.message
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: result.data
+      });
+
+    } catch (err) {
+      console.error("validateSession error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Validation failed"
+      });
+    }
+  }
+
   async updateSession(req, res) {
     try {
       const userId = res.locals.user_id;
