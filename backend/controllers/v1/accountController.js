@@ -80,33 +80,20 @@ class AccountController {
             }
             // 🍪 HttpOnly cookie
             // 8. Set cookies
-            const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
-            const cookieSecure = process.env.NODE_ENV === 'production' && !isLocalhost;
-            const cookieSameSite = isLocalhost ? 'lax' : 'strict';
+            const cookieSecure = process.env.NODE_ENV === "production";
 
             res.cookie('accessToken', accessToken, {
-
                 httpOnly: true,
-
                 secure: cookieSecure,
-
-                sameSite: cookieSameSite,
-
-                maxAge: 1 * 60 * 1000, // 1 minute for testing
-                //maxAge: 24 * 60 * 60 * 1000
-
+                sameSite: "none",
+                maxAge: 15 * 60 * 1000 // 15 minutes
             });
 
             res.cookie('refreshToken', refreshToken, {
-
                 httpOnly: true,
-
                 secure: cookieSecure,
-
-                sameSite: cookieSameSite,
-
-                maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-                //domain: 'localhost' // Explicit domain for cross-origin
+                sameSite: "none",
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
 
             });
 
@@ -210,25 +197,20 @@ class AccountController {
 
 
 
-            const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
-            const cookieSecure = process.env.NODE_ENV === 'production' && !isLocalhost;
-            const cookieSameSite = isLocalhost ? 'lax' : 'strict';
+            const cookieSecure = process.env.NODE_ENV === "production";
 
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "strict",
-                //maxAge: 1 * 60 * 1000, // 1 minute for testing
-                maxAge: 24 * 60 * 60 * 1000
-                });
+                sameSite: "none",
+                maxAge: 15 * 60 * 1000 // 15 minutes
+            });
 
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "strict",
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-                //domain: 'localhost' // Explicit domain for cross-origin
-            });
+                sameSite: "none",
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
 
             logger.info("character_id", profile?.character_id)
 
@@ -279,21 +261,19 @@ class AccountController {
                     await this.userToken.createUserToken(data.id, hashedRefresh);
                 }
 
-                const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
-                const cookieSecure = process.env.NODE_ENV === "production" && !isLocalhost;
-                const cookieSameSite = isLocalhost ? "lax" : "strict";
+                const cookieSecure = process.env.NODE_ENV === "production";
 
                 res.cookie('accessToken', accessToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: cookieSameSite,
-                    maxAge: 15 * 60 * 1000
+                    sameSite: "none",
+                    maxAge: 15 * 60 * 1000 // 15 minutes
                 });
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: cookieSameSite,
-                    maxAge: 30 * 24 * 60 * 60 * 1000,
+                    sameSite: "none",
+                    maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
                 return res.redirect(`http://localhost:5173/dashboard?success=true`);
@@ -353,20 +333,20 @@ class AccountController {
                     role: profile?.role,
                 });
 
+                const cookieSecure = process.env.NODE_ENV === "production";
+
                 res.cookie("accessToken", accessToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "strict",
-                    maxAge: 24 * 60 * 60 * 1000
+                    secure: cookieSecure,
+                    sameSite: "none",
+                    maxAge: 15 * 60 * 1000 // 15 minutes
                 });
 
                 res.cookie("refreshToken", newRefreshToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "strict",
-                    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-                    //domain: process.env.NODE_ENV === "production" ? undefined : 'localhost'
-                });
+                    secure: cookieSecure,
+                    sameSite: "none",
+                    maxAge: 24 * 60 * 60 * 1000 // 1 day
 
                 return res.status(200).json({
                     success: true,
@@ -527,12 +507,14 @@ class AccountController {
             const tokenUsername = username ?? currentUsername;
             const accessToken = generateAccessToken({ user_id: userId, username: tokenUsername, role: role });
 
+            const cookieSecure = process.env.NODE_ENV === "production";
+
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: 24 * 60 * 60 * 1000
-                });
+                secure: cookieSecure,
+                sameSite: "none",
+                maxAge: 15 * 60 * 1000 // 15 minutes
+            });
 
             return res.status(200).json({
                 success: true,
