@@ -39,6 +39,131 @@
          "y":0
         }, 
         {
+         "draworder":"topdown",
+         "id":9,
+         "name":"triggers",
+         "objects":[
+                {
+                 "height":0,
+                 "id":3,
+                 "name":"exit",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"down"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"exit"
+                        }, 
+                        {
+                         "name":"required_quest",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"target_map",
+                         "type":"string",
+                         "value":"map10"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_exit"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":53.3333333333333,
+                 "y":1057.33333333333
+                }, 
+                {
+                 "height":0,
+                 "id":4,
+                 "name":"exit",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"down"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"exit"
+                        }, 
+                        {
+                         "name":"required_quest",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"target_map",
+                         "type":"string",
+                         "value":"map10"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_exit"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":276,
+                 "y":1046.66666666667
+                }, 
+                {
+                 "height":0,
+                 "id":5,
+                 "name":"exit",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"direction",
+                         "type":"string",
+                         "value":"down"
+                        }, 
+                        {
+                         "name":"name",
+                         "type":"string",
+                         "value":"exit"
+                        }, 
+                        {
+                         "name":"required_quest",
+                         "type":"int",
+                         "value":9
+                        }, 
+                        {
+                         "name":"target_map",
+                         "type":"string",
+                         "value":"map10"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_exit"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":177.333333333333,
+                 "y":1054.66666666667
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "data":[0, 1240, 1241, 0, 1699, 1700, 1294, 1294, 1219, 1239, 1699, 1700, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 1310, 1310, 1235, 1255, 1395, 1142, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             1281, 1397, 1591, 0, 0, 0, 1326, 1326, 1251, 1271, 1395, 0, 0, 0, 1311, 1312, 1257, 1258, 1025, 1027, 0, 0, 0, 0, 0,
@@ -215,8 +340,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":9,
- "nextobjectid":3,
+ "nextlayerid":10,
+ "nextobjectid":6,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
