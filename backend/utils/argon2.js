@@ -1,8 +1,6 @@
 import argon2 from "argon2";
-import logger from "./logger.js";
 
 const PEPPER = process.env.PEPPERoni;
-logger.info("PEPPER loaded:", PEPPER);
 
 if (!PEPPER) {
   throw new Error("PEPPER is not set");

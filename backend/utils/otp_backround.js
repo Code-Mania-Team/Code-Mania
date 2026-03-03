@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import path from "path";
-import logger from "./logger.js";
 // Generate numeric OTP
 
 const crownPath = path.resolve(
@@ -132,11 +131,9 @@ export async function sendOtpEmail(toEmail, otp) {
       }]
     });
 
-    logger.info("OTP sent:", info.messageId);
     return info;
     
   } catch (err) {
-    logger.error("sendOtpEmail failed:", err);
     throw new Error("Unable to send OTP");
   }
 }

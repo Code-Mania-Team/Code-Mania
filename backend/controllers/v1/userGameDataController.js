@@ -1,5 +1,4 @@
 import GameDataService from "../../services/gameDataService.js";
-import logger from "../../utils/logger.js";
 
 class UserGameDataController {
     constructor() {
@@ -74,7 +73,6 @@ class UserGameDataController {
         });
 
         } catch (err) {
-        logger.error("learningData error:", err);
         return res.status(500).json({
             success: false,
             message: err.message

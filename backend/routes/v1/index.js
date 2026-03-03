@@ -1,5 +1,4 @@
 import { Router } from "express";
-import logger from "../../utils/logger.js";
 
 import accountRouter from "./accountRoutes.js";
 
@@ -69,11 +68,8 @@ v1.get(
   passport.authenticate("google"),
   (req, res) => {
     res.send("Redirected.");
-
-    logger.debug(req.cookies);
-
-    logger.debug(req.user.id);
   },
+);
 );
 
 export default v1;

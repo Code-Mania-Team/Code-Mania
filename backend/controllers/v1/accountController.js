@@ -3,7 +3,6 @@ import AccountService from "../../services/accountService.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
-import logger from "../../utils/logger.js";
 
 class AccountController {
     constructor() {
@@ -64,17 +63,12 @@ class AccountController {
             });
             const refreshToken = generateRefreshToken();
             const hashedRefresh = crypto.createHash('sha256').update(refreshToken).digest('hex');
-            logger.info("🔑 [OTP] Generated refresh token:", refreshToken);
-            logger.info("🔑 [OTP] Hashed refresh token:", hashedRefresh);
             const existingUser = await this.userToken.findByUserId(authUser.user_id);
-            logger.info("🔑 [OTP] Existing token:", existingUser);
 
             if (existingUser) {
-                logger.info("🔄 [OTP] Updating existing token");
                 // Update existing token    
                 await this.userToken.update(authUser.user_id, hashedRefresh);   
             } else {
-                logger.info("➕ [OTP] Creating new token");
                 // Create new token
                 await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
             }
@@ -105,7 +99,6 @@ class AccountController {
             });
         } catch (err) {
 
-        logger.error("verifyOtp error:", err);
         return res.status(500).json({ 
             success: false, 
             message: err.message });
@@ -142,7 +135,7 @@ class AccountController {
 
         } catch (err) {
 
-            logger.error("setUsername error:", err);
+
 
             return res.status(500).json({ 
                 success: false, 
@@ -186,12 +179,9 @@ class AccountController {
 
             // 🔁 Overwrites previous session (single-session)
             const existing = await this.userToken.findByUserId(authUser.user_id);
-            logger.info("Existing token:", existing);
                 if (existing) {
-                    logger.info("🔄 Updating existing token");
                     await this.userToken.update(authUser.user_id, hashedRefresh);
                 } else {
-                    logger.info("➕ Creating new token");
                     await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
                 }
 
@@ -211,8 +201,7 @@ class AccountController {
                 secure: cookieSecure,
                 sameSite: "none",
                 maxAge: 24 * 60 * 60 * 1000 // 1 day
-
-            logger.info("character_id", profile?.character_id)
+                });
 
             return res.status(200).json({
                 success: true,
@@ -223,7 +212,6 @@ class AccountController {
         });
 
         } catch (err) {
-            logger.error("login error:", err);
             if (err?.message === 'Email not registered yet') {
                 return res.status(404).json({ 
                     success: false, 
@@ -281,7 +269,6 @@ class AccountController {
                 return res.redirect(`http://localhost:5173/login?error=auth_failed`);
             }
         } catch (err) {
-            logger.error('Google login error:', err);
             return res.redirect(`http://localhost:5173/login?error=server_error`);
         }
     }
@@ -347,7 +334,7 @@ class AccountController {
                     secure: cookieSecure,
                     sameSite: "none",
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
-
+                });
                 return res.status(200).json({
                     success: true,
                     accessToken,
@@ -393,7 +380,6 @@ class AccountController {
             });
 
         } catch (err) {
-            logger.error("getProfileSummary error:", err);
             return res.status(500).json({
             success: false,
             message: err.message
@@ -414,7 +400,6 @@ class AccountController {
             });
 
         } catch (err) {
-            logger.error("Learning progress error:", err);
             return res.status(500).json({
             success: false,
             message: err.message
@@ -442,7 +427,6 @@ class AccountController {
             });
         } catch (err) {
 
-            logger.error("profile error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
@@ -456,8 +440,6 @@ class AccountController {
     async updateProfile(req, res) {
 
         const { username, full_name, hasSeen_tutorial } = req.body || {};
-
-        logger.info("UPDATE PROFILE", username, full_name);
 
         const userId = res.locals.user_id;
 
@@ -525,7 +507,6 @@ class AccountController {
             });
 
         } catch (err) {
-            logger.error("updateProfile error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
@@ -540,7 +521,6 @@ class AccountController {
 
     async deleteUser(req, res) {
         const userId = res.locals.user_id; 
-        logger.info("Model deleting user_id:", userId);
         if (!userId) 
             return res.status(401).json({ 
                 success: false, 
@@ -575,7 +555,6 @@ class AccountController {
 
         } catch (err) {
 
-            logger.error("deleteUser error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 

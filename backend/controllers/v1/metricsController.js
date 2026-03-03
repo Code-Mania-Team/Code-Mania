@@ -1,5 +1,4 @@
 import MetricsService from "../../services/metricsService.js";
-import logger from "../../utils/logger.js";
 
 class MetricsController {
   constructor(service = new MetricsService()) {
@@ -11,7 +10,6 @@ class MetricsController {
       const data = await this.service.getAdminSummary();
       return res.json({ success: true, data });
     } catch (err) {
-      logger.error("Error building admin summary metrics:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to build metrics" });
     }
   }
@@ -21,7 +19,6 @@ class MetricsController {
       const data = await this.service.getQuizAttemptsMetrics();
       return res.json({ success: true, data });
     } catch (err) {
-      logger.error("Error fetching quiz attempts metrics:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to fetch quiz metrics" });
     }
   }
@@ -31,7 +28,6 @@ class MetricsController {
       const data = await this.service.getQuizAttemptsByUser();
       return res.json({ success: true, data });
     } catch (err) {
-      logger.error("Error fetching per-user quiz metrics:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to fetch per-user quiz metrics" });
     }
   }
@@ -42,7 +38,6 @@ class MetricsController {
       const data = await this.service.getQuizAttemptsByUserId(userId);
       return res.json({ success: true, data });
     } catch (err) {
-      logger.error("Error fetching user quiz attempts:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to fetch user quiz attempts" });
     }
   }
@@ -52,7 +47,6 @@ class MetricsController {
       const data = await this.service.getExamAttemptsMetrics();
       return res.json({ success: true, data });
     } catch (err) {
-      logger.error("Error fetching exam attempts metrics:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to fetch exam metrics" });
     }
   }
@@ -62,7 +56,6 @@ class MetricsController {
       const data = await this.service.getExamAttemptsByUser();
       return res.json({ success: true, data });
     } catch (err) {
-      logger.error("Error fetching per-user exam metrics:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to fetch per-user exam metrics" });
     }
   }
@@ -73,7 +66,6 @@ class MetricsController {
       const data = await this.service.getExamAttemptsByUserId(userId);
       return res.json({ success: true, data });
     } catch (err) {
-      logger.error("Error fetching user exam attempts:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to fetch user exam attempts" });
     }
   }

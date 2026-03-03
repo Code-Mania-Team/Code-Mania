@@ -28,8 +28,3 @@ export function verifyRefreshToken(token) {
         throw new Error("Invalid or expired refresh token");
     }
 }
-
-// Debug to ensure secrets are loaded
-import logger from "./logger.js";
-logger.info("ACCESS_TOKEN_SECRET:", !!process.env.ACCESS_TOKEN_SECRET);
-logger.info("REFRESH_TOKEN_SECRET:", !!process.env.REFRESH_TOKEN_SECRET);

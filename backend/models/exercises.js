@@ -1,5 +1,4 @@
 import { supabase } from '../core/supabaseClient.js';
-import logger from '../utils/logger.js';
 
 class ExerciseModel {
     constructor() {
@@ -51,12 +50,10 @@ class ExerciseModel {
                 .single();
 
             if (error) {
-                logger.error('Error creating exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            logger.error('Error in createExercise:', error);
             throw error;
         }
     }
@@ -72,7 +69,6 @@ class ExerciseModel {
             .maybeSingle();
 
         if (error) {
-            logger.error("Error getting next exercise:", error);
             throw error;
         }
 
@@ -122,7 +118,6 @@ class ExerciseModel {
             .maybeSingle();
 
         if (error) {
-            logger.error('Error checking admin role:', error);
             return false;
         }
 
@@ -148,7 +143,6 @@ class ExerciseModel {
             .eq('quests.programming_language_id', languageId)
 
         if (error) {
-            logger.error("Error fetching completed quests:", error);
             throw error;
         }
 
@@ -203,7 +197,6 @@ class ExerciseModel {
                 `)
                 .order('created_at', { ascending: false });
             if (error) {
-                logger.error('Error getting exercises:', error);
                 throw error;
             }
         } catch (error) {
@@ -233,13 +226,11 @@ class ExerciseModel {
                 .maybeSingle();
 
             if (error) {
-                logger.error('Error getting exercise by ID:', error);
                 throw error;
             }
 
             return data;
         } catch (error) {
-            logger.error('Error in getExerciseById:', error);
             throw error;
         }
     }
@@ -261,12 +252,10 @@ class ExerciseModel {
                 .order('order_index', { ascending: true });
 
             if (error) {
-                logger.error('Error getting exercises by language:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            logger.error('Error in getExercisesByLanguage:', error);
             throw error;
         }
     }
@@ -321,12 +310,10 @@ class ExerciseModel {
                 .single();
 
             if (error) {
-                logger.error('Error updating exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            logger.error('Error in updateExercise:', error);
             throw error;
         }
     }
@@ -341,12 +328,10 @@ class ExerciseModel {
                 .select()
                 .single();
             if (error) {
-                logger.error('Error deleting exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            logger.error('Error in deleteExercise:', error);
             throw error;
         }
     }

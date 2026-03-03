@@ -1,6 +1,5 @@
 import User from "../models/user.js";
 import { encryptPassword } from "../utils/hash.js";
-import logger from "../utils/logger.js";
 
 class GoogleAccount {
     constructor () {
@@ -28,7 +27,6 @@ class GoogleAccount {
 
             if (emailExist) {
                 //Login. Provider must check if it has a value of google (optional)
-                logger.info("EMAIL: Already exist!")
                 return "Logged In Success"
             }
 

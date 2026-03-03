@@ -3,7 +3,6 @@ import { authorization } from "../../middlewares/authorization.js";
 import { authentication } from "../../middlewares/authentication.js";
 import requireAdmin from "../../middlewares/requireAdmin.js";
 import MetricsController from "../../controllers/v1/metricsController.js";
-import logger from "../../utils/logger.js";
 
 const router = Router();
 const metricsController = new MetricsController();
@@ -32,7 +31,6 @@ router.get(
   requireAdmin,
   metricsController.getQuizAttemptsByUserId.bind(metricsController)
 );
-logger.debug("Registered metrics routes", requireAdmin);
 router.get(
   "/exam-attempts",
   authentication,

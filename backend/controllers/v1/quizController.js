@@ -1,5 +1,4 @@
 import QuizService from "../../services/quizService.js";
-import logger from "../../utils/logger.js";
 
 class QuizController {
   constructor(service = new QuizService()) {
@@ -22,7 +21,6 @@ class QuizController {
 
       return res.json(result.data);
     } catch (err) {
-      logger.error("getQuizById error:", err);
       return res.status(500).json({
         message: "Failed to fetch quiz",
         questions: [],
@@ -50,7 +48,6 @@ class QuizController {
 
       return res.json(result.data);
     } catch (err) {
-      logger.error("completeQuiz error:", err);
       return res.status(500).json({ message: "Failed to complete quiz" });
     }
   }

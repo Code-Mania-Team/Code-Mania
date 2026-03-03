@@ -1,7 +1,6 @@
 import { supabase } from "../core/supabaseClient.js";
 import { generateRefreshToken } from "../utils/token.js";
 import crypto from "crypto";
-import logger from "../utils/logger.js";
 
 class UserToken {
     constructor() {
@@ -97,13 +96,9 @@ class UserToken {
 
     async rotate(oldRefreshToken) {
         const hashedOld = crypto.createHash('sha256').update(oldRefreshToken).digest('hex');
-        logger.info("🔍 Looking for token hash:", hashedOld);
-        logger.info("🔍 Raw token:", oldRefreshToken);
         const tokenRow = await this.findByRefresh(hashedOld);
-        logger.info("🔍 Found token row:", tokenRow);
 
         if (!tokenRow || !tokenRow.user_id || !tokenRow.token) {
-            logger.warn("❌ Token not found or invalid");
             throw new Error('Invalid refresh token');
         }
 

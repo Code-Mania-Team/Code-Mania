@@ -1,6 +1,5 @@
 import ExamService from "../../services/examService.js";
 import ActorService from "../../services/actorService.js";
-import logger from "../../utils/logger.js";
 
 class ExamController {
   constructor() {
@@ -20,7 +19,6 @@ class ExamController {
       const problems = await this.examService.listProblems({ languageSlug });
       return res.status(200).json({ success: true, data: problems });
     } catch (err) {
-      logger.error("listProblems error:", err);
       return res.status(500).json({ success: false, message: "Failed to list exam problems" });
     }
   }
@@ -39,7 +37,6 @@ class ExamController {
 
       return res.status(200).json({ success: true, data: safe });
     } catch (err) {
-      logger.error("getProblem error:", err);
       return res.status(500).json({ success: false, message: "Failed to fetch exam problem" });
     }
   }
@@ -70,7 +67,6 @@ class ExamController {
       return res.status(201).json({ success: true, data: result.data });
 
     } catch (err) {
-      logger.error("startAttempt error:", err);
       return res.status(500).json({ success: false, message: "Failed to start attempt" });
     }
   }
@@ -108,7 +104,6 @@ class ExamController {
 
       return res.status(200).json({ success: true, data: result.data });
     } catch (err) {
-      logger.error("submitAttempt error:", err);
       return res.status(500).json({ success: false, message: "Failed to submit exam attempt" });
     }
   }
@@ -136,7 +131,6 @@ class ExamController {
 
       return res.status(200).json({ success: true, data: attempts });
     } catch (err) {
-      logger.error("listAttempts error:", err);
       return res.status(500).json({ success: false, message: "Failed to fetch attempts" });
     }
   }
@@ -154,7 +148,6 @@ class ExamController {
       const status = await this.examService.status({ userId, languageSlug });
       return res.status(200).json({ success: true, data: status });
     } catch (err) {
-      logger.error("exam status error:", err);
       return res.status(500).json({ success: false, message: "Failed to fetch exam status" });
     }
   }
