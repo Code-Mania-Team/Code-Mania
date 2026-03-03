@@ -32,7 +32,6 @@ class FreedomWall {
             if (error) throw error;
             return data;
         } catch (err) {
-            console.error("<error> getUserProfile", err);
             throw new Error("Failed to fetch user profile");
         }
     }
@@ -49,7 +48,6 @@ class FreedomWall {
 
         return userProfile?.character_id ?? null;
         } catch (err) {
-        console.error("<error> getCharacterIdByUserId", err);
         throw new Error("Failed to fetch character ID");
         }
     }
@@ -72,7 +70,6 @@ class FreedomWall {
             if (error) throw error;
             return data;
         } catch (err) {
-                console.error('<error> FreedomWall.getPost', err);
                 throw new Error('An error occurred while fetching posts. Please try again later.');
             }
         }

@@ -17,7 +17,6 @@ class LeaderboardController {
                 data
             });
         } catch (err) {
-            console.error("Leaderboard error:", err);
             return res.status(500).json({
                 success: false,
                 message: "Failed to fetch leaderboard"

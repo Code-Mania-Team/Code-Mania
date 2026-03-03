@@ -19,7 +19,6 @@ class ExamController {
       const problems = await this.examService.listProblems({ languageSlug });
       return res.status(200).json({ success: true, data: problems });
     } catch (err) {
-      console.error("listProblems error:", err);
       return res.status(500).json({ success: false, message: "Failed to list exam problems" });
     }
   }
@@ -38,7 +37,6 @@ class ExamController {
 
       return res.status(200).json({ success: true, data: safe });
     } catch (err) {
-      console.error("getProblem error:", err);
       return res.status(500).json({ success: false, message: "Failed to fetch exam problem" });
     }
   }
@@ -69,7 +67,6 @@ class ExamController {
       return res.status(201).json({ success: true, data: result.data });
 
     } catch (err) {
-      console.error("startAttempt error:", err);
       return res.status(500).json({ success: false, message: "Failed to start attempt" });
     }
   }
@@ -107,7 +104,6 @@ class ExamController {
 
       return res.status(200).json({ success: true, data: result.data });
     } catch (err) {
-      console.error("submitAttempt error:", err);
       return res.status(500).json({ success: false, message: "Failed to submit exam attempt" });
     }
   }
@@ -135,7 +131,6 @@ class ExamController {
 
       return res.status(200).json({ success: true, data: attempts });
     } catch (err) {
-      console.error("listAttempts error:", err);
       return res.status(500).json({ success: false, message: "Failed to fetch attempts" });
     }
   }
@@ -153,7 +148,6 @@ class ExamController {
       const status = await this.examService.status({ userId, languageSlug });
       return res.status(200).json({ success: true, data: status });
     } catch (err) {
-      console.error("exam status error:", err);
       return res.status(500).json({ success: false, message: "Failed to fetch exam status" });
     }
   }

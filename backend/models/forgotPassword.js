@@ -27,7 +27,6 @@ class forgotPassword {
     }
 
     async findByEmailAndOtp(email, otp) {
-        console.log("Finding OTP entry for email:", email, "OTP:", otp);
         const { data, error } = await this.db
             .from("temp_user")
             .select("*")
@@ -35,8 +34,6 @@ class forgotPassword {
             .eq("otp", otp)
             .maybeSingle();
 
-        console.log("OTP Entry found:", data);
-        console.log("Error:", error);
         
         if (error) throw error;
         return data;
@@ -62,7 +59,6 @@ class forgotPassword {
     }
 
     async markVerified(temp_user_id) {
-        console.log("Marking OTP as verified for temp_user_id:", temp_user_id);
         const { data, error } = await this.db
             .from("temp_user")
             .update({ is_verified: true })
@@ -70,9 +66,7 @@ class forgotPassword {
             .select("*")
             .maybeSingle();
 
-        console.log("Mark verified result:", data);
-        console.log("Mark verified error:", error);
-
+        
         if (error) throw error;
         return data;
     }

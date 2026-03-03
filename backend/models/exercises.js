@@ -50,12 +50,10 @@ class ExerciseModel {
                 .single();
 
             if (error) {
-                console.error('Error creating exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in createExercise:', error);
             throw error;
         }
     }
@@ -71,7 +69,6 @@ class ExerciseModel {
             .maybeSingle();
 
         if (error) {
-            console.error("Error getting next exercise:", error);
             throw error;
         }
 
@@ -121,7 +118,6 @@ class ExerciseModel {
             .maybeSingle();
 
         if (error) {
-            console.error('Error checking admin role:', error);
             return false;
         }
 
@@ -147,7 +143,6 @@ class ExerciseModel {
             .eq('quests.programming_language_id', languageId)
 
         if (error) {
-            console.error("Error fetching completed quests:", error);
             throw error;
         }
 
@@ -202,7 +197,6 @@ class ExerciseModel {
                 `)
                 .order('created_at', { ascending: false });
             if (error) {
-                console.error('Error getting exercises:', error);
                 throw error;
             }
         } catch (error) {
@@ -232,13 +226,11 @@ class ExerciseModel {
                 .maybeSingle();
 
             if (error) {
-                console.error('Error getting exercise by ID:', error);
                 throw error;
             }
 
             return data;
         } catch (error) {
-            console.error('Error in getExerciseById:', error);
             throw error;
         }
     }
@@ -260,12 +252,10 @@ class ExerciseModel {
                 .order('order_index', { ascending: true });
 
             if (error) {
-                console.error('Error getting exercises by language:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in getExercisesByLanguage:', error);
             throw error;
         }
     }
@@ -320,12 +310,10 @@ class ExerciseModel {
                 .single();
 
             if (error) {
-                console.error('Error updating exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in updateExercise:', error);
             throw error;
         }
     }
@@ -340,12 +328,10 @@ class ExerciseModel {
                 .select()
                 .single();
             if (error) {
-                console.error('Error deleting exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in deleteExercise:', error);
             throw error;
         }
     }

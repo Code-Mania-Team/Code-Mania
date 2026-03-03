@@ -19,7 +19,6 @@ class AdminExamController {
 
       return res.status(200).json({ success: true, data: result.data });
     } catch (err) {
-      console.error("admin updateProblem error:", err);
       return res.status(500).json({ success: false, message: "Failed to update exam problem" });
     }
   }

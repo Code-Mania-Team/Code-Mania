@@ -63,49 +63,31 @@ class AccountController {
             });
             const refreshToken = generateRefreshToken();
             const hashedRefresh = crypto.createHash('sha256').update(refreshToken).digest('hex');
-            console.log("🔑 [OTP] Generated refresh token:", refreshToken);
-            console.log("🔑 [OTP] Hashed refresh token:", hashedRefresh);
             const existingUser = await this.userToken.findByUserId(authUser.user_id);
-            console.log("🔑 [OTP] Existing token:", existingUser);
 
             if (existingUser) {
-                console.log("🔄 [OTP] Updating existing token");
                 // Update existing token    
                 await this.userToken.update(authUser.user_id, hashedRefresh);   
             } else {
-                console.log("➕ [OTP] Creating new token");
                 // Create new token
                 await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
             }
             // 🍪 HttpOnly cookie
             // 8. Set cookies
-            const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
-            const cookieSecure = process.env.NODE_ENV === 'production' && !isLocalhost;
-            const cookieSameSite = isLocalhost ? 'lax' : 'strict';
+            const cookieSecure = process.env.NODE_ENV === "production";
 
             res.cookie('accessToken', accessToken, {
-
                 httpOnly: true,
-
                 secure: cookieSecure,
-
-                sameSite: cookieSameSite,
-
-                maxAge: 1 * 60 * 1000, // 1 minute for testing
-                //maxAge: 24 * 60 * 60 * 1000
-
+                sameSite: "none",
+                maxAge: 15 * 60 * 1000 // 15 minutes
             });
 
             res.cookie('refreshToken', refreshToken, {
-
                 httpOnly: true,
-
                 secure: cookieSecure,
-
-                sameSite: cookieSameSite,
-
-                maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-                //domain: 'localhost' // Explicit domain for cross-origin
+                sameSite: "none",
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
 
             });
 
@@ -117,7 +99,6 @@ class AccountController {
             });
         } catch (err) {
 
-        console.error("verifyOtp error:", err);
         return res.status(500).json({ 
             success: false, 
             message: err.message });
@@ -154,7 +135,7 @@ class AccountController {
 
         } catch (err) {
 
-            console.error("setUsername error:", err);
+
 
             return res.status(500).json({ 
                 success: false, 
@@ -198,38 +179,29 @@ class AccountController {
 
             // 🔁 Overwrites previous session (single-session)
             const existing = await this.userToken.findByUserId(authUser.user_id);
-            console.log("Existing token:", existing);
                 if (existing) {
-                    console.log("🔄 Updating existing token");
                     await this.userToken.update(authUser.user_id, hashedRefresh);
                 } else {
-                    console.log("➕ Creating new token");
                     await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
                 }
 
 
 
-            const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
-            const cookieSecure = process.env.NODE_ENV === 'production' && !isLocalhost;
-            const cookieSameSite = isLocalhost ? 'lax' : 'strict';
+            const cookieSecure = process.env.NODE_ENV === "production";
 
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "strict",
-                //maxAge: 1 * 60 * 1000, // 1 minute for testing
-                maxAge: 24 * 60 * 60 * 1000
-                });
+                sameSite: "none",
+                maxAge: 15 * 60 * 1000 // 15 minutes
+            });
 
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "strict",
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-                //domain: 'localhost' // Explicit domain for cross-origin
-            });
-
-            console.log("character_id", profile?.character_id)
+                sameSite: "none",
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
+                });
 
             return res.status(200).json({
                 success: true,
@@ -240,7 +212,6 @@ class AccountController {
         });
 
         } catch (err) {
-            console.error("login error:", err);
             if (err?.message === 'Email not registered yet') {
                 return res.status(404).json({ 
                     success: false, 
@@ -278,21 +249,19 @@ class AccountController {
                     await this.userToken.createUserToken(data.id, hashedRefresh);
                 }
 
-                const isLocalhost = (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.hostname === '::1');
-                const cookieSecure = process.env.NODE_ENV === "production" && !isLocalhost;
-                const cookieSameSite = isLocalhost ? "lax" : "strict";
+                const cookieSecure = process.env.NODE_ENV === "production";
 
                 res.cookie('accessToken', accessToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: cookieSameSite,
-                    maxAge: 15 * 60 * 1000
+                    sameSite: "none",
+                    maxAge: 15 * 60 * 1000 // 15 minutes
                 });
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: cookieSameSite,
-                    maxAge: 30 * 24 * 60 * 60 * 1000,
+                    sameSite: "none",
+                    maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
                 return res.redirect(`http://localhost:5173/dashboard?success=true`);
@@ -300,7 +269,6 @@ class AccountController {
                 return res.redirect(`http://localhost:5173/login?error=auth_failed`);
             }
         } catch (err) {
-            console.error('Google login error:', err);
             return res.redirect(`http://localhost:5173/login?error=server_error`);
         }
     }
@@ -308,6 +276,7 @@ class AccountController {
     // REFRESH TOKEN (ROTATION)
     async refresh(req, res) {
         try {
+            const {} = req.body || {};
             // Prevent race conditions
             if (this.refreshInProgress) {
                 return res.status(429).json({ 
@@ -351,21 +320,21 @@ class AccountController {
                     role: profile?.role,
                 });
 
+                const cookieSecure = process.env.NODE_ENV === "production";
+
                 res.cookie("accessToken", accessToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "strict",
-                    maxAge: 24 * 60 * 60 * 1000
+                    secure: cookieSecure,
+                    sameSite: "none",
+                    maxAge: 15 * 60 * 1000 // 15 minutes
                 });
 
                 res.cookie("refreshToken", newRefreshToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "strict",
-                    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-                    //domain: process.env.NODE_ENV === "production" ? undefined : 'localhost'
+                    secure: cookieSecure,
+                    sameSite: "none",
+                    maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
-
                 return res.status(200).json({
                     success: true,
                     accessToken,
@@ -411,7 +380,6 @@ class AccountController {
             });
 
         } catch (err) {
-            console.error("getProfileSummary error:", err);
             return res.status(500).json({
             success: false,
             message: err.message
@@ -432,7 +400,6 @@ class AccountController {
             });
 
         } catch (err) {
-            console.error("Learning progress error:", err);
             return res.status(500).json({
             success: false,
             message: err.message
@@ -460,7 +427,6 @@ class AccountController {
             });
         } catch (err) {
 
-            console.error("profile error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
@@ -474,8 +440,6 @@ class AccountController {
     async updateProfile(req, res) {
 
         const { username, full_name, hasSeen_tutorial } = req.body || {};
-
-        console.log("UPDATE PROFILE", username, full_name);
 
         const userId = res.locals.user_id;
 
@@ -525,12 +489,14 @@ class AccountController {
             const tokenUsername = username ?? currentUsername;
             const accessToken = generateAccessToken({ user_id: userId, username: tokenUsername, role: role });
 
+            const cookieSecure = process.env.NODE_ENV === "production";
+
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: 24 * 60 * 60 * 1000
-                });
+                secure: cookieSecure,
+                sameSite: "none",
+                maxAge: 15 * 60 * 1000 // 15 minutes
+            });
 
             return res.status(200).json({
                 success: true,
@@ -541,7 +507,6 @@ class AccountController {
             });
 
         } catch (err) {
-            console.error("updateProfile error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
@@ -556,7 +521,6 @@ class AccountController {
 
     async deleteUser(req, res) {
         const userId = res.locals.user_id; 
-        console.log("Model deleting user_id:", userId);
         if (!userId) 
             return res.status(401).json({ 
                 success: false, 
@@ -591,7 +555,6 @@ class AccountController {
 
         } catch (err) {
 
-            console.error("deleteUser error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 

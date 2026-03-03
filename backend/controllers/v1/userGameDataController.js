@@ -73,7 +73,6 @@ class UserGameDataController {
         });
 
         } catch (err) {
-        console.error("learningData error:", err);
         return res.status(500).json({
             success: false,
             message: err.message

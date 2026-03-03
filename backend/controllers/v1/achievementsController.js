@@ -15,14 +15,12 @@ class AchievementsController {
                 });
             }
             const achievements = await this.achievements.getUserAchievements(userId);
-            console.log("User achievements retrieved:", achievements);
             res.status(200).json({ 
                 success: true, 
                 message: "Achievements retrieved successfully", 
                 data: achievements 
             });
         } catch (error) {
-            console.error("getAchievements error:", error);
             return res.status(500).json({ 
                 success: false, 
                 message: error.message 
@@ -72,7 +70,6 @@ class AchievementsController {
             });
 
         } catch (error) {
-            console.error("Error posting badge:", error);
             res.status(500).json({ 
                 success: false, 
                 message: "Failed to post badge" 
@@ -99,7 +96,6 @@ class AchievementsController {
             });
 
         } catch (error) {
-            console.error("getCourseBadges error:", error);
             res.status(500).json({
                 success: false,
                 message: error.message

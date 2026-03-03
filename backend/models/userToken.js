@@ -96,13 +96,9 @@ class UserToken {
 
     async rotate(oldRefreshToken) {
         const hashedOld = crypto.createHash('sha256').update(oldRefreshToken).digest('hex');
-        console.log("🔍 Looking for token hash:", hashedOld);
-        console.log("🔍 Raw token:", oldRefreshToken);
         const tokenRow = await this.findByRefresh(hashedOld);
-        console.log("🔍 Found token row:", tokenRow);
 
         if (!tokenRow || !tokenRow.user_id || !tokenRow.token) {
-            console.log("❌ Token not found or invalid");
             throw new Error('Invalid refresh token');
         }
 

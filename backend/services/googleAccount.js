@@ -27,7 +27,6 @@ class GoogleAccount {
 
             if (emailExist) {
                 //Login. Provider must check if it has a value of google (optional)
-                console.log("EMAIL: Already exist!")
                 return "Logged In Success"
             }
 

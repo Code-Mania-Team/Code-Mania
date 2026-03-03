@@ -31,7 +31,6 @@ router.get(
   requireAdmin,
   metricsController.getQuizAttemptsByUserId.bind(metricsController)
 );
-console.log("Registered metrics routes", requireAdmin);
 router.get(
   "/exam-attempts",
   authentication,

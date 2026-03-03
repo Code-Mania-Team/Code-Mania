@@ -11,7 +11,6 @@ class ExamModel {
       .maybeSingle();
 
     if (error) {
-      console.error("isAdminUser error:", error);
       return false;
     }
 

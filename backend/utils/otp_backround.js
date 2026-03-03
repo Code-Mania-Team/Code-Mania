@@ -131,11 +131,9 @@ export async function sendOtpEmail(toEmail, otp) {
       }]
     });
 
-    console.log("OTP sent:", info.messageId);
     return info;
     
   } catch (err) {
-    console.error("sendOtpEmail failed:", err);
     throw new Error("Unable to send OTP");
   }
 }
