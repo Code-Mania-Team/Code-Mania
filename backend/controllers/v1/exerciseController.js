@@ -1,4 +1,5 @@
 import ExerciseModel from '../../models/exercises.js';
+import logger from '../../utils/logger.js';
 
 class ExerciseController {
     constructor() {
@@ -78,7 +79,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error('Error in createExercise:', error);
+            logger.error('Error in createExercise:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error while creating exercise',
@@ -99,7 +100,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error('Error in getAllExercises:', error);
+            logger.error('Error in getAllExercises:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error while retrieving exercises',
@@ -198,7 +199,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             return res.status(500).json({
                 success: false,
                 message: "Server error"
@@ -249,7 +250,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error("getNextExercise error:", error);
+            logger.error("getNextExercise error:", error);
             return res.status(500).json({
                 success: false,
                 message: "Internal server error"
@@ -323,7 +324,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error('Error in updateExercise:', error);
+            logger.error('Error in updateExercise:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error while updating exercise',
@@ -362,7 +363,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error('Error in deleteExercise:', error);
+            logger.error('Error in deleteExercise:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error while deleting exercise',
@@ -392,7 +393,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error('Error in getExercisesByLanguage:', error);
+            logger.error('Error in getExercisesByLanguage:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error while retrieving exercises',
@@ -424,7 +425,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             res.status(500).json({
                 success: false,
                 message: "Server error"
@@ -642,7 +643,7 @@ class ExerciseController {
             });
 
         } catch (error) {
-            console.error("validateExercise error:", error);
+            logger.error("validateExercise error:", error);
             return res.status(500).json({
                 success: false,
                 message: "Internal server error"
@@ -669,7 +670,7 @@ class ExerciseController {
             return res.status(200).json({ success: true });
 
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             return res.status(500).json({ success: false });
         }
     }

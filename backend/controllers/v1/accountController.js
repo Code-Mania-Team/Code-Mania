@@ -3,6 +3,7 @@ import AccountService from "../../services/accountService.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
+import logger from "../../utils/logger.js";
 
 class AccountController {
     constructor() {
@@ -63,17 +64,17 @@ class AccountController {
             });
             const refreshToken = generateRefreshToken();
             const hashedRefresh = crypto.createHash('sha256').update(refreshToken).digest('hex');
-            console.log("🔑 [OTP] Generated refresh token:", refreshToken);
-            console.log("🔑 [OTP] Hashed refresh token:", hashedRefresh);
+            logger.info("🔑 [OTP] Generated refresh token:", refreshToken);
+            logger.info("🔑 [OTP] Hashed refresh token:", hashedRefresh);
             const existingUser = await this.userToken.findByUserId(authUser.user_id);
-            console.log("🔑 [OTP] Existing token:", existingUser);
+            logger.info("🔑 [OTP] Existing token:", existingUser);
 
             if (existingUser) {
-                console.log("🔄 [OTP] Updating existing token");
+                logger.info("🔄 [OTP] Updating existing token");
                 // Update existing token    
                 await this.userToken.update(authUser.user_id, hashedRefresh);   
             } else {
-                console.log("➕ [OTP] Creating new token");
+                logger.info("➕ [OTP] Creating new token");
                 // Create new token
                 await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
             }
@@ -117,7 +118,7 @@ class AccountController {
             });
         } catch (err) {
 
-        console.error("verifyOtp error:", err);
+        logger.error("verifyOtp error:", err);
         return res.status(500).json({ 
             success: false, 
             message: err.message });
@@ -154,7 +155,7 @@ class AccountController {
 
         } catch (err) {
 
-            console.error("setUsername error:", err);
+            logger.error("setUsername error:", err);
 
             return res.status(500).json({ 
                 success: false, 
@@ -198,12 +199,12 @@ class AccountController {
 
             // 🔁 Overwrites previous session (single-session)
             const existing = await this.userToken.findByUserId(authUser.user_id);
-            console.log("Existing token:", existing);
+            logger.info("Existing token:", existing);
                 if (existing) {
-                    console.log("🔄 Updating existing token");
+                    logger.info("🔄 Updating existing token");
                     await this.userToken.update(authUser.user_id, hashedRefresh);
                 } else {
-                    console.log("➕ Creating new token");
+                    logger.info("➕ Creating new token");
                     await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
                 }
 
@@ -229,7 +230,7 @@ class AccountController {
                 //domain: 'localhost' // Explicit domain for cross-origin
             });
 
-            console.log("character_id", profile?.character_id)
+            logger.info("character_id", profile?.character_id)
 
             return res.status(200).json({
                 success: true,
@@ -240,7 +241,7 @@ class AccountController {
         });
 
         } catch (err) {
-            console.error("login error:", err);
+            logger.error("login error:", err);
             if (err?.message === 'Email not registered yet') {
                 return res.status(404).json({ 
                     success: false, 
@@ -300,7 +301,7 @@ class AccountController {
                 return res.redirect(`http://localhost:5173/login?error=auth_failed`);
             }
         } catch (err) {
-            console.error('Google login error:', err);
+            logger.error('Google login error:', err);
             return res.redirect(`http://localhost:5173/login?error=server_error`);
         }
     }
@@ -412,7 +413,7 @@ class AccountController {
             });
 
         } catch (err) {
-            console.error("getProfileSummary error:", err);
+            logger.error("getProfileSummary error:", err);
             return res.status(500).json({
             success: false,
             message: err.message
@@ -433,7 +434,7 @@ class AccountController {
             });
 
         } catch (err) {
-            console.error("Learning progress error:", err);
+            logger.error("Learning progress error:", err);
             return res.status(500).json({
             success: false,
             message: err.message
@@ -461,7 +462,7 @@ class AccountController {
             });
         } catch (err) {
 
-            console.error("profile error:", err);
+            logger.error("profile error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
@@ -476,7 +477,7 @@ class AccountController {
 
         const { username, full_name, hasSeen_tutorial } = req.body || {};
 
-        console.log("UPDATE PROFILE", username, full_name);
+        logger.info("UPDATE PROFILE", username, full_name);
 
         const userId = res.locals.user_id;
 
@@ -542,7 +543,7 @@ class AccountController {
             });
 
         } catch (err) {
-            console.error("updateProfile error:", err);
+            logger.error("updateProfile error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
@@ -557,7 +558,7 @@ class AccountController {
 
     async deleteUser(req, res) {
         const userId = res.locals.user_id; 
-        console.log("Model deleting user_id:", userId);
+        logger.info("Model deleting user_id:", userId);
         if (!userId) 
             return res.status(401).json({ 
                 success: false, 
@@ -592,7 +593,7 @@ class AccountController {
 
         } catch (err) {
 
-            console.error("deleteUser error:", err);
+            logger.error("deleteUser error:", err);
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 

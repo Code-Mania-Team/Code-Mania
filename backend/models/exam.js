@@ -1,4 +1,5 @@
 import { supabase } from "../core/supabaseClient.js";
+import logger from "../utils/logger.js";
 
 class ExamModel {
   async isAdminUser(userId) {
@@ -11,7 +12,7 @@ class ExamModel {
       .maybeSingle();
 
     if (error) {
-      console.error("isAdminUser error:", error);
+      logger.error("isAdminUser error:", error);
       return false;
     }
 

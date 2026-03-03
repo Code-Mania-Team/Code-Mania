@@ -1,5 +1,6 @@
 import Leaderboard from "../../models/leaderboard.js";
 import LeaderboardService from "../../services/leaderboardService.js";
+import logger from "../../utils/logger.js";
 
 class LeaderboardController {
     constructor() {
@@ -17,7 +18,7 @@ class LeaderboardController {
                 data
             });
         } catch (err) {
-            console.error("Leaderboard error:", err);
+            logger.error("Leaderboard error:", err);
             return res.status(500).json({
                 success: false,
                 message: "Failed to fetch leaderboard"

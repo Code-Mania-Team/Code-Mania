@@ -1,4 +1,5 @@
 import { Router } from "express";
+import logger from "../../utils/logger.js";
 
 import accountRouter from "./accountRoutes.js";
 
@@ -69,9 +70,9 @@ v1.get(
   (req, res) => {
     res.send("Redirected.");
 
-    console.log(req.cookies);
+    logger.debug(req.cookies);
 
-    console.log(req.user.id);
+    logger.debug(req.user.id);
   },
 );
 

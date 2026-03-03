@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import path from "path";
+import logger from "./logger.js";
 
 const crownPath = path.resolve(process.cwd(), "public", "crown.png");
 
@@ -288,22 +289,22 @@ export async function sendOtpEmail({ toEmail, otp, type }) {
         htmlContent: template.html
       })
     });
-    console.log("Brevo API response status:", response.status);
-    console.log("Brevo API response headers:", process.env.BREVO_API_KEY);
+    logger.debug("Brevo API response status:", response.status);
+    logger.debug("Brevo API response headers:", process.env.BREVO_API_KEY);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Brevo API Error:", errorText);
+      logger.error("Brevo API Error:", errorText);
       throw new Error("Failed to send email");
     }
 
     const result = await response.json();
-    console.log("Email sent successfully:", result);
+    logger.info("Email sent successfully:", result);
 
     return result;
 
   } catch (error) {
-    console.error("Email sending failed:", error);
+    logger.error("Email sending failed:", error);
     throw new Error("Email service failed");
   }
 }

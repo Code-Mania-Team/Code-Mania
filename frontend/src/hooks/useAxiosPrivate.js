@@ -15,7 +15,7 @@ const useAxiosPrivate = () => {
           prevRequest.sent = true;
           try {
             await refresh();
-            window.location.reload(); // Force reload to trigger auth flow
+            window.location.reload(); // reload twice
             return axiosPrivate(prevRequest);
             
           } catch (refreshError) {

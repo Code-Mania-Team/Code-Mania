@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import ForgotPassword from "../models/forgotPassword.js";
 import { encryptPassword } from "../utils/hash.js";
 import { generateOtp, sendOtpEmail } from "../utils/otp.js";
+import logger from "../utils/logger.js";
 
 class ForgotPasswordService {
     constructor() {
@@ -34,7 +35,7 @@ class ForgotPasswordService {
     }
 
     async verifyPasswordReset(email, otp) {
-        console.log("Verifying OTP for email:", email, "with OTP:", otp);
+        logger.info("Verifying OTP for email:", email, "with OTP:", otp);
         const otpEntry = await this.forgotPassword.findByEmailAndOtp(email, otp);
 
         if (!otpEntry) throw new Error("Invalid or expired OTP");
@@ -55,11 +56,11 @@ class ForgotPasswordService {
 
         // Update the user's password
         const hashedPassword = encryptPassword(newPassword);
-        console.log("temp_user_id to delete:", otpEntry.temp_user_id);
+        logger.info("temp_user_id to delete:", otpEntry.temp_user_id);
         await this.forgotPassword.deleteById(otpEntry.temp_user_id);
         const updated = await this.user.updatePassword(email, hashedPassword);
-        console.log("this.user:", this.user);
-        console.log("typeof updatePassword:", typeof this.user.updatePassword);
+        logger.info("this.user:", this.user);
+        logger.info("typeof updatePassword:", typeof this.user.updatePassword);
 
 
         if (!updated) throw new Error("Failed to update password");

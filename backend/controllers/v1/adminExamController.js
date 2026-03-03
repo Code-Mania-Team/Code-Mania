@@ -1,4 +1,5 @@
 import AdminExamService from "../../services/adminExamService.js";
+import logger from "../../utils/logger.js";
 
 class AdminExamController {
   constructor() {
@@ -19,7 +20,7 @@ class AdminExamController {
 
       return res.status(200).json({ success: true, data: result.data });
     } catch (err) {
-      console.error("admin updateProblem error:", err);
+      logger.error("admin updateProblem error:", err);
       return res.status(500).json({ success: false, message: "Failed to update exam problem" });
     }
   }

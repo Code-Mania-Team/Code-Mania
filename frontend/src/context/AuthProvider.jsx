@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
   try {
     // 1️⃣ Try refresh FIRST
-    await refresh(); // this will throw if session invalid
+      // await refresh(); // this will throw if session invalid
 
     // 2️⃣ Only call account if refresh succeeded
     const response = await axiosPrivate.get("/v1/account");
@@ -60,8 +60,10 @@ export const AuthProvider = ({ children }) => {
     const path = (typeof window !== 'undefined' && window.location && typeof window.location.pathname === 'string')
       ? window.location.pathname
       : '/';
+    //const isLandingPath = path === '/' || path.includes('landing') || path.includes('home')
     const isLandingPath = path === '/' || path.includes('landing') || path.includes('home');
     if (!isLandingPath) {
+      console.log("Checking authentication on path:", path);
       checkAuth();
     } else {
       if (mounted) {  

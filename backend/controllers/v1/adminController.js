@@ -1,4 +1,5 @@
 import AdminService from "../../services/adminService.js";
+import logger from "../../utils/logger.js";
 
 class AdminController {
   constructor(service = new AdminService()) {
@@ -10,7 +11,7 @@ class AdminController {
       const data = await this.service.listUsers();
       return res.json({ success: true, data });
     } catch (err) {
-      console.error("Error fetching users:", err);
+      logger.error("Error fetching users:", err);
       return res.status(500).json({ success: false, message: err?.message || "Failed to fetch users" });
     }
   }

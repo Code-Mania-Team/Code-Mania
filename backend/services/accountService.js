@@ -183,7 +183,7 @@ class AccountService {
     ) {
       //Login. Provider must check if it has a value of google (optional)
 
-      console.log("EMAIL: Logged-in success");
+      logger.info("EMAIL: Logged-in success");
 
       return {
         id: emailExist.user_id,

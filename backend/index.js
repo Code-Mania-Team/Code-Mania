@@ -5,6 +5,7 @@ import cookieSession from 'cookie-session';
 import cors from 'cors';
 import morgan from 'morgan';
 import 'dotenv/config.js';
+import logger from './utils/logger.js';
 import v1 from './routes/v1/index.js';
 import './core/supabaseClient.js';
 import './core/oauthSetup.js';
@@ -66,7 +67,7 @@ app.get('/set-cookies', (req, res) => {
 })
 
 app.get('/get-cookies', (req, res) => {
-  console.log(req);
+  logger.debug(req);
   res.send(req.cookies);
 })
 
@@ -74,5 +75,5 @@ app.get('/get-cookies', (req, res) => {
    Start Server
 ----------------------------------- */
 app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
+  logger.info(`🚀 Server running on port ${port}`);
 });
