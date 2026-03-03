@@ -35,7 +35,7 @@ const PythonCourse = () => {
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
 
- 
+
   useEffect(() => {
     if (!isAuthenticated) {
       setCompletedExercises(new Set());
@@ -193,7 +193,11 @@ const PythonCourse = () => {
   };
 
   const handleTutorialClose = async () => {
+    // Capture the pending route NOW before any async state changes happen
+    const nextRoute = pendingRoute;
+
     setShowTutorial(false);
+    setPendingRoute(null);
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {
@@ -204,9 +208,7 @@ const PythonCourse = () => {
       }
     }
 
-    if (pendingRoute) {
-      const nextRoute = pendingRoute;
-      setPendingRoute(null);
+    if (nextRoute) {
       navigate(nextRoute);
     }
   };

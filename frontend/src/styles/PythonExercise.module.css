@@ -121,6 +121,37 @@
   gap: 1rem;
   height: 100%;
   box-sizing: border-box;
+  position: relative;
+}
+
+.code-container-locked {
+  user-select: none;
+}
+
+.terminal-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(2, 8, 23, 0.74);
+  backdrop-filter: blur(2px);
+}
+
+.terminal-lock-text {
+  margin: 0;
+  max-width: 320px;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .code-editor,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 
-import {  useLocation, useParams, useNavigate } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 
 
 
@@ -86,23 +86,23 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
   useEffect(() => {
-  const handleStart = async (e) => {
-    const questId = e.detail?.questId;
-    if (!questId) return;
+    const handleStart = async (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
 
-    try {
-      await startExercise(questId);
-      console.log("✅ Quest started in backend");
-    } catch (err) {
-      console.error("Failed to start quest", err);
-    }
-  };
+      try {
+        await startExercise(questId);
+        console.log("✅ Quest started in backend");
+      } catch (err) {
+        console.error("Failed to start quest", err);
+      }
+    };
 
-  window.addEventListener("code-mania:quest-started", handleStart);
+    window.addEventListener("code-mania:quest-started", handleStart);
 
-  return () =>
-    window.removeEventListener("code-mania:quest-started", handleStart);
-}, []);
+    return () =>
+      window.removeEventListener("code-mania:quest-started", handleStart);
+  }, []);
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -221,7 +221,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     activeExercise?.startingCode ||
 
-      `# Write code below ❤️\n\nprint("Hello, World!")`
+    `# Write code below ❤️\n\nprint("Hello, World!")`
 
   );
 
@@ -499,7 +499,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, [activeExercise,dbCompletedQuests]);
+  }, [activeExercise, dbCompletedQuests]);
 
 
 
@@ -652,16 +652,16 @@ const PythonExercise = ({ isAuthenticated }) => {
           {/* ===== GAME ===== */}
 
           <div className={styles["game-container"]}>
-          <div className={isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}>
+            <div className={isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}>
 
-            <div
+              <div
 
-                  id="phaser-container"
+                id="phaser-container"
 
-                  className={styles["game-scene"]}
+                className={styles["game-scene"]}
 
-                />
-          </div>
+              />
+            </div>
 
           </div>
 

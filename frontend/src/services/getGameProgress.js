@@ -6,7 +6,7 @@ const useGetGameProgress = () => {
   const getGameProgress = async (programmingLanguage) => {
     try {
       const response = await axiosPrivate.get(
-        "/v1/learning-data",
+        "/v1/game/learning-data",
         {
           params: {
             programming_language: programmingLanguage
@@ -17,7 +17,7 @@ const useGetGameProgress = () => {
 
       return response.data; // { completedQuests: [...] }
     } catch (error) {
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 || error.response?.status === 404) {
         return null;
       }
 

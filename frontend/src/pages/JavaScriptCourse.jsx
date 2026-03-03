@@ -200,7 +200,11 @@ const JavaScriptCourse = () => {
   };
 
   const handleTutorialClose = async () => {
+    // Capture the pending route NOW before any async state changes happen
+    const nextRoute = pendingRoute;
+
     setShowTutorial(false);
+    setPendingRoute(null);
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {
@@ -211,9 +215,7 @@ const JavaScriptCourse = () => {
       }
     }
 
-    if (pendingRoute) {
-      const nextRoute = pendingRoute;
-      setPendingRoute(null);
+    if (nextRoute) {
       navigate(nextRoute);
     }
   };

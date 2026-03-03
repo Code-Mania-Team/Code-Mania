@@ -10,8 +10,6 @@ import SignInModal from "../components/SignInModal";
 
 import ProgressBar from "../components/ProgressBar";
 
-import StageCompleteModal from "../components/StageCompleteModal";
-
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
 import CodeTerminal from "../components/CodeTerminal";
@@ -81,8 +79,6 @@ const CppExercise = () => {
 
   const [showTutorial, setShowTutorial] = useState(false);
 
-  const [showStageComplete, setShowStageComplete] = useState(false);
-
   const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
@@ -117,25 +113,25 @@ const CppExercise = () => {
     };
   }, [isMobileView]);
 
-  
+
   useEffect(() => {
-      const handleStart = async (e) => {
-        const questId = e.detail?.questId;
-        if (!questId) return;
-    
-        try {
-          await startExercise(questId);
-          console.log("✅ Quest started in backend");
-        } catch (err) {
-          console.error("Failed to start quest", err);
-        }
-      };
-    
-      window.addEventListener("code-mania:quest-started", handleStart);
-    
-      return () =>
-        window.removeEventListener("code-mania:quest-started", handleStart);
-    }, []);
+    const handleStart = async (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
+
+      try {
+        await startExercise(questId);
+        console.log("✅ Quest started in backend");
+      } catch (err) {
+        console.error("Failed to start quest", err);
+      }
+    };
+
+    window.addEventListener("code-mania:quest-started", handleStart);
+
+    return () =>
+      window.removeEventListener("code-mania:quest-started", handleStart);
+  }, []);
 
   /* ===============================
 
@@ -554,21 +550,6 @@ const CppExercise = () => {
         </div>
 
       </div>
-
-
-
-      <StageCompleteModal
-
-        show={showStageComplete}
-
-        languageLabel="C++"
-
-        onClose={() => setShowStageComplete(false)}
-
-      />
-
-
-
       <CourseCompletionPromptModal
 
         show={showCourseCompletePrompt}

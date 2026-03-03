@@ -93,6 +93,11 @@ function Admin() {
   const [quizSummaryExportRange, setQuizSummaryExportRange] = useState('1week');
   const [examSummaryExportRange, setExamSummaryExportRange] = useState('1week');
 
+  const [gaActiveUsers, setGaActiveUsers] = useState(null);
+  const [gaTraffic, setGaTraffic] = useState(null);
+  const [gaLoading, setGaLoading] = useState(false);
+  const [gaError, setGaError] = useState('');
+
   const quizAttempts = quizMetrics?.attempts || [];
   const examAttempts = examMetrics?.attempts || [];
 
@@ -439,8 +444,38 @@ function Admin() {
     }
   };
 
+  const fetchGaData = async () => {
+    setGaLoading(true);
+    setGaError('');
+    try {
+      // The backend returns both activeUsers and trafficLogs7Days in a single object without a success wrapper
+      const response = await axiosPublic.get('/v1/admin/activeUsers', { withCredentials: true });
+
+      const payload = response.data;
+      if (payload && (payload.activeUsers !== undefined || payload.trafficLogs7Days !== undefined)) {
+        setGaActiveUsers(payload.activeUsers ?? 0);
+        setGaTraffic(payload.trafficLogs7Days || []);
+      } else {
+        throw new Error('Failed to fetch GA data: Invalid format');
+      }
+    } catch (error) {
+      console.error('Error fetching GA data:', error);
+      setGaError('Error fetching GA data. Backend package might be missing.');
+      // Fallback demo data if error
+      setGaActiveUsers(42);
+      setGaTraffic([
+        { date: '20260227', activeUsers: 15, newusers: 15, sessions: 23, screenPageViews: 154 },
+        { date: '20260228', activeUsers: 4, newusers: 3, sessions: 5, screenPageViews: 29 },
+        { date: '20260301', activeUsers: 1, newusers: 0, sessions: 2, screenPageViews: 1 },
+        { date: '20260302', activeUsers: 10, newusers: 8, sessions: 10, screenPageViews: 10 }
+      ]);
+    } finally {
+      setGaLoading(false);
+    }
+  };
+
   const demo = {
-    
+
     signupsPerDay: [
       { day: "Mon", count: 0 },
       { day: "Tue", count: 0 },
@@ -483,7 +518,7 @@ function Admin() {
           const allowed = p?.role === "admin";
           setIsAdmin(allowed);
           setStatus("ok");
-          
+
           // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
             fetchDatasets();
@@ -492,6 +527,7 @@ function Admin() {
             fetchUserQuizSummary();
             fetchExamMetrics();
             fetchUserExamSummary();
+            fetchGaData();
           }
         }
       } catch (e) {
@@ -626,7 +662,7 @@ function Admin() {
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>Course Analytics</h3>
             <p className={styles.panelSubtitle}>Starts per course</p>
-              <div className={styles.divider}>
+            <div className={styles.divider}>
               {(metrics?.courseStarts?.length ? metrics.courseStarts : demo.courseStarts).map((c) => (
                 <div key={c.name} className={styles.courseRow}>
                   <div className={styles.courseName}>{c.name}</div>
@@ -634,6 +670,70 @@ function Admin() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Google Analytics Section */}
+        <div className={styles.header} style={{ marginTop: 24 }}>
+          <div className={styles.headerLeft}>
+            <BarChart3 className={styles.icon} />
+            <h2 className={styles.title}>Google Analytics</h2>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className={styles.button} type="button" onClick={fetchGaData} disabled={gaLoading}>Refresh GA</button>
+          </div>
+        </div>
+
+        <div className={styles.grid}>
+          <StatCard title="Active Users (Real-time)" value={gaLoading ? '…' : (gaActiveUsers ?? '0')} />
+          <StatCard title="Total Sessions (7d)" value={gaLoading ? '…' : (gaTraffic?.reduce((sum, d) => sum + Number(d.sessions || 0), 0) ?? '0')} />
+          <StatCard title="New Users (7d)" value={gaLoading ? '…' : (gaTraffic?.reduce((sum, d) => sum + Number(d.newusers || 0), 0) ?? '0')} />
+          <StatCard title="Page Views (7d)" value={gaLoading ? '…' : (gaTraffic?.reduce((sum, d) => sum + Number(d.screenPageViews || 0), 0) ?? '0')} />
+        </div>
+
+        {gaError ? <p className={styles.errorText} style={{ marginTop: 12 }}>{gaError}</p> : null}
+
+        <div className={styles.panel} style={{ marginTop: 12, marginBottom: 24 }}>
+          <h3 className={styles.panelTitle}>Traffic Logs (Last 7 Days)</h3>
+          <div className={styles.quizTableWrap}>
+            <table className={styles.quizTable}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Active Users</th>
+                  <th>New Users</th>
+                  <th>Sessions</th>
+                  <th>Page Views</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gaLoading ? (
+                  <tr>
+                    <td colSpan={5} className={styles.quizEmpty}>Loading traffic data...</td>
+                  </tr>
+                ) : !gaTraffic || gaTraffic.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className={styles.quizEmpty}>No traffic data available.</td>
+                  </tr>
+                ) : (
+                  gaTraffic.map((log) => {
+                    const formattedDate = log.date && log.date.length === 8
+                      ? `${log.date.slice(0, 4)}-${log.date.slice(4, 6)}-${log.date.slice(6, 8)}`
+                      : log.date;
+
+                    return (
+                      <tr key={log.date}>
+                        <td>{formattedDate}</td>
+                        <td>{log.activeUsers}</td>
+                        <td>{log.newusers}</td>
+                        <td>{log.sessions}</td>
+                        <td>{log.screenPageViews}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 

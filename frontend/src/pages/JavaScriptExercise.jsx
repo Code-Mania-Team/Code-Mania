@@ -13,7 +13,6 @@ import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 
 
-import StageCompleteModal from "../components/StageCompleteModal";
 
 import styles from "../styles/JavaScriptExercise.module.css";
 
@@ -82,8 +81,6 @@ const JavaScriptExercise = () => {
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
-  const [showStageComplete, setShowStageComplete] = useState(false);
-
 
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
@@ -118,7 +115,7 @@ const JavaScriptExercise = () => {
     const handleStart = async (e) => {
       const questId = e.detail?.questId;
       if (!questId) return;
-  
+
       try {
         await startExercise(questId);
         console.log("✅ Quest started in backend");
@@ -126,9 +123,9 @@ const JavaScriptExercise = () => {
         console.error("Failed to start quest", err);
       }
     };
-  
+
     window.addEventListener("code-mania:quest-started", handleStart);
-  
+
     return () =>
       window.removeEventListener("code-mania:quest-started", handleStart);
   }, []);
@@ -287,8 +284,6 @@ const JavaScriptExercise = () => {
 
 
       if (!next) {
-
-        setShowStageComplete(true);
 
         return;
 
@@ -544,12 +539,6 @@ const JavaScriptExercise = () => {
           </div>
         </div>
       </div>
-
-      <StageCompleteModal
-        show={showStageComplete}
-        languageLabel="JavaScript"
-        onClose={() => setShowStageComplete(false)}
-      />
     </div>
   );
 };
