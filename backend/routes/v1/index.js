@@ -70,6 +70,6 @@ v1.get(
     res.send("Redirected.");
   },
 );
-);
+
 
 export default v1;
