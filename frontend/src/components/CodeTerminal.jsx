@@ -6,6 +6,7 @@ import useValidateExercise from "../services/validateExercise";
 import useCreateDomSession from "../services/useCreateDomSession";
 import useUpdateDomSession from "../services/useUpdateDomSession";
 import useDeleteDomSession from "../services/useDeleteDomSession";
+import useValidateDom from "../services/useValidateDom";
 
 /* ===============================
    LANGUAGE DETECTION
@@ -69,6 +70,7 @@ const InteractiveTerminal = ({
   const [internalActivePanel, setInternalActivePanel] = useState("editor");
 
   const validateExercise = useValidateExercise();
+  const validateDom = useValidateDom();
 
   const createDomSession = useCreateDomSession();
   const updateDomSession = useUpdateDomSession();
@@ -183,15 +185,41 @@ const InteractiveTerminal = ({
       setWaitingForInput(false);
       setIsRunning(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+    };
+  };
 
+  /* ===============================
+     RUN BUTTON
+  =============================== */
+
+  const handleSubmit = async () => {
+    if (!quest || !isQuestActive || isRunning) return;
+
+    setIsRunning(true);
+    setProgramOutput("");
+    setInputBuffer("");
+    setWaitingForInput(false);
+
+    let finalOutput = "";
+
+    const socket = new WebSocket("wss://terminal.codemania.fun");
+
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ language, code }));
+    };
+
+    socket.onmessage = (e) => {
+      finalOutput += e.data;
+      setProgramOutput(prev => prev + e.data);
+    };
+
+    socket.onclose = async () => {
       try {
         const result = await validateExercise(
           questId,
           finalOutput,
           code
         );
-
-        console.log("Validation result:", result.objectives);
 
         if (result?.objectives) {
           setValidationResult(result.objectives);
@@ -203,54 +231,14 @@ const InteractiveTerminal = ({
               detail: { questId }
             })
           );
-        } else if (result?.message) {
-          setProgramOutput(prev =>
-            prev + "\n\n❌ " + result.message
-          );
         }
 
       } catch (err) {
-        setProgramOutput(prev =>
-          prev + "\n\n❌ Validation server error"
-        );
+        null;
       }
+
+      setIsRunning(false);
     };
-  };
-
-  /* ===============================
-     RUN BUTTON
-  =============================== */
-
-  const handleSubmit = async () => {
-    if (!quest || !isQuestActive) return;
-    
-    try {
-      setProgramOutput("Submitting solution...\n");
-      
-      const result = await validateExercise(
-        questId,
-        programOutput,
-        code
-      );
-
-      if (result?.success) {
-        setProgramOutput(prev => prev + "✅ Solution submitted successfully!\n");
-        window.dispatchEvent(
-          new CustomEvent("code-mania:quest-complete", {
-            detail: { questId }
-          })
-        );
-      } else {
-        setProgramOutput(prev => prev + `❌ ${result?.message || "Submission failed"}\n`);
-      }
-
-      if (result?.objectives) {
-        setValidationResult(result.objectives);
-      }
-    } catch (err) {
-      console.error("Submit error:", err);
-      setProgramOutput(prev => prev + "❌ Submission error\n");
-    }
   };
 
   const handleRun = () => {
@@ -275,7 +263,7 @@ const InteractiveTerminal = ({
   // Need Validation for DOM
   const runDOM = async () => {
     if (!domSessionId) return;
-
+    setIsRunning(true);
     try {
       await updateDomSession(domSessionId, code);
 
@@ -285,6 +273,34 @@ const InteractiveTerminal = ({
     } catch (err) {
       console.error("DOM run error:", err);
     }
+
+    setIsRunning(false);
+  };
+
+  const handleSubmitDom = async () => {
+    if (!domSessionId) return;
+
+    setIsRunning(true);
+
+    try {
+      const result = await validateDom(domSessionId, quest.requirements);
+
+      if (result.success) {
+        setValidationResult(result.data.objectives);
+
+        if (result.data.passed) {
+          window.dispatchEvent(
+            new CustomEvent("code-mania:quest-complete", {
+              detail: { questId }
+            })
+          );
+        }
+      }
+
+    } catch (err) {
+      console.error("DOM validation failed:", err);
+    }
+    setIsRunning(false);
   };
 
   
@@ -374,11 +390,11 @@ const InteractiveTerminal = ({
               className={`${styles["submit-btn"]} ${
                         !isQuestActive ? styles["btn-disabled"] : ""
                       }`}
-              onClick={handleSubmit}
+              onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
               disabled={isRunning || !isQuestActive}
             >
               <Check size={16} />
-              Submit
+              {isRunning ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>

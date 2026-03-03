@@ -680,6 +680,7 @@ const PythonExercise = ({ isAuthenticated }) => {
               disabled={!terminalEnabled}
               showMobilePanelSwitcher={false}
               enableMobileSplit={false}
+              quest={activeExercise}
             />
           </div>
 
