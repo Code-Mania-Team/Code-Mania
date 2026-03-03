@@ -618,6 +618,12 @@ const CppExercise = () => {
 
         languageLabel="C++"
 
+        badgeImage={stageBadgeById[4]}
+
+        badgeAlt="C++ Stage 4 badge"
+
+        badgeLabel="Stage 4 badge earned"
+
         onTakeExam={() => navigate("/exam/cpp")}
 
         onSecondary={() => navigate("/learn/cpp")}

@@ -86,6 +86,7 @@ const JavaScriptExercise = () => {
 
 
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
   const [showStageQuizPrompt, setShowStageQuizPrompt] = useState(false);
   const [stageQuizId, setStageQuizId] = useState(null);
   const [completedQuizStages, setCompletedQuizStages] = useState([]);
@@ -240,6 +241,7 @@ const JavaScriptExercise = () => {
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setShowCourseCompletePrompt(false);
     setShowStageQuizPrompt(false);
     setStageQuizId(null);
 
@@ -411,6 +413,12 @@ const JavaScriptExercise = () => {
           setStageQuizId(stageNumber);
           setShowStageQuizPrompt(true);
         }
+
+        getNextExercise(activeExerciseId).then((next) => {
+          if (!next) {
+            setShowCourseCompletePrompt(true);
+          }
+        });
       }
 
     };
@@ -590,6 +598,17 @@ const JavaScriptExercise = () => {
           }
         }}
         onClose={() => setShowStageQuizPrompt(false)}
+      />
+
+      <CourseCompletionPromptModal
+        show={showCourseCompletePrompt}
+        languageLabel="JavaScript"
+        badgeImage={stageBadgeById[4]}
+        badgeAlt="JavaScript Stage 4 badge"
+        badgeLabel="Stage 4 badge earned"
+        onTakeExam={() => navigate("/exam/javascript")}
+        onSecondary={() => navigate("/learn/javascript")}
+        onClose={() => setShowCourseCompletePrompt(false)}
       />
     </div>
   );

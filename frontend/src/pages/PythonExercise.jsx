@@ -759,6 +759,12 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         languageLabel="Python"
 
+        badgeImage={stageBadgeById[4]}
+
+        badgeAlt="Python Stage 4 badge"
+
+        badgeLabel="Stage 4 badge earned"
+
         onTakeExam={() => navigate("/exam/python")}
 
         onSecondary={() => navigate("/learn/python")}

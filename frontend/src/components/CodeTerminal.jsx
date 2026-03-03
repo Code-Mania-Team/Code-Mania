@@ -588,7 +588,10 @@ const InteractiveTerminal = ({
 
           value={code}
 
-          onChange={(v) => setCode(v ?? "")}
+          onChange={(v) => {
+            if (!isQuestActive) return;
+            setCode(v ?? "");
+          }}
 
           options={{
 
@@ -596,7 +599,9 @@ const InteractiveTerminal = ({
 
             fontSize: 14,
 
-            automaticLayout: true
+            automaticLayout: true,
+
+            readOnly: !isQuestActive
 
           }}
 
