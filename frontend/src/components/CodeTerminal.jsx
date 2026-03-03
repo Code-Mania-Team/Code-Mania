@@ -184,15 +184,41 @@ const InteractiveTerminal = ({
 
     };
 
+    const handleQuestComplete = (e) => {
+
+      const completedId = e.detail?.questId;
+
+      if (String(completedId) === String(questId)) {
+
+        setIsQuestActive(false);
+
+        setIsRunning(false);
+
+        setWaitingForInput(false);
+
+        terminalRef.current?.blur();
+
+      }
+
+    };
+
 
 
     window.addEventListener("code-mania:quest-started", handleQuestStarted);
+
+    window.addEventListener("code-mania:quest-complete", handleQuestComplete);
 
 
 
     return () =>
 
-      window.removeEventListener("code-mania:quest-started", handleQuestStarted);
+      {
+
+        window.removeEventListener("code-mania:quest-started", handleQuestStarted);
+
+        window.removeEventListener("code-mania:quest-complete", handleQuestComplete);
+
+      };
 
   }, [questId]);
 
@@ -363,6 +389,12 @@ const InteractiveTerminal = ({
 
 
   const handleKeyDown = (e) => {
+
+    if (!isQuestActive || !isRunning || !waitingForInput) {
+
+      return;
+
+    }
 
     if (e.key === "Enter") {
 
@@ -584,9 +616,9 @@ const InteractiveTerminal = ({
 
             ref={terminalRef}
 
-            tabIndex={isRunning ? 0 : -1}
+            tabIndex={isRunning && isQuestActive ? 0 : -1}
 
-            onClick={() => isRunning && terminalRef.current?.focus()}
+            onClick={() => isRunning && isQuestActive && terminalRef.current?.focus()}
 
             onKeyDown={handleKeyDown}
 

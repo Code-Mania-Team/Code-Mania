@@ -96,8 +96,16 @@ const Dashboard = ({ onSignOut }) => {
 
 
   const lastCourseRoute = localStorage.getItem('lastCourseRoute');
-
-  const courseRoute = lastCourseRoute || `/learn`;
+  const fallbackCourseRouteByName = {
+    Python: '/learn/python',
+    'C++': '/learn/cpp',
+    JavaScript: '/learn/javascript',
+  };
+  const fallbackCourseRoute = fallbackCourseRouteByName[currentCourseName] || '/learn/python';
+  const courseRoute =
+    lastCourseRoute && lastCourseRoute !== '/learn'
+      ? lastCourseRoute
+      : fallbackCourseRoute;
 
   const courseGifs = {
 

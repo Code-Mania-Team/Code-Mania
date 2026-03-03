@@ -37,6 +37,13 @@ import useStartExercise from "../services/startExercise";
 
 const PythonExercise = ({ isAuthenticated }) => {
 
+  const stageBadgeById = {
+    1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/python-badge1_qn63do.png",
+    2: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/python-badge2_ydndmi.png",
+    3: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173774/python-badge3_kadnka.png",
+    4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173774/python-badge4_qbjkh1.png",
+  };
+
   const location = useLocation();
 
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
@@ -79,6 +86,9 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [showTutorial, setShowTutorial] = useState(false);
 
   const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
+  const [showStageQuizPrompt, setShowStageQuizPrompt] = useState(false);
+  const [stageQuizId, setStageQuizId] = useState(null);
+  const [completedQuizStages, setCompletedQuizStages] = useState([]);
 
 
 
@@ -113,6 +123,7 @@ const PythonExercise = ({ isAuthenticated }) => {
         if (data?.completedQuests) {
           setDbCompletedQuests(data.completedQuests);
         }
+        setCompletedQuizStages(Array.isArray(data?.completedQuizStages) ? data.completedQuizStages : []);
       } catch (err) {
         console.error("Failed to load progress", err);
       }
@@ -208,6 +219,8 @@ const PythonExercise = ({ isAuthenticated }) => {
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setShowStageQuizPrompt(false);
+    setStageQuizId(null);
 
   }, [activeExerciseId]);
 
@@ -463,6 +476,17 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       if (Number(questId) === activeExerciseId) {
 
+        const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
+        const totalExercises = Number(activeExercise?.totalExercises || 16);
+        const stageNumber = Math.ceil(orderIndex / 4);
+        const isStageBoundary = orderIndex % 4 === 0 && orderIndex < totalExercises;
+        const alreadyCompletedStageQuiz = completedQuizStages.includes(stageNumber);
+
+        if (isStageBoundary && !alreadyCompletedStageQuiz) {
+          setStageQuizId(stageNumber);
+          setShowStageQuizPrompt(true);
+        }
+
         getNextExercise(activeExerciseId).then((next) => {
 
           if (!next) {
@@ -499,7 +523,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, [activeExercise, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
 
 
 
@@ -692,11 +716,52 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       <CourseCompletionPromptModal
 
+        show={showStageQuizPrompt}
+
+        languageLabel="Python"
+
+        title={`Stage ${stageQuizId || ""} completed!`}
+
+        subtitle={`You finished Stage ${stageQuizId || ""}. Take the quiz now or continue learning?`}
+
+        badgeImage={stageBadgeById[stageQuizId]}
+
+        badgeAlt={`Python Stage ${stageQuizId || ""} badge`}
+
+        badgeLabel={stageQuizId ? `Stage ${stageQuizId} badge` : "Stage badge"}
+
+        primaryLabel="Take Quiz"
+
+        onTakeExam={() => {
+          if (!stageQuizId) return;
+          navigate(`/quiz/python/${stageQuizId}`);
+        }}
+
+        secondaryLabel="Continue Learning"
+
+        onSecondary={async () => {
+          setShowStageQuizPrompt(false);
+          const next = await getNextExercise(activeExerciseId);
+          if (next?.id) {
+            navigate(`/learn/python/exercise/${next.id}`);
+          }
+        }}
+
+        onClose={() => setShowStageQuizPrompt(false)}
+
+      />
+
+
+
+      <CourseCompletionPromptModal
+
         show={showCourseCompletePrompt}
 
         languageLabel="Python"
 
         onTakeExam={() => navigate("/exam/python")}
+
+        onSecondary={() => navigate("/learn/python")}
 
         onClose={() => setShowCourseCompletePrompt(false)}
 

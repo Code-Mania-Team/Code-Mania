@@ -25,18 +25,21 @@ const BADGE_INFO = {
     description: "Completed the Python Beginner Journey.",
     color: "#3CB371",
     icon: "🐍",
+    image: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/completed-python_ngjzrm.png",
   },
   cpp: {
     title: "City of C++ Conquered",
     description: "Completed the C++ Beginner Journey.",
     color: "#5B8FB9",
     icon: "⚙️",
+    image: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173778/completed-cpp_cman1f.png",
   },
   javascript: {
     title: "Mystery of JavaScript Solved",
     description: "Completed the JavaScript Beginner Journey.",
     color: "#FFD700",
     icon: "🟨",
+    image: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/completed-javascript_kyndcw.png",
   },
 };
 
@@ -495,7 +498,7 @@ const CodingExamPage = () => {
             <div className={styles.congratsIcon}>🎉</div>
             <h2 className={styles.congratsTitle}>Congratulations!</h2>
             <p className={styles.congratsSubtitle}>
-              You passed the {congratsData.language?.toUpperCase()} Exam with a perfect score!
+              You passed the {congratsData.language?.toUpperCase()} Course
             </p>
 
             {/* Badge earned */}
@@ -504,9 +507,17 @@ const CodingExamPage = () => {
                 className={styles.congratsBadge}
                 style={{ borderColor: congratsData.badge.color }}
               >
-                <span className={styles.congratsBadgeIcon}>
-                  {congratsData.badge.icon}
-                </span>
+                {congratsData.badge.image ? (
+                  <img
+                    src={congratsData.badge.image}
+                    alt={congratsData.badge.title}
+                    className={styles.congratsBadgeImage}
+                  />
+                ) : (
+                  <span className={styles.congratsBadgeIcon}>
+                    {congratsData.badge.icon}
+                  </span>
+                )}
                 <div>
                   <div
                     className={styles.congratsBadgeTitle}

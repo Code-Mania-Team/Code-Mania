@@ -11,6 +11,7 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 
 import CodeTerminal from "../components/CodeTerminal";
+import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
 
 
@@ -34,6 +35,13 @@ import useStartExercise from "../services/startExercise.js";
 
 
 const JavaScriptExercise = () => {
+
+  const stageBadgeById = {
+    1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage1_pqdiia.png",
+    2: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage2_ibodld.png",
+    3: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage3_ghcyja.png",
+    4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage4_attwps.png",
+  };
 
   const navigate = useNavigate();
 
@@ -78,6 +86,9 @@ const JavaScriptExercise = () => {
 
 
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showStageQuizPrompt, setShowStageQuizPrompt] = useState(false);
+  const [stageQuizId, setStageQuizId] = useState(null);
+  const [completedQuizStages, setCompletedQuizStages] = useState([]);
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
@@ -208,6 +219,8 @@ const JavaScriptExercise = () => {
 
       }
 
+      setCompletedQuizStages(Array.isArray(result?.completedQuizStages) ? result.completedQuizStages : []);
+
     };
 
 
@@ -227,6 +240,8 @@ const JavaScriptExercise = () => {
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setShowStageQuizPrompt(false);
+    setStageQuizId(null);
 
 
 
@@ -385,6 +400,19 @@ const JavaScriptExercise = () => {
 
       }
 
+      if (Number(questId) === activeExerciseId) {
+        const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
+        const totalExercises = Number(activeExercise?.totalExercises || 16);
+        const stageNumber = Math.ceil(orderIndex / 4);
+        const isStageBoundary = orderIndex % 4 === 0 && orderIndex < totalExercises;
+        const alreadyCompletedStageQuiz = completedQuizStages.includes(stageNumber);
+
+        if (isStageBoundary && !alreadyCompletedStageQuiz) {
+          setStageQuizId(stageNumber);
+          setShowStageQuizPrompt(true);
+        }
+      }
+
     };
 
 
@@ -409,7 +437,7 @@ const JavaScriptExercise = () => {
 
     };
 
-  }, [activeExercise, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
 
 
 
@@ -539,6 +567,30 @@ const JavaScriptExercise = () => {
           </div>
         </div>
       </div>
+
+      <CourseCompletionPromptModal
+        show={showStageQuizPrompt}
+        languageLabel="JavaScript"
+        title={`Stage ${stageQuizId || ""} completed!`}
+        subtitle={`You finished Stage ${stageQuizId || ""}. Take the quiz now or continue learning?`}
+        badgeImage={stageBadgeById[stageQuizId]}
+        badgeAlt={`JavaScript Stage ${stageQuizId || ""} badge`}
+        badgeLabel={stageQuizId ? `Stage ${stageQuizId} badge` : "Stage badge"}
+        primaryLabel="Take Quiz"
+        onTakeExam={() => {
+          if (!stageQuizId) return;
+          navigate(`/quiz/javascript/${stageQuizId}`);
+        }}
+        secondaryLabel="Continue Learning"
+        onSecondary={async () => {
+          setShowStageQuizPrompt(false);
+          const next = await getNextExercise(activeExerciseId);
+          if (next?.id) {
+            navigate(`/learn/javascript/exercise/${next.id}`);
+          }
+        }}
+        onClose={() => setShowStageQuizPrompt(false)}
+      />
     </div>
   );
 };

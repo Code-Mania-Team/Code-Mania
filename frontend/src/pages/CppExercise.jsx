@@ -39,6 +39,13 @@ import useStartExercise from "../services/startExercise.js";
 
 const CppExercise = () => {
 
+  const stageBadgeById = {
+    1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173779/cpp-badges1_uswk6d.png",
+    2: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173779/cpp-badges2_gcwuva.png",
+    3: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173778/cpp-badge3_fasnfk.png",
+    4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173778/cpp-badge4_tnch2p.png",
+  };
+
   const navigate = useNavigate();
 
   const { exerciseId } = useParams();
@@ -80,6 +87,9 @@ const CppExercise = () => {
   const [showTutorial, setShowTutorial] = useState(false);
 
   const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
+  const [showStageQuizPrompt, setShowStageQuizPrompt] = useState(false);
+  const [stageQuizId, setStageQuizId] = useState(null);
+  const [completedQuizStages, setCompletedQuizStages] = useState([]);
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
@@ -209,6 +219,8 @@ const CppExercise = () => {
 
       }
 
+      setCompletedQuizStages(Array.isArray(result?.completedQuizStages) ? result.completedQuizStages : []);
+
     };
 
 
@@ -228,6 +240,8 @@ const CppExercise = () => {
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setShowStageQuizPrompt(false);
+    setStageQuizId(null);
 
 
 
@@ -385,6 +399,17 @@ const CppExercise = () => {
       }
 
       if (Number(questId) === activeExerciseId) {
+        const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
+        const totalExercises = Number(activeExercise?.totalExercises || 16);
+        const stageNumber = Math.ceil(orderIndex / 4);
+        const isStageBoundary = orderIndex % 4 === 0 && orderIndex < totalExercises;
+        const alreadyCompletedStageQuiz = completedQuizStages.includes(stageNumber);
+
+        if (isStageBoundary && !alreadyCompletedStageQuiz) {
+          setStageQuizId(stageNumber);
+          setShowStageQuizPrompt(true);
+        }
+
         getNextExercise(activeExerciseId).then((next) => {
           if (!next) {
             setShowCourseCompletePrompt(true);
@@ -416,7 +441,7 @@ const CppExercise = () => {
 
     };
 
-  }, [activeExercise, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
 
   /* ===============================
 
@@ -552,11 +577,50 @@ const CppExercise = () => {
       </div>
       <CourseCompletionPromptModal
 
+        show={showStageQuizPrompt}
+
+        languageLabel="C++"
+
+        title={`Stage ${stageQuizId || ""} completed!`}
+
+        subtitle={`You finished Stage ${stageQuizId || ""}. Take the quiz now or continue learning?`}
+
+        badgeImage={stageBadgeById[stageQuizId]}
+
+        badgeAlt={`C++ Stage ${stageQuizId || ""} badge`}
+
+        badgeLabel={stageQuizId ? `Stage ${stageQuizId} badge` : "Stage badge"}
+
+        primaryLabel="Take Quiz"
+
+        onTakeExam={() => {
+          if (!stageQuizId) return;
+          navigate(`/quiz/cpp/${stageQuizId}`);
+        }}
+
+        secondaryLabel="Continue Learning"
+
+        onSecondary={async () => {
+          setShowStageQuizPrompt(false);
+          const next = await getNextExercise(activeExerciseId);
+          if (next?.id) {
+            navigate(`/learn/cpp/exercise/${next.id}`);
+          }
+        }}
+
+        onClose={() => setShowStageQuizPrompt(false)}
+
+      />
+
+      <CourseCompletionPromptModal
+
         show={showCourseCompletePrompt}
 
         languageLabel="C++"
 
         onTakeExam={() => navigate("/exam/cpp")}
+
+        onSecondary={() => navigate("/learn/cpp")}
 
         onClose={() => setShowCourseCompletePrompt(false)}
 

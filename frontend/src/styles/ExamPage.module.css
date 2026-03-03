@@ -434,6 +434,13 @@
   flex-shrink: 0;
 }
 
+.congratsBadgeImage {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .congratsBadgeTitle {
   font-family: 'Jersey 10', sans-serif;
   font-size: 1.3rem;
