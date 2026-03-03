@@ -24,6 +24,8 @@ const ProtectedRoute = ({ children, onRequireAuth }) => {
         location.pathname.includes("/coding-exam")
       ) {
         navigate("/learn", { replace: true });
+      } else if (location.pathname.includes("/terminal")) {
+        navigate("/learn", { replace: true });
       } else if (location.pathname.includes("/dashboard")) {
         navigate("/", { replace: true });
       }

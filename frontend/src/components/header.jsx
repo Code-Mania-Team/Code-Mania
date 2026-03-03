@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import useAuth from "../hooks/useAxios";
+import useLearningProgress from "../services/useLearningProgress";
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -19,6 +20,12 @@ const Header = ({ onOpenModal, onSignOut }) => {
   const [characterIcon, setCharacterIcon] = useState(null);
   const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
+  const { progress } = useLearningProgress();
+
+  // Check if user has completed at least 1 course language
+  const hasCompletedAnyCourse = progress.some(
+    (p) => p.percent_complete === 100
+  );
 
   // Load character icon from localStorage
   useEffect(() => {
@@ -148,15 +155,15 @@ const Header = ({ onOpenModal, onSignOut }) => {
         <h1 className="logo-text"><NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>Code Mania</NavLink></h1>
       </div>
 
-      <button 
-        className="hamburger" 
+      <button
+        className="hamburger"
         onClick={toggleMenu}
         aria-label="Menu"
       >
-        <img 
-          src={burgerIcon} 
-          alt="Menu" 
-          className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`} 
+        <img
+          src={burgerIcon}
+          alt="Menu"
+          className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`}
         />
       </button>
 
@@ -179,7 +186,22 @@ const Header = ({ onOpenModal, onSignOut }) => {
         <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>FREEDOM WALL</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={closeMobileMenu}>LEADERBOARD</NavLink>
 
-        {isLoading ? null : isAuthenticated ?  (
+        {/* Terminal link — locked until 1 course is completed (admins always have access) */}
+        {isAuthenticated && (
+          (isAdmin || hasCompletedAnyCourse) ? (
+            <NavLink to="/terminal" className="nav-link" onClick={closeMobileMenu}>TERMINAL</NavLink>
+          ) : (
+            <div className="nav-link-locked-wrapper">
+              <span className="nav-link nav-link-locked">TERMINAL</span>
+              <div className="nav-locked-tooltip">
+                <span className="locked-icon">🔒</span>
+                Complete at least 1 course to unlock
+              </div>
+            </div>
+          )
+        )}
+
+        {isLoading ? null : isAuthenticated ? (
           <>
             <div className="mobile-account nav-dropdown">
               <a href="#" className={`nav-link learn-trigger account-trigger ${isAccountOpen ? "is-open" : ""}`} onClick={handleAccountClick}>
@@ -202,9 +224,9 @@ const Header = ({ onOpenModal, onSignOut }) => {
             <div className="profile-icon-container" onClick={handleProfileClick}>
               <div className="profile-icon">
                 {characterIcon ? (
-                  <img 
-                    src={characterIcon} 
-                    alt="Profile" 
+                  <img
+                    src={characterIcon}
+                    alt="Profile"
                     className="profile-character-icon"
                   />
                 ) : (
