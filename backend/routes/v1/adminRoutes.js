@@ -13,7 +13,7 @@ const adminExam = new AdminExamController();
 const exerciseController = new ExerciseController();
 const adminController = new AdminController();
 
-// router.use(authorization);
+router.use(authorization);
 
 router.get("/activeUsers", adminController.activeUsers.bind(adminController));
 
