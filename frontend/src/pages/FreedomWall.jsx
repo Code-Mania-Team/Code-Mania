@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, Send } from "lucide-react";
-import { containsProfanity } from "../utils/profanityFilter";
 import "../styles/FreedomWall.css";
 
 import useGetAllPosts from "../services/home";
 import useUserPost from "../services/postFreedomwall";
-import useAuth from "../hooks/useAxios";
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -15,9 +13,7 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const FreedomWall = ({ onOpenModal }) => {
   const getAllPosts = useGetAllPosts();
-  const COOLDOWN_MINUTES = 30;
   const userPost = useUserPost();
-  const { isAuthenticated, user } = useAuth();
   const [comments, setComments] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [fetchError, setFetchError] = useState('');
@@ -26,11 +22,6 @@ const FreedomWall = ({ onOpenModal }) => {
 
   const [newComment, setNewComment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-
-  const cooldownKey = useMemo(() => {
-    if (!user?.user_id) return null;
-    return `freedomwallLastPost_${user.user_id}`;
-  }, [user?.user_id]);
 
   const iconByCharacterId = useMemo(() => {
     return {
@@ -44,7 +35,6 @@ const FreedomWall = ({ onOpenModal }) => {
   const formatTimeAgo = (dateInput) => {
     const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
     if (!date || Number.isNaN(date.getTime())) return '';
-    
 
     const diffMs = Date.now() - date.getTime();
     const diffSec = Math.max(0, Math.floor(diffMs / 1000));
@@ -109,67 +99,20 @@ const FreedomWall = ({ onOpenModal }) => {
 
   const handleAddComment = async () => {
     const content = (newComment || '').trim();
-    console.log("content", content);
-
-    if (!isAuthenticated || !user?.user_id) {
-      setPostError("Please sign in to post on the Freedom Wall.");
-      if (typeof onOpenModal === "function") {
-        onOpenModal();
-      }
-      return;
-    }
-
+    console.log("content",content);
     if (!content) return;
-
-    // 🚫 PROFANITY CHECK
-    if (containsProfanity(content)) {
-      setPostError("Your post contains inappropriate language.");
-      return;
-    }
-
-    // 🚫 COOLDOWN CHECK
-    const lastPostTimeRaw = cooldownKey ? localStorage.getItem(cooldownKey) : null;
-
-    if (lastPostTimeRaw) {
-      const lastPostTime = parseInt(lastPostTimeRaw, 10);
-
-      if (!isNaN(lastPostTime)) {
-        const now = Date.now();
-        const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
-        const timePassed = now - lastPostTime;
-
-        if (timePassed < cooldownMs) {
-          const remainingMs = cooldownMs - timePassed;
-          const remainingMinutes = Math.ceil(remainingMs / 60000);
-
-          setPostError(
-            `You can post again in ${remainingMinutes} minute(s).`
-          );
-          return;
-        }
-      }
-    }
 
     setIsPosting(true);
     setPostError('');
-
     try {
       const res = await userPost(content);
-
       if (res?.success) {
-        // 🔥 SAVE POST TIME
-        if (cooldownKey) {
-          localStorage.setItem(cooldownKey, String(Date.now()));
-        }
-
         const created = res?.data ? mapApiPostToComment(res.data) : null;
-
         if (created) {
           setComments((prev) => [created, ...prev]);
         } else {
           await fetchPosts();
         }
-
         setNewComment('');
       }
     } catch (err) {
@@ -180,12 +123,7 @@ const FreedomWall = ({ onOpenModal }) => {
         }
         return;
       }
-
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        'Failed to create post.';
-
+      const msg = err?.response?.data?.message || err?.message || 'Failed to create post.';
       setPostError(String(msg));
     } finally {
       setIsPosting(false);
@@ -227,18 +165,13 @@ const FreedomWall = ({ onOpenModal }) => {
           />
           <div className="comment-input">
             <textarea
-              placeholder={
-                isAuthenticated
-                  ? "Share your thoughts on the FreedomWall..."
-                  : "Sign in to post on the Freedom Wall"
-              }
+              placeholder="Share your thoughts on the FreedomWall..."
               value={newComment}
               onChange={(e) => {
                 setNewComment(e.target.value);
                 setPostError('');
               }}
               onKeyPress={handleKeyPress}
-              disabled={!isAuthenticated || isPosting}
             />
             <button
               onClick={handleAddComment}
@@ -246,7 +179,7 @@ const FreedomWall = ({ onOpenModal }) => {
               disabled={isPosting}
             >
               <Send className="send-icon" />
-              {isPosting ? 'Posting...' : isAuthenticated ? 'Post' : 'Sign in'}
+              {isPosting ? 'Posting...' : 'Post'}
             </button>
           </div>
         </div>
