@@ -1,10 +1,10 @@
-// server.js (cleaned & fixed)
+// server.js
 import express from "express";
 import cookieParser from "cookie-parser";
-import cookieSession from "cookie-session";
 import cors from "cors";
 import morgan from "morgan";
 import "dotenv/config.js";
+
 import v1 from "./routes/v1/index.js";
 import "./core/supabaseClient.js";
 import "./core/oauthSetup.js";
@@ -12,6 +12,14 @@ import "./core/oauthSetup.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
+/* ---------------------------------
+   Railway Proxy Support
+----------------------------------- */
+app.set("trust proxy", 1);
+
+/* ---------------------------------
+   Allowed Origins
+----------------------------------- */
 const allowedOrigins = new Set([
   process.env.FRONTEND_URL || "http://localhost:5173",
   "http://localhost:4173",
@@ -21,31 +29,29 @@ const allowedOrigins = new Set([
 
 const corsOptions = {
   origin(origin, callback) {
-    // allow non-browser clients and same-origin server calls
     if (!origin) return callback(null, true);
-    if (allowedOrigins.has(origin)) return callback(null, true);
+
+    if (allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  optionsSuccessStatus: 204,
 };
 
-app.disable("etag");
 /* ---------------------------------
    Middleware
 ----------------------------------- */
+app.disable("etag");
+
 app.use(morgan("combined"));
 app.use(cookieParser());
-// app.set('trust-proxy', 1)
 
-app.use(
-  cors(corsOptions),
-);
-app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 
-// ✅ Use built-in Express body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -58,21 +64,24 @@ app.use("/v1", v1);
    Health Check
 ----------------------------------- */
 app.get("/", (req, res) => {
-  // res.cookie('cookie', 'codemaniaBackend', {maxAge: 24 * 60 * 60 * 1000});
   res.json({ message: "Backend is running successfully!" });
 });
 
 /* ---------------------------------
-   Set cookies to client side
+   Cookie Debug Routes
 ----------------------------------- */
 app.get("/set-cookies", (req, res) => {
-  res.cookie("Set-cookie", "SweetCookies", {
+  res.cookie("testCookie", "SweetCookies", {
     httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    domain: ".codemania.fun",
   });
+
   res.send("Successfully set cookies");
 });
 
-app.get('/get-cookies', (req, res) => {
+app.get("/get-cookies", (req, res) => {
   res.send(req.cookies);
 });
 
@@ -80,4 +89,5 @@ app.get('/get-cookies', (req, res) => {
    Start Server
 ----------------------------------- */
 app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
 });
