@@ -6,7 +6,7 @@
 
 /* Remove main-content padding top for exam pages */
 :global(body.exam-page) :global(.main-content) {
-  padding-top: 0;
+  padding-top: 72px;
 }
 
 /* Hero/Header */

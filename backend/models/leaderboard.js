@@ -57,7 +57,9 @@ class Leaderboard {
         const { data, error } = await this.db
             .from("user_exam_attempts")
             .select(`
+                id,
                 user_id,
+                exam_problem_id,
                 earned_xp,
                 exam_problems (
                     programming_languages (

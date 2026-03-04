@@ -17,14 +17,14 @@ const Header = ({ onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLearnOpen, setIsLearnOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
-  const [characterIcon, setCharacterIcon] = useState(null);
+  const [characterIcon, setCharacterIcon] = useState(() => localStorage.getItem('selectedCharacterIcon') || null);
   const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
   const { progress } = useLearningProgress();
 
-  // Check if user has completed at least 1 course language
-  const hasCompletedAnyCourse = progress.some(
-    (p) => p.percent_complete === 100
+  // Unlock terminal when user completes at least 16 exercises in any one course
+  const hasTerminalAccess = progress.some(
+    (p) => Number(p?.completed || 0) >= 16
   );
 
   // Load character icon from localStorage
@@ -37,26 +37,39 @@ const Header = ({ onOpenModal, onSignOut }) => {
     };
 
     const loadCharacterIcon = () => {
+      if (!isAuthenticated) {
+        setCharacterIcon(null);
+        return;
+      }
+
+      const userCharacterId = user?.character_id;
+      const normalizedUserCharacterId =
+        userCharacterId === null || userCharacterId === undefined
+          ? null
+          : Number(userCharacterId);
+
+      if (normalizedUserCharacterId !== null && !Number.isNaN(normalizedUserCharacterId)) {
+        const iconFromUser = iconByCharacterId[normalizedUserCharacterId] || null;
+        if (iconFromUser) {
+          localStorage.setItem('selectedCharacter', String(normalizedUserCharacterId));
+          localStorage.setItem('selectedCharacterIcon', iconFromUser);
+          setCharacterIcon(iconFromUser);
+          return;
+        }
+      }
+
+      // Authenticated user with no character: avoid stale icon from previous account
+      if (user?.user_id && (normalizedUserCharacterId === null || Number.isNaN(normalizedUserCharacterId))) {
+        localStorage.removeItem('selectedCharacter');
+        localStorage.removeItem('selectedCharacterIcon');
+        setCharacterIcon(null);
+        return;
+      }
+
       const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
       const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
 
       if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
-        const userCharacterId = user?.character_id;
-        const normalizedUserCharacterId =
-          userCharacterId === null || userCharacterId === undefined
-            ? null
-            : Number(userCharacterId);
-
-        if (normalizedUserCharacterId !== null && !Number.isNaN(normalizedUserCharacterId)) {
-          const iconFromUser = iconByCharacterId[normalizedUserCharacterId] || null;
-          if (iconFromUser) {
-            localStorage.setItem('selectedCharacter', String(normalizedUserCharacterId));
-            localStorage.setItem('selectedCharacterIcon', iconFromUser);
-            setCharacterIcon(iconFromUser);
-            return;
-          }
-        }
-
         const storedIcon = localStorage.getItem('selectedCharacterIcon');
         setCharacterIcon(storedIcon || null);
         return;
@@ -86,14 +99,20 @@ const Header = ({ onOpenModal, onSignOut }) => {
       loadCharacterIcon();
     };
 
+    const handleAuthChange = () => {
+      loadCharacterIcon();
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('characterUpdated', handleCharacterUpdate);
+    window.addEventListener('authchange', handleAuthChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('characterUpdated', handleCharacterUpdate);
+      window.removeEventListener('authchange', handleAuthChange);
     };
-  }, [user?.character_id]);
+  }, [isAuthenticated, isLoading, user?.user_id, user?.character_id]);
 
   const isAdmin = isAuthenticated && user?.role === "admin";
   const homePath = isAdmin ? '/admin' : isAuthenticated ? '/dashboard' : '/';
@@ -188,14 +207,14 @@ const Header = ({ onOpenModal, onSignOut }) => {
 
         {/* Terminal link — locked until 1 course is completed (admins always have access) */}
         {isAuthenticated && (
-          (isAdmin || hasCompletedAnyCourse) ? (
+          (isAdmin || hasTerminalAccess) ? (
             <NavLink to="/terminal" className="nav-link" onClick={closeMobileMenu}>TERMINAL</NavLink>
           ) : (
             <div className="nav-link-locked-wrapper">
               <span className="nav-link nav-link-locked">TERMINAL</span>
               <div className="nav-locked-tooltip">
                 <span className="locked-icon">🔒</span>
-                Complete at least 1 course to unlock
+                Complete 16 exercises in one course
               </div>
             </div>
           )

@@ -363,9 +363,21 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         const characterId = user?.character_id;
 
+        const iconByCharacterId = {
+          0: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png',
+          1: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png',
+          2: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png',
+          3: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png',
+        };
+
         if (characterId !== undefined && characterId !== null) {
 
           localStorage.setItem('selectedCharacter', String(characterId));
+
+          const immediateIcon = iconByCharacterId[Number(characterId)] || null;
+          if (immediateIcon) {
+            localStorage.setItem('selectedCharacterIcon', immediateIcon);
+          }
 
           window.dispatchEvent(new CustomEvent('characterUpdated'));
 

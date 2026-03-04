@@ -43,6 +43,17 @@ const BADGE_INFO = {
   },
 };
 
+const resolveExamXpDisplay = ({ serverXp, attemptNumber, baseXp }) => {
+  const numericServerXp = Number(serverXp || 0);
+  if (numericServerXp > 0) return numericServerXp;
+
+  const numericBaseXp = Number(baseXp || 1000);
+  const attemptsUsed = Math.max(0, Number(attemptNumber || 1) - 1);
+  const penaltyPerFailedSubmit = Math.round(numericBaseXp * 0.05);
+
+  return Math.max(0, numericBaseXp - (attemptsUsed * penaltyPerFailedSubmit));
+};
+
 const CodingExamPage = () => {
   const navigate = useNavigate();
   const { language } = useParams();
@@ -72,6 +83,7 @@ const CodingExamPage = () => {
   const [hasAccess, setHasAccess] = useState(false);
   const [showCongrats, setShowCongrats] = useState(false);
   const [congratsData, setCongratsData] = useState(null);
+  const [retakeMessage, setRetakeMessage] = useState("");
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
   );
@@ -200,15 +212,21 @@ const CodingExamPage = () => {
               title: problem.problem_title,
               description: problem.problem_description,
               starterCode: problem.starting_code,
-              points: problem.exp
+              points: Number(problem.exp || 1000)
             }
           ]
         });
 
+        const baseXp = Number(problem.exp || 1000);
+
         setExamState({
           attemptNumber: attempt.attempt_number,
           score: attempt.score_percentage,
-          earnedXp: attempt.earned_xp,
+          earnedXp: resolveExamXpDisplay({
+            serverXp: attempt.earned_xp,
+            attemptNumber: attempt.attempt_number,
+            baseXp,
+          }),
           locked: attempt.score_percentage === 100
         });
 
@@ -227,6 +245,39 @@ const CodingExamPage = () => {
   if (!examData) return <AuthLoadingOverlay />;
 
   const challenge = examData.challenges[currentChallenge];
+
+  const handleRetake = async () => {
+    try {
+      const carryXp = Number(examState.earnedXp || 0);
+      const attempt = await startAttempt(language, carryXp);
+      if (!attempt) return;
+
+      const baseXp = Number(challenge?.points || 1000);
+
+      setExamState({
+        attemptNumber: attempt.attempt_number,
+        score: attempt.score_percentage,
+        earnedXp: resolveExamXpDisplay({
+          serverXp:
+            Number(attempt.earned_xp || 0) > 0
+              ? attempt.earned_xp
+              : carryXp,
+          attemptNumber: attempt.attempt_number,
+          baseXp,
+        }),
+        locked: attempt.score_percentage === 100 || Number(attempt.attempt_number || 0) >= 5,
+      });
+
+      if (Number(attempt.attempt_number || 0) < 5) {
+        setRetakeMessage("Retake started. You can try again now.");
+      } else {
+        setRetakeMessage("Retake is not available yet. Please refresh and try again.");
+      }
+    } catch (err) {
+      console.error("Failed to start retake:", err);
+      setRetakeMessage("Could not start retake right now. Please try again.");
+    }
+  };
   console.log("🚀 Current challenge data:", examData);
 
   return (
@@ -267,7 +318,7 @@ const CodingExamPage = () => {
         style={{
           backgroundImage: `url('${heroBackground}')`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "center 62%",
           height: "200px"
         }}
       >
@@ -373,6 +424,49 @@ const CodingExamPage = () => {
                   </span>
                 )}
               </div>
+
+              {!isAdmin && examState.locked && Number(examState.attemptNumber || 0) >= 5 && (
+                <div
+                  style={{
+                    background: "rgba(239,68,68,0.1)",
+                    border: "1px solid rgba(239,68,68,0.35)",
+                    borderRadius: "12px",
+                    padding: "0.9rem 1rem",
+                    marginBottom: "1rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "0.75rem",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span style={{ color: "#fca5a5", fontWeight: 600 }}>
+                    Sorry, you used all attempts. You need to retake the exam and try again.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRetake}
+                    style={{
+                      background: "#ef4444",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Start Retake
+                  </button>
+                </div>
+              )}
+
+              {retakeMessage && (
+                <div style={{ color: "#fcd34d", marginBottom: "1rem", fontWeight: 600 }}>
+                  {retakeMessage}
+                </div>
+              )}
+
               <div
                 style={{
                   background: "rgba(59,130,246,0.08)",
@@ -396,10 +490,9 @@ const CodingExamPage = () => {
                   <li>Your program is tested automatically using hidden test cases.</li>
                   <li>Do NOT print extra text — only print the required output.</li>
                   <li>You have a maximum of <strong>5 attempts</strong>.</li>
-                  <li>The first 2 attempts have no penalty.</li>
-                  <li>After that, a small 5% XP penalty applies per attempt.</li>
+                  <li>Failed submissions reduce exam XP by 5% each attempt.</li>
                   <li>Exam locks only when you use all <strong>5 attempts</strong>.</li>
-                  <li>XP never decreases — improvement is always rewarded.</li>
+                  <li>Exam starts at {Number(challenge.points || 1000)} XP.</li>
                 </ul>
               </div>
               <div className={styles.questionText}>
@@ -492,10 +585,15 @@ const CodingExamPage = () => {
                   isAdmin={isAdmin}
                   locked={examState.locked}
                   onResult={async (data) => {
+                    const baseXp = Number(challenge.points || 1000);
                     setExamState({
                       attemptNumber: data.attempt_number,
                       score: data.score_percentage,
-                      earnedXp: data.earned_xp,
+                      earnedXp: resolveExamXpDisplay({
+                        serverXp: data.earned_xp,
+                        attemptNumber: data.attempt_number,
+                        baseXp,
+                      }),
                       locked: !isAdmin && (data.attempt_number || 0) >= 5
                     });
 
@@ -555,7 +653,17 @@ const CodingExamPage = () => {
               ))}
             </div>
 
-            <div className={styles.congratsIcon}>🎉</div>
+            <div className={styles.congratsIcon}>
+              {congratsData?.badge?.image ? (
+                <img
+                  src={congratsData.badge.image}
+                  alt={congratsData.badge.title || "Badge"}
+                  style={{ width: "92px", height: "92px", objectFit: "contain" }}
+                />
+              ) : (
+                <span>{congratsData?.badge?.icon || "🏆"}</span>
+              )}
+            </div>
             <h2 className={styles.congratsTitle}>Congratulations!</h2>
             <p className={styles.congratsSubtitle}>
               You passed the {congratsData.language?.toUpperCase()} Course

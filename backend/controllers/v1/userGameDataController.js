@@ -62,12 +62,25 @@ class UserGameDataController {
             0
         );
 
-        const examXpEarned = (examRows || []).reduce(
+        const latestExamByProblem = new Map();
+        (examRows || []).forEach((row) => {
+            const key = Number(row?.exam_problem_id);
+            if (!Number.isFinite(key)) return;
+
+            const existing = latestExamByProblem.get(key);
+            if (!existing || Number(row?.id || 0) > Number(existing?.id || 0)) {
+                latestExamByProblem.set(key, row);
+            }
+        });
+
+        const latestExamRows = Array.from(latestExamByProblem.values());
+
+        const examXpEarned = latestExamRows.reduce(
             (sum, row) => sum + Number(row?.earned_xp || 0),
             0
         );
 
-        const examCompleted = (examRows || []).some((row) => row?.passed === true);
+        const examCompleted = latestExamRows.some((row) => row?.passed === true);
 
         return res.status(200).json({
             success: true,

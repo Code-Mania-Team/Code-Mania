@@ -49,12 +49,15 @@ class ExamController {
         return res.status(401).json({ success: false, message: "Unauthorized" });
 
       const language = req.body?.language;
+      const carryXpRaw = Number(req.body?.carryXp);
+      const carryXp = Number.isFinite(carryXpRaw) ? carryXpRaw : undefined;
       if (!language)
         return res.status(400).json({ success: false, message: "language is required" });
 
       const result = await this.examService.startAttempt({
         userId,
         languageSlug: language.toLowerCase(),
+        carryXp,
         isAdmin,
       });
 

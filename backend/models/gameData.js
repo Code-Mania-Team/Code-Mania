@@ -68,6 +68,7 @@ class GameData {
       .from("user_exam_attempts")
       .select(`
         id,
+        exam_problem_id,
         earned_xp,
         passed,
         exam_problems!inner (
