@@ -292,6 +292,24 @@ class ExamService {
       attemptNumber: submissionNumber
     });
 
+    let achievementAwarded = false;
+    if (passed) {
+      try {
+        const achievementId = await this.exam.getExamCompletionAchievementId({
+          languageSlug: attempt.language,
+        });
+
+        if (achievementId) {
+          achievementAwarded = await this.exam.grantAchievementIfMissing({
+            userId,
+            achievementId,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to grant exam completion badge", err);
+      }
+    }
+
     return {
       ok: true,
       data: {
@@ -301,6 +319,7 @@ class ExamService {
         earned_xp: calculatedXp,
         xp_added: xpDifference,
         attempt_number: submissionNumber,
+        achievement_awarded: achievementAwarded,
         passed_tests: passedTests,
         total_tests: totalTests,
         results: execution.results

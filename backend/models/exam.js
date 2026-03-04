@@ -283,6 +283,51 @@ class ExamModel {
       xp_input: xp,
     });
   }
+
+  async getExamCompletionAchievementId({ languageSlug }) {
+    if (!languageSlug) return null;
+
+    const language = await this.getLanguageBySlug(languageSlug);
+    if (!language?.id) return null;
+
+    const normalizedSlug = String(languageSlug).toLowerCase();
+
+    const { data, error } = await supabase
+      .from("achievements")
+      .select("id")
+      .eq("programming_language_id", language.id)
+      .ilike("badge_key", `%completed-${normalizedSlug}%`)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.id || null;
+  }
+
+  async grantAchievementIfMissing({ userId, achievementId }) {
+    if (!userId || !achievementId) return false;
+
+    const { data: existing, error: existingError } = await supabase
+      .from("users_achievements")
+      .select("achievement_id")
+      .eq("user_id", userId)
+      .eq("achievement_id", achievementId)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+    if (existing) return false;
+
+    const { error: insertError } = await supabase
+      .from("users_achievements")
+      .insert({
+        user_id: userId,
+        achievement_id: achievementId,
+      });
+
+    if (insertError) throw insertError;
+    return true;
+  }
 }
 
 export default ExamModel;

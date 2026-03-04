@@ -25,6 +25,14 @@ class GameDataService {
 
         return this.gameData.getQuizAttemptsByLanguage(user_id, programming_language_id);
     }
+
+    async getExamAttemptsByLanguage(user_id, programming_language_id) {
+        if (!programming_language_id) {
+            throw new Error("programming_language_id is required");
+        }
+
+        return this.gameData.getExamAttemptsByLanguage(user_id, programming_language_id);
+    }
 }
 
 export default GameDataService;

@@ -165,6 +165,8 @@ const PythonCourse = () => {
   const getExamStatus = () => {
     if (user?.role === "admin") return "available";
 
+    if (data?.examCompleted) return "completed";
+
     const completedExam = (userAchievements || []).some((achievement) =>
       String(achievement?.badge_key || "").includes("completed-python")
     );

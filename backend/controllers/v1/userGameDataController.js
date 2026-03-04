@@ -35,6 +35,10 @@ class UserGameDataController {
             user_id,
             programming_language_id
         );
+        const examRows = await this.gameDataService.getExamAttemptsByLanguage(
+            user_id,
+            programming_language_id
+        );
 
         const completedQuizStages = Array.from(
             new Set(
@@ -58,12 +62,21 @@ class UserGameDataController {
             0
         );
 
+        const examXpEarned = (examRows || []).reduce(
+            (sum, row) => sum + Number(row?.earned_xp || 0),
+            0
+        );
+
+        const examCompleted = (examRows || []).some((row) => row?.passed === true);
+
         return res.status(200).json({
             success: true,
             completedQuests: rows.map(r => r.exercise_id),
-            xpEarned: questXpEarned + quizXpEarned,
+            xpEarned: questXpEarned + quizXpEarned + examXpEarned,
             questXpEarned,
             quizXpEarned,
+            examXpEarned,
+            examCompleted,
             availableQuiz: (quizRows || []).length,
             completedQuizStages,
             quests: rows.map(r => ({

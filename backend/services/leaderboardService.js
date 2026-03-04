@@ -6,6 +6,7 @@ class LeaderboardService {
     async buildGlobalLeaderboard() {
         const questData = await this.model.getQuestXP();
         const quizData = await this.model.getQuizXP();
+        const examData = await this.model.getExamXP();
 
         const users = {};
 
@@ -43,6 +44,33 @@ class LeaderboardService {
             const userId = row.user_id;
             const xp = row.earned_xp || 0;
             const slug = row.quizzes?.programming_languages?.slug;
+
+            if (!users[userId]) {
+                users[userId] = {
+                    user_id: userId,
+                    full_name: row.users?.full_name,
+                    character_id: row.users?.character_id,
+                    overall_xp: 0,
+                    python_xp: 0,
+                    cpp_xp: 0,
+                    javascript_xp: 0
+                };
+            }
+
+            users[userId].overall_xp += xp;
+
+            if (slug === "python") users[userId].python_xp += xp;
+            if (slug === "cpp") users[userId].cpp_xp += xp;
+            if (slug === "javascript") users[userId].javascript_xp += xp;
+        });
+
+        // Process Exam XP
+        examData.forEach(row => {
+            if (row.users?.role === "admin") return;
+
+            const userId = row.user_id;
+            const xp = Number(row.earned_xp || 0);
+            const slug = row.exam_problems?.programming_languages?.slug;
 
             if (!users[userId]) {
                 users[userId] = {

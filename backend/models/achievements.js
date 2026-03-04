@@ -37,6 +37,73 @@ class Achievements {
         })) || [];
         }
 
+    async syncExamCompletionBadges(userId) {
+        const { data: passedAttempts, error: attemptsError } = await this.db
+            .from("user_exam_attempts")
+            .select(`
+                exam_problems!inner (
+                    programming_language_id
+                )
+            `)
+            .eq("user_id", userId)
+            .eq("passed", true);
+
+        if (attemptsError) throw attemptsError;
+
+        const languageIds = Array.from(
+            new Set(
+                (passedAttempts || [])
+                    .map((row) => Number(row?.exam_problems?.programming_language_id))
+                    .filter((id) => Number.isFinite(id))
+            )
+        );
+
+        if (!languageIds.length) return;
+
+        const { data: languages, error: languagesError } = await this.db
+            .from("programming_languages")
+            .select("id, slug")
+            .in("id", languageIds);
+
+        if (languagesError) throw languagesError;
+
+        for (const language of (languages || [])) {
+            const slug = String(language?.slug || "").toLowerCase();
+            if (!slug) continue;
+
+            const { data: achievement, error: achievementError } = await this.db
+                .from("achievements")
+                .select("id")
+                .eq("programming_language_id", language.id)
+                .ilike("badge_key", `%completed-${slug}%`)
+                .limit(1)
+                .maybeSingle();
+
+            if (achievementError) throw achievementError;
+            if (!achievement?.id) continue;
+
+            const { data: existing, error: existingError } = await this.db
+                .from("users_achievements")
+                .select("achievement_id")
+                .eq("user_id", userId)
+                .eq("achievement_id", achievement.id)
+                .limit(1)
+                .maybeSingle();
+
+            if (existingError) throw existingError;
+            if (existing) continue;
+
+            const { error: insertError } = await this.db
+                .from("users_achievements")
+                .insert({
+                    user_id: userId,
+                    achievement_id: achievement.id
+                });
+
+            if (insertError) throw insertError;
+        }
+    }
+
 
     // Mark achievement as completed for user
     async completeAchievement(userId, achievementId) {

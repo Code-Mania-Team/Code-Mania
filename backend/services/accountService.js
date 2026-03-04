@@ -129,14 +129,30 @@ class AccountService {
       0,
     );
 
-    const totalXp = questXpTotal + quizXpTotal;
+    const { data: examAttempts, error: examError } = await supabase
+      .from("user_exam_attempts")
+      .select("earned_xp")
+      .eq("user_id", user_id);
+
+    if (examError) {
+      throw examError;
+    }
+
+    const examXpTotal = (examAttempts || []).reduce(
+      (sum, row) => sum + Number(row?.earned_xp || 0),
+      0,
+    );
+
+    const totalXp = questXpTotal + quizXpTotal + examXpTotal;
 
     // 2️⃣ Get badge count from model
 
     const badgeCount = await this.user.getUserBadgeCount(user_id);
 
     return {
-      totalXp: questXpTotal + quizXpTotal,
+      totalXp,
+
+      examXpTotal,
 
       badgeCount,
     };

@@ -14,6 +14,7 @@ class AchievementsController {
                     message: "User not authenticated" 
                 });
             }
+            await this.achievements.syncExamCompletionBadges(userId);
             const achievements = await this.achievements.getUserAchievements(userId);
             res.status(200).json({ 
                 success: true, 
