@@ -675,18 +675,11 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           {/* ===== GAME ===== */}
 
-          <div className={styles["game-container"]}>
-            <div className={isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}>
-
-              <div
-
-                id="phaser-container"
-
-                className={styles["game-scene"]}
-
-              />
-            </div>
-
+          <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
+            <div
+              id="phaser-container"
+              className={styles["game-scene"]}
+            />
           </div>
 
 

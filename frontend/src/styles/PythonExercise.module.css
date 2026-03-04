@@ -131,7 +131,7 @@
 .terminal-lock-overlay {
   position: absolute;
   inset: 0;
-  z-index: 20;
+  z-index: 1200;
   display: flex;
   align-items: center;
   justify-content: center;

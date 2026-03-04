@@ -62,6 +62,7 @@ const InteractiveTerminal = ({
   const [isRunning, setIsRunning] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [isQuestActive, setIsQuestActive] = useState(false);
+  const [isQuestCompleted, setIsQuestCompleted] = useState(false);
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
   );
@@ -130,19 +131,34 @@ const InteractiveTerminal = ({
   useEffect(() => {
     const handleQuestStarted = (e) => {
       const startedId = e.detail?.questId;
-      if (startedId === questId) {
+      if (startedId === questId && !isQuestCompleted) {
         setIsQuestActive(true);
       }
     };
 
-    window.addEventListener("code-mania:quest-started", handleQuestStarted);
+    const handleQuestComplete = (e) => {
+      const completedId = e.detail?.questId;
+      if (String(completedId) === String(questId)) {
+        setIsQuestCompleted(true);
+        setIsQuestActive(false);
+        setIsRunning(false);
+        setWaitingForInput(false);
+        terminalRef.current?.blur();
+      }
+    };
 
-    return () =>
+    window.addEventListener("code-mania:quest-started", handleQuestStarted);
+    window.addEventListener("code-mania:quest-complete", handleQuestComplete);
+
+    return () => {
       window.removeEventListener("code-mania:quest-started", handleQuestStarted);
-  }, [questId]);
+      window.removeEventListener("code-mania:quest-complete", handleQuestComplete);
+    };
+  }, [isQuestCompleted, questId]);
 
   useEffect(() => {
     setIsQuestActive(false);
+    setIsQuestCompleted(false);
     setValidationResult(null);
     setActivePanel("editor");
   }, [questId]);
@@ -193,7 +209,7 @@ const InteractiveTerminal = ({
   =============================== */
 
   const handleSubmit = async () => {
-    if (!quest || !isQuestActive || isRunning) return;
+    if (!quest || !isQuestActive || isQuestCompleted || isRunning) return;
 
     setIsRunning(true);
     setProgramOutput("");
@@ -314,6 +330,10 @@ const InteractiveTerminal = ({
   };
 
   const handleKeyDown = (e) => {
+    if (!isQuestActive || isQuestCompleted || !isRunning || !waitingForInput) {
+      return;
+    }
+
     if (e.key === "Enter") {
       handleSubmitInput();
       e.preventDefault();
@@ -345,7 +365,7 @@ const InteractiveTerminal = ({
   =============================== */
 
   return (
-    <div className={styles["code-container"]}>
+    <div className={`${styles["code-container"]} ${!isQuestActive || isQuestCompleted ? styles["code-container-locked"] : ""}`}>
       {useMobileSplit && showMobilePanelSwitcher && (
         <div className={styles["mobile-panel-switcher"]}>
           <button
@@ -378,20 +398,20 @@ const InteractiveTerminal = ({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               className={`${styles["submit-btn"]} ${
-                        !isQuestActive ? styles["btn-disabled"] : ""
+                        !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
                       }`}
               onClick={handleRun}
-              disabled={isRunning || !isQuestActive}
+              disabled={isRunning || !isQuestActive || isQuestCompleted}
             >
               <Play size={16} />
               {isRunning ? "Running..." : "Run"}
             </button>
             <button
               className={`${styles["submit-btn"]} ${
-                        !isQuestActive ? styles["btn-disabled"] : ""
+                        !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
                       }`}
               onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
-              disabled={isRunning || !isQuestActive}
+              disabled={isRunning || !isQuestActive || isQuestCompleted}
             >
               <Check size={16} />
               {isRunning ? "Submitting..." : "Submit"}
@@ -405,11 +425,15 @@ const InteractiveTerminal = ({
           language={monacoLang}
           theme="vs-dark"
           value={code}
-          onChange={(v) => setCode(v ?? "")}
+          onChange={(v) => {
+            if (!isQuestActive || isQuestCompleted) return;
+            setCode(v ?? "");
+          }}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
-            automaticLayout: true
+            automaticLayout: true,
+            readOnly: !isQuestActive || isQuestCompleted
           }}
         />
         )}
@@ -432,8 +456,8 @@ const InteractiveTerminal = ({
         <div
             className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
             ref={terminalRef}
-            tabIndex={isRunning ? 0 : -1}
-            onClick={() => isRunning && terminalRef.current?.focus()}
+            tabIndex={isRunning && isQuestActive && !isQuestCompleted ? 0 : -1}
+            onClick={() => isRunning && isQuestActive && !isQuestCompleted && terminalRef.current?.focus()}
             onKeyDown={handleKeyDown}
           >
         <div className={styles["terminal-header"]}>Terminal</div>
@@ -478,6 +502,12 @@ const InteractiveTerminal = ({
             )}
           </div>
         )}
+
+      {(!isQuestActive || isQuestCompleted) && (
+        <div className={styles["terminal-lock-overlay"]}>
+          <p className={styles["terminal-lock-text"]}>Interact with something to unlock this code terminal.</p>
+        </div>
+      )}
     </div>
   );
 };
