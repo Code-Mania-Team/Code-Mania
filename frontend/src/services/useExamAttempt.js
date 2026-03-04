@@ -12,14 +12,17 @@ const useExamAttempt = () => {
   /* ===============================
      START ATTEMPT (LANGUAGE-BASED)
   =============================== */
-  const startAttempt = async (language) => {
+  const startAttempt = async (language, carryXp) => {
     setLoading(true);
     setError(null);
 
     try {
       const response = await axiosPrivate.post(
         "/v1/exam/attempts/start",
-        { language } // 🔥 send language instead of problemId
+        {
+          language,
+          ...(Number.isFinite(Number(carryXp)) ? { carryXp: Number(carryXp) } : {}),
+        }
       );
 
       if (response.data?.success) {

@@ -157,6 +157,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     if (isRunning || !attemptId) return;
 
     resetTerminal();
+    write("\n⏳ Running some tests...\n");
     setIsRunning(true);
 
     try {
@@ -198,9 +199,11 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
     } catch (err) {
       console.error("Submission error:", err);
+      write("\n❌ Error while running tests\n");
+    } finally {
+      write("\n▶ Ready for Execution\n");
+      setIsRunning(false);
     }
-
-    setIsRunning(false);
   };
 
   /* ===============================
@@ -364,7 +367,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
             {!output && !waitingForInput && (
               <span style={{ color: "#22c55e", opacity: 0.7 }}>
-                ▶ Ready for execution
+                ▶ Ready for Execution
               </span>
             )}
           </pre>

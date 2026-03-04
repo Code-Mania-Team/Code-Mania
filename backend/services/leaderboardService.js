@@ -64,8 +64,21 @@ class LeaderboardService {
             if (slug === "javascript") users[userId].javascript_xp += xp;
         });
 
-        // Process Exam XP
-        examData.forEach(row => {
+        const latestExamAttemptByUserProblem = new Map();
+        examData.forEach((row) => {
+            const userId = row.user_id;
+            const problemId = row.exam_problem_id;
+            if (!userId || !problemId) return;
+
+            const key = `${userId}:${problemId}`;
+            const existing = latestExamAttemptByUserProblem.get(key);
+            if (!existing || Number(row.id || 0) > Number(existing.id || 0)) {
+                latestExamAttemptByUserProblem.set(key, row);
+            }
+        });
+
+        // Process latest Exam XP per user+problem
+        Array.from(latestExamAttemptByUserProblem.values()).forEach(row => {
             if (row.users?.role === "admin") return;
 
             const userId = row.user_id;

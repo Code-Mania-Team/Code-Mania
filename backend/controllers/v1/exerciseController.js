@@ -492,38 +492,47 @@ class ExerciseController {
           .join("\n")
           .trim();
 
+      const safeCode = (code ?? "").toString();
       const actual = normalize(output);
       const expected = normalize(quest.expected_output);
-      const mode = (quest.validation_mode || "").toUpperCase();
+      const mode = (quest.validation_mode || quest.requirements?.validation_mode || "")
+        .toString()
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "_");
+      const isMultiObjectiveMode =
+        mode === "MULTI_OBJECTIVE" ||
+        mode === "MUTI_OBJECTIVE" ||
+        Array.isArray(quest.requirements?.objectives);
 
       let validationResult = { success: true };
 
       // ==================================================
       // 🧠 MULTI OBJECTIVE MODE
       // ==================================================
-      if (mode === "MULTI_OBJECTIVE") {
+      if (isMultiObjectiveMode) {
         const results = {};
         let allPassed = true;
 
         const normalizedOutput = normalize(output);
 
-        for (const obj of quest.requirements.objectives) {
+        for (const obj of quest.requirements?.objectives || []) {
           let passed = false;
 
           if (obj.type === "output_contains") {
             passed = normalizedOutput.includes(obj.value);
           } else if (obj.type === "output_equals") {
-            passed = normalizedOutput === obj.value;
+            passed = normalizedOutput === normalize(obj.value);
           } else if (obj.type === "output_regex") {
             const regex = new RegExp(obj.value, "m");
             passed = regex.test(normalizedOutput);
           } else if (obj.type === "code_contains") {
-            passed = code.includes(obj.value);
+            passed = safeCode.includes(obj.value);
           } else if (obj.type === "code_regex") {
             const regex = new RegExp(obj.value, "m");
-            passed = regex.test(code);
+            passed = regex.test(safeCode);
           } else if (obj.type === "min_print_count") {
-            const matches = code.match(/\bprint\s*\(/g);
+            const matches = safeCode.match(/\bprint\s*\(/g);
             const count = matches ? matches.length : 0;
             passed = count >= obj.value;
           }

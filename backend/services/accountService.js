@@ -87,6 +87,19 @@ class AccountService {
     return authUser;
   }
 
+  async ensureAdmin(userId) {
+    if (!userId) {
+      throw new Error("Missing user id");
+    }
+
+    const role = await this.user.getUserRole(userId);
+    if (role !== "admin") {
+      throw new Error("Forbidden: admin access required");
+    }
+
+    return true;
+  }
+
   async getProfileSummary(user_id) {
     if (!user_id) {
       throw new Error("Unauthorized");
@@ -131,14 +144,25 @@ class AccountService {
 
     const { data: examAttempts, error: examError } = await supabase
       .from("user_exam_attempts")
-      .select("earned_xp")
+      .select("id, exam_problem_id, earned_xp")
       .eq("user_id", user_id);
 
     if (examError) {
       throw examError;
     }
 
-    const examXpTotal = (examAttempts || []).reduce(
+    const latestExamByProblem = new Map();
+    (examAttempts || []).forEach((row) => {
+      const key = Number(row?.exam_problem_id);
+      if (!Number.isFinite(key)) return;
+
+      const existing = latestExamByProblem.get(key);
+      if (!existing || Number(row?.id || 0) > Number(existing?.id || 0)) {
+        latestExamByProblem.set(key, row);
+      }
+    });
+
+    const examXpTotal = Array.from(latestExamByProblem.values()).reduce(
       (sum, row) => sum + Number(row?.earned_xp || 0),
       0,
     );

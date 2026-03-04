@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect, useMemo } from "react";
 import Editor from "@monaco-editor/react";
 import { Play, Trash2, ChevronDown } from "lucide-react";
 import styles from "../styles/TerminalPage.module.css";
+import { useNavigate } from "react-router-dom";
+import useLearningProgress from "../services/useLearningProgress";
 
 const LANGUAGES = [
     { id: "python", label: "Python", ext: "script.py", icon: "🐍" },
@@ -27,6 +29,12 @@ function getStarterCode(lang) {
 }
 
 const TerminalPage = () => {
+    const navigate = useNavigate();
+    const { progress, loading } = useLearningProgress();
+    const hasTerminalAccess = (progress || []).some(
+        (row) => Number(row?.completed || 0) >= 16
+    );
+
     const [language, setLanguage] = useState("python");
     const [code, setCode] = useState(() => getStarterCode("python"));
     const [programOutput, setProgramOutput] = useState("");
@@ -160,6 +168,40 @@ const TerminalPage = () => {
         }
         setIsRunning(false);
     };
+
+    if (loading) {
+        return null;
+    }
+
+    if (!hasTerminalAccess) {
+        return (
+            <div className={styles.terminalPage}>
+                <div className={styles.toolbar}>
+                    <div className={styles.toolbarLeft}>
+                        <strong>Terminal Locked</strong>
+                    </div>
+                </div>
+                <div className={styles.editorTerminalWrapper}>
+                    <div
+                        className={styles.editorPanel}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "360px" }}
+                    >
+                        <div style={{ textAlign: "center", padding: "2rem", color: "#cbd5e1" }}>
+                            <h2 style={{ marginBottom: "0.75rem" }}>Unlock the Terminal</h2>
+                            <p style={{ marginBottom: "1rem" }}>Complete at least 16 exercises in one course to unlock this feature.</p>
+                            <button
+                                type="button"
+                                className={styles.runBtn}
+                                onClick={() => navigate("/learn")}
+                            >
+                                Go to Courses
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.terminalPage}>

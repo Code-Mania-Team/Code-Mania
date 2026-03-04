@@ -62,7 +62,7 @@ class ExamService {
     };
   }
 
-  async startAttempt({ userId, languageSlug, isAdmin = false }) {
+  async startAttempt({ userId, languageSlug, carryXp, isAdmin = false }) {
     const effectiveIsAdmin = isAdmin || await this.exam.isAdminUser(userId);
 
     // 1️⃣ Get problem by language
@@ -83,7 +83,7 @@ class ExamService {
           user_id: userId,
           exam_problem_id: problemId,
           language: languageSlug,
-          attempt_number: 1,
+          attempt_number: 0,
           score_percentage: 0,
           passed: false,
           earned_xp: 0,
@@ -100,6 +100,25 @@ class ExamService {
     });
 
     if (existing) {
+      const canRetake = !existing.passed && Number(existing.attempt_number || 0) >= 5;
+
+      if (canRetake) {
+        const normalizedCarryXp = Number(carryXp || 0);
+        const retakeCarryXp = Number(existing.earned_xp || 0) > 0
+          ? Number(existing.earned_xp || 0)
+          : normalizedCarryXp;
+
+        const retakeAttempt = await this.exam.resetAttemptForRetake({
+          attemptId: existing.id,
+          carryXp: retakeCarryXp,
+        });
+
+        return {
+          ok: true,
+          data: retakeAttempt,
+        };
+      }
+
       return {
         ok: true,
         data: existing
@@ -107,14 +126,11 @@ class ExamService {
     }
 
     // 3️⃣ Create new attempt
-    const attemptNumber =
-      await this.exam.getNextAttemptNumber({ userId, problemId });
-
     const attempt = await this.exam.createAttempt({
       userId,
       problemId,
       languageSlug,
-      attemptNumber
+      attemptNumber: 0
     });
 
     return {
@@ -241,39 +257,27 @@ class ExamService {
     const passedTests = execution.passed;
     const scorePercentage = execution.score;
 
-    /* =====================================
-       PENALTY SYSTEM (0-based attempts)
-       1st submission → no penalty
-       2nd submission → no penalty
-       3rd submission → 5%
-       4th submission → 10%
-       5th submission → 15%
-    ===================================== */
-
-    const baseXp = Number(problem.exp || 0);
-    const scoreRatio =
-      totalTests === 0 ? 0 : passedTests / totalTests;
-
-    const penaltySteps = Math.max(0, submissionNumber - 2);
-    const penaltyRate = 0.05;
-    const minModifier = 0.85;
-
-    const attemptModifier = Math.max(
-      minModifier,
-      1 - (penaltySteps * penaltyRate)
-    );
-
-    const calculatedXp = Math.round(
-      baseXp * scoreRatio * attemptModifier
-    );
-
     const passed = scorePercentage >= PASS_THRESHOLD;
+
+    const baseXp = Number(problem.exp || 1000);
+    const previousXp = Number(attempt.earned_xp || 0);
+    const startingXp = previousXp > 0 ? previousXp : baseXp;
+    const failedPenalty = Math.round(baseXp * 0.05);
+
+    let calculatedXp = passed
+      ? startingXp
+      : Math.max(0, startingXp - failedPenalty);
+
+    const retakeXpCap = 400;
+    const isRetakeCycle = Number(attempt.attempt_number || 0) === 0 && previousXp > 0;
+    if (passed && isRetakeCycle) {
+      calculatedXp = Math.min(calculatedXp, retakeXpCap);
+    }
 
     /* =====================================
        APPLY XP DIFFERENCE (ADD OR SUBTRACT)
     ===================================== */
 
-    const previousXp = attempt.earned_xp || 0;
     const xpDifference = calculatedXp - previousXp;
 
     if (xpDifference !== 0) {
