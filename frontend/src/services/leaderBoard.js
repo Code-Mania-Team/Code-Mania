@@ -28,7 +28,7 @@ const useGetAllLeaderboard = () => {
 
     try {
       const response = await axios.get(
-        "http://localhost:3000/v1/leaderboard",
+        "https://code-mania-production.up.railway.app/v1/leaderboard",
         {
           headers: {
             apikey: import.meta.env.VITE_API_KEY,
