@@ -54,9 +54,11 @@ export default class QuestUI {
 
     // Title
     this.titleText = scene.add.text(width / 2, this.titleY, "", {
-      fontSize: "32px",
+      fontSize: this.isMobile ? "16px" : "32px",
       color: "#ffd37a",
-      fontStyle: "bold"
+      fontStyle: "bold",
+      align: "center",
+      wordWrap: { width: this.panelWidth - 56, useAdvancedWrap: true }
     }).setOrigin(0.5);
 
     // Divider
@@ -121,6 +123,7 @@ export default class QuestUI {
 
     this.onPointerDown = (pointer) => {
       if (!this.visible) return;
+      if (!this.isMobile) return;
 
       if (this.bodyScrollMax <= 0) return;
       if (!this._isInsideScrollArea(pointer.x, pointer.y)) return;
@@ -132,6 +135,7 @@ export default class QuestUI {
 
     this.onPointerMove = (pointer) => {
       if (!this.visible) return;
+      if (!this.isMobile) return;
       if (!this.isDraggingScroll) return;
       if (pointer.id !== this.dragPointerId) return;
       if (this.bodyScrollMax <= 0) return;

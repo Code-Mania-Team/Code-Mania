@@ -728,8 +728,16 @@ export default class GameScene extends Phaser.Scene {
   shouldDisableMobileControls() {
     const activeQuest = this.questManager?.activeQuest;
     const questInProgress = Boolean(activeQuest && !activeQuest.completed);
+    const dialogueActive = Boolean(this.dialogueManager?.active);
+    const questHudVisible = Boolean(this.questHUD?.visible);
 
-    return this.gamePausedByTerminal || this.isTypingInUI() || questInProgress;
+    return (
+      this.gamePausedByTerminal ||
+      this.isTypingInUI() ||
+      questInProgress ||
+      dialogueActive ||
+      questHudVisible
+    );
   }
 
   syncMobileControlsVisibility() {
