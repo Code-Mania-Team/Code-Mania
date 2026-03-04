@@ -98,10 +98,20 @@ class AccountController {
                 user_id: authUser.user_id,
             });
         } catch (err) {
+            const message = String(err?.message || "");
+            const otpErrors = ["OTP not found", "OTP expired", "OTP already used"];
 
-        return res.status(500).json({ 
-            success: false, 
-            message: err.message });
+            if (otpErrors.includes(message)) {
+                return res.status(200).json({
+                    success: false,
+                    message: "Invalid OTP",
+                });
+            }
+
+            return res.status(500).json({ 
+                success: false, 
+                message: message || "Internal server error",
+            });
         }
 
     }

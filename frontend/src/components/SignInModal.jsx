@@ -203,7 +203,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
       if (confirmPassword && newPassword !== confirmPassword) {
 
-        setConfirmPasswordError('Passwords do not match');
+        setConfirmPasswordError('Password Mismatch');
 
       } else {
 
@@ -225,7 +225,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
     if (newConfirmPassword && password !== newConfirmPassword) {
 
-      setConfirmPasswordError('Passwords do not match');
+      setConfirmPasswordError('Password Mismatch');
 
     } else {
 
@@ -265,7 +265,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
           if (password !== confirmPassword) {
 
-            setConfirmPasswordError('Passwords do not match');
+            setConfirmPasswordError('Password Mismatch');
 
             setIsLoading(false);
 
@@ -293,7 +293,13 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         } else {
 
-          const user = await verifyOtp(email, otp);
+          const result = await verifyOtp(email, otp);
+
+          if (!result?.success) {
+            setLoginError(result?.message || 'Invalid OTP');
+            setIsLoading(false);
+            return;
+          }
 
           localStorage.setItem('needsUsername', 'true');
 
@@ -1414,9 +1420,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
                 </div>
 
-                {passwordError && !showOtpField && (
+                {confirmPasswordError && !showOtpField && (
 
-                  <p className={styles.errorText}>{passwordError}</p>
+                  <p className={styles.errorText}>{confirmPasswordError}</p>
 
                 )}
 
@@ -1541,6 +1547,14 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     : 'Send Verification Code'}
 
               </button>
+
+
+
+              {loginError && (
+
+                <p className={styles.errorText}>{loginError}</p>
+
+              )}
 
 
 

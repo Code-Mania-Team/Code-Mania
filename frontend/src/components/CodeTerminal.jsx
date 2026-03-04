@@ -77,8 +77,13 @@ const InteractiveTerminal = ({
 }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
   const monacoLang = getMonacoLang(language);
+  const resolveInitialCode = () => {
+    const dbStartingCode = typeof quest?.starting_code === "string" ? quest.starting_code : "";
+    if (dbStartingCode.trim()) return dbStartingCode;
+    return getStarterCode(language);
+  };
 
-  const [code, setCode] = useState(() => getStarterCode(language));
+  const [code, setCode] = useState(() => resolveInitialCode());
   const [programOutput, setProgramOutput] = useState("");
   const [inputBuffer, setInputBuffer] = useState("");
   const [waitingForInput, setWaitingForInput] = useState(false);
@@ -185,8 +190,9 @@ const InteractiveTerminal = ({
     setIsQuestCompleted(false);
     setValidationResult(null);
     setFailedSubmissions(0);
+    setCode(resolveInitialCode());
     setActivePanel("editor");
-  }, [questId]);
+  }, [questId, quest?.starting_code]);
 
   const progressiveHints = useMemo(() => {
     const questHints = Array.isArray(quest?.hints)

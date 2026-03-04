@@ -5,6 +5,7 @@ import QuestManager from "../systems/questManager";
 import DialogueManager from "../systems/dialogueManager";
 import CutsceneManager from "../systems/cutSceneManager";
 import { CUTSCENES } from "../config/cutSceneConfig";
+import { CUTSCENE_OPTIONS } from "../config/cutSceneConfig";
 import pythonQuests from "../../data/pythonExercises.json";
 import jsQuests from "../../data/javascriptExercises.json";
 import cppQuests from "../../data/cppExercises.json";
@@ -59,6 +60,46 @@ export default class GameScene extends Phaser.Scene {
     this.gamePausedByTerminal = false;
     this.worldState = { abilities: new Set() };
     this.openedChests = new Set();
+    this.cutsceneSkipButton = null;
+  }
+
+  createCutsceneSkipButton(onSkip) {
+    this.destroyCutsceneSkipButton();
+
+    const { width } = this.scale;
+    this.cutsceneSkipButton = this.add.text(width - 20, 18, "Skip", {
+      font: "bold 20px Arial",
+      fill: "#ffffff",
+      backgroundColor: "#00000088",
+      padding: { x: 12, y: 6 },
+    })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(30010)
+      .setInteractive({ useHandCursor: true });
+
+    this.cutsceneSkipButton.on("pointerdown", (pointer) => {
+      onSkip?.();
+    });
+
+    this.handleCutsceneSkipResize = () => {
+      if (!this.cutsceneSkipButton) return;
+      this.cutsceneSkipButton.setPosition(this.scale.width - 20, 18);
+    };
+
+    this.scale.on("resize", this.handleCutsceneSkipResize);
+  }
+
+  destroyCutsceneSkipButton() {
+    if (this.handleCutsceneSkipResize) {
+      this.scale.off("resize", this.handleCutsceneSkipResize);
+      this.handleCutsceneSkipResize = null;
+    }
+
+    if (this.cutsceneSkipButton) {
+      this.cutsceneSkipButton.destroy();
+      this.cutsceneSkipButton = null;
+    }
   }
 
   setupLayerSwitching() {
@@ -184,9 +225,9 @@ export default class GameScene extends Phaser.Scene {
     if (!questId) return;
 
     // Keep completion flow inside engine too (not only React page listeners)
-    this.questManager?.completeQuest(Number(questId));
+    this.questManager?.completeQuest(Number(questId), { emitEvent: false });
 
-    const quest = this.questManager.getQuestById(questId);
+    const quest = this.questManager.getQuestById(Number(questId));
     if (!quest) return;
 
     const gainedExp = quest.experience || 0;
@@ -537,6 +578,7 @@ export default class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.mobileControls?.destroy();
       this.mobileControls = null;
+      this.destroyCutsceneSkipButton();
     });
 
 
@@ -781,7 +823,29 @@ export default class GameScene extends Phaser.Scene {
 
 
   getCurrentPointerTarget() {
-    // 1️⃣ If any exit requires a completed quest → point to it
+    // 1️⃣ Prioritize chest quests on map (current objective in maps like Python map2)
+    const activeQuest = this.questManager?.activeQuest;
+    const icons = this.chestQuestManager?.icons;
+
+    if (icons && icons.size > 0) {
+      if (activeQuest && !activeQuest.completed) {
+        const activeIdNum = Number(activeQuest.id);
+        const activeIcon =
+          icons.get(activeIdNum) ||
+          icons.get(String(activeQuest.id));
+
+        if (activeIcon?.active) return activeIcon;
+      }
+
+      for (const [questId, icon] of icons.entries()) {
+        const quest = this.questManager?.getQuestById(questId);
+        if (quest && !quest.completed && icon?.active) {
+          return icon;
+        }
+      }
+    }
+
+    // 2️⃣ If any exit requires a completed quest → point to it
     const exitZone = this.mapExits?.getChildren()?.find(zone => {
       const requiredQuest = zone.exitData?.requiredQuest;
       if (!requiredQuest) return false;
@@ -790,7 +854,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (exitZone) return exitZone;
 
-    // 2️⃣ Otherwise point to first incomplete NPC quest
+    // 3️⃣ Otherwise point to first incomplete NPC quest
     const npc = this.npcs?.find(n => {
       const quest = this.questManager.getQuestById(n.npcData.questId);
       return quest && !quest.completed;
@@ -798,7 +862,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (npc) return npc;
 
-    // 3️⃣ If no NPC quest remains, point to a map exit
+    // 4️⃣ If no NPC quest remains, point to a map exit
     const anyExit = this.mapExits?.getChildren?.()?.[0] || null;
     if (anyExit) return anyExit;
 
@@ -1224,13 +1288,22 @@ export default class GameScene extends Phaser.Scene {
     const key = `${this.language}_${this.currentMapId}_intro`;
     const cutscene = CUTSCENES[key];
     if (!cutscene) return;
+    const canSkip = Boolean(CUTSCENE_OPTIONS?.[key]?.showSkipButton);
 
     this.time.delayedCall(500, async () => {
       // 🔒 Lock player + show cinematic bars
       this.playerCanMove = false;
       this.cinematicBars.show(500);
 
+      if (canSkip) {
+        this.createCutsceneSkipButton(() => {
+          this.cutsceneManager?.requestSkip?.();
+        });
+      }
+
       await this.cutsceneManager.play(cutscene);
+
+      this.destroyCutsceneSkipButton();
 
       // 🎬 Restore gameplay view
       this.cinematicBars.hide(500);

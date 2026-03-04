@@ -80,7 +80,7 @@ class ExerciseModel {
     async startQuest(userId, questId) {
         const { data } = await this.db
             .from('users_game_data')
-            .select('*')
+            .select('user_id, exercise_id, status, created_at, completed_at')
             .eq('user_id', userId)
             .eq('exercise_id', questId)
             .maybeSingle();
@@ -95,6 +95,11 @@ class ExerciseModel {
                 status: 'active',
                 created_at: new Date().toISOString()
             });
+
+        if (error?.code === '23505') {
+            // Race condition / duplicate insert from parallel events
+            return { user_id: userId, exercise_id: questId, status: 'active' };
+        }
 
         if (error) throw error;
     }

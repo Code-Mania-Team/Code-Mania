@@ -58,8 +58,13 @@ const Header = ({ onOpenModal, onSignOut }) => {
         }
       }
 
-      // Authenticated user with no character: avoid stale icon from previous account
-      if (user?.user_id && (normalizedUserCharacterId === null || Number.isNaN(normalizedUserCharacterId))) {
+      // Authenticated user with no character in profile and no local selection: avoid stale icon from previous account
+      const hasStoredCharacter = localStorage.getItem('selectedCharacter') !== null;
+      if (
+        user?.user_id &&
+        (normalizedUserCharacterId === null || Number.isNaN(normalizedUserCharacterId)) &&
+        !hasStoredCharacter
+      ) {
         localStorage.removeItem('selectedCharacter');
         localStorage.removeItem('selectedCharacterIcon');
         setCharacterIcon(null);

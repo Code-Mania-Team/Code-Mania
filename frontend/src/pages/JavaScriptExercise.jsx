@@ -501,6 +501,7 @@ const JavaScriptExercise = () => {
 
 
   if (!activeExercise) return null;
+  console.log(activeExercise)
 
 
 

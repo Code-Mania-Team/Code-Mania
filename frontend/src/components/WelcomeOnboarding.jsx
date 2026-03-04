@@ -10,6 +10,7 @@ const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
 const characterIcon4 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 import { useOnBoardUsername } from '../services/setUsername';
+import useAuth from '../hooks/useAxios';
 
 const WelcomeOnboarding = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -21,6 +22,7 @@ const WelcomeOnboarding = ({ onComplete }) => {
   const [fullNameError, setFullNameError] = useState('');
 
   const onBoardUsername = useOnBoardUsername();
+  const { user, setUser } = useAuth();
 
   // Character options (you can add more character sprites here)
   const characters = [
@@ -92,6 +94,13 @@ const WelcomeOnboarding = ({ onComplete }) => {
           localStorage.setItem("needsUsername", "false");
           localStorage.setItem('selectedCharacter', characters[selectedCharacter].id);
           localStorage.setItem('selectedCharacterIcon', characters[selectedCharacter].icon);
+
+          setUser((prev) => ({
+            ...(prev || user || {}),
+            username,
+            full_name: trimmedFullName,
+            character_id: characters[selectedCharacter].id,
+          }));
 
           window.dispatchEvent(new CustomEvent('characterUpdated', {
             detail: { characterIcon: characters[selectedCharacter].icon }
