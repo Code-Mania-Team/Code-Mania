@@ -79,14 +79,16 @@ class AccountController {
             res.cookie('accessToken', accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-                maxAge: 15 * 60 * 1000 // 15 minutes
+                sameSite: "none",
+                domain: ".codemania.fun",
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
             });
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+                sameSite: "none",
+                domain: ".codemania.fun",
                 maxAge: 24 * 60 * 60 * 1000 // 1 day
 
             });
@@ -202,15 +204,17 @@ class AccountController {
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-                maxAge: 15 * 60 * 1000 // 15 minutes
+                sameSite: "none",
+                domain: ".codemania.fun",
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
             });
 
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
+                sameSite: "none",
+                domain: ".codemania.fun",
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
                 });
 
             return res.status(200).json({
@@ -264,22 +268,24 @@ class AccountController {
                 res.cookie('accessToken', accessToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-                    maxAge: 15 * 60 * 1000 // 15 minutes
+                    sameSite: "none",
+                    domain: ".codemania.fun",
+                    maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+                    sameSite: "none",
+                    domain: ".codemania.fun",
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
-                return res.redirect(`http://localhost:5173/dashboard?success=true`);
+                return res.redirect(`https://codemania.fun/dashboard?success=true`);
             } else {
-                return res.redirect(`http://localhost:5173/login?error=auth_failed`);
+                return res.redirect(`https://codemania.fun/login?error=auth_failed`);
             }
         } catch (err) {
-            return res.redirect(`http://localhost:5173/login?error=server_error`);
+            return res.redirect(`https://codemania.fun/login?error=server_error`);
         }
     }
 
@@ -335,14 +341,16 @@ class AccountController {
                 res.cookie("accessToken", accessToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-                    maxAge: 15 * 60 * 1000 // 15 minutes
+                    sameSite: "none",
+                    domain: ".codemania.fun",
+                    maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
                 res.cookie("refreshToken", newRefreshToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+                    sameSite: "none",
+                    domain: ".codemania.fun",
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
                 return res.status(200).json({
@@ -504,8 +512,9 @@ class AccountController {
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-                maxAge: 15 * 60 * 1000 // 15 minutes
+                sameSite: "none",
+                domain: ".codemania.fun",
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
             });
 
             return res.status(200).json({
