@@ -79,14 +79,14 @@ class AccountController {
             res.cookie('accessToken', accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "none",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 15 * 60 * 1000 // 15 minutes
             });
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "none",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 24 * 60 * 60 * 1000 // 1 day
 
             });
@@ -192,14 +192,14 @@ class AccountController {
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "none",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 15 * 60 * 1000 // 15 minutes
             });
 
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "none",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
@@ -254,13 +254,13 @@ class AccountController {
                 res.cookie('accessToken', accessToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: "none",
+                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                     maxAge: 15 * 60 * 1000 // 15 minutes
                 });
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: "none",
+                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
@@ -325,14 +325,14 @@ class AccountController {
                 res.cookie("accessToken", accessToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: "none",
+                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                     maxAge: 15 * 60 * 1000 // 15 minutes
                 });
 
                 res.cookie("refreshToken", newRefreshToken, {
                     httpOnly: true,
                     secure: cookieSecure,
-                    sameSite: "none",
+                    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
                 return res.status(200).json({
@@ -494,7 +494,7 @@ class AccountController {
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: cookieSecure,
-                sameSite: "none",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 15 * 60 * 1000 // 15 minutes
             });
 
