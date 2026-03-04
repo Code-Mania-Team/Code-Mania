@@ -44,6 +44,29 @@ print(a)`;
   }
 }
 
+function hasExecutionError(output, language) {
+  const errorPatterns = [
+    "Traceback",              // Python
+    "SyntaxError",
+    "NameError",
+    "TypeError",
+    "IndentationError",
+
+    "ReferenceError",         // JS
+    "TypeError:",
+    "SyntaxError:",
+
+    "error:",                 // C++
+    "undefined reference",
+    "Segmentation fault",
+    "fatal error"
+  ];
+
+  return errorPatterns.some(pattern =>
+    output.toLowerCase().includes(pattern.toLowerCase())
+  );
+}
+
 const InteractiveTerminal = ({
   quest,
   questId,
@@ -274,6 +297,13 @@ const InteractiveTerminal = ({
 
     socket.onclose = async () => {
       try {
+
+        if (hasExecutionError(finalOutput, language)) {
+          console.log("Execution error detected — skipping validation");
+          setIsRunning(false);
+          return;
+        }
+
         const result = await validateExercise(
           questId,
           finalOutput,
@@ -286,17 +316,19 @@ const InteractiveTerminal = ({
 
         if (result?.success) {
           setFailedSubmissions(0);
+
           window.dispatchEvent(
             new CustomEvent("code-mania:quest-complete", {
               detail: { questId }
             })
           );
+
         } else {
           setFailedSubmissions((prev) => prev + 1);
         }
 
       } catch (err) {
-        null;
+        console.error(err);
       }
 
       setIsRunning(false);
