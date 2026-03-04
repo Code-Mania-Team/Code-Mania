@@ -15,7 +15,6 @@ const useAxiosPrivate = () => {
           prevRequest.sent = true;
           try {
             await refresh();
-            window.location.reload(); // reload twice
             return axiosPrivate(prevRequest);
             
           } catch (refreshError) {

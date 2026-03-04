@@ -214,9 +214,6 @@ export default class GameScene extends Phaser.Scene {
       exp: 0
     });
 
-    // �� Check for stage completion and award badges
-    await this.checkAndAwardStageBadge(questId);
-
     // 🏅 ONLY show badge UI if quest has badge
     if (quest.achievements?.badge_key) {
       this.badgeUnlockPopup.show({
@@ -225,84 +222,7 @@ export default class GameScene extends Phaser.Scene {
       });
     }
   };
-
-  // 🏅 Check if user completed a stage (every 4 exercises) and award badge
-  checkAndAwardStageBadge = async (completedQuestId) => {
-    try {
-      const languageSlugMap = {
-        Python: "python",
-        JavaScript: "javascript",
-        Cpp: "cpp"
-      };
-
-      const languageSlug = languageSlugMap[this.language] || this.language.toLowerCase();
-
-      // Get all completed quests for this user and language
-      const response = await fetch(`/v1/game/progress/${languageSlug}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) return;
-
-      const data = await response.json();
-      const completedQuests = data.completedQuests || [];
-
-      // Only award on stage boundary (4, 8, 12, 16 ...)
-      if (!completedQuests.length || completedQuests.length % 4 !== 0) return;
-
-      // Calculate stage number (every 4 exercises = 1 stage)
-      const stageNumber = Math.ceil(completedQuests.length / 4);
-
-      // Badge mapping based on language and stage
-      const badgeMap = {
-        'Python': `badge-python-${Math.min(stageNumber, 4)}`,
-        'JavaScript': `badge-js-${Math.min(stageNumber, 4)}`,
-        'Cpp': `badge-cpp-${Math.min(stageNumber, 4)}`
-      };
-
-      const badgeKey = badgeMap[this.language];
-
-      if (badgeKey && this.textures.exists(badgeKey)) {
-        // Show badge unlock popup
-        this.badgeUnlockPopup.show({
-          badgeKey: badgeKey,
-          label: `Stage ${stageNumber} Complete!`
-        });
-
-        // Optionally save badge to backend
-        await this.saveBadgeToBackend(badgeKey, stageNumber);
-      }
-    } catch (error) {
-      console.error('Error checking stage completion:', error);
-    }
-  };
-
-  // Save badge achievement to backend
-  saveBadgeToBackend = async (badgeKey, stageNumber) => {
-    try {
-      const response = await fetch('/v1/achievements/badge', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          badgeKey: badgeKey,
-          stageNumber: stageNumber,
-          language: this.language
-        })
-      });
-
-      if (!response.ok) {
-        console.error('Failed to save badge to backend');
-      }
-    } catch (error) {
-      console.error('Error saving badge:', error);
-    }
-  };
-
+  
   create() {
     // 🗺 MAP
     this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesets);
@@ -337,7 +257,7 @@ export default class GameScene extends Phaser.Scene {
         key: `walk-${dir}`,
         frames: this.anims.generateFrameNumbers(`player-${dir}`, {
           start: 0,
-          end: 3
+          end: 2
         }),
         frameRate: 10,
         repeat: -1
@@ -356,7 +276,7 @@ export default class GameScene extends Phaser.Scene {
         key: `arrow-${dir}`,
         frames: this.anims.generateFrameNumbers(`arrow_${dir}`, {
           start: 0,
-          end: 3
+          end: 2
         }),
         frameRate: 6,
         repeat: -1
