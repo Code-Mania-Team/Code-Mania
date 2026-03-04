@@ -42,7 +42,7 @@ print("Hello world")`;
   }
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, isAdmin = false }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
   const [output, setOutput] = useState("");
@@ -54,6 +54,9 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const MAX_ATTEMPTS = 5;
   const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS;
   const disableSubmit = isRunning || attemptsExhausted;
+  const showEditor = !isMobileView || mobilePanel === "code";
+  const showOutput = !isMobileView || mobilePanel === "output";
+  const editorHeight = isMobileView ? "320px" : "430px";
   const terminalBodyRef = useRef(null);
 
   const socketRef = useRef(null);
@@ -232,6 +235,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
   return (
     <div className={styles.examCodeContainer}>
+      {showEditor && (
       <div className={styles.examCodeEditor}>
         <div className={styles.examEditorHeader}>
           <span>
@@ -242,7 +246,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                 : "script.py"}
           </span>
 
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div className={styles.examEditorActions}>
             <button
               className={styles.examSubmitBtn}
               onClick={handleRun}
@@ -270,7 +274,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         </div>
 
         <Editor
-          height="100%"
+          height={editorHeight}
           language={monacoLang}
           theme="vs-dark"
           value={code}
@@ -283,21 +287,22 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
           }}
         />
       </div>
+      )}
 
+      {showOutput && (
       <div
         className={styles.examTerminal}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         style={{
-          marginTop: "1.5rem",
+          marginTop: showEditor ? "1.5rem" : "0",
           borderRadius: "14px",
           overflow: "hidden",
           border: "1px solid rgba(255,255,255,0.06)",
           boxShadow: "0 15px 50px rgba(0,0,0,0.45)",
           background: "linear-gradient(180deg, #0b1220, #070f1c)",
           display: "flex",
-          flexDirection: "column",
-          height: "500px"
+          flexDirection: "column"
         }}
       >
         {/* HEADER */}
@@ -389,6 +394,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
           </div>
         )}
       </div>
+      )}
     </div>
 
 

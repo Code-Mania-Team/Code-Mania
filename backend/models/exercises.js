@@ -15,6 +15,7 @@ class ExerciseModel {
                 lesson_header,
                 lesson_example,
                 starting_code,
+                hints,
                 requirements,
                 expected_output,
                 validation_mode,
@@ -35,6 +36,7 @@ class ExerciseModel {
                     lesson_header,
                     lesson_example,
                     starting_code,
+                    hints: hints || null,
                     requirements: requirements ? JSON.stringify(requirements) : null,
                     expected_output,
                     validation_mode,
@@ -273,6 +275,7 @@ class ExerciseModel {
                 lesson_header,
                 lesson_example,
                 starting_code,
+                hints,
                 requirements,
                 expected_output,
                 validation_mode,
@@ -290,6 +293,7 @@ class ExerciseModel {
             if (lesson_header !== undefined) updateObject.lesson_header = lesson_header;
             if (lesson_example !== undefined) updateObject.lesson_example = lesson_example;
             if (starting_code !== undefined) updateObject.starting_code = starting_code;
+            if (hints !== undefined) updateObject.hints = hints;
             if (requirements !== undefined) updateObject.requirements = requirements ? JSON.stringify(requirements) : null;
             if (expected_output !== undefined) updateObject.expected_output = expected_output;
             if (validation_mode !== undefined) updateObject.validation_mode = validation_mode;

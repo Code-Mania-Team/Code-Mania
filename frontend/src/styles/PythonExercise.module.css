@@ -1085,6 +1085,35 @@
   color: #00e676;
 }
 
+.hint-box {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: rgba(120, 53, 15, 0.22);
+}
+
+.hint-title {
+  color: #fbbf24;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.hint-item {
+  color: #fde68a;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.hint-item:last-child {
+  margin-bottom: 0;
+}
+
 /* RIGHT PANEL LAYOUT */
 .right-panel {
   display: flex;
@@ -1383,5 +1412,11 @@
   .codex-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
+  }
+
+  .validation-box {
+    left: auto;
+    right: 12px;
+    bottom: 12px;
   }
 }

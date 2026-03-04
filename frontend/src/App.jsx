@@ -245,19 +245,16 @@ function App() {
     }
   }, [location.search, navigate, setIsAuthenticated, navigate]);
 
-  // hide header/footer on exercise routes, dashboard, exams, and quizzes
+  // hide header/footer on exercise routes, dashboard, and quizzes
   const hideGlobalHeaderFooter =
     location.pathname.startsWith("/learn/python/exercise") ||
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard" ||
-    location.pathname.startsWith("/quiz") ||
-    location.pathname.startsWith("/coding-exam") ||
-    location.pathname.startsWith("/exam");
+    location.pathname.startsWith("/quiz");
 
   const isExamRoute =
-    location.pathname.startsWith("/coding-exam") ||
-    location.pathname.startsWith("/exam");
+    location.pathname.startsWith("/coding-exam");
 
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" ||

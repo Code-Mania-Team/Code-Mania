@@ -44,6 +44,13 @@ const PythonExercise = ({ isAuthenticated }) => {
     4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173774/python-badge4_qbjkh1.png",
   };
 
+  const stageBadgeTitleById = {
+    1: "Python Awakening",
+    2: "Keeper of the Core",
+    3: "Architect of Logic",
+    4: "Master of Iteration",
+  };
+
   const location = useLocation();
 
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
@@ -714,15 +721,15 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         languageLabel="Python"
 
-        title={`Stage ${stageQuizId || ""} completed!`}
+        title="Congratulations!"
 
-        subtitle={`You finished Stage ${stageQuizId || ""}. Take the quiz now or continue learning?`}
+        subtitle={`You earned the Stage ${stageQuizId || ""} badge! Take the quiz now or continue exploring.`}
 
         badgeImage={stageBadgeById[stageQuizId]}
 
         badgeAlt={`Python Stage ${stageQuizId || ""} badge`}
 
-        badgeLabel={stageQuizId ? `Stage ${stageQuizId} badge` : "Stage badge"}
+        badgeLabel={stageQuizId ? stageBadgeTitleById[stageQuizId] || `Stage ${stageQuizId} badge` : "Stage badge"}
 
         primaryLabel="Take Quiz"
 
@@ -733,13 +740,16 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         secondaryLabel="Continue Learning"
 
-        onSecondary={async () => {
+        onSecondary={() => {
           setShowStageQuizPrompt(false);
-          const next = await getNextExercise(activeExerciseId);
-          if (next?.id) {
-            navigate(`/learn/python/exercise/${next.id}`);
-          }
+          window.dispatchEvent(new Event("code-mania:close-quest-hud"));
         }}
+
+        feedbackLabel="Share Feedback"
+
+        onFeedback={() => navigate("/freedomwall")}
+
+        showClose={false}
 
         onClose={() => setShowStageQuizPrompt(false)}
 

@@ -43,6 +43,13 @@ const JavaScriptExercise = () => {
     4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage4_attwps.png",
   };
 
+  const stageBadgeTitleById = {
+    1: "JavaScript Apprentice",
+    2: "Function Crafter",
+    3: "Object Engineer",
+    4: "DOM Explorer",
+  };
+
   const navigate = useNavigate();
 
   const { exerciseId } = useParams();
@@ -579,24 +586,24 @@ const JavaScriptExercise = () => {
       <CourseCompletionPromptModal
         show={showStageQuizPrompt}
         languageLabel="JavaScript"
-        title={`Stage ${stageQuizId || ""} completed!`}
-        subtitle={`You finished Stage ${stageQuizId || ""}. Take the quiz now or continue learning?`}
+        title="Congratulations!"
+        subtitle={`You earned the Stage ${stageQuizId || ""} badge! Take the quiz now or continue exploring.`}
         badgeImage={stageBadgeById[stageQuizId]}
         badgeAlt={`JavaScript Stage ${stageQuizId || ""} badge`}
-        badgeLabel={stageQuizId ? `Stage ${stageQuizId} badge` : "Stage badge"}
+        badgeLabel={stageQuizId ? stageBadgeTitleById[stageQuizId] || `Stage ${stageQuizId} badge` : "Stage badge"}
         primaryLabel="Take Quiz"
         onTakeExam={() => {
           if (!stageQuizId) return;
           navigate(`/quiz/javascript/${stageQuizId}`);
         }}
         secondaryLabel="Continue Learning"
-        onSecondary={async () => {
+        onSecondary={() => {
           setShowStageQuizPrompt(false);
-          const next = await getNextExercise(activeExerciseId);
-          if (next?.id) {
-            navigate(`/learn/javascript/exercise/${next.id}`);
-          }
+          window.dispatchEvent(new Event("code-mania:close-quest-hud"));
         }}
+        feedbackLabel="Share Feedback"
+        onFeedback={() => navigate("/freedomwall")}
+        showClose={false}
         onClose={() => setShowStageQuizPrompt(false)}
       />
 

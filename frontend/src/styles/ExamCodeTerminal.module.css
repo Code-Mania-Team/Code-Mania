@@ -14,7 +14,7 @@
   border-radius: 8px;
   overflow: hidden;
   width: 100%;
-  height: 50%;
+  min-height: 360px;
 }
 
 .examEditorHeader {
@@ -23,6 +23,12 @@
   border-bottom: 1px solid #334155;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.examEditorActions {
+  display: flex;
+  gap: 10px;
   align-items: center;
 }
 
@@ -60,7 +66,7 @@
   background: #0f172a;
   border: 1px solid #334155;
   border-radius: 8px;
-  height: 50%;
+  min-height: 320px;
   overflow: hidden;
 }
 
@@ -125,10 +131,29 @@
   .examCodeContainer {
     gap: 0.5rem;
   }
+
+  .examCodeEditor {
+    min-height: 300px;
+  }
+
+  .examTerminal {
+    min-height: 250px;
+  }
   
   .examEditorHeader,
   .examTerminalHeader {
     padding: 0.5rem 0.75rem;
+  }
+
+  .examEditorActions {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .examSubmitBtn {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.9rem;
   }
   
   .examTerminalContent {

@@ -13,7 +13,11 @@ const CourseCompletionPromptModal = ({
   onTakeExam,
   secondaryLabel = "Take Quizzes First",
   onSecondary,
-  onClose,
+  feedbackLabel,
+  onFeedback,
+  showClose = true,
+  closeLabel = "Later",
+  onClose,  
 }) => {
   if (!show) return null;
 
@@ -58,13 +62,24 @@ const CourseCompletionPromptModal = ({
               {secondaryLabel}
             </button>
           )}
-          <button
-            type="button"
-            className={styles.closeBtn}
-            onClick={onClose}
-          >
-            Later
-          </button>
+          {feedbackLabel && onFeedback && (
+            <button
+              type="button"
+              className={styles.feedbackBtn}
+              onClick={onFeedback}
+            >
+              {feedbackLabel}
+            </button>
+          )}
+          {showClose && (
+            <button
+              type="button"
+              className={styles.closeBtn}
+              onClick={onClose}
+            >
+              {closeLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>

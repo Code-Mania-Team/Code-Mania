@@ -63,6 +63,7 @@ const InteractiveTerminal = ({
   const [validationResult, setValidationResult] = useState(null);
   const [isQuestActive, setIsQuestActive] = useState(false);
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
+  const [failedSubmissions, setFailedSubmissions] = useState(0);
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
   );
@@ -160,8 +161,50 @@ const InteractiveTerminal = ({
     setIsQuestActive(false);
     setIsQuestCompleted(false);
     setValidationResult(null);
+    setFailedSubmissions(0);
     setActivePanel("editor");
   }, [questId]);
+
+  const progressiveHints = useMemo(() => {
+    const questHints = Array.isArray(quest?.hints)
+      ? quest.hints.filter((hint) => typeof hint === "string" && hint.trim())
+      : [];
+
+    const dbHints =
+      quest?.hints && typeof quest.hints === "object" && !Array.isArray(quest.hints)
+        ? quest.hints
+        : null;
+
+    const requirements = Array.isArray(quest?.requirements)
+      ? quest.requirements
+          .map((item) => item?.label)
+          .filter((label) => typeof label === "string" && label.trim())
+      : [];
+
+    const concept =
+      dbHints?.concept ||
+      questHints[0] ||
+      requirements[0] ||
+      "Review the problem statement and identify the key concept first.";
+
+    const structure =
+      dbHints?.structure ||
+      questHints[1] ||
+      "Build your solution step by step: input, processing logic, then output.";
+
+    const nearSolution =
+      dbHints?.nearSolution ||
+      questHints[2] ||
+      "You are close - double-check operators, variable names, and exact output format.";
+
+    return [
+      { level: "Concept clue", text: concept },
+      { level: "Structure clue", text: structure },
+      { level: "Near-solution clue", text: nearSolution },
+    ];
+  }, [quest]);
+
+  const unlockedHintCount = Math.min(3, Math.max(0, failedSubmissions - 1));
 
 
   const runViaDocker = () => {
@@ -242,11 +285,14 @@ const InteractiveTerminal = ({
         }
 
         if (result?.success) {
+          setFailedSubmissions(0);
           window.dispatchEvent(
             new CustomEvent("code-mania:quest-complete", {
               detail: { questId }
             })
           );
+        } else {
+          setFailedSubmissions((prev) => prev + 1);
         }
 
       } catch (err) {
@@ -305,11 +351,14 @@ const InteractiveTerminal = ({
         setValidationResult(result.data.objectives);
 
         if (result.data.passed) {
+          setFailedSubmissions(0);
           window.dispatchEvent(
             new CustomEvent("code-mania:quest-complete", {
               detail: { questId }
             })
           );
+        } else {
+          setFailedSubmissions((prev) => prev + 1);
         }
       }
 
@@ -498,6 +547,17 @@ const InteractiveTerminal = ({
             {passedObjectives === totalObjectives && (
               <div className={styles["all-pass"]}>
                 🎉 All tests passed!
+              </div>
+            )}
+
+            {unlockedHintCount > 0 && (
+              <div className={styles["hint-box"]}>
+                <div className={styles["hint-title"]}>Hints unlocked</div>
+                {progressiveHints.slice(0, unlockedHintCount).map((hint, index) => (
+                  <div key={index} className={styles["hint-item"]}>
+                    <strong>{hint.level}:</strong> {hint.text}
+                  </div>
+                ))}
               </div>
             )}
           </div>

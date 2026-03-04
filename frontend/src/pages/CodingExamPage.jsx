@@ -72,6 +72,10 @@ const CodingExamPage = () => {
   const [hasAccess, setHasAccess] = useState(false);
   const [showCongrats, setShowCongrats] = useState(false);
   const [congratsData, setCongratsData] = useState(null);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
+  const [mobileTab, setMobileTab] = useState("learn");
   const badgeAwardedRef = useRef(false);
 
   const languageToId = {
@@ -89,6 +93,28 @@ const CodingExamPage = () => {
 
   const heroBackground =
     languageBackgrounds[language] || languageBackgrounds.python;
+
+  useEffect(() => {
+    document.body.classList.add("exam-page");
+    document.body.classList.add("coding-exam-page");
+    return () => {
+      document.body.classList.remove("exam-page");
+      document.body.classList.remove("coding-exam-page");
+      document.body.classList.remove("exam-results");
+    };
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => setIsMobileView(window.innerWidth <= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileView) {
+      setMobileTab("learn");
+    }
+  }, [isMobileView]);
 
   useEffect(() => {
     let cancelled = false;
@@ -205,6 +231,37 @@ const CodingExamPage = () => {
 
   return (
     <div className={styles.page}>
+      {isMobileView && (
+        <>
+          <div className={styles.mobileTaskTabsWrap}>
+            <div className={styles.mobileTaskTabs}>
+              <button
+                type="button"
+                className={`${styles.mobileTaskTab} ${mobileTab === "learn" ? styles.mobileTaskTabActive : ""}`}
+                onClick={() => setMobileTab("learn")}
+              >
+                Learn
+              </button>
+              <button
+                type="button"
+                className={`${styles.mobileTaskTab} ${mobileTab === "code" ? styles.mobileTaskTabActive : ""}`}
+                onClick={() => setMobileTab("code")}
+              >
+                Code
+              </button>
+              <button
+                type="button"
+                className={`${styles.mobileTaskTab} ${mobileTab === "output" ? styles.mobileTaskTabActive : ""}`}
+                onClick={() => setMobileTab("output")}
+              >
+                Output
+              </button>
+            </div>
+          </div>
+          <div className={styles.mobileTaskTabsOffset} />
+        </>
+      )}
+
       <section
         className={styles.hero}
         style={{
@@ -216,9 +273,6 @@ const CodingExamPage = () => {
       >
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>{examData.examTitle}</h1>
-          <p className={styles.heroDescription}>
-            Challenge {currentChallenge + 1} of {examData.challenges.length}
-          </p>
         </div>
       </section>
 
@@ -231,8 +285,10 @@ const CodingExamPage = () => {
             </span>
           </div>
 
-          <div style={{ display: "flex", gap: "2rem" }}>
-            <div style={{ flex: 1, width: "100%", height: "100%" }}>
+          <div className={styles.examLayout}>
+            <div
+              className={`${styles.examInfoColumn} ${isMobileView && mobileTab !== "learn" ? styles.mobilePanelHidden : ""}`}
+            >
               <div
                 style={{
                   display: "flex",
@@ -421,11 +477,15 @@ const CodingExamPage = () => {
               )}
             </div>
 
-            <div style={{ flex: 2 }}>
+            <div
+              className={`${styles.examCodeColumn} ${isMobileView && mobileTab === "learn" ? styles.mobilePanelHidden : ""}`}
+            >
               {attemptId ? (
                 <ExamCodeTerminal
                   language={language}
                   initialCode={challenge.starterCode}
+                  isMobileView={isMobileView}
+                  mobilePanel={mobileTab}
                   attemptId={attemptId}
                   submitAttempt={submitAttempt}
                   attemptNumber={examState.attemptNumber}

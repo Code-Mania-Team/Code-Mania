@@ -51,13 +51,11 @@
 }
 
 .heroDescription {
-  font-family: 'VT323', monospace;
-  font-size: 1.5rem;
-  color: #ffffff;
-  line-height: 1.6;
-  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
-  max-width: 700px;
-  margin: 0 auto;
+    font-size: 1.2rem;
+    color: #ffffff;
+    line-height: 1.6;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+    margin-bottom: 2rem;
 }
 
 /* Courses Section */
@@ -202,7 +200,8 @@
   }
 
   .heroDescription {
-    font-size: 1.2rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
   }
 
   .title {

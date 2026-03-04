@@ -44,7 +44,7 @@ const Learn = () => {
           <p className={styles.heroSubtitle}>Discover the universe of</p>
           <h1 className={styles.heroTitle}>Code Mania</h1>
           <p className={styles.heroDescription}>
-            Begin your programming adventure with hands-on coding challenges. Start learning today for free!
+            Begin your programming adventure with hands-on coding challenges. Start learning today!
           </p>
         </div>
       </section>

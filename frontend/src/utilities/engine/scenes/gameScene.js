@@ -634,8 +634,14 @@ export default class GameScene extends Phaser.Scene {
       this.syncMobileControlsVisibility();
     };
 
+    this.handleCloseQuestHud = () => {
+      this.questHUD?.hide();
+      this.syncMobileControlsVisibility();
+    };
+
     window.addEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
     window.addEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
+    window.addEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
 
     this.events.once("shutdown", () => {
       window.removeEventListener(
@@ -644,6 +650,7 @@ export default class GameScene extends Phaser.Scene {
       );
       window.removeEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
       window.removeEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
+      window.removeEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
     });
 
 

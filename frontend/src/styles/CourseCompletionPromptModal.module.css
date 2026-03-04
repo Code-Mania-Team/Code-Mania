@@ -65,6 +65,7 @@
 
 .primaryBtn,
 .secondaryBtn,
+.feedbackBtn,
 .closeBtn {
   width: 100%;
   border-radius: 10px;
@@ -89,4 +90,10 @@
   background: rgba(148, 163, 184, 0.12);
   border-color: rgba(148, 163, 184, 0.22);
   color: rgba(226, 232, 240, 0.9);
+}
+
+.feedbackBtn {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #dbeafe;
 }

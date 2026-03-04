@@ -120,6 +120,54 @@
   color: #e2e8f0;
 }
 
+.examLayout {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(420px, 1.35fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.examInfoColumn {
+  min-width: 0;
+}
+
+.examCodeColumn {
+  min-width: 0;
+}
+
+.mobilePanelHidden {
+  display: none;
+}
+
+.mobileTaskTabs {
+  display: none;
+}
+
+.mobileTaskTabsWrap {
+  display: none;
+}
+
+.mobileTaskTabsOffset {
+  display: none;
+}
+
+.mobileTaskTab {
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  background: rgba(2, 6, 23, 0.92);
+  color: #dbeafe;
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  letter-spacing: 0.4px;
+}
+
+.mobileTaskTabActive {
+  border-color: #38bdf8;
+  color: #7dd3fc;
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.32);
+}
+
 /* Options */
 .optionsContainer {
   display: flex;
@@ -554,5 +602,92 @@
 
   .congratsActions {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 1024px) {
+  .section {
+    padding: 1.25rem 0.85rem;
+    min-height: auto;
+  }
+
+  .questionContainer {
+    padding: 1rem;
+  }
+
+  .examLayout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .questionHeader {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .questionTitle {
+    font-size: 1.55rem;
+    line-height: 1.2;
+  }
+
+  .questionPoints {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :global(body.coding-exam-page) :global(.header) {
+    display: none !important;
+  }
+
+  :global(body.coding-exam-page) :global(.main-content) {
+    padding-top: 0 !important;
+    background: #0f172a;
+  }
+
+  .hero {
+    height: 170px !important;
+  }
+
+  .heroTitle {
+    font-size: 2.2rem;
+  }
+
+  .heroDescription {
+    font-size: 1rem;
+  }
+
+  .mobileTaskTabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 0;
+    padding: 0.45rem 0;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  }
+
+  .mobileTaskTabsWrap {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2600;
+    padding: 0 0.85rem;
+    background: #0f172a;
+  }
+
+  .mobileTaskTabsOffset {
+    display: block;
+    height: 62px;
+  }
+
+  .section {
+    padding-top: 0.8rem;
+  }
+
+  .examCodeColumn {
+    overflow: visible;
   }
 }

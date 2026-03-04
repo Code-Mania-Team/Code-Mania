@@ -86,7 +86,7 @@ body,
   justify-content: space-between;
   align-items: center;
   padding: 1rem 10rem;
-  background-color: #0f172a;
+  background-color: black;
   position: fixed;
   top: 0;
   left: 0;
@@ -1134,6 +1134,20 @@ body,
   width: 30px;
   height: 24px;
   transition: transform 0.3s ease;
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .header {
+    padding: 1rem 3rem;
+  }
+
+  .nav {
+    gap: 1.5rem;
+  }
+
+  .nav-link {
+    font-size: 1.3rem;
+  }
 }
 
 @media (max-width: 1024px) {

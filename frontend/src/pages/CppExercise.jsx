@@ -46,6 +46,13 @@ const CppExercise = () => {
     4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173778/cpp-badge4_tnch2p.png",
   };
 
+  const stageBadgeTitleById = {
+    1: "C++ Initiate",
+    2: "Data Handler",
+    3: "Logic Builder",
+    4: "Flow Controller",
+  };
+
   const navigate = useNavigate();
 
   const { exerciseId } = useParams();
@@ -582,15 +589,15 @@ const CppExercise = () => {
 
         languageLabel="C++"
 
-        title={`Stage ${stageQuizId || ""} completed!`}
+        title="Congratulations!"
 
-        subtitle={`You finished Stage ${stageQuizId || ""}. Take the quiz now or continue learning?`}
+        subtitle={`You earned the Stage ${stageQuizId || ""} badge! Take the quiz now or continue exploring.`}
 
         badgeImage={stageBadgeById[stageQuizId]}
 
         badgeAlt={`C++ Stage ${stageQuizId || ""} badge`}
 
-        badgeLabel={stageQuizId ? `Stage ${stageQuizId} badge` : "Stage badge"}
+        badgeLabel={stageQuizId ? stageBadgeTitleById[stageQuizId] || `Stage ${stageQuizId} badge` : "Stage badge"}
 
         primaryLabel="Take Quiz"
 
@@ -601,13 +608,16 @@ const CppExercise = () => {
 
         secondaryLabel="Continue Learning"
 
-        onSecondary={async () => {
+        onSecondary={() => {
           setShowStageQuizPrompt(false);
-          const next = await getNextExercise(activeExerciseId);
-          if (next?.id) {
-            navigate(`/learn/cpp/exercise/${next.id}`);
-          }
+          window.dispatchEvent(new Event("code-mania:close-quest-hud"));
         }}
+
+        feedbackLabel="Share Feedback"
+
+        onFeedback={() => navigate("/freedomwall")}
+
+        showClose={false}
 
         onClose={() => setShowStageQuizPrompt(false)}
 
