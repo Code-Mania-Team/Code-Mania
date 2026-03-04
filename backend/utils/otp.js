@@ -288,22 +288,17 @@ export async function sendOtpEmail({ toEmail, otp, type }) {
         htmlContent: template.html
       })
     });
-    console.log("Brevo API response status:", response.status);
-    console.log("Brevo API response headers:", process.env.BREVO_API_KEY);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Brevo API Error:", errorText);
       throw new Error("Failed to send email");
     }
 
     const result = await response.json();
-    console.log("Email sent successfully:", result);
 
     return result;
 
   } catch (error) {
-    console.error("Email sending failed:", error);
     throw new Error("Email service failed");
   }
 }

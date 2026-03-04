@@ -8,11 +8,11 @@ import styles from "../styles/ExamCodeTerminal.module.css";
 =============================== */
 function getLanguageFromPathname() {
   const pathname = window.location.pathname;
-  
+
   if (pathname.includes("/python")) return "python";
   if (pathname.includes("/javascript")) return "javascript";
   if (pathname.includes("/cpp")) return "cpp";
-  
+
   return "python";
 }
 
@@ -42,7 +42,7 @@ print("Hello world")`;
   }
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, isAdmin = false }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
   const [output, setOutput] = useState("");
@@ -54,6 +54,9 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const MAX_ATTEMPTS = 5;
   const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS;
   const disableSubmit = isRunning || attemptsExhausted;
+  const showEditor = !isMobileView || mobilePanel === "code";
+  const showOutput = !isMobileView || mobilePanel === "output";
+  const editorHeight = isMobileView ? "320px" : "430px";
   const terminalBodyRef = useRef(null);
 
   const socketRef = useRef(null);
@@ -154,6 +157,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     if (isRunning || !attemptId) return;
 
     resetTerminal();
+    write("\n⏳ Running some tests...\n");
     setIsRunning(true);
 
     try {
@@ -177,20 +181,29 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         console.log("Test results:", result.results);
         result.results.forEach((r) => {
           write(
-            `Test ${r.test_index}: ${
-              r.passed ? "✅ Passed" : "❌ Failed"
+            `Test ${r.test_index}: ${r.passed ? "✅ Passed" : "❌ Failed"
             } (${r.execution_time_ms}ms)\n`
           );
         });
+      }
+
+      // Show congratulations message if perfect score
+      if (result.score_percentage === 100) {
+        write("\n🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n");
+        write("   🏆 PERFECT SCORE! ALL TESTS PASSED!\n");
+        write("   Congratulations, you earned a badge!\n");
+        write("🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n");
       }
 
       onResult?.(result);
 
     } catch (err) {
       console.error("Submission error:", err);
+      write("\n❌ Error while running tests\n");
+    } finally {
+      write("\n▶ Ready for Execution\n");
+      setIsRunning(false);
     }
-
-    setIsRunning(false);
   };
 
   /* ===============================
@@ -225,17 +238,18 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
   return (
     <div className={styles.examCodeContainer}>
+      {showEditor && (
       <div className={styles.examCodeEditor}>
         <div className={styles.examEditorHeader}>
           <span>
             {language === "cpp"
               ? "main.cpp"
               : language === "javascript"
-              ? "main.js"
-              : "script.py"}
+                ? "main.js"
+                : "script.py"}
           </span>
 
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div className={styles.examEditorActions}>
             <button
               className={styles.examSubmitBtn}
               onClick={handleRun}
@@ -263,7 +277,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         </div>
 
         <Editor
-          height="100%"
+          height={editorHeight}
           language={monacoLang}
           theme="vs-dark"
           value={code}
@@ -276,116 +290,117 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
           }}
         />
       </div>
+      )}
 
+      {showOutput && (
       <div
         className={styles.examTerminal}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         style={{
-          marginTop: "1.5rem",
+          marginTop: showEditor ? "1.5rem" : "0",
           borderRadius: "14px",
           overflow: "hidden",
           border: "1px solid rgba(255,255,255,0.06)",
           boxShadow: "0 15px 50px rgba(0,0,0,0.45)",
           background: "linear-gradient(180deg, #0b1220, #070f1c)",
           display: "flex",
-          flexDirection: "column",
-          height: "500px"
+          flexDirection: "column"
         }}
       >
-  {/* HEADER */}
-  <div
-    style={{
-      padding: "0.7rem 1rem",
-      borderBottom: "1px solid rgba(255,255,255,0.05)",
-      background: "rgba(255,255,255,0.03)",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }}
-  >
-    <span style={{ fontWeight: 600, opacity: 0.8 }}>
-      Terminal
-    </span>
-
-    <span
-      style={{
-        fontSize: "0.8rem",
-        padding: "3px 10px",
-        borderRadius: "999px",
-        background: isRunning
-          ? "rgba(59,130,246,0.2)"
-          : "rgba(34,197,94,0.15)",
-        color: isRunning ? "#3b82f6" : "#22c55e"
-      }}
-    >
-      {isRunning ? "Running..." : "Idle"}
-    </span>
-  </div>
-
-  {/* BODY */}
-  <div
-      ref={terminalBodyRef}
-      style={{
-      flex: 1,
-      overflowY: "auto",
-      padding: "1rem",
-      fontFamily: "monospace",
-      fontSize: "0.9rem",
-      lineHeight: "1.5",
-      background: "#050b17",
-      whiteSpace: "pre-wrap",
-      wordBreak: "break-word"
-    }}
-  >
-    <pre style={{ margin: 0, color: "#cbd5e1" }}>
-      {output}
-
-      {waitingForInput && (
-        <>
-          <span style={{ color: "#22c55e" }}>
-            {inputBuffer}
-          </span>
-          <span style={{ color: "#22c55e" }}>|</span>
-        </>
-      )}
-
-      {!output && !waitingForInput && (
-        <span style={{ color: "#22c55e", opacity: 0.7 }}>
-          ▶ Ready for execution
-        </span>
-      )}
-    </pre>
-  </div>
-  {testResults.length > 0 && (
-    <div style={{ marginTop: "1.5rem" }}>
-      <h4 style={{ marginBottom: "1rem" }}>Test Results</h4>
-
-      {testResults.map((t, index) => (
+        {/* HEADER */}
         <div
-          key={index}
           style={{
-            padding: "1rem",
-            borderRadius: "10px",
-            marginBottom: "0.8rem",
-            background: t.passed
-              ? "rgba(16,185,129,0.1)"
-              : "rgba(239,68,68,0.1)",
-            border: `1px solid ${
-              t.passed ? "#10b981" : "#ef4444"
-            }`
+            padding: "0.7rem 1rem",
+            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            background: "rgba(255,255,255,0.03)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
           }}
         >
-          <strong>Test {index + 1}</strong>
-          <div>Status: {t.passed ? "✅ Passed" : "❌ Failed"}</div>
+          <span style={{ fontWeight: 600, opacity: 0.8 }}>
+            Terminal
+          </span>
+
+          <span
+            style={{
+              fontSize: "0.8rem",
+              padding: "3px 10px",
+              borderRadius: "999px",
+              background: isRunning
+                ? "rgba(59,130,246,0.2)"
+                : "rgba(34,197,94,0.15)",
+              color: isRunning ? "#3b82f6" : "#22c55e"
+            }}
+          >
+            {isRunning ? "Running..." : "Idle"}
+          </span>
         </div>
-      ))}
-    </div>
-  )}
-</div>
+
+        {/* BODY */}
+        <div
+          ref={terminalBodyRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "1rem",
+            fontFamily: "monospace",
+            fontSize: "0.9rem",
+            lineHeight: "1.5",
+            background: "#050b17",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word"
+          }}
+        >
+          <pre style={{ margin: 0, color: "#cbd5e1" }}>
+            {output}
+
+            {waitingForInput && (
+              <>
+                <span style={{ color: "#22c55e" }}>
+                  {inputBuffer}
+                </span>
+                <span style={{ color: "#22c55e" }}>|</span>
+              </>
+            )}
+
+            {!output && !waitingForInput && (
+              <span style={{ color: "#22c55e", opacity: 0.7 }}>
+                ▶ Ready for Execution
+              </span>
+            )}
+          </pre>
+        </div>
+        {testResults.length > 0 && (
+          <div style={{ marginTop: "1.5rem" }}>
+            <h4 style={{ marginBottom: "1rem" }}>Test Results</h4>
+
+            {testResults.map((t, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: "1rem",
+                  borderRadius: "10px",
+                  marginBottom: "0.8rem",
+                  background: t.passed
+                    ? "rgba(16,185,129,0.1)"
+                    : "rgba(239,68,68,0.1)",
+                  border: `1px solid ${t.passed ? "#10b981" : "#ef4444"
+                    }`
+                }}
+              >
+                <strong>Test {index + 1}</strong>
+                <div>Status: {t.passed ? "✅ Passed" : "❌ Failed"}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      )}
     </div>
 
-    
+
   );
 };
 

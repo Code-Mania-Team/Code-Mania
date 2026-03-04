@@ -58,8 +58,7 @@ app.get("/set-cookies", (req, res) => {
   res.send("Successfully set cookies");
 });
 
-app.get("/get-cookies", (req, res) => {
-  console.log(req);
+app.get('/get-cookies', (req, res) => {
   res.send(req.cookies);
 });
 
@@ -67,5 +66,4 @@ app.get("/get-cookies", (req, res) => {
    Start Server
 ----------------------------------- */
 app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
 });

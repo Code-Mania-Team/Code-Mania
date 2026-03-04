@@ -5,6 +5,7 @@ import QuestManager from "../systems/questManager";
 import DialogueManager from "../systems/dialogueManager";
 import CutsceneManager from "../systems/cutSceneManager";
 import { CUTSCENES } from "../config/cutSceneConfig";
+import { CUTSCENE_OPTIONS } from "../config/cutSceneConfig";
 import pythonQuests from "../../data/pythonExercises.json";
 import jsQuests from "../../data/javascriptExercises.json";
 import cppQuests from "../../data/cppExercises.json";
@@ -59,6 +60,46 @@ export default class GameScene extends Phaser.Scene {
     this.gamePausedByTerminal = false;
     this.worldState = { abilities: new Set() };
     this.openedChests = new Set();
+    this.cutsceneSkipButton = null;
+  }
+
+  createCutsceneSkipButton(onSkip) {
+    this.destroyCutsceneSkipButton();
+
+    const { width } = this.scale;
+    this.cutsceneSkipButton = this.add.text(width - 20, 18, "Skip", {
+      font: "bold 20px Arial",
+      fill: "#ffffff",
+      backgroundColor: "#00000088",
+      padding: { x: 12, y: 6 },
+    })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(30010)
+      .setInteractive({ useHandCursor: true });
+
+    this.cutsceneSkipButton.on("pointerdown", (pointer) => {
+      onSkip?.();
+    });
+
+    this.handleCutsceneSkipResize = () => {
+      if (!this.cutsceneSkipButton) return;
+      this.cutsceneSkipButton.setPosition(this.scale.width - 20, 18);
+    };
+
+    this.scale.on("resize", this.handleCutsceneSkipResize);
+  }
+
+  destroyCutsceneSkipButton() {
+    if (this.handleCutsceneSkipResize) {
+      this.scale.off("resize", this.handleCutsceneSkipResize);
+      this.handleCutsceneSkipResize = null;
+    }
+
+    if (this.cutsceneSkipButton) {
+      this.cutsceneSkipButton.destroy();
+      this.cutsceneSkipButton = null;
+    }
   }
 
   setupLayerSwitching() {
@@ -176,29 +217,6 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio("bgm-python", "/assets/audio/python.mp3");
     this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
     this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
-
-    // 🏅 Load badge images
-    const badgePaths = {
-      // Python badges
-      "badge-python-1": "/assets/badges/Python/python-badge1.png",
-      "badge-python-2": "/assets/badges/Python/python-badge2.png", 
-      "badge-python-3": "/assets/badges/Python/python-badge3.png",
-      "badge-python-4": "/assets/badges/Python/python-badge4.png",
-      // JavaScript badges
-      "badge-js-1": "/assets/badges/JavaScript/js-stage1.png",
-      "badge-js-2": "/assets/badges/JavaScript/js-stage2.png",
-      "badge-js-3": "/assets/badges/JavaScript/js-stage3.png", 
-      "badge-js-4": "/assets/badges/JavaScript/js-stage4.png",
-      // C++ badges
-      "badge-cpp-1": "/assets/badges/C++/cpp-badges1.png",
-      "badge-cpp-2": "/assets/badges/C++/cpp-badges2.png",
-      "badge-cpp-3": "/assets/badges/C++/cpp-badge3.png",
-      "badge-cpp-4": "/assets/badges/C++/cpp-badge4.png"
-    };
-
-    Object.entries(badgePaths).forEach(([key, path]) => {
-      this.load.image(key, path);
-    });
   }
 
   onQuestComplete = async (e) => {
@@ -207,9 +225,9 @@ export default class GameScene extends Phaser.Scene {
     if (!questId) return;
 
     // Keep completion flow inside engine too (not only React page listeners)
-    this.questManager?.completeQuest(Number(questId));
+    this.questManager?.completeQuest(Number(questId), { emitEvent: false });
 
-    const quest = this.questManager.getQuestById(questId);
+    const quest = this.questManager.getQuestById(Number(questId));
     if (!quest) return;
 
     const gainedExp = quest.experience || 0;
@@ -237,9 +255,6 @@ export default class GameScene extends Phaser.Scene {
       exp: 0
     });
 
-    // �� Check for stage completion and award badges
-    await this.checkAndAwardStageBadge(questId);
-
     // 🏅 ONLY show badge UI if quest has badge
     if (quest.achievements?.badge_key) {
       this.badgeUnlockPopup.show({
@@ -248,84 +263,7 @@ export default class GameScene extends Phaser.Scene {
       });
     }
   };
-
-  // 🏅 Check if user completed a stage (every 4 exercises) and award badge
-  checkAndAwardStageBadge = async (completedQuestId) => {
-    try {
-      const languageSlugMap = {
-        Python: "python",
-        JavaScript: "javascript",
-        Cpp: "cpp"
-      };
-
-      const languageSlug = languageSlugMap[this.language] || this.language.toLowerCase();
-
-      // Get all completed quests for this user and language
-      const response = await fetch(`/v1/game/progress/${languageSlug}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) return;
-
-      const data = await response.json();
-      const completedQuests = data.completedQuests || [];
-
-      // Only award on stage boundary (4, 8, 12, 16 ...)
-      if (!completedQuests.length || completedQuests.length % 4 !== 0) return;
-
-      // Calculate stage number (every 4 exercises = 1 stage)
-      const stageNumber = Math.ceil(completedQuests.length / 4);
-
-      // Badge mapping based on language and stage
-      const badgeMap = {
-        'Python': `badge-python-${Math.min(stageNumber, 4)}`,
-        'JavaScript': `badge-js-${Math.min(stageNumber, 4)}`,
-        'Cpp': `badge-cpp-${Math.min(stageNumber, 4)}`
-      };
-
-      const badgeKey = badgeMap[this.language];
-
-      if (badgeKey && this.textures.exists(badgeKey)) {
-        // Show badge unlock popup
-        this.badgeUnlockPopup.show({
-          badgeKey: badgeKey,
-          label: `Stage ${stageNumber} Complete!`
-        });
-
-        // Optionally save badge to backend
-        await this.saveBadgeToBackend(badgeKey, stageNumber);
-      }
-    } catch (error) {
-      console.error('Error checking stage completion:', error);
-    }
-  };
-
-  // Save badge achievement to backend
-  saveBadgeToBackend = async (badgeKey, stageNumber) => {
-    try {
-      const response = await fetch('/v1/achievements/badge', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          badgeKey: badgeKey,
-          stageNumber: stageNumber,
-          language: this.language
-        })
-      });
-
-      if (!response.ok) {
-        console.error('Failed to save badge to backend');
-      }
-    } catch (error) {
-      console.error('Error saving badge:', error);
-    }
-  };
-
+  
   create() {
     // 🗺 MAP
     this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesets);
@@ -360,7 +298,7 @@ export default class GameScene extends Phaser.Scene {
         key: `walk-${dir}`,
         frames: this.anims.generateFrameNumbers(`player-${dir}`, {
           start: 0,
-          end: 3
+          end: 2
         }),
         frameRate: 10,
         repeat: -1
@@ -379,7 +317,7 @@ export default class GameScene extends Phaser.Scene {
         key: `arrow-${dir}`,
         frames: this.anims.generateFrameNumbers(`arrow_${dir}`, {
           start: 0,
-          end: 3
+          end: 2
         }),
         frameRate: 6,
         repeat: -1
@@ -640,6 +578,7 @@ export default class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.mobileControls?.destroy();
       this.mobileControls = null;
+      this.destroyCutsceneSkipButton();
     });
 
 
@@ -657,8 +596,14 @@ export default class GameScene extends Phaser.Scene {
       this.syncMobileControlsVisibility();
     };
 
+    this.handleCloseQuestHud = () => {
+      this.questHUD?.hide();
+      this.syncMobileControlsVisibility();
+    };
+
     window.addEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
     window.addEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
+    window.addEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
 
     this.events.once("shutdown", () => {
       window.removeEventListener(
@@ -667,6 +612,7 @@ export default class GameScene extends Phaser.Scene {
       );
       window.removeEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
       window.removeEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
+      window.removeEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
     });
 
 
@@ -751,8 +697,16 @@ export default class GameScene extends Phaser.Scene {
   shouldDisableMobileControls() {
     const activeQuest = this.questManager?.activeQuest;
     const questInProgress = Boolean(activeQuest && !activeQuest.completed);
+    const dialogueActive = Boolean(this.dialogueManager?.active);
+    const questHudVisible = Boolean(this.questHUD?.visible);
 
-    return this.gamePausedByTerminal || this.isTypingInUI() || questInProgress;
+    return (
+      this.gamePausedByTerminal ||
+      this.isTypingInUI() ||
+      questInProgress ||
+      dialogueActive ||
+      questHudVisible
+    );
   }
 
   syncMobileControlsVisibility() {
@@ -869,7 +823,29 @@ export default class GameScene extends Phaser.Scene {
 
 
   getCurrentPointerTarget() {
-    // 1️⃣ If any exit requires a completed quest → point to it
+    // 1️⃣ Prioritize chest quests on map (current objective in maps like Python map2)
+    const activeQuest = this.questManager?.activeQuest;
+    const icons = this.chestQuestManager?.icons;
+
+    if (icons && icons.size > 0) {
+      if (activeQuest && !activeQuest.completed) {
+        const activeIdNum = Number(activeQuest.id);
+        const activeIcon =
+          icons.get(activeIdNum) ||
+          icons.get(String(activeQuest.id));
+
+        if (activeIcon?.active) return activeIcon;
+      }
+
+      for (const [questId, icon] of icons.entries()) {
+        const quest = this.questManager?.getQuestById(questId);
+        if (quest && !quest.completed && icon?.active) {
+          return icon;
+        }
+      }
+    }
+
+    // 2️⃣ If any exit requires a completed quest → point to it
     const exitZone = this.mapExits?.getChildren()?.find(zone => {
       const requiredQuest = zone.exitData?.requiredQuest;
       if (!requiredQuest) return false;
@@ -878,7 +854,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (exitZone) return exitZone;
 
-    // 2️⃣ Otherwise point to first incomplete NPC quest
+    // 3️⃣ Otherwise point to first incomplete NPC quest
     const npc = this.npcs?.find(n => {
       const quest = this.questManager.getQuestById(n.npcData.questId);
       return quest && !quest.completed;
@@ -886,7 +862,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (npc) return npc;
 
-    // 3️⃣ If no NPC quest remains, point to a map exit
+    // 4️⃣ If no NPC quest remains, point to a map exit
     const anyExit = this.mapExits?.getChildren?.()?.[0] || null;
     if (anyExit) return anyExit;
 
@@ -1312,13 +1288,22 @@ export default class GameScene extends Phaser.Scene {
     const key = `${this.language}_${this.currentMapId}_intro`;
     const cutscene = CUTSCENES[key];
     if (!cutscene) return;
+    const canSkip = Boolean(CUTSCENE_OPTIONS?.[key]?.showSkipButton);
 
     this.time.delayedCall(500, async () => {
       // 🔒 Lock player + show cinematic bars
       this.playerCanMove = false;
       this.cinematicBars.show(500);
 
+      if (canSkip) {
+        this.createCutsceneSkipButton(() => {
+          this.cutsceneManager?.requestSkip?.();
+        });
+      }
+
       await this.cutsceneManager.play(cutscene);
+
+      this.destroyCutsceneSkipButton();
 
       // 🎬 Restore gameplay view
       this.cinematicBars.hide(500);

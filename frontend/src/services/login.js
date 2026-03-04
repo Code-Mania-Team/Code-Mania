@@ -30,8 +30,7 @@ const login = async (email, password) => {
 };
 
 const loginWithGoogle = async () => {
-  window.location.href =
-    "https://code-mania-production.up.railway.app/v1/account/login/google";
-};
+  window.location.href = "https://api.codemania.fun/v1/account/login/google"
+}
 
 export { login, loginWithGoogle };

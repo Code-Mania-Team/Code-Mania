@@ -203,7 +203,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
       if (confirmPassword && newPassword !== confirmPassword) {
 
-        setConfirmPasswordError('Passwords do not match');
+        setConfirmPasswordError('Password Mismatch');
 
       } else {
 
@@ -225,7 +225,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
     if (newConfirmPassword && password !== newConfirmPassword) {
 
-      setConfirmPasswordError('Passwords do not match');
+      setConfirmPasswordError('Password Mismatch');
 
     } else {
 
@@ -265,7 +265,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
           if (password !== confirmPassword) {
 
-            setConfirmPasswordError('Passwords do not match');
+            setConfirmPasswordError('Password Mismatch');
 
             setIsLoading(false);
 
@@ -293,7 +293,13 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         } else {
 
-          const user = await verifyOtp(email, otp);
+          const result = await verifyOtp(email, otp);
+
+          if (!result?.success) {
+            setLoginError(result?.message || 'Invalid OTP');
+            setIsLoading(false);
+            return;
+          }
 
           localStorage.setItem('needsUsername', 'true');
 
@@ -363,9 +369,21 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
         const characterId = user?.character_id;
 
+        const iconByCharacterId = {
+          0: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png',
+          1: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png',
+          2: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png',
+          3: 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png',
+        };
+
         if (characterId !== undefined && characterId !== null) {
 
           localStorage.setItem('selectedCharacter', String(characterId));
+
+          const immediateIcon = iconByCharacterId[Number(characterId)] || null;
+          if (immediateIcon) {
+            localStorage.setItem('selectedCharacterIcon', immediateIcon);
+          }
 
           window.dispatchEvent(new CustomEvent('characterUpdated'));
 
@@ -868,9 +886,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
                 </div>
 
-                {passwordError && !showOtpField && (
+                {confirmPasswordError && !showOtpField && (
 
-                  <p className={styles.errorText}>{passwordError}</p>
+                  <p className={styles.errorText}>{confirmPasswordError}</p>
 
                 )}
 
@@ -1402,9 +1420,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
                 </div>
 
-                {passwordError && !showOtpField && (
+                {confirmPasswordError && !showOtpField && (
 
-                  <p className={styles.errorText}>{passwordError}</p>
+                  <p className={styles.errorText}>{confirmPasswordError}</p>
 
                 )}
 
@@ -1529,6 +1547,14 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                     : 'Send Verification Code'}
 
               </button>
+
+
+
+              {loginError && (
+
+                <p className={styles.errorText}>{loginError}</p>
+
+              )}
 
 
 

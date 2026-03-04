@@ -63,6 +63,25 @@ class GameData {
     return data || [];
   }
 
+  async getExamAttemptsByLanguage(user_id, programming_language_id) {
+    const { data, error } = await this.db
+      .from("user_exam_attempts")
+      .select(`
+        id,
+        exam_problem_id,
+        earned_xp,
+        passed,
+        exam_problems!inner (
+          programming_language_id
+        )
+      `)
+      .eq("user_id", user_id)
+      .eq("exam_problems.programming_language_id", programming_language_id);
+
+    if (error) throw error;
+    return data || [];
+  }
+
 }
 
 export default GameData;

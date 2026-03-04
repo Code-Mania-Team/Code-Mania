@@ -7,6 +7,52 @@ import styles from "../styles/Admin.module.css";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
 
 function Admin() {
+  const ATTEMPTS_PER_PAGE = 10;
+  const EXPORT_RANGE_OPTIONS = [
+    { value: '1week', label: '1 week', days: 7 },
+    { value: '1month', label: '1 month', days: 30 },
+    { value: '1year', label: '1 year', days: 365 },
+  ];
+
+  const getRangeDays = (rangeValue) => {
+    const selected = EXPORT_RANGE_OPTIONS.find((option) => option.value === rangeValue);
+    return selected?.days || 7;
+  };
+
+  const escapeCsvValue = (value) => {
+    if (value === null || value === undefined) return '""';
+    const stringValue = String(value).replace(/"/g, '""');
+    return `"${stringValue}"`;
+  };
+
+  const downloadCsv = (filename, headers, rows) => {
+    const csvLines = [
+      headers.map(escapeCsvValue).join(','),
+      ...rows.map((row) => row.map(escapeCsvValue).join(',')),
+    ];
+
+    const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const filterAttemptsByRange = (attempts, rangeValue) => {
+    const days = getRangeDays(rangeValue);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    return (attempts || []).filter((attempt) => {
+      if (!attempt?.submittedAt) return false;
+      return new Date(attempt.submittedAt) >= startDate;
+    });
+  };
+
   const navigate = useNavigate();
   const { setUser, setIsAuthenticated } = useAuth();
   const [status, setStatus] = useState("loading");
@@ -40,6 +86,121 @@ function Admin() {
   const [selectedExamAttempts, setSelectedExamAttempts] = useState([]);
   const [selectedExamAttemptsLoading, setSelectedExamAttemptsLoading] = useState(false);
   const [selectedExamAttemptsError, setSelectedExamAttemptsError] = useState('');
+  const [quizAttemptsPage, setQuizAttemptsPage] = useState(1);
+  const [examAttemptsPage, setExamAttemptsPage] = useState(1);
+  const [quizExportRange, setQuizExportRange] = useState('1week');
+  const [examExportRange, setExamExportRange] = useState('1week');
+  const [quizSummaryExportRange, setQuizSummaryExportRange] = useState('1week');
+  const [examSummaryExportRange, setExamSummaryExportRange] = useState('1week');
+
+  const [gaActiveUsers, setGaActiveUsers] = useState(null);
+  const [gaTraffic, setGaTraffic] = useState(null);
+  const [gaLoading, setGaLoading] = useState(false);
+  const [gaError, setGaError] = useState('');
+
+  const quizAttempts = quizMetrics?.attempts || [];
+  const examAttempts = examMetrics?.attempts || [];
+
+  const quizTotalPages = Math.max(1, Math.ceil(quizAttempts.length / ATTEMPTS_PER_PAGE));
+  const examTotalPages = Math.max(1, Math.ceil(examAttempts.length / ATTEMPTS_PER_PAGE));
+
+  const paginatedQuizAttempts = quizAttempts.slice((quizAttemptsPage - 1) * ATTEMPTS_PER_PAGE, quizAttemptsPage * ATTEMPTS_PER_PAGE);
+  const paginatedExamAttempts = examAttempts.slice((examAttemptsPage - 1) * ATTEMPTS_PER_PAGE, examAttemptsPage * ATTEMPTS_PER_PAGE);
+
+  const quizAttemptsInExportRange = filterAttemptsByRange(quizAttempts, quizExportRange);
+  const examAttemptsInExportRange = filterAttemptsByRange(examAttempts, examExportRange);
+
+  const quizSummaryInExportRange = (userQuizSummary || []).filter((user) => {
+    if (!user?.latestAttemptAt) return false;
+    const days = getRangeDays(quizSummaryExportRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    return new Date(user.latestAttemptAt) >= startDate;
+  });
+
+  const examSummaryInExportRange = (userExamSummary || []).filter((user) => {
+    if (!user?.latestAttemptAt) return false;
+    const days = getRangeDays(examSummaryExportRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    return new Date(user.latestAttemptAt) >= startDate;
+  });
+
+  const exportQuizAttemptsCsv = () => {
+    const rows = quizAttemptsInExportRange.map((attempt) => [
+      attempt.username || '-',
+      attempt.language || '-',
+      attempt.quizTitle || '-',
+      attempt.scorePercentage ?? '-',
+      attempt.totalCorrect ?? '-',
+      attempt.totalQuestions ?? '-',
+      attempt.earnedXp ?? '-',
+      attempt.isPassed ? 'Passed' : 'Failed',
+      attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : '-',
+    ]);
+
+    downloadCsv(
+      `quiz-attempts-${quizExportRange}-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['User', 'Language', 'Quiz', 'Score (%)', 'Correct', 'Total Questions', 'XP', 'Status', 'Submitted'],
+      rows
+    );
+  };
+
+  const exportExamAttemptsCsv = () => {
+    const rows = examAttemptsInExportRange.map((attempt) => [
+      attempt.username || '-',
+      attempt.language || '-',
+      attempt.examTitle || '-',
+      attempt.attemptNumber ?? '-',
+      attempt.scorePercentage ?? '-',
+      attempt.isPassed ? 'Passed' : 'Failed',
+      attempt.earnedXp ?? '-',
+      attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : '-',
+    ]);
+
+    downloadCsv(
+      `exam-attempts-${examExportRange}-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['User', 'Language', 'Exam', 'Attempt #', 'Score (%)', 'Status', 'XP', 'Submitted'],
+      rows
+    );
+  };
+
+  const exportQuizSummaryCsv = () => {
+    const rows = quizSummaryInExportRange.map((user) => [
+      user.username || '-',
+      user.totalAttempts ?? '-',
+      user.averageScore ?? '-',
+      user.passRate ?? '-',
+      user.bestScore ?? '-',
+      (user.languages || []).join(', '),
+      user.latestAttemptAt ? new Date(user.latestAttemptAt).toLocaleString() : '-',
+    ]);
+
+    downloadCsv(
+      `quiz-performance-${quizSummaryExportRange}-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['User', 'Attempts', 'Average Score (%)', 'Pass Rate (%)', 'Best Score (%)', 'Languages', 'Latest Attempt'],
+      rows
+    );
+  };
+
+  const exportExamSummaryCsv = () => {
+    const rows = examSummaryInExportRange.map((user) => [
+      user.username || '-',
+      user.totalAttempts ?? '-',
+      user.averageScore ?? '-',
+      user.passRate ?? '-',
+      user.bestScore ?? '-',
+      user.totalXpAwarded ?? '-',
+      (user.languages || []).join(', '),
+      user.latestAttemptAt ? new Date(user.latestAttemptAt).toLocaleString() : '-',
+    ]);
+
+    downloadCsv(
+      `exam-performance-${examSummaryExportRange}-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['User', 'Attempts', 'Average Score (%)', 'Pass Rate (%)', 'Best Score (%)', 'XP Awarded', 'Languages', 'Latest Attempt'],
+      rows
+    );
+  };
 
   const fetchDatasets = async () => {
     setDatasetsLoading(true);
@@ -283,8 +444,38 @@ function Admin() {
     }
   };
 
+  const fetchGaData = async () => {
+    setGaLoading(true);
+    setGaError('');
+    try {
+      // The backend returns both activeUsers and trafficLogs7Days in a single object without a success wrapper
+      const response = await axiosPublic.get('/v1/admin/activeUsers', { withCredentials: true });
+
+      const payload = response.data;
+      if (payload && (payload.activeUsers !== undefined || payload.trafficLogs7Days !== undefined)) {
+        setGaActiveUsers(payload.activeUsers ?? 0);
+        setGaTraffic(payload.trafficLogs7Days || []);
+      } else {
+        throw new Error('Failed to fetch GA data: Invalid format');
+      }
+    } catch (error) {
+      console.error('Error fetching GA data:', error);
+      setGaError('Error fetching GA data. Backend package might be missing.');
+      // Fallback demo data if error
+      setGaActiveUsers(42);
+      setGaTraffic([
+        { date: '20260227', activeUsers: 15, newusers: 15, sessions: 23, screenPageViews: 154 },
+        { date: '20260228', activeUsers: 4, newusers: 3, sessions: 5, screenPageViews: 29 },
+        { date: '20260301', activeUsers: 1, newusers: 0, sessions: 2, screenPageViews: 1 },
+        { date: '20260302', activeUsers: 10, newusers: 8, sessions: 10, screenPageViews: 10 }
+      ]);
+    } finally {
+      setGaLoading(false);
+    }
+  };
+
   const demo = {
-    
+
     signupsPerDay: [
       { day: "Mon", count: 0 },
       { day: "Tue", count: 0 },
@@ -327,7 +518,7 @@ function Admin() {
           const allowed = p?.role === "admin";
           setIsAdmin(allowed);
           setStatus("ok");
-          
+
           // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
             fetchDatasets();
@@ -336,6 +527,7 @@ function Admin() {
             fetchUserQuizSummary();
             fetchExamMetrics();
             fetchUserExamSummary();
+            fetchGaData();
           }
         }
       } catch (e) {
@@ -351,6 +543,14 @@ function Admin() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    setQuizAttemptsPage(1);
+  }, [quizAttempts.length]);
+
+  useEffect(() => {
+    setExamAttemptsPage(1);
+  }, [examAttempts.length]);
 
   if (status === "loading") {
     return <AuthLoadingOverlay />;
@@ -394,6 +594,21 @@ function Admin() {
       <div className={styles.cardTitle}>{title}</div>
       <div className={styles.cardValue}>{value}</div>
       {subtitle ? <div className={styles.cardSubtitle}>{subtitle}</div> : null}
+    </div>
+  );
+
+  const RangeSelector = ({ value, onChange }) => (
+    <div className={styles.rangePicker} role="group" aria-label="Export range">
+      {EXPORT_RANGE_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          className={`${styles.rangeButton} ${value === option.value ? styles.rangeButtonActive : ''}`}
+          type="button"
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 
@@ -447,7 +662,7 @@ function Admin() {
           <div className={styles.panel}>
             <h3 className={styles.panelTitle}>Course Analytics</h3>
             <p className={styles.panelSubtitle}>Starts per course</p>
-              <div className={styles.divider}>
+            <div className={styles.divider}>
               {(metrics?.courseStarts?.length ? metrics.courseStarts : demo.courseStarts).map((c) => (
                 <div key={c.name} className={styles.courseRow}>
                   <div className={styles.courseName}>{c.name}</div>
@@ -455,6 +670,70 @@ function Admin() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Google Analytics Section */}
+        <div className={styles.header} style={{ marginTop: 24 }}>
+          <div className={styles.headerLeft}>
+            <BarChart3 className={styles.icon} />
+            <h2 className={styles.title}>Google Analytics</h2>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className={styles.button} type="button" onClick={fetchGaData} disabled={gaLoading}>Refresh GA</button>
+          </div>
+        </div>
+
+        <div className={styles.grid}>
+          <StatCard title="Active Users (Real-time)" value={gaLoading ? '…' : (gaActiveUsers ?? '0')} />
+          <StatCard title="Total Sessions (7d)" value={gaLoading ? '…' : (gaTraffic?.reduce((sum, d) => sum + Number(d.sessions || 0), 0) ?? '0')} />
+          <StatCard title="New Users (7d)" value={gaLoading ? '…' : (gaTraffic?.reduce((sum, d) => sum + Number(d.newusers || 0), 0) ?? '0')} />
+          <StatCard title="Page Views (7d)" value={gaLoading ? '…' : (gaTraffic?.reduce((sum, d) => sum + Number(d.screenPageViews || 0), 0) ?? '0')} />
+        </div>
+
+        {gaError ? <p className={styles.errorText} style={{ marginTop: 12 }}>{gaError}</p> : null}
+
+        <div className={styles.panel} style={{ marginTop: 12, marginBottom: 24 }}>
+          <h3 className={styles.panelTitle}>Traffic Logs (Last 7 Days)</h3>
+          <div className={styles.quizTableWrap}>
+            <table className={styles.quizTable}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Active Users</th>
+                  <th>New Users</th>
+                  <th>Sessions</th>
+                  <th>Page Views</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gaLoading ? (
+                  <tr>
+                    <td colSpan={5} className={styles.quizEmpty}>Loading traffic data...</td>
+                  </tr>
+                ) : !gaTraffic || gaTraffic.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className={styles.quizEmpty}>No traffic data available.</td>
+                  </tr>
+                ) : (
+                  gaTraffic.map((log) => {
+                    const formattedDate = log.date && log.date.length === 8
+                      ? `${log.date.slice(0, 4)}-${log.date.slice(4, 6)}-${log.date.slice(6, 8)}`
+                      : log.date;
+
+                    return (
+                      <tr key={log.date}>
+                        <td>{formattedDate}</td>
+                        <td>{log.activeUsers}</td>
+                        <td>{log.newusers}</td>
+                        <td>{log.sessions}</td>
+                        <td>{log.screenPageViews}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -478,9 +757,20 @@ function Admin() {
         <div className={styles.panel} style={{ marginTop: 12 }}>
           <div className={styles.quizHeaderRow}>
             <h3 className={styles.panelTitle}>Latest Quiz Attempts</h3>
-            <button className={styles.button} type="button" onClick={fetchQuizMetrics} disabled={quizMetricsLoading}>
-              Refresh Quiz Data
-            </button>
+            <div className={styles.inlineActions}>
+              <button className={styles.button} type="button" onClick={fetchQuizMetrics} disabled={quizMetricsLoading}>
+                Refresh Quiz Data
+              </button>
+              <RangeSelector value={quizExportRange} onChange={setQuizExportRange} />
+              <button
+                className={styles.button}
+                type="button"
+                onClick={exportQuizAttemptsCsv}
+                disabled={quizAttemptsInExportRange.length === 0}
+              >
+                Export Quiz CSV
+              </button>
+            </div>
           </div>
 
           <div className={styles.quizTableWrap}>
@@ -497,12 +787,12 @@ function Admin() {
                 </tr>
               </thead>
               <tbody>
-                {(quizMetrics?.attempts || []).length === 0 ? (
+                {quizAttempts.length === 0 ? (
                   <tr>
                     <td colSpan={7} className={styles.quizEmpty}>No quiz attempts found.</td>
                   </tr>
                 ) : (
-                  (quizMetrics?.attempts || []).map((attempt) => (
+                  paginatedQuizAttempts.map((attempt) => (
                     <tr key={attempt.id}>
                       <td>{attempt.username}</td>
                       <td>{attempt.language}</td>
@@ -517,6 +807,29 @@ function Admin() {
               </tbody>
             </table>
           </div>
+          {quizAttempts.length > 0 ? (
+            <div className={styles.paginationRow}>
+              <div className={styles.paginationInfo}>Page {quizAttemptsPage} of {quizTotalPages}</div>
+              <div className={styles.inlineActions}>
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={() => setQuizAttemptsPage((page) => Math.max(1, page - 1))}
+                  disabled={quizAttemptsPage === 1}
+                >
+                  Previous
+                </button>
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={() => setQuizAttemptsPage((page) => Math.min(quizTotalPages, page + 1))}
+                  disabled={quizAttemptsPage === quizTotalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {selectedUser ? (
@@ -582,9 +895,20 @@ function Admin() {
           <div className={styles.panel} style={{ marginTop: 16 }}>
             <div className={styles.quizHeaderRow}>
               <h3 className={styles.panelTitle}>User Quiz Performance</h3>
-              <button className={styles.button} type="button" onClick={fetchUserQuizSummary} disabled={userQuizSummaryLoading}>
-                Refresh Users
-              </button>
+              <div className={styles.inlineActions}>
+                <button className={styles.button} type="button" onClick={fetchUserQuizSummary} disabled={userQuizSummaryLoading}>
+                  Refresh Users
+                </button>
+                <RangeSelector value={quizSummaryExportRange} onChange={setQuizSummaryExportRange} />
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={exportQuizSummaryCsv}
+                  disabled={quizSummaryInExportRange.length === 0}
+                >
+                  Export Performance CSV
+                </button>
+              </div>
             </div>
 
             {userQuizSummaryError ? <p className={styles.errorText}>{userQuizSummaryError}</p> : null}
@@ -656,9 +980,20 @@ function Admin() {
         <div className={styles.panel} style={{ marginTop: 12 }}>
           <div className={styles.quizHeaderRow}>
             <h3 className={styles.panelTitle}>Latest Exam Attempts</h3>
-            <button className={styles.button} type="button" onClick={fetchExamMetrics} disabled={examMetricsLoading}>
-              Refresh Exam Data
-            </button>
+            <div className={styles.inlineActions}>
+              <button className={styles.button} type="button" onClick={fetchExamMetrics} disabled={examMetricsLoading}>
+                Refresh Exam Data
+              </button>
+              <RangeSelector value={examExportRange} onChange={setExamExportRange} />
+              <button
+                className={styles.button}
+                type="button"
+                onClick={exportExamAttemptsCsv}
+                disabled={examAttemptsInExportRange.length === 0}
+              >
+                Export Exam CSV
+              </button>
+            </div>
           </div>
 
           <div className={styles.quizTableWrap}>
@@ -676,12 +1011,12 @@ function Admin() {
                 </tr>
               </thead>
               <tbody>
-                {(examMetrics?.attempts || []).length === 0 ? (
+                {examAttempts.length === 0 ? (
                   <tr>
                     <td colSpan={8} className={styles.quizEmpty}>No exam attempts found.</td>
                   </tr>
                 ) : (
-                  (examMetrics?.attempts || []).map((attempt) => (
+                  paginatedExamAttempts.map((attempt) => (
                     <tr key={attempt.id}>
                       <td>{attempt.username}</td>
                       <td>{attempt.language}</td>
@@ -697,6 +1032,29 @@ function Admin() {
               </tbody>
             </table>
           </div>
+          {examAttempts.length > 0 ? (
+            <div className={styles.paginationRow}>
+              <div className={styles.paginationInfo}>Page {examAttemptsPage} of {examTotalPages}</div>
+              <div className={styles.inlineActions}>
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={() => setExamAttemptsPage((page) => Math.max(1, page - 1))}
+                  disabled={examAttemptsPage === 1}
+                >
+                  Previous
+                </button>
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={() => setExamAttemptsPage((page) => Math.min(examTotalPages, page + 1))}
+                  disabled={examAttemptsPage === examTotalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {selectedExamUser ? (
@@ -764,9 +1122,20 @@ function Admin() {
           <div className={styles.panel} style={{ marginTop: 16 }}>
             <div className={styles.quizHeaderRow}>
               <h3 className={styles.panelTitle}>User Exam Performance</h3>
-              <button className={styles.button} type="button" onClick={fetchUserExamSummary} disabled={userExamSummaryLoading}>
-                Refresh Users
-              </button>
+              <div className={styles.inlineActions}>
+                <button className={styles.button} type="button" onClick={fetchUserExamSummary} disabled={userExamSummaryLoading}>
+                  Refresh Users
+                </button>
+                <RangeSelector value={examSummaryExportRange} onChange={setExamSummaryExportRange} />
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={exportExamSummaryCsv}
+                  disabled={examSummaryInExportRange.length === 0}
+                >
+                  Export Performance CSV
+                </button>
+              </div>
             </div>
 
             {userExamSummaryError ? <p className={styles.errorText}>{userExamSummaryError}</p> : null}
@@ -823,11 +1192,9 @@ function Admin() {
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>
             <Database className={styles.icon} />
-            <h2 className={styles.title}>Quest Database</h2>
+            <h2 className={styles.title}>Quests Database</h2>
           </div>
         </div>
-
-        <p className={styles.subtitle}>Edit quest titles, descriptions, tasks, requirements, and other fields directly from the database.</p>
 
         {datasetsLoading ? (
           <div className={styles.panel}>

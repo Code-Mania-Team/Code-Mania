@@ -4,7 +4,7 @@ const useGetAllLeaderboard = () => {
   const getAllLeaderboard = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:3000/v1/leaderboard",
+        "https://api.codemania.fun/v1/leaderboard",
         {
           headers: {
             apikey: import.meta.env.VITE_API_KEY,

@@ -10,6 +10,7 @@ import useGetGameProgress from "../services/getGameProgress";
 import useAuth from "../hooks/useAxios";
 import useGetCourseBadges from "../services/getCourseBadge";
 import useMarkTutorialSeen from "../services/markTutorialSeen";
+import useGetAchievements from "../services/getUserAchievements";
 
 const checkmarkIcon =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
@@ -19,6 +20,7 @@ const CppCourse = () => {
   const { isAuthenticated, user, setUser } = useAuth();
   const getGameProgress = useGetGameProgress();
   const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(2);
+  const { achievements: userAchievements } = useGetAchievements();
   const getExercises = useGetExercises();
   const markTutorialSeen = useMarkTutorialSeen();
 
@@ -172,6 +174,29 @@ const CppCourse = () => {
     return allExercisesCompleted ? "available" : "locked";
   };
 
+  const getExamStatus = () => {
+    if (user?.role === "admin") return "available";
+
+    if (data?.examCompleted) return "completed";
+
+    const completedExam = (userAchievements || []).some((achievement) =>
+      String(achievement?.badge_key || "").includes("completed-cpp")
+    );
+
+    if (completedExam) return "completed";
+
+    const learningModules = modules.filter((module) => module.id !== 5);
+    if (!learningModules.length) return "locked";
+
+    const allStagesCompleted = learningModules.every(
+      (module) =>
+        module.exercises.length > 0 &&
+        module.exercises.every((exercise) => completedExercises.has(exercise.id))
+    );
+
+    return allStagesCompleted ? "available" : "locked";
+  };
+
   const toggleModule = (moduleId) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
@@ -209,7 +234,11 @@ const CppCourse = () => {
   };
 
   const handleTutorialClose = async () => {
+    // Capture the pending route NOW before any async state changes happen
+    const nextRoute = pendingRoute;
+
     setShowTutorial(false);
+    setPendingRoute(null);
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {
@@ -220,9 +249,7 @@ const CppCourse = () => {
       }
     }
 
-    if (pendingRoute) {
-      const nextRoute = pendingRoute;
-      setPendingRoute(null);
+    if (nextRoute) {
       navigate(nextRoute);
     }
   };
@@ -306,11 +333,14 @@ const CppCourse = () => {
                           ? module.exercises[index - 1].id
                           : null;
 
-                      const status = getExerciseStatus(
-                        module.id,
-                        exercise.id,
-                        previousExerciseId
-                      );
+                      const status =
+                        module.id === 5
+                          ? getExamStatus()
+                          : getExerciseStatus(
+                              module.id,
+                              exercise.id,
+                              previousExerciseId
+                            );
 
                       return (
                         <div

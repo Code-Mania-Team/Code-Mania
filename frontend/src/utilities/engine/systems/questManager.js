@@ -54,7 +54,7 @@ export default class QuestManager {
   }
 
 
-  completeQuest(id) {
+  completeQuest(id, { emitEvent = true } = {}) {
     const quest = this.getQuestById(id);
     console.log("📤 dispatch quest-complete", id);
     if (!quest || quest.completed) return;
@@ -75,22 +75,25 @@ export default class QuestManager {
 
     this.scene.questHUD?.hide();
 
-    window.dispatchEvent(
-      new CustomEvent("code-mania:quest-complete", {
-        detail: { questId: id }
-      })
-    );
+    if (emitEvent) {
+      window.dispatchEvent(
+        new CustomEvent("code-mania:quest-complete", {
+          detail: { questId: id }
+        })
+      );
+    }
 
     console.log("🏁 QUEST COMPLETED:", quest.title);
     let exitTarget = null;
     const questOrder = Number(quest?.order_index);
 
-    this.scene.mapExits?.children?.iterate(zone => {
-    const required = Number(zone.exitData?.requiredQuest);
-    if (required === Number(id) || (Number.isFinite(questOrder) && required === questOrder)) {
-      zone.exitArrow?.setVisible(true);
-      exitTarget = zone;
-    }
+    const exitZones = this.scene.mapExits?.getChildren?.() || [];
+    exitZones.forEach((zone) => {
+      const required = Number(zone?.exitData?.requiredQuest);
+      if (required === Number(id) || (Number.isFinite(questOrder) && required === questOrder)) {
+        zone?.exitArrow?.setVisible(true);
+        exitTarget = zone;
+      }
     });
 
     // Fallback for maps without required_quest configured

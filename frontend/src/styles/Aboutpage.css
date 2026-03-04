@@ -2,8 +2,18 @@
 
 .about-page {
     margin: 0 auto;
-    background-color: #0F172A;
-   
+    background:
+      radial-gradient(2px 2px at 20% 30%, white, transparent),
+      radial-gradient(2px 2px at 60% 70%, white, transparent),
+      radial-gradient(1px 1px at 50% 50%, white, transparent),
+      radial-gradient(1px 1px at 80% 10%, white, transparent),
+      radial-gradient(2px 2px at 90% 60%, white, transparent),
+      radial-gradient(1px 1px at 30% 80%, white, transparent),
+      radial-gradient(1px 1px at 70% 40%, white, transparent),
+      #0F172A;
+    background-size: 200px 200px, 150px 150px, 100px 100px, 250px 250px, 300px 300px, 180px 180px, 220px 220px, 100% 100%;
+    background-attachment: fixed;
+    min-height: 100vh;
 }
 .hero-left{
     margin-top: 20px;
@@ -12,7 +22,6 @@
 
 
 .about-section {
-    background: linear-gradient(0deg,rgba(15, 23, 42, 1) 0%, rgba(82, 0, 153, 1) 50%, rgb(15,23,42,1) 100%);
     padding: 60px;
     display: flex;
     align-items: center;
@@ -136,10 +145,15 @@
 .developer{
     padding:0px 70px;
     display:grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     justify-items:center;
     margin-top: 6%;
+}
 
+.dev-card-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .card {
   width: 15em;
@@ -159,6 +173,15 @@
   height: 190px;
   background: white;
   border-radius: 15px;
+  border: 4px solid #fefefe;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.card .img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .dev-info {
   font-weight: 400;
@@ -167,6 +190,59 @@
   text-align: center;
   font-size: 0.7rem;
   margin: 1em;
+}
+
+.dev-links {
+  margin-top: 0.65rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.dev-links-below {
+  margin-top: 1rem;
+}
+
+.dev-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.dev-link-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.dev-name-gennie {
+  color: #f9a8d4;
+}
+
+.dev-name-jet {
+  color: #93c5fd;
+}
+
+.dev-name-diether {
+  color: #86efac;
+}
+
+.dev-name-jp {
+  color: #fcd34d;
+}
+
+.dev-name-wilster {
+  color: #c4b5fd;
+}
+
+.dev-name-mascot {
+  color: #fdba74;
 }
 .share {
   margin-top: 1em;
@@ -229,8 +305,25 @@
 }
 
 .card{
-    width: 100%;
     height: auto;
+    margin: 0 auto;
+}
+
+.card .img {
+    height: 150px;
+}
+
+.dev-info {
+    font-size: 0.62rem;
+    margin: 0.75rem;
+}
+
+.dev-name {
+    font-size: 1.15rem;
+}
+
+.dev-pos {
+    font-size: 0.82rem;
 }
 
 .dev-header h2{
@@ -277,11 +370,89 @@
 }
 
 .card{
-    width: 100%;
+    width: min(100%, 250px);
+    margin: 0 auto;
+}
+
+.card .img {
+    height: 140px;
+}
+
+.dev-info {
+    font-size: 0.62rem;
+    margin: 0.7rem;
+}
+
+.dev-name {
+    font-size: 1rem;
+}
+
+.dev-pos {
+    font-size: 0.76rem;
 }
 
 .dev-header h2{
     font-size: 1.5rem;
+}
+
+}
+
+@media (min-width:761px) and (max-width:1024px) {
+
+.about-section{
+    flex-direction: column;
+    padding: 44px 36px;
+    text-align: center;
+}
+
+.about-image img{
+    width: 82%;
+}
+
+.about-text h1{
+    font-size: 24px;
+}
+
+.about-text p{
+    font-size: 18px;
+}
+
+.info-container{
+    padding: 14px 36px;
+}
+
+.info-box{
+    padding: 28px 34px;
+}
+
+.developer{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 0 28px;
+    gap: 20px;
+}
+
+.card{
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    margin: 0 auto;
+}
+
+.card .img{
+    height: 150px;
+}
+
+.dev-info{
+    font-size: 0.66rem;
+    margin: 0.75rem;
+}
+
+.dev-header h2{
+    font-size: 1.75rem;
+}
+
+.dev-header p{
+    font-size: 0.85rem;
 }
 
 }

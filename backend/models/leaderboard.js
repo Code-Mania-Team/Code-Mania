@@ -51,6 +51,31 @@ class Leaderboard {
         if (error) throw error;
         return data;
     }
+
+    // 3️⃣ Exam XP (grouped by user + language)
+    async getExamXP() {
+        const { data, error } = await this.db
+            .from("user_exam_attempts")
+            .select(`
+                id,
+                user_id,
+                exam_problem_id,
+                earned_xp,
+                exam_problems (
+                    programming_languages (
+                        slug
+                    )
+                ),
+                users (
+                    full_name,
+                    character_id,
+                    role
+                )
+            `);
+
+        if (error) throw error;
+        return data;
+    }
 }
 
 export default Leaderboard;

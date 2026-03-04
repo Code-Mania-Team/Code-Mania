@@ -15,7 +15,7 @@ const account = new AccountController();
 accountRouter.post('/signup/request-otp', account.requestOtp.bind(account));
 
 // Verify OTP after user clicks or enters it
-accountRouter.post('/signup/verify-otp', account.verifyOtp.bind(account));
+accountRouter.post('/signup/verify-otp', authorization,account.verifyOtp.bind(account));
 
 // Set username (requires authentication)
 accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));

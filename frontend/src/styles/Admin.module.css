@@ -419,6 +419,53 @@
   flex-wrap: wrap;
 }
 
+.rangePicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 197, 255, 0.24);
+  background: rgba(3, 8, 20, 0.65);
+}
+
+.rangeButton {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #cbd5e1;
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.rangeButton:hover {
+  color: #e7eefc;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.rangeButtonActive {
+  background: rgba(59, 130, 246, 0.28);
+  border-color: rgba(148, 197, 255, 0.55);
+  color: #eff6ff;
+}
+
+.paginationRow {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.paginationInfo {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
 .quizTableWrap {
   margin-top: 12px;
   width: 100%;

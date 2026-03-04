@@ -35,6 +35,10 @@ class UserGameDataController {
             user_id,
             programming_language_id
         );
+        const examRows = await this.gameDataService.getExamAttemptsByLanguage(
+            user_id,
+            programming_language_id
+        );
 
         const completedQuizStages = Array.from(
             new Set(
@@ -58,12 +62,34 @@ class UserGameDataController {
             0
         );
 
+        const latestExamByProblem = new Map();
+        (examRows || []).forEach((row) => {
+            const key = Number(row?.exam_problem_id);
+            if (!Number.isFinite(key)) return;
+
+            const existing = latestExamByProblem.get(key);
+            if (!existing || Number(row?.id || 0) > Number(existing?.id || 0)) {
+                latestExamByProblem.set(key, row);
+            }
+        });
+
+        const latestExamRows = Array.from(latestExamByProblem.values());
+
+        const examXpEarned = latestExamRows.reduce(
+            (sum, row) => sum + Number(row?.earned_xp || 0),
+            0
+        );
+
+        const examCompleted = latestExamRows.some((row) => row?.passed === true);
+
         return res.status(200).json({
             success: true,
             completedQuests: rows.map(r => r.exercise_id),
-            xpEarned: questXpEarned + quizXpEarned,
+            xpEarned: questXpEarned + quizXpEarned + examXpEarned,
             questXpEarned,
             quizXpEarned,
+            examXpEarned,
+            examCompleted,
             availableQuiz: (quizRows || []).length,
             completedQuizStages,
             quests: rows.map(r => ({
@@ -73,7 +99,6 @@ class UserGameDataController {
         });
 
         } catch (err) {
-        console.error("learningData error:", err);
         return res.status(500).json({
             success: false,
             message: err.message

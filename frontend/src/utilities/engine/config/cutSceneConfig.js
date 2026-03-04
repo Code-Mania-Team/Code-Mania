@@ -171,5 +171,17 @@ export const CUTSCENES = {
   { type: "unlockPlayer" }
 
 
-]
+ ]
+};
+
+export const CUTSCENE_OPTIONS = {
+  Python_map1_intro: {
+    showSkipButton: true,
+  },
+  JavaScript_map1_intro: {
+    showSkipButton: true,
+  },
+  Cpp_map1_intro: {
+    showSkipButton: true,
+  },
 };

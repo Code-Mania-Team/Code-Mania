@@ -11,7 +11,6 @@ class ExamModel {
       .maybeSingle();
 
     if (error) {
-      console.error("isAdminUser error:", error);
       return false;
     }
 
@@ -133,7 +132,7 @@ class ExamModel {
     return last + 1;
   }
 
-  async createAttempt({ userId, problemId, languageSlug, attemptNumber }) {
+  async createAttempt({ userId, problemId, languageSlug, attemptNumber, earnedXp = 0 }) {
     const { data, error } = await supabase
       .from("user_exam_attempts")
       .insert({
@@ -143,7 +142,7 @@ class ExamModel {
         attempt_number: attemptNumber,
         score_percentage: 0,
         passed: false,
-        earned_xp: 0,
+        earned_xp: earnedXp,
       })
       .select("id, user_id, exam_problem_id, language, attempt_number, score_percentage, passed, earned_xp, created_at")
       .single();
@@ -263,6 +262,34 @@ class ExamModel {
     return data;
   }
 
+  async resetAttemptForRetake({ attemptId, carryXp }) {
+    const { data, error } = await supabase
+      .from("user_exam_attempts")
+      .update({
+        attempt_number: 0,
+        score_percentage: 0,
+        passed: false,
+        earned_xp: Number(carryXp || 0),
+      })
+      .eq("id", attemptId)
+      .select("id, user_id, exam_problem_id, language, attempt_number, score_percentage, passed, earned_xp, created_at")
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getAttemptCountForProblem({ userId, problemId }) {
+    const { count, error } = await supabase
+      .from("user_exam_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("exam_problem_id", problemId);
+
+    if (error) throw error;
+    return Number(count || 0);
+  }
+
   async getBestXpForProblem({ userId, problemId }) {
     const { data, error } = await supabase
       .from("user_exam_attempts")
@@ -278,11 +305,56 @@ class ExamModel {
   }
 
   async addXp(userId, xp) {
-    if (!xp || xp <= 0) return;
+    if (!xp) return;
     await supabase.rpc("increment_xp", {
       user_id_input: userId,
       xp_input: xp,
     });
+  }
+
+  async getExamCompletionAchievementId({ languageSlug }) {
+    if (!languageSlug) return null;
+
+    const language = await this.getLanguageBySlug(languageSlug);
+    if (!language?.id) return null;
+
+    const normalizedSlug = String(languageSlug).toLowerCase();
+
+    const { data, error } = await supabase
+      .from("achievements")
+      .select("id")
+      .eq("programming_language_id", language.id)
+      .ilike("badge_key", `%completed-${normalizedSlug}%`)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.id || null;
+  }
+
+  async grantAchievementIfMissing({ userId, achievementId }) {
+    if (!userId || !achievementId) return false;
+
+    const { data: existing, error: existingError } = await supabase
+      .from("users_achievements")
+      .select("achievement_id")
+      .eq("user_id", userId)
+      .eq("achievement_id", achievementId)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+    if (existing) return false;
+
+    const { error: insertError } = await supabase
+      .from("users_achievements")
+      .insert({
+        user_id: userId,
+        achievement_id: achievementId,
+      });
+
+    if (insertError) throw insertError;
+    return true;
   }
 }
 

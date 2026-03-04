@@ -20,7 +20,6 @@ class ForgotPasswordController {
                 data: { email: response?.email },
             });
         } catch (err) {
-            console.error("requestPasswordResetOtp error:", err);
             return res.status(400).json({
                 success: false,
                 message: err.message === "Email not found" ? "Email not registered" : err.message || "Failed to process password reset request",
@@ -38,7 +37,6 @@ class ForgotPasswordController {
             const result = await this.forgotPasswordService.verifyPasswordReset(email, otp);
             return res.status(200).json(result);
         } catch (err) {
-            console.error("verifyPasswordResetOtp error:", err);
             return res.status(400).json({
                 success: false,
                 message: err.message || "Failed to verify OTP",
@@ -65,7 +63,6 @@ class ForgotPasswordController {
                 message: "Password reset successfully",
             });
         } catch (err) {
-            console.error("resetPassword error:", err);
             return res.status(400).json({
                 success: false,
                 message: err.message || "Failed to reset password",

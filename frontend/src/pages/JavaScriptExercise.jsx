@@ -11,9 +11,9 @@ import SignInModal from "../components/SignInModal";
 import ProgressBar from "../components/ProgressBar";
 
 import CodeTerminal from "../components/CodeTerminal";
+import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
 
-import StageCompleteModal from "../components/StageCompleteModal";
 
 import styles from "../styles/JavaScriptExercise.module.css";
 
@@ -35,6 +35,20 @@ import useStartExercise from "../services/startExercise.js";
 
 
 const JavaScriptExercise = () => {
+
+  const stageBadgeById = {
+    1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage1_pqdiia.png",
+    2: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage2_ibodld.png",
+    3: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage3_ghcyja.png",
+    4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage4_attwps.png",
+  };
+
+  const stageBadgeTitleById = {
+    1: "JavaScript Apprentice",
+    2: "Function Crafter",
+    3: "Object Engineer",
+    4: "DOM Explorer",
+  };
 
   const navigate = useNavigate();
 
@@ -79,10 +93,12 @@ const JavaScriptExercise = () => {
 
 
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
+  const [showStageQuizPrompt, setShowStageQuizPrompt] = useState(false);
+  const [stageQuizId, setStageQuizId] = useState(null);
+  const [completedQuizStages, setCompletedQuizStages] = useState([]);
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-
-  const [showStageComplete, setShowStageComplete] = useState(false);
 
 
 
@@ -118,7 +134,7 @@ const JavaScriptExercise = () => {
     const handleStart = async (e) => {
       const questId = e.detail?.questId;
       if (!questId) return;
-  
+
       try {
         await startExercise(questId);
         console.log("✅ Quest started in backend");
@@ -126,9 +142,9 @@ const JavaScriptExercise = () => {
         console.error("Failed to start quest", err);
       }
     };
-  
+
     window.addEventListener("code-mania:quest-started", handleStart);
-  
+
     return () =>
       window.removeEventListener("code-mania:quest-started", handleStart);
   }, []);
@@ -211,6 +227,8 @@ const JavaScriptExercise = () => {
 
       }
 
+      setCompletedQuizStages(Array.isArray(result?.completedQuizStages) ? result.completedQuizStages : []);
+
     };
 
 
@@ -230,6 +248,9 @@ const JavaScriptExercise = () => {
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setShowCourseCompletePrompt(false);
+    setShowStageQuizPrompt(false);
+    setStageQuizId(null);
 
 
 
@@ -287,8 +308,6 @@ const JavaScriptExercise = () => {
 
 
       if (!next) {
-
-        setShowStageComplete(true);
 
         return;
 
@@ -390,6 +409,25 @@ const JavaScriptExercise = () => {
 
       }
 
+      if (Number(questId) === activeExerciseId) {
+        const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
+        const totalExercises = Number(activeExercise?.totalExercises || 16);
+        const stageNumber = Math.ceil(orderIndex / 4);
+        const isStageBoundary = orderIndex % 4 === 0 && orderIndex < totalExercises;
+        const alreadyCompletedStageQuiz = completedQuizStages.includes(stageNumber);
+
+        if (isStageBoundary && !alreadyCompletedStageQuiz) {
+          setStageQuizId(stageNumber);
+          setShowStageQuizPrompt(true);
+        }
+
+        getNextExercise(activeExerciseId).then((next) => {
+          if (!next) {
+            setShowCourseCompletePrompt(true);
+          }
+        });
+      }
+
     };
 
 
@@ -414,7 +452,7 @@ const JavaScriptExercise = () => {
 
     };
 
-  }, [activeExercise, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
 
 
 
@@ -463,6 +501,7 @@ const JavaScriptExercise = () => {
 
 
   if (!activeExercise) return null;
+  console.log(activeExercise)
 
 
 
@@ -527,7 +566,7 @@ const JavaScriptExercise = () => {
             <div id="phaser-container" className={styles["game-scene"]} />
           </div>
 
-          <div className={isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}>
+          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               language="javascript"
@@ -539,15 +578,45 @@ const JavaScriptExercise = () => {
               disabled={!terminalEnabled}
               showMobilePanelSwitcher={false}
               enableMobileSplit={false}
+              quest={activeExercise}
             />
           </div>
         </div>
       </div>
 
-      <StageCompleteModal
-        show={showStageComplete}
+      <CourseCompletionPromptModal
+        show={showStageQuizPrompt}
         languageLabel="JavaScript"
-        onClose={() => setShowStageComplete(false)}
+        title="Congratulations!"
+        subtitle={`You earned the Stage ${stageQuizId || ""} badge! Take the quiz now or continue exploring.`}
+        badgeImage={stageBadgeById[stageQuizId]}
+        badgeAlt={`JavaScript Stage ${stageQuizId || ""} badge`}
+        badgeLabel={stageQuizId ? stageBadgeTitleById[stageQuizId] || `Stage ${stageQuizId} badge` : "Stage badge"}
+        primaryLabel="Take Quiz"
+        onTakeExam={() => {
+          if (!stageQuizId) return;
+          navigate(`/quiz/javascript/${stageQuizId}`);
+        }}
+        secondaryLabel="Continue Learning"
+        onSecondary={() => {
+          setShowStageQuizPrompt(false);
+          window.dispatchEvent(new Event("code-mania:close-quest-hud"));
+        }}
+        feedbackLabel="Share Feedback"
+        onFeedback={() => navigate("/freedomwall")}
+        showClose={false}
+        onClose={() => setShowStageQuizPrompt(false)}
+      />
+
+      <CourseCompletionPromptModal
+        show={showCourseCompletePrompt}
+        languageLabel="JavaScript"
+        badgeImage={stageBadgeById[4]}
+        badgeAlt="JavaScript Stage 4 badge"
+        badgeLabel="Stage 4 badge earned"
+        onTakeExam={() => navigate("/exam/javascript")}
+        onSecondary={() => navigate("/learn/javascript")}
+        onClose={() => setShowCourseCompletePrompt(false)}
       />
     </div>
   );

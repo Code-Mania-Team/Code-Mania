@@ -3,80 +3,133 @@ export default class CutsceneManager {
     this.scene = scene;
     this.running = false;
     this.text = null;
+    this.stopRequested = false;
+    this._activeActionCleanup = null;
+  }
+
+  requestSkip() {
+    this.stopRequested = true;
+    if (typeof this._activeActionCleanup === "function") {
+      this._activeActionCleanup();
+    }
+  }
+
+  _setActionCleanup(cleanup) {
+    this._activeActionCleanup = cleanup;
+  }
+
+  _clearActionCleanup() {
+    this._activeActionCleanup = null;
   }
 
   async play(cutscene) {
     if (this.running) return;
     this.running = true;
+    this.stopRequested = false;
 
     // Lock movement for entire cutscene
     this.scene.playerCanMove = false;
 
     for (const action of cutscene) {
+      if (this.stopRequested) break;
       await this.runAction(action);
     }
 
     // Cleanup
     this.scene.playerCanMove = true;
+    this.scene.cameras?.main?.startFollow?.(this.scene.player, true, 1, 1);
+    this.scene.cameras?.main?.centerOn?.(this.scene.player.x, this.scene.player.y);
 
     if (this.text) {
       this.text.destroy();
       this.text = null;
     }
+    if (this.textBox) {
+      this.textBox.destroy();
+      this.textBox = null;
+    }
 
     this.running = false;
+    this.stopRequested = false;
+    this._clearActionCleanup();
   }
 
   runAction(action) {
     return new Promise(resolve => {
       const cam = this.scene.cameras.main;
+      if (this.stopRequested) {
+        resolve();
+        return;
+      }
+
+      const resolveOnce = (() => {
+        let done = false;
+        return () => {
+          if (done) return;
+          done = true;
+          this._clearActionCleanup();
+          resolve();
+        };
+      })();
 
       switch (action.type) {
         case "lockPlayer":
           this.scene.playerCanMove = false;
-          resolve();
+          resolveOnce();
           break;
 
         case "unlockPlayer":
           this.scene.playerCanMove = true;
-          resolve();
+          resolveOnce();
           break;
 
         case "cameraMove":
           cam.stopFollow();
           cam.pan(action.x, action.y, action.duration, "Linear", true);
 
-          cam.once("camerapancomplete", resolve);
+          const onPanComplete = () => resolveOnce();
+          cam.once("camerapancomplete", onPanComplete);
+          const fallback = this.scene.time.delayedCall(action.duration + 50, () => resolveOnce());
 
-          // Safety fallback (never freeze)
-          this.scene.time.delayedCall(action.duration + 50, resolve);
+          this._setActionCleanup(() => {
+            cam.off("camerapancomplete", onPanComplete);
+            if (fallback?.remove) fallback.remove(false);
+            resolveOnce();
+          });
           break;
 
         case "cameraFollowPlayer":
-          cam.startFollow(this.scene.player, true, 0.1, 0.1);
-          resolve();
+          cam.startFollow(this.scene.player, true, 1, 1);
+          cam.centerOn(this.scene.player.x, this.scene.player.y);
+          resolveOnce();
           break;
 
         case "wait":
-          this.scene.time.delayedCall(action.duration, resolve);
+          const waitTimer = this.scene.time.delayedCall(action.duration, () => resolveOnce());
+          this._setActionCleanup(() => {
+            if (waitTimer?.remove) waitTimer.remove(false);
+            resolveOnce();
+          });
           break;
 
         case "dialogue":
-          this.playDialogue(action.lines).then(resolve);
+          this.playDialogue(action.lines).then(() => resolveOnce());
           break;
 
         case "fadeIn":
-          this.playFadeIn(action.duration).then(resolve);
+          this.playFadeIn(action.duration).then(() => resolveOnce());
           break;
 
         default:
-          resolve();
+          resolveOnce();
       }
     });
   }
 
   async playDialogue(lines) {
     for (const line of lines) {
+      if (this.stopRequested) break;
+
       if (this.text) this.text.destroy();
       if (this.textBox) this.textBox.destroy();
 
@@ -121,32 +174,39 @@ export default class CutsceneManager {
       ).setScrollFactor(0)
       .setDepth(1002);
 
-      this.scene.tweens.add({
-        targets: arrow,
-        y: height - 60,
-        duration: 600,
-        yoyo: true,
-        repeat: -1
-      });
-
       // Wait for SPACE or auto-advance
       await new Promise(resolve => {
+        let fallbackTimer;
+        let bounceTween;
+
+        const cleanup = () => {
+          this.scene.input.off("pointerdown", onClick);
+          if (fallbackTimer?.remove) fallbackTimer.remove(false);
+          if (bounceTween?.stop) bounceTween.stop();
+          arrow.destroy();
+          this._clearActionCleanup();
+          resolve();
+        };
+
         const onClick = (pointer) => {
           if (pointer.button !== 0) return;
           cleanup();
         };
 
-        const cleanup = () => {
-          this.scene.input.off("pointerdown", onClick);
-          arrow.destroy();
-          resolve();
-        };
+        fallbackTimer = this.scene.time.delayedCall(3000, cleanup);
+        bounceTween = this.scene.tweens.add({
+          targets: arrow,
+          y: height - 60,
+          duration: 600,
+          yoyo: true,
+          repeat: -1
+        });
 
+        this._setActionCleanup(cleanup);
         this.scene.input.on("pointerdown", onClick);
-
-        // auto advance fallback
-        this.scene.time.delayedCall(3000, cleanup);
       });
+
+      if (this.stopRequested) break;
 
     }
 

@@ -6,7 +6,7 @@
 
 /* Remove main-content padding top for exam pages */
 :global(body.exam-page) :global(.main-content) {
-  padding-top: 0;
+  padding-top: 72px;
 }
 
 /* Hero/Header */
@@ -32,7 +32,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
   z-index: 1;
 }
 
@@ -62,7 +62,7 @@
   font-family: 'Jersey 25', sans-serif;
   font-size: 3rem;
   margin: 0.5rem 0;
-  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.8);
 }
 
 .heroDescription {
@@ -85,11 +85,13 @@
 }
 
 .questionContainer {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
-  padding: 1.5rem; /* reduced from 2rem */
-  min-height: auto; /* remove fixed height */
+  padding: 1.5rem;
+  /* reduced from 2rem */
+  min-height: auto;
+  /* remove fixed height */
 }
 
 .questionHeader {
@@ -118,6 +120,54 @@
   color: #e2e8f0;
 }
 
+.examLayout {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(420px, 1.35fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.examInfoColumn {
+  min-width: 0;
+}
+
+.examCodeColumn {
+  min-width: 0;
+}
+
+.mobilePanelHidden {
+  display: none;
+}
+
+.mobileTaskTabs {
+  display: none;
+}
+
+.mobileTaskTabsWrap {
+  display: none;
+}
+
+.mobileTaskTabsOffset {
+  display: none;
+}
+
+.mobileTaskTab {
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  background: rgba(2, 6, 23, 0.92);
+  color: #dbeafe;
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  letter-spacing: 0.4px;
+}
+
+.mobileTaskTabActive {
+  border-color: #38bdf8;
+  color: #7dd3fc;
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.32);
+}
+
 /* Options */
 .optionsContainer {
   display: flex;
@@ -129,15 +179,15 @@
   display: flex;
   align-items: center;
   padding: 1rem;
-  border: 2px solid rgba(255,255,255,0.1);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .optionLabel:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .optionInput {
@@ -155,7 +205,7 @@
   width: 2rem;
   height: 2rem;
   font-family: 'Press Start 2P';
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -168,8 +218,8 @@
 }
 
 .selectedOption {
-  background: rgba(255,255,255,0.1) !important;
-  border-color: rgba(255,255,255,0.3) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 .optionText {
@@ -203,8 +253,8 @@
 .navButton {
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   cursor: pointer;
 }
@@ -277,4 +327,367 @@
   background: #1d4ed8;
   transform: translateY(-1px);
   box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+}
+
+/* ═══════════════════════════════
+   CONGRATULATIONS MODAL
+   ═══════════════════════════════ */
+
+.congratsOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+  padding: 1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.congratsModal {
+  position: relative;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+  padding: 2.5rem 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(251, 191, 36, 0.08);
+  animation: modalSlideUp 0.4s ease;
+  overflow: hidden;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Confetti ─── */
+.confettiContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  top: -10px;
+  border-radius: 2px;
+  animation: confettiFall linear infinite;
+  opacity: 0.85;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(500px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ─── Icon ─── */
+.congratsIcon {
+  font-size: 4rem;
+  margin-bottom: 0.75rem;
+  animation: bounceIn 0.6s ease;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  70% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ─── Title ─── */
+.congratsTitle {
+  font-family: 'Jersey 25', sans-serif;
+  font-size: 2.5rem;
+  color: #fbbf24;
+  margin-bottom: 0.4rem;
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+}
+
+.congratsSubtitle {
+  font-size: 1rem;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+/* ─── Badge Card ─── */
+.congratsBadge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  text-align: left;
+  animation: badgeReveal 0.5s ease 0.3s both;
+}
+
+@keyframes badgeReveal {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.congratsBadgeIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.congratsBadgeImage {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.congratsBadgeTitle {
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.congratsBadgeDesc {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* ─── XP Display ─── */
+.congratsXp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  padding: 0.75rem;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 0.75rem;
+  animation: xpGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes xpGlow {
+  from {
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.1);
+  }
+
+  to {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+  }
+}
+
+.congratsXpIcon {
+  font-size: 1.5rem;
+}
+
+.congratsXpAmount {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1.25rem;
+  color: #fbbf24;
+}
+
+.congratsXpLabel {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+/* ─── Action Buttons ─── */
+.congratsActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.congratsBtnPrimary {
+  flex: 1;
+  padding: 0.8rem 1.25rem;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 0.6rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.congratsBtnPrimary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+}
+
+.congratsBtnSecondary {
+  flex: 1;
+  padding: 0.8rem 1.25rem;
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.6rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.congratsBtnSecondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 480px) {
+  .congratsModal {
+    padding: 2rem 1.5rem;
+  }
+
+  .congratsTitle {
+    font-size: 2rem;
+  }
+
+  .congratsXpAmount {
+    font-size: 1rem;
+  }
+
+  .congratsActions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 1024px) {
+  .section {
+    padding: 1.25rem 0.85rem;
+    min-height: auto;
+  }
+
+  .questionContainer {
+    padding: 1rem;
+  }
+
+  .examLayout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .questionHeader {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .questionTitle {
+    font-size: 1.55rem;
+    line-height: 1.2;
+  }
+
+  .questionPoints {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :global(body.coding-exam-page) :global(.header) {
+    display: none !important;
+  }
+
+  :global(body.coding-exam-page) :global(.main-content) {
+    padding-top: 0 !important;
+    background: #0f172a;
+  }
+
+  .hero {
+    height: 170px !important;
+  }
+
+  .heroTitle {
+    font-size: 2.2rem;
+  }
+
+  .heroDescription {
+    font-size: 1rem;
+  }
+
+  .mobileTaskTabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 0;
+    padding: 0.45rem 0;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  }
+
+  .mobileTaskTabsWrap {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2600;
+    padding: 0 0.85rem;
+    background: #0f172a;
+  }
+
+  .mobileTaskTabsOffset {
+    display: block;
+    height: 62px;
+  }
+
+  .section {
+    padding-top: 0.8rem;
+  }
+
+  .examCodeColumn {
+    overflow: visible;
+  }
 }

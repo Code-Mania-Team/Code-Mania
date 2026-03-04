@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const BASE_URL = "https://code-mania-production.up.railway.app";
+const BASE_URL = "https://api.codemania.fun";
 
 const DEFAULT_HEADERS = {
   apikey: import.meta.env.VITE_API_KEY,
-  "Content-Type": "application/json",
+  'Content-Type': 'application/json',
 };
 
 export const axiosPublic = axios.create({

@@ -1190,6 +1190,138 @@
   box-shadow: 7px 7px 0 rgb(255, 255, 255);
 }
 
+/* Tablet layout (landscape / large tablet) */
+@media (min-width: 961px) and (max-width: 1200px) {
+  .coverBannerImage {
+    height: 320px;
+    object-position: center -240px;
+  }
+
+  .coverOverlayInner {
+    gap: 1.2rem;
+    padding: 0.7rem 1.25rem;
+  }
+
+  .coverAvatarContainer {
+    transform: translateY(-22px);
+  }
+
+  .avatar {
+    width: 140px;
+    height: 140px;
+    border-width: 6px;
+  }
+
+  .coverUserInfo .userName {
+    font-size: 1.7rem;
+  }
+
+  .coverEditProfileBtn {
+    width: 168px;
+    font-size: 1.2rem;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 290px;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem 2rem;
+  }
+
+  .layout .container {
+    bottom: 24px;
+  }
+
+  .tabs {
+    gap: 0;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.7rem 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .sidebarCardTitle {
+    font-size: 1.5rem;
+  }
+
+  .sidebarPrimaryBtn,
+  .deleteBtn,
+  .signOutBtn {
+    font-size: 1.2rem;
+    padding: 0.42rem 0.7rem;
+  }
+}
+
+/* Tablet layout (portrait / small tablet) */
+@media (min-width: 768px) and (max-width: 960px) {
+  .coverBannerImage {
+    height: 280px;
+    object-position: center -110px;
+  }
+
+  .coverOverlayInner {
+    gap: 1rem;
+    padding: 0.7rem 1rem;
+    margin-top: 15px;
+  }
+
+  .coverAvatarContainer {
+    transform: translateY(-10px);
+  }
+
+  .avatar {
+    width: 120px;
+    height: 120px;
+    border-width: 5px;
+  }
+
+  .coverUserInfo .userName {
+    font-size: 1.55rem;
+  }
+
+  .coverEditProfileBtn {
+    width: 158px;
+    font-size: 1.05rem;
+    padding: 0.42rem 0.65rem;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem 1rem 1.75rem;
+  }
+
+  .layout .container {
+    bottom: 0;
+  }
+
+  .layout .sidebar {
+    position: static;
+    margin-top: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .layout .sidebar .sidebarCard:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .tabs {
+    gap: 0;
+    margin: 1rem auto 1.1rem;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.72rem 0.8rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.15px;
+  }
+}
+
 @media (max-width: 960px) {
   .coverBannerImage {
     object-position: center -160px;
@@ -1219,6 +1351,10 @@
 }
 
 @media (max-width: 520px) {
+  .coverOverlay {
+    bottom: 24px;
+  }
+
   .desktopStatsCard {
     display: none;
   }
@@ -1228,7 +1364,8 @@
   }
 
   .layout {
-    padding-top: 0.75rem;
+    padding-top: 0.25rem;
+    margin-top: -20px;
   }
 
   .coverBannerImage {

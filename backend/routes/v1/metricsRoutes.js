@@ -31,7 +31,6 @@ router.get(
   requireAdmin,
   metricsController.getQuizAttemptsByUserId.bind(metricsController)
 );
-
 router.get(
   "/exam-attempts",
   authentication,

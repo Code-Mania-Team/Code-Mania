@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import useAuth from "../hooks/useAxios";
+import useLearningProgress from "../services/useLearningProgress";
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -16,9 +17,15 @@ const Header = ({ onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLearnOpen, setIsLearnOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
-  const [characterIcon, setCharacterIcon] = useState(null);
+  const [characterIcon, setCharacterIcon] = useState(() => localStorage.getItem('selectedCharacterIcon') || null);
   const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
+  const { progress } = useLearningProgress();
+
+  // Unlock terminal when user completes at least 16 exercises in any one course
+  const hasTerminalAccess = progress.some(
+    (p) => Number(p?.completed || 0) >= 16
+  );
 
   // Load character icon from localStorage
   useEffect(() => {
@@ -30,26 +37,44 @@ const Header = ({ onOpenModal, onSignOut }) => {
     };
 
     const loadCharacterIcon = () => {
+      if (!isAuthenticated) {
+        setCharacterIcon(null);
+        return;
+      }
+
+      const userCharacterId = user?.character_id;
+      const normalizedUserCharacterId =
+        userCharacterId === null || userCharacterId === undefined
+          ? null
+          : Number(userCharacterId);
+
+      if (normalizedUserCharacterId !== null && !Number.isNaN(normalizedUserCharacterId)) {
+        const iconFromUser = iconByCharacterId[normalizedUserCharacterId] || null;
+        if (iconFromUser) {
+          localStorage.setItem('selectedCharacter', String(normalizedUserCharacterId));
+          localStorage.setItem('selectedCharacterIcon', iconFromUser);
+          setCharacterIcon(iconFromUser);
+          return;
+        }
+      }
+
+      // Authenticated user with no character in profile and no local selection: avoid stale icon from previous account
+      const hasStoredCharacter = localStorage.getItem('selectedCharacter') !== null;
+      if (
+        user?.user_id &&
+        (normalizedUserCharacterId === null || Number.isNaN(normalizedUserCharacterId)) &&
+        !hasStoredCharacter
+      ) {
+        localStorage.removeItem('selectedCharacter');
+        localStorage.removeItem('selectedCharacterIcon');
+        setCharacterIcon(null);
+        return;
+      }
+
       const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
       const storedCharacterId = storedCharacterIdRaw === null ? null : Number(storedCharacterIdRaw);
 
       if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
-        const userCharacterId = user?.character_id;
-        const normalizedUserCharacterId =
-          userCharacterId === null || userCharacterId === undefined
-            ? null
-            : Number(userCharacterId);
-
-        if (normalizedUserCharacterId !== null && !Number.isNaN(normalizedUserCharacterId)) {
-          const iconFromUser = iconByCharacterId[normalizedUserCharacterId] || null;
-          if (iconFromUser) {
-            localStorage.setItem('selectedCharacter', String(normalizedUserCharacterId));
-            localStorage.setItem('selectedCharacterIcon', iconFromUser);
-            setCharacterIcon(iconFromUser);
-            return;
-          }
-        }
-
         const storedIcon = localStorage.getItem('selectedCharacterIcon');
         setCharacterIcon(storedIcon || null);
         return;
@@ -79,14 +104,20 @@ const Header = ({ onOpenModal, onSignOut }) => {
       loadCharacterIcon();
     };
 
+    const handleAuthChange = () => {
+      loadCharacterIcon();
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('characterUpdated', handleCharacterUpdate);
+    window.addEventListener('authchange', handleAuthChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('characterUpdated', handleCharacterUpdate);
+      window.removeEventListener('authchange', handleAuthChange);
     };
-  }, [user?.character_id]);
+  }, [isAuthenticated, isLoading, user?.user_id, user?.character_id]);
 
   const isAdmin = isAuthenticated && user?.role === "admin";
   const homePath = isAdmin ? '/admin' : isAuthenticated ? '/dashboard' : '/';
@@ -148,15 +179,15 @@ const Header = ({ onOpenModal, onSignOut }) => {
         <h1 className="logo-text"><NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>Code Mania</NavLink></h1>
       </div>
 
-      <button 
-        className="hamburger" 
+      <button
+        className="hamburger"
         onClick={toggleMenu}
         aria-label="Menu"
       >
-        <img 
-          src={burgerIcon} 
-          alt="Menu" 
-          className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`} 
+        <img
+          src={burgerIcon}
+          alt="Menu"
+          className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`}
         />
       </button>
 
@@ -179,7 +210,22 @@ const Header = ({ onOpenModal, onSignOut }) => {
         <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>FREEDOM WALL</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={closeMobileMenu}>LEADERBOARD</NavLink>
 
-        {isLoading ? null : isAuthenticated ?  (
+        {/* Terminal link — locked until 1 course is completed (admins always have access) */}
+        {isAuthenticated && (
+          (isAdmin || hasTerminalAccess) ? (
+            <NavLink to="/terminal" className="nav-link" onClick={closeMobileMenu}>TERMINAL</NavLink>
+          ) : (
+            <div className="nav-link-locked-wrapper">
+              <span className="nav-link nav-link-locked">TERMINAL</span>
+              <div className="nav-locked-tooltip">
+                <span className="locked-icon">🔒</span>
+                Complete 16 exercises in one course
+              </div>
+            </div>
+          )
+        )}
+
+        {isLoading ? null : isAuthenticated ? (
           <>
             <div className="mobile-account nav-dropdown">
               <a href="#" className={`nav-link learn-trigger account-trigger ${isAccountOpen ? "is-open" : ""}`} onClick={handleAccountClick}>
@@ -202,9 +248,9 @@ const Header = ({ onOpenModal, onSignOut }) => {
             <div className="profile-icon-container" onClick={handleProfileClick}>
               <div className="profile-icon">
                 {characterIcon ? (
-                  <img 
-                    src={characterIcon} 
-                    alt="Profile" 
+                  <img
+                    src={characterIcon}
+                    alt="Profile"
                     className="profile-character-icon"
                   />
                 ) : (

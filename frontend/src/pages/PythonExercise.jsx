@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 
-import {  useLocation, useParams, useNavigate } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 
 
 
@@ -36,6 +36,20 @@ import useStartExercise from "../services/startExercise";
 
 
 const PythonExercise = ({ isAuthenticated }) => {
+
+  const stageBadgeById = {
+    1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/python-badge1_qn63do.png",
+    2: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/python-badge2_ydndmi.png",
+    3: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173774/python-badge3_kadnka.png",
+    4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173774/python-badge4_qbjkh1.png",
+  };
+
+  const stageBadgeTitleById = {
+    1: "Python Awakening",
+    2: "Keeper of the Core",
+    3: "Architect of Logic",
+    4: "Master of Iteration",
+  };
 
   const location = useLocation();
 
@@ -79,6 +93,9 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [showTutorial, setShowTutorial] = useState(false);
 
   const [showCourseCompletePrompt, setShowCourseCompletePrompt] = useState(false);
+  const [showStageQuizPrompt, setShowStageQuizPrompt] = useState(false);
+  const [stageQuizId, setStageQuizId] = useState(null);
+  const [completedQuizStages, setCompletedQuizStages] = useState([]);
 
 
 
@@ -86,23 +103,23 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
   useEffect(() => {
-  const handleStart = async (e) => {
-    const questId = e.detail?.questId;
-    if (!questId) return;
+    const handleStart = async (e) => {
+      const questId = e.detail?.questId;
+      if (!questId) return;
 
-    try {
-      await startExercise(questId);
-      console.log("✅ Quest started in backend");
-    } catch (err) {
-      console.error("Failed to start quest", err);
-    }
-  };
+      try {
+        await startExercise(questId);
+        console.log("✅ Quest started in backend");
+      } catch (err) {
+        console.error("Failed to start quest", err);
+      }
+    };
 
-  window.addEventListener("code-mania:quest-started", handleStart);
+    window.addEventListener("code-mania:quest-started", handleStart);
 
-  return () =>
-    window.removeEventListener("code-mania:quest-started", handleStart);
-}, []);
+    return () =>
+      window.removeEventListener("code-mania:quest-started", handleStart);
+  }, []);
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -113,6 +130,7 @@ const PythonExercise = ({ isAuthenticated }) => {
         if (data?.completedQuests) {
           setDbCompletedQuests(data.completedQuests);
         }
+        setCompletedQuizStages(Array.isArray(data?.completedQuizStages) ? data.completedQuizStages : []);
       } catch (err) {
         console.error("Failed to load progress", err);
       }
@@ -208,6 +226,8 @@ const PythonExercise = ({ isAuthenticated }) => {
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setShowStageQuizPrompt(false);
+    setStageQuizId(null);
 
   }, [activeExerciseId]);
 
@@ -221,7 +241,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     activeExercise?.startingCode ||
 
-      `# Write code below ❤️\n\nprint("Hello, World!")`
+    `# Write code below ❤️\n\nprint("Hello, World!")`
 
   );
 
@@ -463,6 +483,17 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       if (Number(questId) === activeExerciseId) {
 
+        const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
+        const totalExercises = Number(activeExercise?.totalExercises || 16);
+        const stageNumber = Math.ceil(orderIndex / 4);
+        const isStageBoundary = orderIndex % 4 === 0 && orderIndex < totalExercises;
+        const alreadyCompletedStageQuiz = completedQuizStages.includes(stageNumber);
+
+        if (isStageBoundary && !alreadyCompletedStageQuiz) {
+          setStageQuizId(stageNumber);
+          setShowStageQuizPrompt(true);
+        }
+
         getNextExercise(activeExerciseId).then((next) => {
 
           if (!next) {
@@ -499,7 +530,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, [activeExercise,dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
 
 
 
@@ -651,25 +682,18 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           {/* ===== GAME ===== */}
 
-          <div className={styles["game-container"]}>
-          <div className={isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}>
-
+          <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
             <div
-
-                  id="phaser-container"
-
-                  className={styles["game-scene"]}
-
-                />
-          </div>
-
+              id="phaser-container"
+              className={styles["game-scene"]}
+            />
           </div>
 
 
 
           {/* ===== TERMINAL ===== */}
 
-          <div className={isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}>
+          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}
@@ -680,6 +704,7 @@ const PythonExercise = ({ isAuthenticated }) => {
               disabled={!terminalEnabled}
               showMobilePanelSwitcher={false}
               enableMobileSplit={false}
+              quest={activeExercise}
             />
           </div>
 
@@ -692,11 +717,61 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       <CourseCompletionPromptModal
 
+        show={showStageQuizPrompt}
+
+        languageLabel="Python"
+
+        title="Congratulations!"
+
+        subtitle={`You earned the Stage ${stageQuizId || ""} badge! Take the quiz now or continue exploring.`}
+
+        badgeImage={stageBadgeById[stageQuizId]}
+
+        badgeAlt={`Python Stage ${stageQuizId || ""} badge`}
+
+        badgeLabel={stageQuizId ? stageBadgeTitleById[stageQuizId] || `Stage ${stageQuizId} badge` : "Stage badge"}
+
+        primaryLabel="Take Quiz"
+
+        onTakeExam={() => {
+          if (!stageQuizId) return;
+          navigate(`/quiz/python/${stageQuizId}`);
+        }}
+
+        secondaryLabel="Continue Learning"
+
+        onSecondary={() => {
+          setShowStageQuizPrompt(false);
+          window.dispatchEvent(new Event("code-mania:close-quest-hud"));
+        }}
+
+        feedbackLabel="Share Feedback"
+
+        onFeedback={() => navigate("/freedomwall")}
+
+        showClose={false}
+
+        onClose={() => setShowStageQuizPrompt(false)}
+
+      />
+
+
+
+      <CourseCompletionPromptModal
+
         show={showCourseCompletePrompt}
 
         languageLabel="Python"
 
+        badgeImage={stageBadgeById[4]}
+
+        badgeAlt="Python Stage 4 badge"
+
+        badgeLabel="Stage 4 badge earned"
+
         onTakeExam={() => navigate("/exam/python")}
+
+        onSecondary={() => navigate("/learn/python")}
 
         onClose={() => setShowCourseCompletePrompt(false)}
 

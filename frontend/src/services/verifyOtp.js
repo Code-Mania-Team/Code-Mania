@@ -12,8 +12,10 @@ const verifyOtp = async (email, otp) => {
     console.log("Sign-up response:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error:", error);
-    throw error;
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Invalid OTP",
+    };
   }
 };
 

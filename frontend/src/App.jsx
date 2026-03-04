@@ -23,6 +23,7 @@ import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
 import CodingExamPage from "./pages/CodingExamPage";
 import QuizPage from "./pages/QuizPage";
+import TerminalPage from "./pages/TerminalPage";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -173,31 +174,14 @@ const WelcomeOnboardingWrapper = () => {
 
 function App() {
   const { isLoading } = useAuth();
-  const setCookie = async() => {
-    try {
-      await axios.get('http://localhost:3000/set-cookies', {
-        withCredentials: true
-      })
-      console.log('Cookies setup successfully.')
-    } catch (error) { console.log('Error setting up cookies. ')}
-  }
-  // setCookie();
-  const getCookies = async () => {
-    try {
-      await axios.get('http://localhost:3000/get-cookies', {
-        withCredentials: true
-      })
-      console.log('Cookies sent to server.')
-    } catch (error) { console.log('Error in sending cookies to server.') }
-  }
-  // getCookies();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
   const [isNewUser, setIsNewUser] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
 
   const SessionOut = useSessionOut();
 
@@ -228,13 +212,13 @@ function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
     const success = urlParams.get('success');
-    
+
     if (error) {
       console.log('OAuth error:', error);
       setIsModalOpen(true);
       return;
     }
-    
+
     if (success === 'true') {
       console.log('OAuth successful');
       // Small delay to ensure cookies are set
@@ -261,29 +245,26 @@ function App() {
     }
   }, [location.search, navigate, setIsAuthenticated, navigate]);
 
-  // hide header/footer on exercise routes, dashboard, exams, and quizzes
-  const hideGlobalHeaderFooter = 
-    location.pathname.startsWith("/learn/python/exercise") || 
+  // hide header/footer on exercise routes, dashboard, and quizzes
+  const hideGlobalHeaderFooter =
+    location.pathname.startsWith("/learn/python/exercise") ||
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
     location.pathname === "/dashboard" ||
-    location.pathname.startsWith("/quiz") ||
-    location.pathname.startsWith("/coding-exam") ||
-    location.pathname.startsWith("/exam");
+    location.pathname.startsWith("/quiz");
 
   const isExamRoute =
-    location.pathname.startsWith("/coding-exam") ||
-    location.pathname.startsWith("/exam");
+    location.pathname.startsWith("/coding-exam");
 
   // hide only footer on freedom wall and PageNotFound
-  const hideFooterOnly = location.pathname === "/freedomwall" || 
+  const hideFooterOnly = location.pathname === "/freedomwall" ||
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
 
   return (
     <div className="app">
       {isLoading && <AuthLoadingOverlay />}
       {!hideGlobalHeaderFooter && (
-        <Header 
+        <Header
           isAuthenticated={isAuthenticated}
           onOpenModal={() => setIsModalOpen(true)}
           onSignOut={handleSignOut}
@@ -300,46 +281,70 @@ function App() {
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/python" element={<PythonCourse />} />
 
-          <Route 
-            path="/learn/python/exercise/:exerciseId" 
+          <Route
+            path="/learn/python/exercise/:exerciseId"
             element={
               <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <PythonExercise 
+                <PythonExercise
                   isAuthenticated={isAuthenticated}
                   onOpenModal={() => setIsModalOpen(true)}
                   onSignOut={handleSignOut}
                 />
               </ProtectedRoute>
 
-            } 
+            }
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
-          <Route path="/learn/cpp/exercise/:exerciseId" element={<ProtectedRoute>
-      <CppExercise />
-    </ProtectedRoute>} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute>
-      <CppExercise />
-    </ProtectedRoute>} />
+          <Route
+            path="/learn/cpp/exercise/:exerciseId"
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <CppExercise
+                  isAuthenticated={isAuthenticated}
+                  onOpenModal={() => setIsModalOpen(true)}
+                  onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>} />
+          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+            <CppExercise
+              isAuthenticated={isAuthenticated}
+              onOpenModal={() => setIsModalOpen(true)}
+              onSignOut={handleSignOut}
+            />
+          </ProtectedRoute>} />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
-          <Route path="/learn/javascript/exercise/:exerciseId" element={<ProtectedRoute>
-                                                                              <JavaScriptExercise />
-                                                                            </ProtectedRoute>
-                                                                        } />
+          <Route
+            path="/learn/javascript/exercise/:exerciseId"
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <JavaScriptExercise
+                  isAuthenticated={isAuthenticated}
+                  onOpenModal={() => setIsModalOpen(true)}
+                  onSignOut={handleSignOut}
+                />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
-      {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
-    </ProtectedRoute>} />
+            {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
+          </ProtectedRoute>} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/exam/:language" element={<ProtectedRoute>
-      <CodingExamPage />
-    </ProtectedRoute>} />
+            <CodingExamPage />
+          </ProtectedRoute>} />
           <Route path="/quiz/:language/:quizId" element={<ProtectedRoute>
-      <QuizPage />
-    </ProtectedRoute>} />
+            <QuizPage />
+          </ProtectedRoute>} />
           <Route path="/welcome" element={<WelcomeOnboardingWrapper />} />
+          <Route path="/terminal" element={
+            <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+              <TerminalPage />
+            </ProtectedRoute>
+          } />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="*" element={<PageNotFound />} />
@@ -348,17 +353,20 @@ function App() {
 
       {!hideGlobalHeaderFooter && !hideFooterOnly && <Footer />}
 
-      <SignInModal 
-        isOpen={isModalOpen} 
+      <SignInModal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSignInSuccess={async (isNew) => {
           setIsAuthenticated(true);
           setIsModalOpen(false);
           setIsNewUser(!!isNew);
 
+          let profile = null;
+
           try {
             const res = await axiosPublic.get("/v1/account");
-            const profile = res?.data?.data || null;
+            const profile = res?.data?.data;
+            console.log("Fetched user profile after sign-in:", profile);
             setUser(profile);
           } catch {
             setUser(null);

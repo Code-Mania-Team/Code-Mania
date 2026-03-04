@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 import useGetExercises from "../services/getExercise";
 import useGetCourseBadges from "../services/getCourseBadge";
 import useMarkTutorialSeen from "../services/markTutorialSeen";
+import useGetAchievements from "../services/getUserAchievements";
 
 
 const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v1767930102/checkmark_dcvow0.png";
@@ -24,6 +25,7 @@ const PythonCourse = () => {
   const getExercises = useGetExercises();
   const markTutorialSeen = useMarkTutorialSeen();
   const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(1); // 1 = Python
+  const { achievements: userAchievements } = useGetAchievements();
 
   const [expandedModule, setExpandedModule] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,7 +37,7 @@ const PythonCourse = () => {
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
 
- 
+
   useEffect(() => {
     if (!isAuthenticated) {
       setCompletedExercises(new Set());
@@ -163,6 +165,14 @@ const PythonCourse = () => {
   const getExamStatus = () => {
     if (user?.role === "admin") return "available";
 
+    if (data?.examCompleted) return "completed";
+
+    const completedExam = (userAchievements || []).some((achievement) =>
+      String(achievement?.badge_key || "").includes("completed-python")
+    );
+
+    if (completedExam) return "completed";
+
     const learningModules = modules.filter((module) => module.id !== 5);
     if (!learningModules.length) return "locked";
 
@@ -193,7 +203,11 @@ const PythonCourse = () => {
   };
 
   const handleTutorialClose = async () => {
+    // Capture the pending route NOW before any async state changes happen
+    const nextRoute = pendingRoute;
+
     setShowTutorial(false);
+    setPendingRoute(null);
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {
@@ -204,9 +218,7 @@ const PythonCourse = () => {
       }
     }
 
-    if (pendingRoute) {
-      const nextRoute = pendingRoute;
-      setPendingRoute(null);
+    if (nextRoute) {
       navigate(nextRoute);
     }
   };

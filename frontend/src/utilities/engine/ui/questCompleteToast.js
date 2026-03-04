@@ -78,6 +78,7 @@ export default class QuestCompleteToast {
    */
   show({ title = "", badgeKey = null, exp = 0 }) {
     console.log("🎉 Showing QuestCompleteToast:", { title, badgeKey, exp });
+    if (!this.scene || !this.scene.sys || !this.container || !this.container.scene) return;
     if (this.isShowing) return;
     this.isShowing = true;
 
@@ -85,8 +86,14 @@ export default class QuestCompleteToast {
     // this.subtitle.setText(title);
 
     if (badgeKey && this.scene.textures.exists(badgeKey)) {
-      this.badgeIcon.setTexture(badgeKey);
-      this.badgeIcon.setVisible(true);
+      const texture = this.scene.textures.get(badgeKey);
+      const sourceImage = texture?.getSourceImage?.();
+      if (sourceImage) {
+        this.badgeIcon.setTexture(badgeKey);
+        this.badgeIcon.setVisible(true);
+      } else {
+        this.badgeIcon.setVisible(false);
+      }
     } else {
       this.badgeIcon.setVisible(false);
     }

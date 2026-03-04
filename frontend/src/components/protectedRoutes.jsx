@@ -1,49 +1,40 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAxios";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, onRequireAuth }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
-  // 🔒 WAIT until auth finishes checking
-  if (isLoading) {
-    return null; // or a spinner
-  }
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      onRequireAuth?.();
 
-  if (!isAuthenticated) {
-    let redirectTo = "/";
+      // Redirect back to safe page
+      if (location.pathname.includes("/learn/python/exercise")) {
+        navigate("/learn/python", { replace: true });
+      } else if (location.pathname.includes("/learn/javascript/exercise")) {
+        navigate("/learn/javascript", { replace: true });
+      } else if (location.pathname.includes("/learn/cpp/exercise")) {
+        navigate("/learn/cpp", { replace: true });
+      } else if (
+        location.pathname.includes("/quiz") ||
+        location.pathname.includes("/exam") ||
+        location.pathname.includes("/coding-exam")
+      ) {
+        navigate("/learn", { replace: true });
+      } else if (location.pathname.includes("/terminal")) {
+        navigate("/learn", { replace: true });
+      } else if (location.pathname.includes("/dashboard")) {
+        navigate("/", { replace: true });
+      }
+    }
+  }, [isAuthenticated, isLoading, onRequireAuth, navigate, location.pathname]);
 
-    if (location.pathname.includes("/learn/python/exercise")) {
-      redirectTo = "/learn/python";
-    }
-    else if (location.pathname.includes("/learn/javascript/exercise")) {
-      redirectTo = "/learn/javascript";
-    }
-    else if (location.pathname.includes("/learn/cpp/exercise")) {
-      redirectTo = "/learn/cpp";
-    }
-    else if (
-      location.pathname.includes("/quiz") ||
-      location.pathname.includes("/exam") ||
-      location.pathname.includes("/coding-exam")
-    ) {
-      redirectTo = "/learn";
-    }
-    else if (location.pathname.includes("/dashboard")) {
-      redirectTo = "/";
-    }
+  if (isLoading) return null;
 
-    return (
-      <Navigate
-        to={redirectTo}
-        replace
-        state={{
-          openSignIn: true,
-          redirectAfterLogin: location.pathname
-        }}
-      />
-    );
-  }
+  if (!isAuthenticated) return null;
 
   return children;
 };

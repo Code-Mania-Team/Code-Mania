@@ -1,17 +1,34 @@
-import AdminService from "../../services/adminService.js";
+import GAService from "../../services/gaService.js";
 
 class AdminController {
-  constructor(service = new AdminService()) {
-    this.service = service;
+  constructor() {
+    this.gaService = new GAService();
   }
 
-  async listUsers(req, res) {
+  async activeUsers(req, res) {
     try {
-      const data = await this.service.listUsers();
-      return res.json({ success: true, data });
+      const activeUsers = await this.gaService.getActiveUsers();
+      const trafficLogs7Days = await this.gaService.getTraffic();
+      return res.status(200).json({ activeUsers, trafficLogs7Days });
     } catch (err) {
       console.error("Error fetching users:", err);
-      return res.status(500).json({ success: false, message: err?.message || "Failed to fetch users" });
+      return res.status(500).json({
+        success: false,
+        message: err?.message || "Failed to fetch users",
+      });
+    }
+  }
+
+  async trafficLogs7Days(req, res) {
+    try {
+      const trafficLogs7Days = await this.gaService.getTraffic();
+      return res.status(200).json({ trafficLogs7Days });
+    } catch (err) {
+      console.error("Error fetching logs:", err);
+      return res.status(500).json({
+        success: false,
+        message: err?.message || "Failed to fetch logs",
+      });
     }
   }
 }

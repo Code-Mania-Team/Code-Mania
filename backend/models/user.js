@@ -1,447 +1,290 @@
 import { supabase } from "../core/supabaseClient.js";
 
-
-
 class User {
+  constructor() {
+    this.db = supabase;
+  }
 
-    constructor() {
+  // Helper: find user by email
 
-        this.db = supabase;
+  async getUserRole(userId) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-    }
+    if (error) throw new Error("Database error");
 
-    // Helper: find user by email
+    return data?.role || null;
+  }
 
+  async findByEmail(email) {
+    const { data } = await this.db
 
+      .from("users") // can be users table or temp_user (this should be temp_users with "s")
 
-    async findByEmail(email) {
+      .select("user_id, email, password, provider") //
 
-        const { data } = await this.db
+      .eq("email", email)
 
-            .from("users") // can be users table or temp_user (this should be temp_users with "s")
+      .maybeSingle();
 
-            .select("user_id, email, password, provider") // 
+    return data;
+  }
 
-            .eq("email", email)
+  async findByEmailAndPasswordHash(email, password) {
+    const { data, error } = await this.db
 
-            .maybeSingle();
+      .from("users")
 
-        return data;
+      .select("user_id, username, email, full_name, provider, created_at")
 
-    }
+      .eq("email", email)
 
+      .eq("password", password);
 
+    if (error) throw error;
 
-    async findByEmailAndPasswordHash(email, password) {
+    const [result] = data || [];
 
-        const { data, error } = await this.db
+    return result;
+  }
 
-            .from("users")
+  async create({ email, password, provider }) {
+    const { data, error } = await this.db
 
-            .select("user_id, username, email, full_name, profile_image, provider, created_at")
+      .from("users")
 
-            .eq("email", email)
+      .insert({ email, password, provider })
 
-            .eq("password", password);
+      .select("*")
 
-        if (error) throw error;
+      .maybeSingle();
 
-        const [result] = data || [];
+    if (error) throw error;
 
-        return result;
+    return data;
+  }
 
+  //comment for now baka mabago ulit
 
+  // async loginOtp(email, password) {
 
-    }
+  //     const user = await this.findByEmail(email);
 
+  //     if (!user) throw new Error("Email not registered");
 
+  //     const hashedPassword = encryptPassword(password);
 
-    async create({ email, password, provider }) {
+  //     if (hashedPassword !== user.password) throw new Error("Incorrect password");
 
-        const { data, error } = await this.db
+  //     const otp = generateOtp();
 
-            .from("users")
+  //     const expiresAt = new Date(Date.now() + 1000 * 60); // 1 min
 
-            .insert({ email, password, provider })
+  //     await this.db.from("temp_user").upsert(
 
-            .select("*")
+  //         {
 
-            .maybeSingle();
+  //             email,
 
-        if (error) throw error;
+  //             otp,
 
-        return data;
+  //             expiry_time: expiresAt.toISOString(),
 
+  //             is_verified: false,
 
+  //             created_at: new Date().toISOString()
 
-    }
+  //         },
 
+  //         { onConflict: "email" }
 
+  //     );
 
+  //     await sendOtpEmail(email, otp, false);
 
+  //     return user;
 
+  // }
 
+  // // GENERATE OTP AND OVERWRITE PREVIOUS
 
-    //comment for now baka mabago ulit
+  // async generateAndSendOtp(user_id, email, isNewUser = true) {
 
-    // async loginOtp(email, password) {
+  //     const code = generateOtp();
 
+  //     const expiry_time = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
 
+  //     // Upsert OTP (overwrite previous)
 
-    //     const user = await this.findByEmail(email);
+  //     await this.db.from("otp").upsert(
 
+  //         { user_id, code, is_verified: false, expiry_time },
 
+  //         { onConflict: ["user_id"] }
 
-    //     if (!user) throw new Error("Email not registered");
+  //     );
 
+  //     await sendOtpEmail(email, code, isNewUser);
 
+  // }
 
-
-
-
-
-    //     const hashedPassword = encryptPassword(password);
-
-
-
-    //     if (hashedPassword !== user.password) throw new Error("Incorrect password");
-
-
-
-
-
-
-
-    //     const otp = generateOtp();
-
-
-
-    //     const expiresAt = new Date(Date.now() + 1000 * 60); // 1 min
-
-
-
-
-
-
-
-    //     await this.db.from("temp_user").upsert(
-
-
-
-    //         {
-
-
-
-    //             email,
-
-
-
-    //             otp,
-
-
-
-    //             expiry_time: expiresAt.toISOString(),
-
-
-
-    //             is_verified: false,
-
-
-
-    //             created_at: new Date().toISOString()
-
-
-
-    //         },
-
-
-
-    //         { onConflict: "email" }
-
-
-
-    //     );
-
-
-
-
-
-
-
-    //     await sendOtpEmail(email, otp, false);
-
-
-
-    //     return user;
-
-
-
-    // }
-
-
-
-
-
-
-
-    // // GENERATE OTP AND OVERWRITE PREVIOUS
-
-
-
-    // async generateAndSendOtp(user_id, email, isNewUser = true) {
-
-
-
-    //     const code = generateOtp();
-
-
-
-    //     const expiry_time = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
-
-
-
-
-
-
-
-    //     // Upsert OTP (overwrite previous)
-
-
-
-    //     await this.db.from("otp").upsert(
-
-
-
-    //         { user_id, code, is_verified: false, expiry_time },
-
-
-
-    //         { onConflict: ["user_id"] }
-
-
-
-    //     );
-
-
-
-
-
-
-
-    //     await sendOtpEmail(email, code, isNewUser);
-
-
-
-    // }
-
-
-
-
-
-
-
-    
-    async getUserXp(user_id) {
-        const { data, error } = await this.db
-        .from("users_game_data")
-        .select(`
+  async getUserXp(user_id) {
+    const { data, error } = await this.db
+      .from("users_game_data")
+      .select(
+        `
             exercise_id,
             quests (
             experience
             )
-        `)
-        .eq("user_id", user_id);
+        `,
+      )
+      .eq("user_id", user_id);
 
-        if (error) throw error;
+    if (error) throw error;
 
-        return data || [];
-    }
+    return data || [];
+  }
 
-    async getUserBadgeCount(user_id) {
-        const { count, error } = await this.db
-        .from("users_achievements")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user_id);
+  async getUserBadgeCount(user_id) {
+    const { count, error } = await this.db
+      .from("users_achievements")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user_id);
 
-        if (error) throw error;
+    if (error) throw error;
 
-        return count || 0;
-    }
+    return count || 0;
+  }
 
-
-    async getCompletedExercises(user_id) {
-        const { data, error } = await this.db
-            .from("users_game_data")
-            .select(`
+  async getCompletedExercises(user_id) {
+    const { data, error } = await this.db
+      .from("users_game_data")
+      .select(
+        `
             exercise_id,
             quests (
                 programming_language_id
             )
-            `)
-            .eq("user_id", user_id);
+            `,
+      )
+      .eq("user_id", user_id);
 
-        if (error) throw error;
+    if (error) throw error;
 
-        return data || [];
-        }
+    return data || [];
+  }
 
-        async getAllExercises() {
-        const { data, error } = await this.db
-            .from("quests")
-            .select("programming_language_id");
+  async getAllExercises() {
+    const { data, error } = await this.db
+      .from("quests")
+      .select("programming_language_id");
 
-        if (error) throw error;
+    if (error) throw error;
 
-        return data || [];
-        }
+    return data || [];
+  }
 
+  // ONE-TIME USERNAME SETUP
 
+  async setUsernameandCharacter(user_id, username, character_id, full_name) {
+    const { data, error } = await this.db
 
+      .from("users")
 
+      .update({ username, character_id, full_name })
 
+      .eq("user_id", user_id)
 
-    // ONE-TIME USERNAME SETUP
+      .select();
 
-    async setUsernameandCharacter(user_id, username, character_id, full_name) {
+    if (error) throw error;
 
-        const { data, error } = await this.db
+    return data;
+  }
 
-            .from("users")
+  // PROFILE
 
-            .update({ username, character_id, full_name })
+  async getProfile(user_id) {
+    const { data } = await this.db
 
-            .eq("user_id", user_id)
+      .from("users")
 
-            .select();
+      .select(
+        "user_id, email, username, full_name, character_id, created_at, role, hasSeen_tutorial",
+      )
 
-     
+      .eq("user_id", user_id)
 
-        if (error) throw error;
+      .single();
 
-        return data;
+    return data;
+  }
 
-    }
+  async getAllForAdmin() {
+    const { data, error } = await this.db
+      .from("users")
+      .select(
+        "user_id, email, username, full_name, character_id, created_at, role, hasSeen_tutorial",
+      )
+      .order("created_at", { ascending: false });
 
+    if (error) throw error;
+    return data || [];
+  }
 
+  async updateProfile(user_id, fields) {
+    const { data } = await this.db
 
+      .from("users")
 
+      .update(fields)
 
+      .eq("user_id", user_id)
 
+      .select()
 
+      .single();
 
+    return data;
+  }
 
+  async updatePassword(email, hashedPassword) {
+    const { data, error } = await this.db
 
+      .from("users")
 
+      .update({ password: hashedPassword })
 
+      .eq("email", email)
 
-    // PROFILE
+      .select()
 
+      .maybeSingle();
 
+    if (error) throw error;
 
-    async getProfile(user_id) {
+    return data;
+  }
 
-        const { data } = await this.db
+  async delete(user_id) {
+    const { data } = await this.db
 
-            .from("users")
+      .from("users")
 
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role, hasSeen_tutorial")
+      .delete()
 
-            .eq("user_id", user_id)
+      .eq("user_id", user_id)
 
-            .single();
+      .select()
 
-        return data;
+      .single();
 
-
-
-    }
-
-    async getAllForAdmin() {
-        const { data, error } = await this.db
-            .from("users")
-            .select("user_id, email, username, full_name, profile_image, character_id, created_at, role, hasSeen_tutorial")
-            .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        return data || [];
-    }
-
-
-
-    async updateProfile(user_id, fields) {
-
-        const { data } = await this.db
-
-            .from("users")
-
-            .update(fields)
-
-            .eq("user_id", user_id)
-
-            .select()
-
-            .single();
-
-        return data;
-
-
-
-    }
-
-
-
-    async updatePassword(email, hashedPassword) {
-
-        const { data, error } = await this.db
-
-            .from("users")
-
-            .update({ password: hashedPassword })
-
-            .eq("email", email)
-
-            .select()
-
-            .maybeSingle();
-
-
-
-        if (error) throw error;
-
-        return data;
-
-    }
-
-
-
-
-
-    async delete(user_id) {
-
-        const { data } = await this.db
-
-            .from("users")
-
-            .delete()
-
-            .eq("user_id", user_id)
-
-            .select()
-
-            .single();
-
-        return data;
-
-    }
-
-
-
+    return data;
+  }
 }
-
-
-
-
-
-
 
 export default User;

@@ -311,7 +311,6 @@ input:not(:placeholder-shown):not(:focus):invalid {
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow-y: auto; /* Enable vertical scrolling when content overflows */
   overflow-x: hidden;
-  display: flex;
   flex-direction: column;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
@@ -347,7 +346,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
 @media (max-width: 520px) {
   .signinModal {
     max-height: 92vh;
-    padding: 1.5rem 1.25rem;
+    top: 2rem;
   }
 
   .signinForm {
@@ -355,6 +354,19 @@ input:not(:placeholder-shown):not(:focus):invalid {
     overflow-y: visible;
     padding-right: 0;
     scrollbar-gutter: auto;
+  }
+}
+
+@media (min-width: 521px) and (max-width: 768px) {
+  .signinModal {
+    padding: 2rem;
+    max-height: 85vh;
+    top: 2rem;
+  }
+
+  .closeModal {
+    top: 0rem;
+    right: 1rem;
   }
 }
 

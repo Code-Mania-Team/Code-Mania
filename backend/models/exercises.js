@@ -15,6 +15,7 @@ class ExerciseModel {
                 lesson_header,
                 lesson_example,
                 starting_code,
+                hints,
                 requirements,
                 expected_output,
                 validation_mode,
@@ -35,6 +36,7 @@ class ExerciseModel {
                     lesson_header,
                     lesson_example,
                     starting_code,
+                    hints: hints || null,
                     requirements: requirements ? JSON.stringify(requirements) : null,
                     expected_output,
                     validation_mode,
@@ -50,12 +52,10 @@ class ExerciseModel {
                 .single();
 
             if (error) {
-                console.error('Error creating exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in createExercise:', error);
             throw error;
         }
     }
@@ -71,7 +71,6 @@ class ExerciseModel {
             .maybeSingle();
 
         if (error) {
-            console.error("Error getting next exercise:", error);
             throw error;
         }
 
@@ -81,7 +80,7 @@ class ExerciseModel {
     async startQuest(userId, questId) {
         const { data } = await this.db
             .from('users_game_data')
-            .select('*')
+            .select('user_id, exercise_id, status, created_at, completed_at')
             .eq('user_id', userId)
             .eq('exercise_id', questId)
             .maybeSingle();
@@ -96,6 +95,11 @@ class ExerciseModel {
                 status: 'active',
                 created_at: new Date().toISOString()
             });
+
+        if (error?.code === '23505') {
+            // Race condition / duplicate insert from parallel events
+            return { user_id: userId, exercise_id: questId, status: 'active' };
+        }
 
         if (error) throw error;
     }
@@ -121,7 +125,6 @@ class ExerciseModel {
             .maybeSingle();
 
         if (error) {
-            console.error('Error checking admin role:', error);
             return false;
         }
 
@@ -147,7 +150,6 @@ class ExerciseModel {
             .eq('quests.programming_language_id', languageId)
 
         if (error) {
-            console.error("Error fetching completed quests:", error);
             throw error;
         }
 
@@ -202,7 +204,6 @@ class ExerciseModel {
                 `)
                 .order('created_at', { ascending: false });
             if (error) {
-                console.error('Error getting exercises:', error);
                 throw error;
             }
         } catch (error) {
@@ -232,13 +233,11 @@ class ExerciseModel {
                 .maybeSingle();
 
             if (error) {
-                console.error('Error getting exercise by ID:', error);
                 throw error;
             }
 
             return data;
         } catch (error) {
-            console.error('Error in getExerciseById:', error);
             throw error;
         }
     }
@@ -260,12 +259,10 @@ class ExerciseModel {
                 .order('order_index', { ascending: true });
 
             if (error) {
-                console.error('Error getting exercises by language:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in getExercisesByLanguage:', error);
             throw error;
         }
     }
@@ -283,6 +280,7 @@ class ExerciseModel {
                 lesson_header,
                 lesson_example,
                 starting_code,
+                hints,
                 requirements,
                 expected_output,
                 validation_mode,
@@ -300,6 +298,7 @@ class ExerciseModel {
             if (lesson_header !== undefined) updateObject.lesson_header = lesson_header;
             if (lesson_example !== undefined) updateObject.lesson_example = lesson_example;
             if (starting_code !== undefined) updateObject.starting_code = starting_code;
+            if (hints !== undefined) updateObject.hints = hints;
             if (requirements !== undefined) updateObject.requirements = requirements ? JSON.stringify(requirements) : null;
             if (expected_output !== undefined) updateObject.expected_output = expected_output;
             if (validation_mode !== undefined) updateObject.validation_mode = validation_mode;
@@ -320,12 +319,10 @@ class ExerciseModel {
                 .single();
 
             if (error) {
-                console.error('Error updating exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in updateExercise:', error);
             throw error;
         }
     }
@@ -340,12 +337,10 @@ class ExerciseModel {
                 .select()
                 .single();
             if (error) {
-                console.error('Error deleting exercise:', error);
                 throw error;
             }
             return data;
         } catch (error) {
-            console.error('Error in deleteExercise:', error);
             throw error;
         }
     }

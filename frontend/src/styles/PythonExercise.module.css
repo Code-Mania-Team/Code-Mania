@@ -64,6 +64,7 @@
   max-width: 1600px;
   margin: 0 auto 1rem;
   min-height: 60vh;
+  align-items: stretch;
 }
 
 .btn-disabled {
@@ -74,9 +75,15 @@
 
 /* Game container - Left side */
 .game-container {
-  flex: 1;
-  height: 65vh;
-  min-width: 800px;
+  flex: 1 1 60%;
+  min-width: 0;
+  min-height: clamp(420px, 56vh, 560px);
+  max-height: 560px;
+}
+
+.terminal-pane {
+  flex: 0 0 min(40%, 620px);
+  min-width: 420px;
 }
 
 .game-preview {
@@ -114,6 +121,37 @@
   gap: 1rem;
   height: 100%;
   box-sizing: border-box;
+  position: relative;
+}
+
+.code-container-locked {
+  user-select: none;
+}
+
+.terminal-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(2, 8, 23, 0.74);
+  backdrop-filter: blur(2px);
+}
+
+.terminal-lock-text {
+  margin: 0;
+  max-width: 320px;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .code-editor,
@@ -229,6 +267,11 @@
   justify-content: center;
   background: #0f172a;
 
+}
+
+.game-scene canvas {
+  display: block;
+  margin-top: auto;
 }
 
 .game-blur {
@@ -1042,6 +1085,35 @@
   color: #00e676;
 }
 
+.hint-box {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: rgba(120, 53, 15, 0.22);
+}
+
+.hint-title {
+  color: #fbbf24;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.hint-item {
+  color: #fde68a;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.hint-item:last-child {
+  margin-bottom: 0;
+}
+
 /* RIGHT PANEL LAYOUT */
 .right-panel {
   display: flex;
@@ -1268,6 +1340,13 @@
     margin: 0 auto 0.5rem;
   }
 
+  .terminal-pane,
+  .game-container {
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+  }
+
   .mobile-panel-switcher {
     display: flex;
     gap: 0.5rem;
@@ -1333,5 +1412,11 @@
   .codex-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
+  }
+
+  .validation-box {
+    left: auto;
+    right: 12px;
+    bottom: 12px;
   }
 }

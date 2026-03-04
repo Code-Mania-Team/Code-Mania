@@ -21,7 +21,6 @@ class QuizController {
 
       return res.json(result.data);
     } catch (err) {
-      console.error("getQuizById error:", err);
       return res.status(500).json({
         message: "Failed to fetch quiz",
         questions: [],
@@ -49,7 +48,6 @@ class QuizController {
 
       return res.json(result.data);
     } catch (err) {
-      console.error("completeQuiz error:", err);
       return res.status(500).json({ message: "Failed to complete quiz" });
     }
   }
