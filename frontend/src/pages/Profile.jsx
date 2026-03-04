@@ -24,6 +24,8 @@ import useLearningProgress from '../services/useLearningProgress';
 
 import useGetAchievements from '../services/getUserAchievements';
 
+import { clearUserSession } from '../services/signOut';
+
 // Character icons from Cloudinary
 
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -593,6 +595,8 @@ const Profile = ({ onSignOut }) => {
   const handleConfirmSignOut = () => {
 
 
+
+    clearUserSession();
 
     if (onSignOut) {
 

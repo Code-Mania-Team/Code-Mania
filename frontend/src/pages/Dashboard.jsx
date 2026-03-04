@@ -14,6 +14,8 @@ import useGetProfile from '../services/getProfile';
 
 import useProfileSummary from '../services/useProfileSummary';
 
+import { clearUserSession } from '../services/signOut';
+
 import useLearningProgress from '../services/useLearningProgress';
 
 import useLatestUnlockedExercise from '../services/useLatestUnlockedExercise';
@@ -358,17 +360,15 @@ const Dashboard = ({ onSignOut }) => {
 
     if (onSignOut) {
 
+      clearUserSession();
+
       onSignOut();
 
       return;
 
     }
 
-    localStorage.removeItem('username');
-
-    localStorage.removeItem('selectedCharacter');
-
-    localStorage.removeItem('selectedCharacterIcon');
+    clearUserSession();
 
     navigate('/');
 

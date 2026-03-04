@@ -19,7 +19,7 @@ class FreedomWallController {
             message: "Freedom Wall post created successfully",
             data:{
                 user_id: user_id,
-                character_id: character_id,
+                // character_id: character_id,
                 username: actualUsername, // Use actual username from database
                 content: content,
                 created_at: new Date().toISOString()
