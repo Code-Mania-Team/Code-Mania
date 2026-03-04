@@ -1,9 +1,10 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import Editor from "@monaco-editor/react";
-import { Play, Trash2, ChevronDown } from "lucide-react";
+import { Play, Trash2, ChevronDown, LockKeyhole, Sparkles } from "lucide-react";
 import styles from "../styles/TerminalPage.module.css";
 import { useNavigate } from "react-router-dom";
 import useLearningProgress from "../services/useLearningProgress";
+import useAuth from "../hooks/useAxios";
 
 const LANGUAGES = [
     { id: "python", label: "Python", ext: "script.py", icon: "🐍" },
@@ -30,10 +31,17 @@ function getStarterCode(lang) {
 
 const TerminalPage = () => {
     const navigate = useNavigate();
+    const { user, isLoading: authLoading } = useAuth();
+    const isAdmin = user?.role === "admin";
     const { progress, loading } = useLearningProgress();
-    const hasTerminalAccess = (progress || []).some(
-        (row) => Number(row?.completed || 0) >= 16
+    const hasTerminalAccess =
+        isAdmin ||
+        (progress || []).some((row) => Number(row?.completed || 0) >= 16);
+    const maxCompletedInSingleCourse = Math.max(
+        0,
+        ...(progress || []).map((row) => Number(row?.completed || 0))
     );
+    const remainingToUnlock = Math.max(0, 16 - maxCompletedInSingleCourse);
 
     const [language, setLanguage] = useState("python");
     const [code, setCode] = useState(() => getStarterCode("python"));
@@ -169,26 +177,42 @@ const TerminalPage = () => {
         setIsRunning(false);
     };
 
-    if (loading) {
+    if (authLoading || (!isAdmin && loading)) {
         return null;
     }
 
     if (!hasTerminalAccess) {
         return (
             <div className={styles.terminalPage}>
-                <div className={styles.toolbar}>
-                    <div className={styles.toolbarLeft}>
-                        <strong>Terminal Locked</strong>
-                    </div>
-                </div>
-                <div className={styles.editorTerminalWrapper}>
-                    <div
-                        className={styles.editorPanel}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "360px" }}
-                    >
-                        <div style={{ textAlign: "center", padding: "2rem", color: "#cbd5e1" }}>
-                            <h2 style={{ marginBottom: "0.75rem" }}>Unlock the Terminal</h2>
-                            <p style={{ marginBottom: "1rem" }}>Complete at least 16 exercises in one course to unlock this feature.</p>
+                <div className={styles.lockedShell}>
+                    <div className={styles.lockedCard}>
+                        <div className={styles.lockedBadge}>
+                            <LockKeyhole size={20} />
+                            Terminal Locked
+                        </div>
+
+                        <h2 className={styles.lockedTitle}>Unlock the Code Forge</h2>
+                        <p className={styles.lockedText}>
+                            Complete at least <strong>16 exercises in one course</strong> to unlock Terminal mode.
+                        </p>
+
+                        <div className={styles.lockedStats}>
+                            <div className={styles.lockedStatCard}>
+                                <span className={styles.lockedStatLabel}>Best progress</span>
+                                <span className={styles.lockedStatValue}>{maxCompletedInSingleCourse}/16</span>
+                            </div>
+                            <div className={styles.lockedStatCard}>
+                                <span className={styles.lockedStatLabel}>Remaining</span>
+                                <span className={styles.lockedStatValue}>{remainingToUnlock}</span>
+                            </div>
+                        </div>
+
+                        <div className={styles.lockedHintRow}>
+                            <Sparkles size={16} />
+                            Finish one full course path to activate free coding terminal access.
+                        </div>
+
+                        <div className={styles.lockedActions}>
                             <button
                                 type="button"
                                 className={styles.runBtn}

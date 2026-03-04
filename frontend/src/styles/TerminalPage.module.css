@@ -207,6 +207,97 @@
     display: inline;
 }
 
+.lockedShell {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.2), transparent 35%),
+        radial-gradient(circle at 80% 15%, rgba(16, 185, 129, 0.18), transparent 38%),
+        linear-gradient(180deg, #0a1020, #070d1a);
+}
+
+.lockedCard {
+    width: min(620px, 94vw);
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.78));
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    padding: 1.5rem;
+}
+
+.lockedBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    color: #fcd34d;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.lockedTitle {
+    margin: 0.9rem 0 0.4rem;
+    font-size: 2rem;
+    line-height: 1.1;
+    color: #e2e8f0;
+    font-family: 'Jersey 25', sans-serif;
+}
+
+.lockedText {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+.lockedStats {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.lockedStatCard {
+    border: 1px solid rgba(71, 85, 105, 0.8);
+    background: rgba(2, 6, 23, 0.45);
+    border-radius: 12px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.lockedStatLabel {
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+.lockedStatValue {
+    color: #f8fafc;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.lockedHintRow {
+    margin-top: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #86efac;
+    font-size: 0.92rem;
+}
+
+.lockedActions {
+    margin-top: 1rem;
+    display: flex;
+}
+
 /* ─── Editor + Terminal Wrapper ─── */
 .editorTerminalWrapper {
     display: flex;
@@ -464,6 +555,18 @@
 
     .runBtn {
         padding: 0.45rem 0.85rem;
+    }
+
+    .lockedCard {
+        padding: 1.1rem;
+    }
+
+    .lockedTitle {
+        font-size: 1.6rem;
+    }
+
+    .lockedStats {
+        grid-template-columns: 1fr;
     }
 }
 

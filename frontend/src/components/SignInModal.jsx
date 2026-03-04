@@ -880,9 +880,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
                 </div>
 
-                {passwordError && !showOtpField && (
+                {confirmPasswordError && !showOtpField && (
 
-                  <p className={styles.errorText}>{passwordError}</p>
+                  <p className={styles.errorText}>{confirmPasswordError}</p>
 
                 )}
 

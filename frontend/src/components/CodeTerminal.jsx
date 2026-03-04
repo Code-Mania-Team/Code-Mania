@@ -245,7 +245,41 @@ const InteractiveTerminal = ({
       setIsRunning(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
     };
+
+    socket.onerror = () => {
+      setProgramOutput(prev => prev + "\nConnection error. Please try again.\n");
+      setIsRunning(false);
+      setWaitingForInput(false);
+      window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+    };
   };
+
+  const executeCodeForValidation = () =>
+    new Promise((resolve) => {
+      let finalOutput = "";
+      const socket = new WebSocket("wss://terminal.codemania.fun");
+
+      socket.onopen = () => {
+        socket.send(JSON.stringify({ language, code }));
+      };
+
+      socket.onmessage = (e) => {
+        finalOutput += e.data;
+      };
+
+      socket.onclose = () => {
+        resolve(finalOutput);
+      };
+
+      socket.onerror = () => {
+        try {
+          socket.close();
+        } catch {
+          null;
+        }
+        resolve("");
+      };
+    });
 
   /* ===============================
      RUN BUTTON
@@ -255,52 +289,34 @@ const InteractiveTerminal = ({
     if (!quest || !isQuestActive || isQuestCompleted || isRunning) return;
 
     setIsRunning(true);
-    setProgramOutput("");
-    setInputBuffer("");
-    setWaitingForInput(false);
 
-    let finalOutput = "";
+    try {
+      const outputForValidation = await executeCodeForValidation();
+      const result = await validateExercise(
+        questId,
+        outputForValidation,
+        code
+      );
 
-    const socket = new WebSocket("wss://terminal.codemania.fun");
-
-    socket.onopen = () => {
-      socket.send(JSON.stringify({ language, code }));
-    };
-
-    socket.onmessage = (e) => {
-      finalOutput += e.data;
-      setProgramOutput(prev => prev + e.data);
-    };
-
-    socket.onclose = async () => {
-      try {
-        const result = await validateExercise(
-          questId,
-          finalOutput,
-          code
-        );
-
-        if (result?.objectives) {
-          setValidationResult(result.objectives);
-        }
-
-        if (result?.success) {
-          setFailedSubmissions(0);
-          window.dispatchEvent(
-            new CustomEvent("code-mania:quest-complete", {
-              detail: { questId }
-            })
-          );
-        } else {
-          setFailedSubmissions((prev) => prev + 1);
-        }
-
-      } catch (err) {
-        null;
+      if (result?.objectives) {
+        setValidationResult(result.objectives);
       }
 
-      setIsRunning(false);
-    };
+      if (result?.success) {
+        setFailedSubmissions(0);
+        window.dispatchEvent(
+          new CustomEvent("code-mania:quest-complete", {
+            detail: { questId }
+          })
+        );
+      } else {
+        setFailedSubmissions((prev) => prev + 1);
+      }
+    } catch (err) {
+      null;
+    }
+
+    setIsRunning(false);
   };
 
   const handleRun = () => {
