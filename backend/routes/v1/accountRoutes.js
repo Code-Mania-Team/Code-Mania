@@ -8,20 +8,6 @@ import passport from 'passport';
 const accountRouter = express.Router();
 const account = new AccountController();
 
-// Optional: protect some routes with authorization middleware
-// accountRouter.use(authorization);
-
-// Request OTP (signup or login) – single endpoint
-accountRouter.post('/signup/request-otp', authentication, account.requestOtp.bind(account));
-
-// Verify OTP after user clicks or enters it
-accountRouter.post('/signup/verify-otp', authorization ,account.verifyOtp.bind(account));
-
-// Set username (requires authentication)
-accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
-
-accountRouter.post('/login',authorization, account.login.bind(account));
-
 accountRouter.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));
@@ -29,6 +15,20 @@ accountRouter.get('/login/google', passport.authenticate('google', {
 accountRouter.get('/login/google/redirect', passport.authenticate('google', { session: false }), (req, res) => {
     account.googleLogin(req, res);
 });
+
+// Optional: protect some routes with authorization middleware
+accountRouter.use(authorization);
+
+// Request OTP (signup or login) – single endpoint
+accountRouter.post('/signup/request-otp', account.requestOtp.bind(account));
+
+// Verify OTP after user clicks or enters it
+accountRouter.post('/signup/verify-otp', account.verifyOtp.bind(account));
+
+// Set username (requires authentication)
+accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
+
+accountRouter.post('/login', account.login.bind(account));
 
 accountRouter.post('/logout', account.logout.bind(account));
 

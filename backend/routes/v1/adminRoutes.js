@@ -10,6 +10,7 @@ const router = Router();
 const adminExam = new AdminExamController();
 const exerciseController = new ExerciseController();
 const adminController = new AdminController();
+router.use(authentication);
 
 // router.use(authorization);
 

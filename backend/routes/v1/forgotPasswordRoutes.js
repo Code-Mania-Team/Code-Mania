@@ -1,8 +1,11 @@
 import express from 'express';
 import ForgotPasswordController from '../../controllers/v1/forgotPasswordController.js';
+import { authentication } from '../../middlewares/authentication.js';
 
 const forgotPasswordRouter = express.Router();
 const forgotPassword = new ForgotPasswordController();
+forgotPasswordRouter.use(authentication);
+
 
 // Forgot Password endpoints - 3 Step Process
 forgotPasswordRouter.post('/request-otp', forgotPassword.requestPasswordReset.bind(forgotPassword));
