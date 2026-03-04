@@ -8,6 +8,7 @@ import 'dotenv/config.js';
 import v1 from './routes/v1/index.js';
 import './core/supabaseClient.js';
 import './core/oauthSetup.js';
+// import { globalLimiter } from "./middlewares/rateLimiter.js";
 
 
 const app = express();
@@ -21,6 +22,8 @@ app.disable('etag');
 ----------------------------------- */
 app.use(morgan('combined'));
 app.use(cookieParser());
+app.set("trust-proxy", 1);
+// app.use(globalLimiter());
 
 // app.use(passport.initialize());
 // if (passport.initialize()) {
@@ -33,10 +36,12 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL || 'http://localhost:5173', 'http://localhost:4173'],
+    origin: [process.env.FRONTEND_URL || 'http://localhost:5173', 'http://localhost:4173', 'https://codemania.fun'],
     credentials: true,
   })
 );
+
+app.options('*', cors()); // Enable pre-flight across-the-board
 
 // ✅ Use built-in Express body parsing
 app.use(express.json());
