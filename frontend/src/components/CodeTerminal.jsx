@@ -118,7 +118,6 @@ const InteractiveTerminal = ({
   };
 
   useEffect(() => {
-    console.log("Quest object:", quest);
   }, [quest]);
 
   useEffect(() => {
@@ -129,7 +128,6 @@ const InteractiveTerminal = ({
         questId: quest.id,
         baseHtml: quest.base_html
       });
-      console.log("Session result:", result);
 
       if (result.success) {
         setDomSessionId(result.data.sessionId);
@@ -325,7 +323,6 @@ const InteractiveTerminal = ({
       
       // Check for execution errors before validating
       if (hasExecutionError(outputForValidation, language)) {
-        console.log("Execution error detected — skipping validation");
         setIsRunning(false);
         return;
       }

@@ -179,7 +179,6 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
       write("====================\n\n");
 
       if (result.results) {
-        console.log("Test results:", result.results);
         result.results.forEach((r) => {
           write(
             `Test ${r.test_index}: ${r.passed ? "✅ Passed" : "❌ Failed"

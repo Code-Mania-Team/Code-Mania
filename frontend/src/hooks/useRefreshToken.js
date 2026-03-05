@@ -4,7 +4,6 @@ const useRefreshToken = () => {
   const refresh = async () => {
     try {
       const response = await axiosPublic.post("/v1/refresh",{});
-      console.log("Refresh token response:", response.data);
       return response.data.accessToken;
       
     } catch (error) {

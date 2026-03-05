@@ -5,7 +5,6 @@ import useAuth from '../hooks/useAxios';
 const ProfileCard = ({ onSignInRequired }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  console.log('ProfileCard - user:', user, 'isAuthenticated:', isAuthenticated);
 
   const userProgress = {
     name: isAuthenticated ? (user?.full_name) : 'Guest',

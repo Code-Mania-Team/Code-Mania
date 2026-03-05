@@ -278,7 +278,6 @@ const CodingExamPage = () => {
       setRetakeMessage("Could not start retake right now. Please try again.");
     }
   };
-  console.log("🚀 Current challenge data:", examData);
 
   return (
     <div className={styles.page}>
@@ -607,7 +606,6 @@ const CodingExamPage = () => {
                       if (badgeId && !isAdmin) {
                         try {
                           await postAchievement({ achievementId: badgeId });
-                          console.log(`🏆 Badge ${badgeId} awarded for ${language} exam!`);
                         } catch (err) {
                           console.error("Failed to award badge:", err);
                         }

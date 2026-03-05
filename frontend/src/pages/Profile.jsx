@@ -531,7 +531,6 @@ const Profile = ({ onSignOut }) => {
   const { progress: learningProgressRows } = useLearningProgress();
 
   const { achievements } = useGetAchievements();
-  console.log("Achievements data:", achievements);
 
   const learningProgress = {
     python: { progress: 0, total: 0, icon: <Terminal size={20} /> },

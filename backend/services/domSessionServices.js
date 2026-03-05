@@ -61,8 +61,6 @@ class DomSessionService {
 
   async validateSession({ sessionId, userId, requirements }) {
     const session = this.sessions.get(sessionId);
-    console.log("NIGAGAGAGA",session);
-    console.log(userId);
 
     if (!session) {
         return { ok: false, status: 404, message: "Session not found" };
@@ -78,7 +76,6 @@ class DomSessionService {
     =============================== */
 
     const validationRules = requirements;
-    console.log(validationRules);
 
     /* ===============================
         CALL DOCKER SERVER

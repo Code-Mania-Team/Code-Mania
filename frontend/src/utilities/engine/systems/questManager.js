@@ -38,7 +38,6 @@ export default class QuestManager {
       })
     );
 
-    console.log("🚀 QUEST STARTED:", quest.title);
 
     // ✅ HIDE NPC QUEST ICON
     this.scene.npcs?.forEach(npc => {
@@ -56,7 +55,6 @@ export default class QuestManager {
 
   completeQuest(id, { emitEvent = true } = {}) {
     const quest = this.getQuestById(id);
-    console.log("📤 dispatch quest-complete", id);
     if (!quest || quest.completed) return;
 
     quest.completed = true;
@@ -83,7 +81,6 @@ export default class QuestManager {
       );
     }
 
-    console.log("🏁 QUEST COMPLETED:", quest.title);
     let exitTarget = null;
     const questOrder = Number(quest?.order_index);
 

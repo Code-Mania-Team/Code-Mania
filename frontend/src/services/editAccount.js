@@ -15,7 +15,6 @@ const useEditAccount = () => {
         full_name: normalizedFullName,
       });
       
-      console.log("Edit Account response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error:", error);

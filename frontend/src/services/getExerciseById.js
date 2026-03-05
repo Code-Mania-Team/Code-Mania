@@ -9,7 +9,6 @@ const useGetExerciseById = () => {
     const response = await axiosPrivate.get(
       `/v1/exercises/${exerciseId}`
     );
-    console.log("getExerciseById response:", response);
 
     return response.data.data; // 🔥 same structure
   };

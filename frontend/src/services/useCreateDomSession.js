@@ -12,7 +12,6 @@ const useCreateDomSession = () => {
       }
     );
 
-    console.log("✅ DOM session created", response.data);
 
     return response.data;
   };

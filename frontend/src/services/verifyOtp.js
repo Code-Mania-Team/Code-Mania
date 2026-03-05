@@ -9,7 +9,6 @@ const verifyOtp = async (email, otp) => {
       { withCredentials: true }
     );
 
-    console.log("Sign-up response:", response.data);
     return response.data;
   } catch (error) {
     return {

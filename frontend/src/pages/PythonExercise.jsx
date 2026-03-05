@@ -109,7 +109,6 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       try {
         await startExercise(questId);
-        console.log("✅ Quest started in backend");
       } catch (err) {
         console.error("Failed to start quest", err);
       }
@@ -161,7 +160,6 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           const redirectId = err.response.data?.redirectTo;
 
-          console.log(err.response)
 
           if (redirectId) {
 
@@ -320,7 +318,6 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       if (!next) {
 
-        console.log("🎉 Course finished");
 
         navigate("/learn/python/completed");
 
@@ -421,9 +418,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     if (!dbCompletedQuests) return;
 
-    console.log("🎯 Starting game with completed quests:", dbCompletedQuests);
 
-    console.log("Active Exercise:", activeExercise);
 
 
 

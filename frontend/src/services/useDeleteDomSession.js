@@ -8,7 +8,6 @@ const useDeleteDomSession = () => {
       `/v1/dom/session/${sessionId}`
     );
 
-    console.log("🗑 DOM session deleted");
 
     return response.data;
   };

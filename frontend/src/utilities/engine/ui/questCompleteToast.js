@@ -77,7 +77,6 @@ export default class QuestCompleteToast {
    * @param {number} data.exp
    */
   show({ title = "", badgeKey = null, exp = 0 }) {
-    console.log("🎉 Showing QuestCompleteToast:", { title, badgeKey, exp });
     if (!this.scene || !this.scene.sys || !this.container || !this.container.scene) return;
     if (this.isShowing) return;
     this.isShowing = true;

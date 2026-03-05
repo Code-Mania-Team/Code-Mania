@@ -77,9 +77,6 @@ export default class QuestValidator {
 
     const mode = this.getValidationMode(quest);
 
-    console.log("🧪 VALIDATION MODE:", mode);
-    console.log("🧪 actual:", JSON.stringify(actual));
-    console.log("🧪 expected:", JSON.stringify(expected));
 
     // -------------------------
     // MODE: FUNDAMENTALS

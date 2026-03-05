@@ -132,18 +132,11 @@ const Home = () => (
     </section>
   </>
 );
-import axios from 'axios';
 // WelcomeOnboarding wrapper component
 const WelcomeOnboardingWrapper = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const postLoginPath = user?.role === "admin" ? "/admin" : "/dashboard";
-
-  useEffect(() => {
-    if (location.state?.openSignIn) {
-      setIsModalOpen(true);
-    }
-  }, [location.state]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -174,10 +167,6 @@ const WelcomeOnboardingWrapper = () => {
 
 function App() {
   const { isLoading } = useAuth();
-  const [isAuthRedirecting, setIsAuthRedirecting] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return new URLSearchParams(window.location.search).get("success") === "true";
-  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
@@ -218,14 +207,11 @@ function App() {
     const success = urlParams.get('success');
 
     if (error) {
-      console.log('OAuth error:', error);
       setIsModalOpen(true);
       return;
     }
 
     if (success === 'true') {
-      console.log('OAuth successful');
-      setIsAuthRedirecting(true);
       // Small delay to ensure cookies are set
       setTimeout(async () => {
         setIsAuthenticated(true);
@@ -243,29 +229,12 @@ function App() {
 
           navigate(profile?.role === "admin" ? '/admin' : '/dashboard', { replace: true });
         } catch {
-          setIsAuthRedirecting(false);
           navigate('/', { replace: true });
         }
       }, 500);
       return;
     }
   }, [location.search, navigate, setIsAuthenticated, setUser]);
-
-  useEffect(() => {
-    if (!isAuthRedirecting) return;
-
-    const resolvedPath =
-      location.pathname === "/admin" ||
-      location.pathname === "/dashboard" ||
-      location.pathname === "/welcome" ||
-      location.pathname === "/";
-
-    const hasOAuthFlag = new URLSearchParams(location.search).get("success") === "true";
-
-    if (resolvedPath && !hasOAuthFlag) {
-      setIsAuthRedirecting(false);
-    }
-  }, [isAuthRedirecting, location.pathname, location.search]);
 
   // hide header/footer on exercise routes, dashboard, and quizzes
   const hideGlobalHeaderFooter =
@@ -284,7 +253,7 @@ function App() {
 
   return (
     <div className="app">
-      {(isLoading || isAuthRedirecting) && <AuthLoadingOverlay />}
+      {isLoading && <AuthLoadingOverlay />}
       {!hideGlobalHeaderFooter && (
         <Header
           isAuthenticated={isAuthenticated}
@@ -379,7 +348,6 @@ function App() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSignInSuccess={async (isNew) => {
-          setIsAuthRedirecting(true);
           setIsAuthenticated(true);
           setIsModalOpen(false);
           setIsNewUser(!!isNew);
@@ -389,11 +357,9 @@ function App() {
           try {
             const res = await axiosPublic.get("/v1/account");
             profile = res?.data?.data || null;
-            console.log("Fetched user profile after sign-in:", profile);
             setUser(profile);
           } catch {
             setUser(null);
-            setIsAuthRedirecting(false);
           }
 
           if (isNew) {
