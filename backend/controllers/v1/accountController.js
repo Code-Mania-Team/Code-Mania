@@ -558,14 +558,16 @@ class AccountController {
             res.clearCookie("refreshToken", 
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
+                  sameSite: "none",
+                  domain: ".codemania.fun"
             });
 
             
              res.clearCookie("accessToken", 
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
+                  sameSite: "none",
+                  domain: ".codemania.fun"
             });
 
             return res.status(200).json({ 
@@ -595,13 +597,15 @@ class AccountController {
             res.clearCookie("accessToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
+                sameSite: "none",
+                domain: ".codemania.fun"
             });
 
             res.clearCookie("refreshToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
+                sameSite: "none",
+                domain: ".codemania.fun"
             });
 
             return res.status(200).json({ 
