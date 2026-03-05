@@ -281,7 +281,7 @@ class AccountController {
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
-                return res.redirect(`${frontendBaseUrl}/dashboard?success=true`);
+                return res.redirect(`${FRONTEND_URL}/?success=true`);
             } else {
                 return res.redirect(`${frontendBaseUrl}/login?error=auth_failed`);
             }
