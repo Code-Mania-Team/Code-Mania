@@ -244,6 +244,7 @@ class AccountController {
     async googleLogin(req, res) {
         const { id, emails, provider } = req.user;
         const data = await this.accountService.googleLogin(id, emails[0].value, provider);
+        const frontendBaseUrl = process.env.FRONTEND_URL || "https://codemania.fun";
         
         try {
             if (data) {
@@ -280,12 +281,12 @@ class AccountController {
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
-                return res.redirect(`https://codemania.fun/dashboard?success=true`);
+                return res.redirect(`${frontendBaseUrl}/dashboard?success=true`);
             } else {
-                return res.redirect(`https://codemania.fun/login?error=auth_failed`);
+                return res.redirect(`${frontendBaseUrl}/login?error=auth_failed`);
             }
         } catch (err) {
-            return res.redirect(`https://codemania.fun/login?error=server_error`);
+            return res.redirect(`${frontendBaseUrl}/login?error=server_error`);
         }
     }
 
