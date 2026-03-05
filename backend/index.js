@@ -21,15 +21,9 @@ app.use(cookieParser());
 // app.set('trust-proxy', 1)
 
 app.use(
-  cors({
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:5173",
-      "http://localhost:4173",
-      "https://codemania.fun",
-    ],
-    credentials: true,
-  }),
+  cors(corsOptions),
 );
+app.options("*", cors(corsOptions));
 
 // ✅ Use built-in Express body parsing
 app.use(express.json());
