@@ -244,7 +244,7 @@ class AccountController {
     async googleLogin(req, res) {
         const { id, emails, provider } = req.user;
         const data = await this.accountService.googleLogin(id, emails[0].value, provider);
-        const frontendBaseUrl = process.env.FRONTEND_URL || "https://codemania.fun";
+        const frontendBaseUrl = (process.env.FRONTEND_URL || "https://codemania.fun").replace(/\/$/, "");
         
         try {
             if (data) {
@@ -281,12 +281,13 @@ class AccountController {
                     maxAge: 24 * 60 * 60 * 1000 // 1 day
                 });
 
-                return res.redirect(`${FRONTEND_URL}/?success=true`);
+                const redirectPath = data?.role === "admin" ? "/admin" : "/dashboard";
+                return res.redirect(`${frontendBaseUrl}${redirectPath}?success=true`);
             } else {
-                return res.redirect(`${frontendBaseUrl}/login?error=auth_failed`);
+                return res.redirect(`${frontendBaseUrl}/?error=auth_failed`);
             }
         } catch (err) {
-            return res.redirect(`${frontendBaseUrl}/login?error=server_error`);
+            return res.redirect(`${frontendBaseUrl}/?error=server_error`);
         }
     }
 
@@ -558,16 +559,14 @@ class AccountController {
             res.clearCookie("refreshToken", 
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
-                  sameSite: "none",
-                  domain: ".codemania.fun"
+                  sameSite: "strict" 
             });
 
             
              res.clearCookie("accessToken", 
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
-                  sameSite: "none",
-                  domain: ".codemania.fun"
+                  sameSite: "strict" 
             });
 
             return res.status(200).json({ 
@@ -597,15 +596,13 @@ class AccountController {
             res.clearCookie("accessToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                sameSite: "none",
-                domain: ".codemania.fun"
+                sameSite: "strict",
             });
 
             res.clearCookie("refreshToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                sameSite: "none",
-                domain: ".codemania.fun"
+                sameSite: "strict",
             });
 
             return res.status(200).json({ 
