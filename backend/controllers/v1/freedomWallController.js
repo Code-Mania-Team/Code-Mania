@@ -14,6 +14,9 @@ class FreedomWallController {
         const userProfile = await this.post.getUserProfile(user_id);
         const actualUsername = userProfile?.username || res.locals.username;
         
+        await this.post.createPost(user_id, content);
+        const character_id = await this.post.getCharacterIdByUserId(user_id);
+        
         res.send({
             success: true,
             message: "Freedom Wall post created successfully",
