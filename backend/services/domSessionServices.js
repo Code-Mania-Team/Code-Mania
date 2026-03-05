@@ -31,7 +31,7 @@ class DomSessionService {
       ok: true,
       data: {
         sessionId: id,
-        sandboxUrl: `http://localhost:3000/v1/dom/sandbox/${id}`
+        sandboxUrl: `https://api.codemania.fun/v1/dom/sandbox/${id}`
       }
     };
   }
