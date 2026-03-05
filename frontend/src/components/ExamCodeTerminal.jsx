@@ -43,6 +43,7 @@ print("Hello world")`;
 }
 
 const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
+  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "wss://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
   const [output, setOutput] = useState("");
@@ -117,7 +118,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
     let finalOutput = "";
 
-    const socket = new WebSocket("wss://terminal.codemania.fun");
+    const socket = new WebSocket(terminalWsUrl);
     socketRef.current = socket;
 
     socket.onopen = () => {

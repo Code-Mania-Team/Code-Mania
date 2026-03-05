@@ -174,6 +174,10 @@ const WelcomeOnboardingWrapper = () => {
 
 function App() {
   const { isLoading } = useAuth();
+  const [isAuthRedirecting, setIsAuthRedirecting] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("success") === "true";
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
@@ -221,6 +225,7 @@ function App() {
 
     if (success === 'true') {
       console.log('OAuth successful');
+      setIsAuthRedirecting(true);
       // Small delay to ensure cookies are set
       setTimeout(async () => {
         setIsAuthenticated(true);
@@ -232,18 +237,35 @@ function App() {
           setUser(profile);
 
           if (!profile?.username) {
-            navigate('/welcome');
+            navigate('/welcome', { replace: true });
             return;
           }
 
-          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard', { replace: true });
         } catch {
-          navigate('/');
+          setIsAuthRedirecting(false);
+          navigate('/', { replace: true });
         }
       }, 500);
       return;
     }
-  }, [location.search, navigate, setIsAuthenticated, navigate]);
+  }, [location.search, navigate, setIsAuthenticated, setUser]);
+
+  useEffect(() => {
+    if (!isAuthRedirecting) return;
+
+    const resolvedPath =
+      location.pathname === "/admin" ||
+      location.pathname === "/dashboard" ||
+      location.pathname === "/welcome" ||
+      location.pathname === "/";
+
+    const hasOAuthFlag = new URLSearchParams(location.search).get("success") === "true";
+
+    if (resolvedPath && !hasOAuthFlag) {
+      setIsAuthRedirecting(false);
+    }
+  }, [isAuthRedirecting, location.pathname, location.search]);
 
   // hide header/footer on exercise routes, dashboard, and quizzes
   const hideGlobalHeaderFooter =
@@ -262,7 +284,7 @@ function App() {
 
   return (
     <div className="app">
-      {isLoading && <AuthLoadingOverlay />}
+      {(isLoading || isAuthRedirecting) && <AuthLoadingOverlay />}
       {!hideGlobalHeaderFooter && (
         <Header
           isAuthenticated={isAuthenticated}
@@ -357,6 +379,7 @@ function App() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSignInSuccess={async (isNew) => {
+          setIsAuthRedirecting(true);
           setIsAuthenticated(true);
           setIsModalOpen(false);
           setIsNewUser(!!isNew);
@@ -365,18 +388,19 @@ function App() {
 
           try {
             const res = await axiosPublic.get("/v1/account");
-            const profile = res?.data?.data;
+            profile = res?.data?.data || null;
             console.log("Fetched user profile after sign-in:", profile);
             setUser(profile);
           } catch {
             setUser(null);
+            setIsAuthRedirecting(false);
           }
 
           if (isNew) {
-            navigate('/welcome');
+            navigate('/welcome', { replace: true });
             return;
           }
-          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard', { replace: true });
         }}
       />
     </div>

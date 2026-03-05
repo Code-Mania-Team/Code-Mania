@@ -1,10 +1,12 @@
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.codemania.fun";
+
 const useGetAllLeaderboard = () => {
   const getAllLeaderboard = async () => {
     try {
       const response = await axios.get(
-        "https://api.codemania.fun/v1/leaderboard",
+        `${API_BASE_URL}/v1/leaderboard`,
         {
           headers: {
             apikey: import.meta.env.VITE_API_KEY,

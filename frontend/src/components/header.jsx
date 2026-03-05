@@ -142,7 +142,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
   };
 
   const handleLearnClick = (e) => {
-    if (window.innerWidth <= 1024) {
+    if (window.innerWidth <= 1000) {
       e.preventDefault();
       setIsLearnOpen((prev) => {
         const next = !prev;
@@ -155,7 +155,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
   };
 
   const handleAccountClick = (e) => {
-    if (window.innerWidth <= 1024) {
+    if (window.innerWidth <= 1000) {
       e.preventDefault();
       setIsAccountOpen((prev) => {
         const next = !prev;

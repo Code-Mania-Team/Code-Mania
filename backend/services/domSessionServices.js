@@ -1,6 +1,10 @@
 import crypto from "crypto";
 import axios from "axios";
 
+const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
+
+const API_BASE_URL = process.env.API_BASE_URL || "https://api.codemania.fun";
+
 class DomSessionService {
   constructor() {
     this.sessions = new Map();
@@ -31,7 +35,7 @@ class DomSessionService {
       ok: true,
       data: {
         sessionId: id,
-        sandboxUrl: `http://localhost:3000/v1/dom/sandbox/${id}`
+        sandboxUrl: `${API_BASE_URL}/v1/dom/sandbox/${id}`
       }
     };
   }
@@ -81,7 +85,7 @@ class DomSessionService {
     =============================== */
 
     const { data } = await axios.post(
-        "https://terminal.codemania.fun/dom/run",
+        `${TERMINAL_API_BASE_URL}/dom/run`,
         {
         base_html: session.baseHtml,
         user_code: session.userCode,

@@ -76,6 +76,7 @@ const InteractiveTerminal = ({
   enableMobileSplit = true
 }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
+  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "wss://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const resolveInitialCode = () => {
     const dbStartingCode = typeof quest?.starting_code === "string" ? quest.starting_code : "";
@@ -242,7 +243,7 @@ const InteractiveTerminal = ({
     }
     let finalOutput = ""; // prevent stale state issue
 
-    const socket = new WebSocket("wss://terminal.codemania.fun");
+    const socket = new WebSocket(terminalWsUrl);
     socketRef.current = socket;
 
     socket.onopen = () => {
@@ -286,7 +287,7 @@ const InteractiveTerminal = ({
   const executeCodeForValidation = () =>
     new Promise((resolve) => {
       let finalOutput = "";
-      const socket = new WebSocket("wss://terminal.codemania.fun");
+      const socket = new WebSocket(terminalWsUrl);
 
       socket.onopen = () => {
         socket.send(JSON.stringify({ language, code }));

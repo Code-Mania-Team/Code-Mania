@@ -1,6 +1,8 @@
 import ExamModel from "../models/exam.js";
 import axios from "axios";
 
+const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
+
 function normalizeText(value) {
   return String(value ?? "")
     .replace(/\r\n/g, "\n")
@@ -162,7 +164,7 @@ class ExamService {
       }
 
       const { data: execution } = await axios.post(
-        "https://terminal.codemania.fun/exam/run",
+        `${TERMINAL_API_BASE_URL}/exam/run`,
         {
           language: languageSlug,
           code,
@@ -240,7 +242,7 @@ class ExamService {
        RUN TESTS
     ===================================== */
     const { data: execution } = await axios.post(
-      "https://terminal.codemania.fun/exam/run",
+      `${TERMINAL_API_BASE_URL}/exam/run`,
       {
         language: attempt.language,
         code,

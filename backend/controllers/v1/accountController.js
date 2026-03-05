@@ -4,6 +4,19 @@ import { generateAccessToken, generateRefreshToken } from "../../utils/token.js"
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || "https://codemania.fun").replace(/\/$/, "");
+
+const createCookieOptions = (maxAge) => {
+    const isProduction = process.env.NODE_ENV === "production";
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        ...(isProduction ? { domain: ".codemania.fun" } : {}),
+        maxAge,
+    };
+};
+
 class AccountController {
     constructor() {
         this.user = new User();
@@ -74,24 +87,9 @@ class AccountController {
             }
             // 🍪 HttpOnly cookie
             // 8. Set cookies
-            const cookieSecure = process.env.NODE_ENV === "production";
+            res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-            res.cookie('accessToken', accessToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-            });
-
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-
-            });
+            res.cookie('refreshToken', refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
 
             return res.status(200).json({
                 success: true,
@@ -196,26 +194,9 @@ class AccountController {
                 } else {
                     await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
                 }
+            res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-
-
-            const cookieSecure = process.env.NODE_ENV === "production";
-
-            res.cookie("accessToken", accessToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-            });
-
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-                });
+            res.cookie("refreshToken", refreshToken, createCookieOptions(7 * 24 * 60 * 60 * 1000));
 
             return res.status(200).json({
                 success: true,
@@ -263,29 +244,15 @@ class AccountController {
                     await this.userToken.createUserToken(data.id, hashedRefresh);
                 }
 
-                const cookieSecure = process.env.NODE_ENV === "production";
+                res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
+                res.cookie("refreshToken", refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-                res.cookie('accessToken', accessToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
-                res.cookie("refreshToken", refreshToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
-
-                return res.redirect(`https://codemania.fun/dashboard?success=true`);
+                return res.redirect(`${FRONTEND_URL}/dashboard?success=true`);
             } else {
-                return res.redirect(`https://codemania.fun/login?error=auth_failed`);
+                return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }
         } catch (err) {
-            return res.redirect(`https://codemania.fun/login?error=server_error`);
+            return res.redirect(`${FRONTEND_URL}/?error=server_error`);
         }
     }
 
@@ -336,23 +303,9 @@ class AccountController {
                     role: profile?.role,
                 });
 
-                const cookieSecure = process.env.NODE_ENV === "production";
+                res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-                res.cookie("accessToken", accessToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
-
-                res.cookie("refreshToken", newRefreshToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
+                res.cookie("refreshToken", newRefreshToken, createCookieOptions(24 * 60 * 60 * 1000));
                 return res.status(200).json({
                     success: true,
                     accessToken,
@@ -507,15 +460,7 @@ class AccountController {
             const tokenUsername = username ?? currentUsername;
             const accessToken = generateAccessToken({ user_id: userId, username: tokenUsername, role: role });
 
-            const cookieSecure = process.env.NODE_ENV === "production";
-
-            res.cookie("accessToken", accessToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-            });
+            res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
             return res.status(200).json({
                 success: true,
