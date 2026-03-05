@@ -16,7 +16,6 @@ const useOnBoardUsername = () => {
         full_name: fullName
       });
 
-      console.log("Username set response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error during set userame:", error);

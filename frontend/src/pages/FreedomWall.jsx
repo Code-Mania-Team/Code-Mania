@@ -74,7 +74,6 @@ const FreedomWall = ({ onOpenModal }) => {
     const characterIdRaw = post?.users?.character_id ?? post?.character_id;
     const characterId = characterIdRaw === null || characterIdRaw === undefined ? null : Number(characterIdRaw);
     const avatar = characterId !== null && !Number.isNaN(characterId) ? (iconByCharacterId[characterId] || null) : null;
-    console.log(rawUsername);
 
     const createdAtLabel = post?.created_at ? formatTimeAgo(post.created_at) : '';
 
@@ -109,7 +108,6 @@ const FreedomWall = ({ onOpenModal }) => {
 
   const handleAddComment = async () => {
     const content = (newComment || '').trim();
-    console.log("content", content);
 
     if (!isAuthenticated || !user?.user_id) {
       setPostError("Please sign in to post on the Freedom Wall.");

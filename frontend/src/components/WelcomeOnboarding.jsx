@@ -88,7 +88,6 @@ const WelcomeOnboarding = ({ onComplete }) => {
       try {
         // Save to backend
         const res = await onBoardUsername(username, characters[selectedCharacter].id, fullName);
-        console.log("onBoardUsername response:", res);
         if (res.success) {
           localStorage.setItem("username", username);
           localStorage.setItem("needsUsername", "false");

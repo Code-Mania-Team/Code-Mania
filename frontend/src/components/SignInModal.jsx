@@ -243,7 +243,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
   const handleSubmit = async (e) => {
 
-    console.log("Form submitted");
 
     e.preventDefault();
 
@@ -287,7 +286,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
           const user = await signUp(email, password);
 
-          console.log('Sign up response:', user);
 
           setShowOtpField(true);
 

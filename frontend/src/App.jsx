@@ -214,13 +214,11 @@ function App() {
     const success = urlParams.get('success');
 
     if (error) {
-      console.log('OAuth error:', error);
       setIsModalOpen(true);
       return;
     }
 
     if (success === 'true') {
-      console.log('OAuth successful');
       // Small delay to ensure cookies are set
       setTimeout(async () => {
         setIsAuthenticated(true);
@@ -231,19 +229,14 @@ function App() {
           const profile = res?.data?.data || null;
           setUser(profile);
 
-          if (!profile?.username) {
-            navigate('/welcome');
-            return;
-          }
-
-          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard', { replace: true });
         } catch {
-          navigate('/');
+          navigate('/', { replace: true });
         }
       }, 500);
       return;
     }
-  }, [location.search, navigate, setIsAuthenticated, navigate]);
+  }, [location.search, navigate, setIsAuthenticated, setUser]);
 
   // hide header/footer on exercise routes, dashboard, and quizzes
   const hideGlobalHeaderFooter =
@@ -365,8 +358,7 @@ function App() {
 
           try {
             const res = await axiosPublic.get("/v1/account");
-            const profile = res?.data?.data;
-            console.log("Fetched user profile after sign-in:", profile);
+            profile = res?.data?.data || null;
             setUser(profile);
           } catch {
             setUser(null);
@@ -376,7 +368,7 @@ function App() {
             navigate('/welcome');
             return;
           }
-          navigate(profile?.role === "admin" ? '/admin' : '/dashboard');
+          navigate(profile?.role === "admin" ? '/admin' : '/dashboard', { replace: true });
         }}
       />
     </div>

@@ -63,7 +63,6 @@ export const AuthProvider = ({ children }) => {
     //const isLandingPath = path === '/' || path.includes('landing') || path.includes('home')
     const isLandingPath = path === '/' || path.includes('landing') || path.includes('home');
     if (!isLandingPath) {
-      console.log("Checking authentication on path:", path);
       checkAuth();
     } else {
       if (mounted) {  

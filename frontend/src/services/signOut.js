@@ -8,7 +8,6 @@ const useSessionOut = () => {
     try {
       const response = await axiosPrivate.post("/v1/account/logout", {});
       
-      console.log("Sign-out response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error:", error);

@@ -8,7 +8,6 @@ const useDeleteAccount = () => {
     try {
       const response = await axiosPrivate.delete("/v1/account");
       
-      console.log("Delete Account response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error:", error);

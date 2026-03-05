@@ -32,7 +32,6 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.exerciseId = data.exerciseId;
     this.quest = data.quest || null;
-    console.log("🚀 QUEST:", this.quest);
     this.completedQuestIds = new Set(data.completedQuests || []);
 
     const storedLanguage =
@@ -118,7 +117,6 @@ export default class GameScene extends Phaser.Scene {
     if (this.groundInvisibleLayer) this.groundInvisibleLayer.setVisible(false);
     if (this.thingsInvisibleLayer) this.thingsInvisibleLayer.setVisible(false);
 
-    console.log("🔄 Layer switching system initialized for js_map10");
   }
 
   openDoors() {
@@ -135,7 +133,6 @@ export default class GameScene extends Phaser.Scene {
     doorCloseLayer.setVisible(false);
     doorOpenLayer.setVisible(true);
 
-    console.log("🚪 Door opened automatically");
   }
 
   toggleLayers() {
@@ -152,14 +149,12 @@ export default class GameScene extends Phaser.Scene {
       this.thingsLayer.setVisible(false);
       this.groundInvisibleLayer.setVisible(true);
       this.thingsInvisibleLayer.setVisible(true);
-      console.log("🔄 Layers switched to invisible state");
     } else {
       // Show normal layers, hide invisible layers
       this.groundLayer.setVisible(true);
       this.thingsLayer.setVisible(true);
       this.groundInvisibleLayer.setVisible(false);
       this.thingsInvisibleLayer.setVisible(false);
-      console.log("🔄 Layers switched to normal state");
     }
   }
 
@@ -221,7 +216,6 @@ export default class GameScene extends Phaser.Scene {
 
   onQuestComplete = async (e) => {
     const questId = e.detail?.questId;
-    console.log("questId", questId);
     if (!questId) return;
 
     // Keep completion flow inside engine too (not only React page listeners)
@@ -232,7 +226,6 @@ export default class GameScene extends Phaser.Scene {
 
     const gainedExp = quest.experience || 0;
 
-    console.log("LANGUAGE BEING SENT:", localStorage.getItem("lastCourseTitle"));
 
 
     // 🎒 Grant ability (if any)
@@ -1032,7 +1025,6 @@ export default class GameScene extends Phaser.Scene {
     const customSpawn = this.scene.settings.data?.spawnPoint;
     if (customSpawn) {
       const customPoint = this.getSpawnPoint(customSpawn);
-      console.log(`🎯 Using custom spawn point: ${customSpawn}`);
       return customPoint;
     }
 
@@ -1188,7 +1180,6 @@ export default class GameScene extends Phaser.Scene {
       this.smallRockLayer.setVisible(true);
     }
 
-    console.log("🪨 Rocks broken!");
   }
 
 
@@ -1274,7 +1265,6 @@ export default class GameScene extends Phaser.Scene {
           // );
 
           this.playerCanMove = true;
-          console.log("🧰 Pickaxe obtained!");
         }
       );
 
@@ -1344,7 +1334,6 @@ export default class GameScene extends Phaser.Scene {
       () => { }
     );
 
-    console.log("🚪 Gate opened!");
   }
 
 

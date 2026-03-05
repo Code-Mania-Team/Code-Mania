@@ -9,7 +9,6 @@ const useUpdateDomSession = () => {
       { code }
     );
 
-    console.log("✅ DOM session updated", response.data);
 
     return response.data;
   };

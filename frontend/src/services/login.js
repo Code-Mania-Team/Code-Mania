@@ -11,10 +11,8 @@ const login = async (email, password) => {
       }
     );
 
-    console.log("Login response:", response.data);
 
     if (response.data.success === false) {
-      console.log(response.data.message);
       throw new Error(response.data.message || "Login failed");
     }
     // cookies are set by the backend; frontend should not persist tokens

@@ -8,7 +8,6 @@ class DomController {
   async createSession(req, res) {
     try {
       const userId = res.locals.user_id;
-      console.log("User ID:",userId);
 
       if (!userId) {
         return res.status(401).json({
@@ -51,7 +50,6 @@ class DomController {
       const userId = res.locals.user_id;
       const sessionId = req.params.sessionId;
       const { requirements } = req.body;
-      console.log("Session ID:",sessionId);
 
       const result = await this.domService.validateSession({
         sessionId,
@@ -113,10 +111,8 @@ class DomController {
   async serveSandbox(req, res) {
     try {
       const sessionId = req.params.sessionId;
-      console.log("Session ID:",sessionId);
 
       const result = await this.domService.getSession(sessionId);
-      console.log("NIGGGGGGGGAAAAA",result);
 
       if (!result.ok) {
         return res.status(result.status).send(result.message);

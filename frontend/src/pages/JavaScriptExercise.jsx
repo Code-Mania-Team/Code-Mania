@@ -137,7 +137,6 @@ const JavaScriptExercise = () => {
 
       try {
         await startExercise(questId);
-        console.log("✅ Quest started in backend");
       } catch (err) {
         console.error("Failed to start quest", err);
       }
@@ -501,7 +500,6 @@ const JavaScriptExercise = () => {
 
 
   if (!activeExercise) return null;
-  console.log(activeExercise)
 
 
 
