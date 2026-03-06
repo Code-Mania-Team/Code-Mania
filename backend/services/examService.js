@@ -1,7 +1,7 @@
 import ExamModel from "../models/exam.js";
 import axios from "axios";
 
-const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "http://localhost:8080";
+const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "wss://terminal.codemania.fun";
 
 function normalizeText(value) {
   return String(value ?? "")

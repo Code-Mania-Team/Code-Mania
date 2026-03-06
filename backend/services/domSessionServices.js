@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import axios from "axios";
 
-const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "http://localhost:8080";
+const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "wss://terminal.codemania.fun";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 
