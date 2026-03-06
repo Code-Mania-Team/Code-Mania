@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/PythonCourse.css";
 import SignInModal from "../components/SignInModal";
 import TutorialOverlay from "../components/Tutorialpopup";
@@ -18,6 +18,7 @@ const checkmarkIcon = "https://res.cloudinary.com/daegpuoss/image/upload/v176793
 
 const PythonCourse = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user, setUser } = useAuth();
   const getGameProgress = useGetGameProgress();
   const [modules, setModules] = useState([]);
@@ -105,6 +106,17 @@ const PythonCourse = () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const fromState = Number(location.state?.expandedModule || 0);
+    const fromStorage = Number(localStorage.getItem("lastCourseExpandedModule") || 0);
+    const nextModule = Number.isFinite(fromState) && fromState > 0 ? fromState : fromStorage;
+
+    if (Number.isFinite(nextModule) && nextModule >= 1 && nextModule <= 5) {
+      setExpandedModule(nextModule);
+      localStorage.removeItem("lastCourseExpandedModule");
+    }
+  }, [location.state]);
 
   const onOpenModal = () => {
     setIsModalOpen(true);

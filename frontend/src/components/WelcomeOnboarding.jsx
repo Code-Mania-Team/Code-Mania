@@ -194,17 +194,11 @@ const WelcomeOnboarding = ({ onComplete }) => {
               </button>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <div style={{
-                    width: '128px',
-                    height: '128px',
-                    overflow: 'hidden'
-                  }}>
+                  <div className={styles.spriteFrame}>
                     <img
                       src={characters[selectedCharacter].sprite}
                       className={styles.spriteImage}
-                      style={{
-                        transform: 'translateX(-128px)'
-                      }}
+                      style={{ transform: 'translateX(-128px)' }}
                     />
                   </div>
                 </div>
@@ -224,17 +218,11 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.usernameSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <div style={{
-                    width: '128px',
-                    height: '128px',
-                    overflow: 'hidden'
-                  }}>
+                  <div className={styles.spriteFrame}>
                     <img
                       src={characters[selectedCharacter].sprite}
                       className={styles.spriteImage}
-                      style={{
-                        transform: 'translateX(-128px)'
-                      }}
+                      style={{ transform: 'translateX(-128px)' }}
                     />
                   </div>
                 </div>
@@ -287,17 +275,11 @@ const WelcomeOnboarding = ({ onComplete }) => {
             <div className={styles.welcomeSection}>
               <div className={styles.characterDisplay}>
                 <div className={styles.characterSprite}>
-                  <div style={{
-                    width: '128px',
-                    height: '128px',
-                    overflow: 'hidden'
-                  }}>
+                  <div className={styles.spriteFrame}>
                     <img
                       src={characters[selectedCharacter].sprite}
                       className={styles.spriteImage}
-                      style={{
-                        transform: 'translateX(-128px)'
-                      }}
+                      style={{ transform: 'translateX(-128px)' }}
                     />
                   </div>
                 </div>

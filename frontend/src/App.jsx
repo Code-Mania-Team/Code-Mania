@@ -247,6 +247,8 @@ function App() {
   const isExamRoute =
     location.pathname.startsWith("/coding-exam");
 
+  const authenticatedHomeRedirect = user?.role === "admin" ? "/admin" : "/dashboard";
+
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname === "/freedomwall" ||
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
@@ -268,7 +270,16 @@ function App() {
         style={isExamRoute ? { paddingTop: 0 } : undefined}
       >
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <Navigate to={authenticatedHomeRedirect} replace />
+              ) : (
+                <Home />
+              )
+            }
+          />
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/python" element={<PythonCourse />} />
 

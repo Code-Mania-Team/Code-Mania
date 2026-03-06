@@ -107,6 +107,11 @@ const Dashboard = ({ onSignOut }) => {
       ? lastCourseRoute
       : fallbackCourseRoute;
 
+  const latestOrderIndex = Number(latestUnlockedExercise?.order_index || 0);
+  const continueModuleId = Number.isFinite(latestOrderIndex) && latestOrderIndex > 0
+    ? Math.min(5, Math.ceil(latestOrderIndex / 4))
+    : 1;
+
   const courseGifs = {
 
     Python: 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925755/python_mcc7yl.gif',
@@ -554,7 +559,10 @@ const Dashboard = ({ onSignOut }) => {
 
                       className={styles['continue-btn']}
 
-                      onClick={() => navigate(courseRoute)}
+                      onClick={() => {
+                        localStorage.setItem('lastCourseExpandedModule', String(continueModuleId));
+                        navigate(courseRoute, { state: { expandedModule: continueModuleId } });
+                      }}
 
                     >
 

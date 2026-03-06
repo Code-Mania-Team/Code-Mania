@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Lock, Circle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/CppCourse.css";
 import SignInModal from "../components/SignInModal";
 import ProfileCard from "../components/ProfileCard";
@@ -17,6 +17,7 @@ const checkmarkIcon =
 
 const CppCourse = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user, setUser } = useAuth();
   const getGameProgress = useGetGameProgress();
   const { badges: courseBadges, loading: badgesLoading } = useGetCourseBadges(2);
@@ -100,6 +101,17 @@ const CppCourse = () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const fromState = Number(location.state?.expandedModule || 0);
+    const fromStorage = Number(localStorage.getItem("lastCourseExpandedModule") || 0);
+    const nextModule = Number.isFinite(fromState) && fromState > 0 ? fromState : fromStorage;
+
+    if (Number.isFinite(nextModule) && nextModule >= 1 && nextModule <= 5) {
+      setExpandedModule(nextModule);
+      localStorage.removeItem("lastCourseExpandedModule");
+    }
+  }, [location.state]);
 
   /* ===============================
      LOAD C++ PROGRESS (FIXED)

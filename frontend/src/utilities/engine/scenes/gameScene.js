@@ -64,7 +64,7 @@ export default class GameScene extends Phaser.Scene {
     this._isTypingInUICached = false;
     this._mobileControlsEnabled = null;
     this._pointerTargetCache = { target: null, nextAt: 0 };
-    this._nextArrowUpdateAt = 0;
+    this._arrowVisible = false;
   }
 
   loadSpritesheetIfMissing(key, path, options) {
@@ -564,19 +564,46 @@ export default class GameScene extends Phaser.Scene {
     this.badgeUnlockPopup.container?.setDepth(30000);
     this.cinematicBars = new CinematicBars(this);
 
-    this.isMobile =
-      this.sys.game.device.os.android ||
-      this.sys.game.device.os.iOS;
+    const computeMobileMode = () => {
+      const isMobileOs =
+        this.sys.game.device.os.android || this.sys.game.device.os.iOS;
+      const isTouchCapable = Boolean(this.sys.game.device.input.touch);
+      const hasCoarsePointer =
+        typeof window !== "undefined" &&
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(pointer: coarse)").matches;
+      const viewportWidth =
+        typeof window !== "undefined" ? window.innerWidth : this.scale.width;
+      const smallViewport = viewportWidth <= 820;
 
-    if (this.isMobile) {
-      this.mobileControls = new MobileControls(this, {
-        onInteract: () => {
-          if (this.gamePausedByTerminal || this.isTypingInUI()) return;
-          this.handleInteract();
-        }
-      });
+      return smallViewport && (isMobileOs || isTouchCapable || hasCoarsePointer);
+    };
 
-    }
+    this.applyMobileMode = () => {
+      const nextIsMobile = computeMobileMode();
+      if (nextIsMobile === this.isMobile) return;
+
+      this.isMobile = nextIsMobile;
+      this._mobileControlsEnabled = null;
+
+      if (this.isMobile) {
+        this.mobileControls = new MobileControls(this, {
+          onInteract: () => {
+            if (this.gamePausedByTerminal || this.isTypingInUI()) return;
+            this.handleInteract();
+          }
+        });
+      } else {
+        this.mobileControls?.destroy();
+        this.mobileControls = null;
+      }
+
+      this.syncMobileControlsVisibility();
+    };
+
+    this.isMobile = null;
+    this.mobileControls = null;
+    this.applyMobileMode();
 
     this.orientationManager = new OrientationManager(this, {
       requireLandscape: false
@@ -586,6 +613,7 @@ export default class GameScene extends Phaser.Scene {
     this.scale.on("resize", () => {
       this.cinematicBars.resize();
       const { width, height } = this.scale;
+      this.applyMobileMode();
       this.mobileControls?.resize(width, height);
       this.syncMobileControlsVisibility();
     });
@@ -803,11 +831,7 @@ export default class GameScene extends Phaser.Scene {
       ? `walk-${this.lastDirection}`
       : `idle-${this.lastDirection}`;
     this.player.anims.play(anim, true);
-    const now = this.time?.now ?? Date.now();
-    if (now >= this._nextArrowUpdateAt) {
-      this._nextArrowUpdateAt = now + 80;
-      this.updatePlayerArrow();
-    }
+    this.updatePlayerArrow();
 
   }
 
@@ -818,6 +842,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (!target) {
       this.playerArrow.setVisible(false);
+      this._arrowVisible = false;
       return;
     }
 
@@ -829,10 +854,18 @@ export default class GameScene extends Phaser.Scene {
       target.y
     );
 
-    const hideDistance = 100; // 👈 adjust this value
+    const hideDistance = 95;
+    const showDistance = 120;
 
-    // 🔥 Hide arrow if close enough
-    if (distance <= hideDistance) {
+    if (this._arrowVisible) {
+      if (distance <= hideDistance) {
+        this._arrowVisible = false;
+      }
+    } else if (distance >= showDistance) {
+      this._arrowVisible = true;
+    }
+
+    if (!this._arrowVisible) {
       this.playerArrow.setVisible(false);
       return;
     }
@@ -848,12 +881,21 @@ export default class GameScene extends Phaser.Scene {
 
     const radius = 40;
 
-    this.playerArrow.setPosition(
-      this.player.x + Math.cos(angle) * radius,
-      this.player.y + Math.sin(angle) * radius
-    );
+    const targetX = this.player.x + Math.cos(angle) * radius;
+    const targetY = this.player.y + Math.sin(angle) * radius;
 
-    this.playerArrow.setRotation(angle + Math.PI / 2);
+    if (!Number.isFinite(this.playerArrow.x) || !Number.isFinite(this.playerArrow.y)) {
+      this.playerArrow.setPosition(targetX, targetY);
+    } else {
+      this.playerArrow.setPosition(
+        Phaser.Math.Linear(this.playerArrow.x, targetX, 0.35),
+        Phaser.Math.Linear(this.playerArrow.y, targetY, 0.35)
+      );
+    }
+
+    this.playerArrow.setRotation(
+      Phaser.Math.Angle.RotateTo(this.playerArrow.rotation, angle + Math.PI / 2, 0.18)
+    );
   }
 
 

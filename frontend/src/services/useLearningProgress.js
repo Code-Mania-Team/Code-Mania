@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAxios"; // adjust path if needed
 
+const PROGRESS_CACHE_TTL_MS = 30000;
+let progressCache = {
+  data: null,
+  fetchedAt: 0,
+  promise: null,
+};
+
 const useLearningProgress = () => {
   const axiosPrivate = useAxiosPrivate();
   const { isAuthenticated, isLoading } = useAuth();
@@ -15,20 +22,56 @@ const useLearningProgress = () => {
     if (isLoading) return;
     if (!isAuthenticated) {
       setLoading(false);
+      setProgress([]);
+      progressCache = { data: null, fetchedAt: 0, promise: null };
       return;
     }
 
     let isMounted = true;
+    setLoading(true);
 
     const fetchProgress = async () => {
+      const now = Date.now();
+      const hasFreshCache =
+        Array.isArray(progressCache.data) &&
+        now - progressCache.fetchedAt < PROGRESS_CACHE_TTL_MS;
+
+      if (hasFreshCache) {
+        if (isMounted) {
+          setProgress(progressCache.data);
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
-        const res = await axiosPrivate.get("/v1/account/learning-progress");
+        if (!progressCache.promise) {
+          progressCache.promise = axiosPrivate
+            .get("/v1/account/learning-progress")
+            .then((res) => {
+              if (res.data?.success) {
+                const data = res.data.progress || [];
+                progressCache = {
+                  data,
+                  fetchedAt: Date.now(),
+                  promise: null,
+                };
+                return data;
+              }
+
+              progressCache = { data: [], fetchedAt: Date.now(), promise: null };
+              return [];
+            })
+            .catch((err) => {
+              progressCache = { ...progressCache, promise: null };
+              throw err;
+            });
+        }
+
+        const data = await progressCache.promise;
 
         if (!isMounted) return;
-
-        if (res.data?.success) {
-          setProgress(res.data.progress || []);
-        }
+        setProgress(data);
       } catch (err) {
         if (!isMounted) return;
 
