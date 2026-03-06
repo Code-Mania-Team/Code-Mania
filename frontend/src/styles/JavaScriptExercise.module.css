@@ -640,9 +640,12 @@
   }
 
   .mobile-panel-switcher-top {
+    width: 95%;
+    margin: -0.2rem auto 0.45rem;
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 0.65rem;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   .mobile-panel-switcher-top .mobile-switch-btn {

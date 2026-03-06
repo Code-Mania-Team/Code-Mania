@@ -2,10 +2,16 @@ export default class ChestQuestIconManager {
   constructor(scene) {
     this.scene = scene;
     this.icons = new Map(); // questId → icon sprite
+    this.pool = [];
   }
 
   createIcon(x, y, questId) {
-    const icon = this.scene.add.sprite(x, y - 32, "exclamation");
+    const pooled = this.pool.pop();
+    const icon = pooled || this.scene.add.sprite(x, y - 32, "exclamation");
+
+    icon.setPosition(x, y - 32);
+    icon.setActive(true);
+    icon.setVisible(true);
     icon.setDepth(1000);
     icon.play("exclamation"); // reuse animation if you want
 
@@ -16,13 +22,21 @@ export default class ChestQuestIconManager {
   hideIconForQuest(questId) {
     const icon = this.icons.get(questId);
     if (icon) {
-      icon.destroy();
+      icon.stop();
+      icon.setVisible(false);
+      icon.setActive(false);
+      this.pool.push(icon);
       this.icons.delete(questId);
     }
   }
 
   clearAll() {
-    this.icons.forEach(icon => icon.destroy());
+    this.icons.forEach((icon) => {
+      icon.stop();
+      icon.setVisible(false);
+      icon.setActive(false);
+      this.pool.push(icon);
+    });
     this.icons.clear();
   }
 }

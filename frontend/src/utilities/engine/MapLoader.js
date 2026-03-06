@@ -8,10 +8,18 @@ export default class MapLoader {
   }
 
   load(mapKey, mapJsonPath, tilesets) {
-    this.scene.load.tilemapTiledJSON(mapKey, mapJsonPath);
+    if (!this.scene.cache.tilemap.exists(mapKey)) {
+      this.scene.load.tilemapTiledJSON(mapKey, mapJsonPath);
+    }
 
-    tilesets.forEach(ts => {
-      this.scene.load.image(ts.key, ts.image);
+    const seen = new Set();
+    const supportsWebp = Boolean(this.scene.sys.game.device?.features?.webp);
+    tilesets.forEach((ts) => {
+      if (!ts?.key || !ts?.image || seen.has(ts.key)) return;
+      seen.add(ts.key);
+      if (this.scene.textures.exists(ts.key)) return;
+      const source = supportsWebp && ts.webp ? ts.webp : ts.image;
+      this.scene.load.image(ts.key, source);
     });
   }
 

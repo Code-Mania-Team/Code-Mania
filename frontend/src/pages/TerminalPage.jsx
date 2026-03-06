@@ -30,7 +30,7 @@ function getStarterCode(lang) {
 }
 
 const TerminalPage = () => {
-    const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "wss://terminal.codemania.fun";
+    const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "ws://localhost:8080";
     const navigate = useNavigate();
     const { user, isLoading: authLoading } = useAuth();
     const isAdmin = user?.role === "admin";

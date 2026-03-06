@@ -76,7 +76,7 @@ const InteractiveTerminal = ({
   enableMobileSplit = true
 }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
-  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "wss://terminal.codemania.fun";
+  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "ws://localhost:8080";
   const monacoLang = getMonacoLang(language);
   const resolveInitialCode = () => {
     const dbStartingCode = typeof quest?.starting_code === "string" ? quest.starting_code : "";
@@ -484,6 +484,7 @@ const InteractiveTerminal = ({
         </div>
       )}
 
+      {(!useMobileSplit || activePanel === "editor") && (
       <div className={styles["code-editor"]}>
         <div className={styles["editor-header"]}>
           <span>
@@ -518,7 +519,6 @@ const InteractiveTerminal = ({
           </div>
         </div>
 
-        {(!useMobileSplit || activePanel === "editor") && (
         <Editor
           height={isMobileView ? "240px" : "300px"}
           language={monacoLang}
@@ -535,8 +535,8 @@ const InteractiveTerminal = ({
             readOnly: !isQuestActive || isQuestCompleted
           }}
         />
-        )}
       </div>
+      )}
 
       {(!useMobileSplit || activePanel === "terminal") && (
         quest?.quest_type === "dom" ? (

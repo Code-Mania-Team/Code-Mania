@@ -1351,6 +1351,7 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 0.65rem;
+    justify-content: center;
   }
 
   .mobile-panel-switcher-top {
@@ -1359,6 +1360,7 @@
     display: flex;
     gap: 0.5rem;
     justify-content: center;
+    box-sizing: border-box;
   }
 
   .mobile-panel-switcher-top .mobile-switch-btn {

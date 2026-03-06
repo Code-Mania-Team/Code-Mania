@@ -1,5 +1,7 @@
 import { axiosPublic } from "../api/axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+
 const login = async (email, password) => {
   try {
     const response = await axiosPublic.post(
@@ -28,7 +30,7 @@ const login = async (email, password) => {
 };
 
 const loginWithGoogle = async () => {
-  window.location.href = "https://api.codemania.fun/v1/account/login/google"
+  window.location.href = `${API_BASE_URL}/v1/account/login/google`;
 }
 
 export { login, loginWithGoogle };

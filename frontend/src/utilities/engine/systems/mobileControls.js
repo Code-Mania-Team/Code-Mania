@@ -111,7 +111,10 @@ export default class MobileControls {
       .setStrokeStyle(2, 0xffffff, 0.4)
       .setScrollFactor(0)
       .setDepth(10000)
-      .setInteractive(new Phaser.Geom.Circle(0, 0, this.interactRadius + 10), Phaser.Geom.Circle.Contains);
+      .setInteractive(
+        new Phaser.Geom.Circle(this.interactRadius, this.interactRadius, this.interactRadius + 10),
+        Phaser.Geom.Circle.Contains
+      );
 
     this.interactLabel = this.scene.add.text(width - 80, height - 100, "E", {
       fontSize: "18px",
@@ -159,7 +162,10 @@ export default class MobileControls {
       .setStrokeStyle(2, 0xffffff, 0.4)
       .setScrollFactor(0)
       .setDepth(10000)
-      .setInteractive(new Phaser.Geom.Circle(0, 0, 40), Phaser.Geom.Circle.Contains);
+      .setInteractive(
+        new Phaser.Geom.Circle(this.questRadius, this.questRadius, this.questRadius + 10),
+        Phaser.Geom.Circle.Contains
+      );
 
     this.questLabel = this.scene.add.text(width - 170, height - 140, "Q", {
       fontSize: "18px",

@@ -631,7 +631,6 @@ function Admin() {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className={styles.button} type="button" onClick={fetchMetrics} disabled={metricsLoading}>Refresh</button>
-            <button className={styles.button} type="button" onClick={() => navigate("/")}>Back to site</button>
           </div>
         </div>
 

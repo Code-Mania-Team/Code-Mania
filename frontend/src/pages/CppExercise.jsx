@@ -19,7 +19,7 @@ import CodeTerminal from "../components/CodeTerminal";
 
 import styles from "../styles/CppExercise.module.css";
 
-import { startGame } from "../utilities/engine/main.js";
+import { startGame, stopGame } from "../utilities/engine/main.js";
 
 
 
@@ -162,6 +162,18 @@ const CppExercise = () => {
       try {
 
         const quest = await getExerciseById(activeExerciseId);
+
+        const rawSlug = String(
+          quest?.programming_languages?.slug ||
+            quest?.programming_languages?.name ||
+            ""
+        ).toLowerCase();
+        const normalizedSlug = rawSlug === "c++" ? "cpp" : rawSlug;
+
+        if (normalizedSlug && normalizedSlug !== "cpp") {
+          navigate(`/learn/${normalizedSlug}/exercise/${quest.id}`, { replace: true });
+          return;
+        }
 
         setActiveExercise(quest);
 
@@ -439,15 +451,15 @@ const CppExercise = () => {
 
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
 
-      if (window.game) {
-        window.game.sound?.stopAll();
-        window.game.destroy(true);
-        window.game = null;
-      }
-
     };
 
   }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
+
+  useEffect(() => {
+    return () => {
+      stopGame();
+    };
+  }, []);
 
   /* ===============================
 
@@ -549,6 +561,13 @@ const CppExercise = () => {
             </button>
             <button
               type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("editor")}
+            >
+              Code Editor
+            </button>
+            <button
+              type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("terminal")}
             >
@@ -564,7 +583,7 @@ const CppExercise = () => {
             <div id="phaser-container" className={styles["game-scene"]} />
           </div>
 
-          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}`}>
+          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}
@@ -574,7 +593,8 @@ const CppExercise = () => {
               showRunButton={terminalEnabled}
               disabled={!terminalEnabled}
               showMobilePanelSwitcher={false}
-              enableMobileSplit={false}
+              enableMobileSplit={isMobileView}
+              mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
             />
           </div>

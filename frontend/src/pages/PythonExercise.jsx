@@ -21,7 +21,7 @@ import CourseCompletionPromptModal from "../components/CourseCompletionPromptMod
 
 import styles from "../styles/PythonExercise.module.css";
 
-import { startGame } from "../utilities/engine/main.js";
+import { startGame, stopGame } from "../utilities/engine/main.js";
 
 import useGetGameProgress from "../services/getGameProgress.js";
 
@@ -145,6 +145,18 @@ const PythonExercise = ({ isAuthenticated }) => {
       try {
 
         const quest = await getExerciseById(activeExerciseId);
+
+        const rawSlug = String(
+          quest?.programming_languages?.slug ||
+            quest?.programming_languages?.name ||
+            ""
+        ).toLowerCase();
+        const normalizedSlug = rawSlug === "c++" ? "cpp" : rawSlug;
+
+        if (normalizedSlug && normalizedSlug !== "python") {
+          navigate(`/learn/${normalizedSlug}/exercise/${quest.id}`, { replace: true });
+          return;
+        }
 
         setActiveExercise(quest);
 
@@ -517,15 +529,15 @@ const PythonExercise = ({ isAuthenticated }) => {
 
       window.removeEventListener("code-mania:quest-complete", onQuestComplete);
 
-      if (window.game) {
-        window.game.sound?.stopAll();
-        window.game.destroy(true);
-        window.game = null;
-      }
-
     };
 
   }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
+
+  useEffect(() => {
+    return () => {
+      stopGame();
+    };
+  }, []);
 
 
 
@@ -663,6 +675,13 @@ const PythonExercise = ({ isAuthenticated }) => {
             </button>
             <button
               type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("editor")}
+            >
+              Code Editor
+            </button>
+            <button
+              type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("terminal")}
             >
@@ -688,7 +707,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
           {/* ===== TERMINAL ===== */}
 
-          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel !== "terminal" ? styles["mobile-panel-hidden"] : ""}`}>
+          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}
@@ -698,7 +717,8 @@ const PythonExercise = ({ isAuthenticated }) => {
               showRunButton={terminalEnabled}
               disabled={!terminalEnabled}
               showMobilePanelSwitcher={false}
-              enableMobileSplit={false}
+              enableMobileSplit={isMobileView}
+              mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
             />
           </div>

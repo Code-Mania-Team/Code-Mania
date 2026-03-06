@@ -60,6 +60,21 @@ export default class GameScene extends Phaser.Scene {
     this.worldState = { abilities: new Set() };
     this.openedChests = new Set();
     this.cutsceneSkipButton = null;
+    this._typingCheckNextAt = 0;
+    this._isTypingInUICached = false;
+    this._mobileControlsEnabled = null;
+    this._pointerTargetCache = { target: null, nextAt: 0 };
+    this._nextArrowUpdateAt = 0;
+  }
+
+  loadSpritesheetIfMissing(key, path, options) {
+    if (this.textures.exists(key)) return;
+    this.load.spritesheet(key, path, options);
+  }
+
+  loadAudioIfMissing(key, path) {
+    if (this.cache.audio.exists(key)) return;
+    this.load.audio(key, path);
   }
 
   createCutsceneSkipButton(onSkip) {
@@ -171,47 +186,54 @@ export default class GameScene extends Phaser.Scene {
       CHARACTERS.find(c => c.id === selectedId) || CHARACTERS[0];
 
     Object.entries(character.sprites).forEach(([dir, path]) => {
-      this.load.spritesheet(`player-${dir}`, path, {
+      this.loadSpritesheetIfMissing(`player-${dir}`, path, {
         frameWidth: 48,
         frameHeight: 48
       });
     });
 
-    this.load.spritesheet("npc-villager", "/assets/npcs/npc1.png", {
+    this.loadSpritesheetIfMissing("npc-villager", "/assets/npcs/npc1.png", {
       frameWidth: 48,
       frameHeight: 48
     });
 
-    this.load.spritesheet("arrow_up", "/assets/ui/arrow_up.png", {
+    this.loadSpritesheetIfMissing("arrow_up", "/assets/ui/arrow_up.png", {
       frameWidth: 48,
       frameHeight: 48
     });
 
-    this.load.spritesheet("arrow_down", "/assets/ui/arrow_down.png", {
+    this.loadSpritesheetIfMissing("arrow_down", "/assets/ui/arrow_down.png", {
       frameWidth: 48,
       frameHeight: 48
     });
 
-    this.load.spritesheet("arrow_left", "/assets/ui/arrow_left.png", {
+    this.loadSpritesheetIfMissing("arrow_left", "/assets/ui/arrow_left.png", {
       frameWidth: 48,
       frameHeight: 48
     });
 
-    this.load.spritesheet("arrow_right", "/assets/ui/arrow_right.png", {
+    this.loadSpritesheetIfMissing("arrow_right", "/assets/ui/arrow_right.png", {
       frameWidth: 48,
       frameHeight: 48
     });
-    this.load.spritesheet("quest_icon", "/assets/ui/quest_icon.png", {
+    this.loadSpritesheetIfMissing("quest_icon", "/assets/ui/quest_icon.png", {
       frameWidth: 48,
       frameHeight: 48
     });
-    this.load.spritesheet("exclamation", "/assets/ui/exclamation.png", {
+    this.loadSpritesheetIfMissing("exclamation", "/assets/ui/exclamation.png", {
       frameWidth: 48,
       frameHeight: 48
     });
-    this.load.audio("bgm-python", "/assets/audio/python.mp3");
-    this.load.audio("bgm-javascript", "/assets/audio/javascript.mp3");
-    this.load.audio("bgm-cpp", "/assets/audio/cpp.mp3");
+
+    const bgmByLanguage = {
+      Python: ["bgm-python", "/assets/audio/python.mp3"],
+      JavaScript: ["bgm-javascript", "/assets/audio/javascript.mp3"],
+      Cpp: ["bgm-cpp", "/assets/audio/cpp.mp3"]
+    };
+    const selectedBgm = bgmByLanguage[this.language];
+    if (selectedBgm) {
+      this.loadAudioIfMissing(selectedBgm[0], selectedBgm[1]);
+    }
   }
 
   onQuestComplete = async (e) => {
@@ -673,18 +695,32 @@ export default class GameScene extends Phaser.Scene {
 
 
   isTypingInUI() {
+    const now = this.time?.now ?? Date.now();
+    if (now < this._typingCheckNextAt) {
+      return this._isTypingInUICached;
+    }
+
+    this._typingCheckNextAt = now + 100;
     const active = document.activeElement;
-    if (!active) return false;
+    if (!active) {
+      this._isTypingInUICached = false;
+      return false;
+    }
 
     const tag = active.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-    if (active.isContentEditable) return true;
-
-    return Boolean(
+    const result =
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      active.isContentEditable ||
+      Boolean(
       active.closest?.(
         ".monaco-editor, .terminal, .examTerminal, [contenteditable='true'], [role='textbox']"
       )
-    );
+      );
+
+    this._isTypingInUICached = result;
+    return result;
   }
 
   shouldDisableMobileControls() {
@@ -704,7 +740,10 @@ export default class GameScene extends Phaser.Scene {
 
   syncMobileControlsVisibility() {
     if (!this.isMobile || !this.mobileControls) return;
-    this.mobileControls.setEnabled(!this.shouldDisableMobileControls());
+    const shouldEnable = !this.shouldDisableMobileControls();
+    if (this._mobileControlsEnabled === shouldEnable) return;
+    this._mobileControlsEnabled = shouldEnable;
+    this.mobileControls.setEnabled(shouldEnable);
   }
 
   update() {
@@ -764,7 +803,11 @@ export default class GameScene extends Phaser.Scene {
       ? `walk-${this.lastDirection}`
       : `idle-${this.lastDirection}`;
     this.player.anims.play(anim, true);
-    this.updatePlayerArrow();
+    const now = this.time?.now ?? Date.now();
+    if (now >= this._nextArrowUpdateAt) {
+      this._nextArrowUpdateAt = now + 80;
+      this.updatePlayerArrow();
+    }
 
   }
 
@@ -816,6 +859,13 @@ export default class GameScene extends Phaser.Scene {
 
 
   getCurrentPointerTarget() {
+    const now = this.time?.now ?? Date.now();
+    if (now < this._pointerTargetCache.nextAt) {
+      return this._pointerTargetCache.target;
+    }
+
+    this._pointerTargetCache.nextAt = now + 120;
+
     // 1️⃣ Prioritize chest quests on map (current objective in maps like Python map2)
     const activeQuest = this.questManager?.activeQuest;
     const icons = this.chestQuestManager?.icons;
@@ -827,12 +877,16 @@ export default class GameScene extends Phaser.Scene {
           icons.get(activeIdNum) ||
           icons.get(String(activeQuest.id));
 
-        if (activeIcon?.active) return activeIcon;
+        if (activeIcon?.active) {
+          this._pointerTargetCache.target = activeIcon;
+          return activeIcon;
+        }
       }
 
       for (const [questId, icon] of icons.entries()) {
         const quest = this.questManager?.getQuestById(questId);
         if (quest && !quest.completed && icon?.active) {
+          this._pointerTargetCache.target = icon;
           return icon;
         }
       }
@@ -845,7 +899,10 @@ export default class GameScene extends Phaser.Scene {
       return this.isRequiredQuestSatisfied(requiredQuest);
     });
 
-    if (exitZone) return exitZone;
+    if (exitZone) {
+      this._pointerTargetCache.target = exitZone;
+      return exitZone;
+    }
 
     // 3️⃣ Otherwise point to first incomplete NPC quest
     const npc = this.npcs?.find(n => {
@@ -853,12 +910,19 @@ export default class GameScene extends Phaser.Scene {
       return quest && !quest.completed;
     });
 
-    if (npc) return npc;
+    if (npc) {
+      this._pointerTargetCache.target = npc;
+      return npc;
+    }
 
     // 4️⃣ If no NPC quest remains, point to a map exit
     const anyExit = this.mapExits?.getChildren?.()?.[0] || null;
-    if (anyExit) return anyExit;
+    if (anyExit) {
+      this._pointerTargetCache.target = anyExit;
+      return anyExit;
+    }
 
+    this._pointerTargetCache.target = null;
     return null;
   }
 

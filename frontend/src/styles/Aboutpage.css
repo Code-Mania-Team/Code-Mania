@@ -456,3 +456,35 @@
 }
 
 }
+
+@media (min-width:1025px) and (max-width:1500px) {
+
+.developer {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 0 32px;
+    gap: 26px;
+}
+
+.card {
+    width: 100%;
+    max-width: 230px;
+    margin: 0 auto;
+}
+
+}
+
+@media (min-width:1501px) and (max-width:1800px) {
+
+.developer {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 0 36px;
+    gap: 24px;
+}
+
+.card {
+    width: 100%;
+    max-width: 230px;
+    margin: 0 auto;
+}
+
+}

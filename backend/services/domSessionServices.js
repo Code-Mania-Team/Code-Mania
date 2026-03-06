@@ -1,9 +1,9 @@
 import crypto from "crypto";
 import axios from "axios";
 
-const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
+const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "http://localhost:8080";
 
-const API_BASE_URL = process.env.API_BASE_URL || "https://api.codemania.fun";
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 
 class DomSessionService {
   constructor() {

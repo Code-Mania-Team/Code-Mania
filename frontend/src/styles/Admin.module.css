@@ -245,12 +245,14 @@
   background: rgba(255, 255, 255, 0.04);
   border-radius: 14px;
   padding: 16px;
+  text-align: center;
 }
 
 .cardTitle {
   font-size: 12px;
   opacity: 0.8;
   margin: 0 0 8px;
+  text-align: left;
 }
 
 .cardValue {

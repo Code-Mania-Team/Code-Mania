@@ -38,6 +38,8 @@ export default class QuestUI {
     this.isDraggingScroll = false;
     this.dragPointerId = null;
     this.lastDragY = 0;
+    this.isDraggingThumb = false;
+    this.thumbDragOffsetY = 0;
 
     // Container
     this.container = scene.add.container(0, 0)
@@ -107,6 +109,16 @@ export default class QuestUI {
     this.scrollbarTrack = scene.add.graphics();
     this.scrollbarThumb = scene.add.graphics();
 
+    this._endDrag = (pointerId = null) => {
+      if (!this.isDraggingScroll) return;
+      if (pointerId !== null && pointerId !== this.dragPointerId) return;
+
+      this.isDraggingScroll = false;
+      this.dragPointerId = null;
+      this.isDraggingThumb = false;
+      this.thumbDragOffsetY = 0;
+    };
+
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (!this.visible) return;
       if (this.scene.time.now < this.ignoreWheelUntil) return;
@@ -123,24 +135,55 @@ export default class QuestUI {
 
     this.onPointerDown = (pointer) => {
       if (!this.visible) return;
-      if (!this.isMobile) return;
-
       if (this.bodyScrollMax <= 0) return;
       if (!this._isInsideScrollArea(pointer.x, pointer.y)) return;
+
+      if (typeof pointer.button === "number" && pointer.button !== 0) return;
+
+      const insideTrack = this._isInsideScrollbarTrack(pointer.x, pointer.y);
+      if (!this.isMobile && !insideTrack) return;
+
+      const { thumbY, thumbHeight } = this._getThumbMetrics();
+      const insideThumb = this._isInsideScrollbarThumb(pointer.x, pointer.y, thumbY, thumbHeight);
 
       this.isDraggingScroll = true;
       this.dragPointerId = pointer.id;
       this.lastDragY = pointer.y;
+
+      if (!this.isMobile && insideTrack && !insideThumb) {
+        this._setScrollFromTrackY(pointer.y);
+      }
+
+      this.isDraggingThumb = !this.isMobile && (insideThumb || insideTrack);
+      this.thumbDragOffsetY = insideThumb ? pointer.y - thumbY : thumbHeight / 2;
     };
 
     this.onPointerMove = (pointer) => {
       if (!this.visible) return;
-      if (!this.isMobile) return;
       if (!this.isDraggingScroll) return;
       if (pointer.id !== this.dragPointerId) return;
       if (this.bodyScrollMax <= 0) return;
 
-      const deltaY = this.lastDragY - pointer.y;
+      if (!pointer.isDown) {
+        this._endDrag(pointer.id);
+        return;
+      }
+
+      if (!this.isMobile && this.isDraggingThumb) {
+        this._setScrollFromTrackY(pointer.y - this.thumbDragOffsetY);
+        this.lastDragY = pointer.y;
+        return;
+      }
+
+      if (this.isDraggingThumb && this._isInsideScrollbarTrack(pointer.x, pointer.y)) {
+        this._setScrollFromTrackY(pointer.y - this.thumbDragOffsetY);
+        this.lastDragY = pointer.y;
+        return;
+      }
+
+      const deltaY = this.isMobile
+        ? this.lastDragY - pointer.y
+        : pointer.y - this.lastDragY;
       this.lastDragY = pointer.y;
 
       this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
@@ -149,23 +192,25 @@ export default class QuestUI {
     };
 
     this.onPointerUp = (pointer) => {
-      if (!this.isDraggingScroll) return;
-      if (pointer.id !== this.dragPointerId) return;
+      this._endDrag(pointer.id);
+    };
 
-      this.isDraggingScroll = false;
-      this.dragPointerId = null;
+    this.onGameOut = () => {
+      this._endDrag();
     };
 
     scene.input.on("wheel", this.onWheel);
     scene.input.on("pointerdown", this.onPointerDown);
     scene.input.on("pointermove", this.onPointerMove);
     scene.input.on("pointerup", this.onPointerUp);
+    scene.input.on("gameout", this.onGameOut);
 
     scene.events.once("shutdown", () => {
       scene.input.off("wheel", this.onWheel);
       scene.input.off("pointerdown", this.onPointerDown);
       scene.input.off("pointermove", this.onPointerMove);
       scene.input.off("pointerup", this.onPointerUp);
+      scene.input.off("gameout", this.onGameOut);
     });
 
     this.container.add([
@@ -243,6 +288,8 @@ export default class QuestUI {
 
     this.isDraggingScroll = false;
     this.dragPointerId = null;
+    this.isDraggingThumb = false;
+    this.thumbDragOffsetY = 0;
 
     window.dispatchEvent(new CustomEvent("code-mania:terminal-inactive"));
 
@@ -281,10 +328,30 @@ export default class QuestUI {
     );
   }
 
+  _isInsideScrollbarTrack(x, y) {
+    return (
+      x >= this.scrollbarX - 6 &&
+      x <= this.scrollbarX + this.scrollbarWidth + 6 &&
+      y >= this.scrollbarMinY &&
+      y <= this.scrollbarMinY + this.bodyMaskHeight
+    );
+  }
+
+  _isInsideScrollbarThumb(x, y, thumbY, thumbHeight) {
+    return (
+      x >= this.scrollbarX - 8 &&
+      x <= this.scrollbarX + this.scrollbarWidth + 8 &&
+      y >= thumbY &&
+      y <= thumbY + thumbHeight
+    );
+  }
+
   _getTotalContentHeight() {
-    let bottom = this.bodyText.y + this.bodyText.height;
-    if (this.taskText.visible) bottom = Math.max(bottom, this.taskText.y + this.taskText.height);
-    return bottom - this.bodyBaseY;
+    let bottom = this.bodyBaseY + this.bodyText.height;
+    if (this.taskText.visible) {
+      bottom = Math.max(bottom, this._taskBaseY + this.taskText.height);
+    }
+    return Math.max(0, bottom - this.bodyBaseY);
   }
 
   _applyScroll() {
@@ -303,15 +370,34 @@ export default class QuestUI {
     );
   }
 
+  _getThumbMetrics() {
+    const trackHeight = this.bodyMaskHeight;
+    const totalContentHeight = Math.max(trackHeight, this._getTotalContentHeight());
+    const thumbHeight = Math.max(30, (trackHeight / totalContentHeight) * trackHeight);
+    const scrollRatio = this.bodyScrollMax > 0 ? this.bodyScroll / this.bodyScrollMax : 0;
+    const maxThumbOffset = Math.max(0, trackHeight - thumbHeight);
+    const thumbY = this.scrollbarMinY + maxThumbOffset * scrollRatio;
+
+    return { thumbHeight, thumbY, maxThumbOffset };
+  }
+
+  _setScrollFromTrackY(trackY) {
+    if (this.bodyScrollMax <= 0) return;
+    const { thumbHeight, maxThumbOffset } = this._getThumbMetrics();
+    const minY = this.scrollbarMinY;
+    const maxY = this.scrollbarMinY + this.bodyMaskHeight - thumbHeight;
+    const clampedThumbY = Phaser.Math.Clamp(trackY, minY, maxY);
+    const ratio = maxThumbOffset > 0 ? (clampedThumbY - this.scrollbarMinY) / maxThumbOffset : 0;
+
+    this.bodyScroll = Phaser.Math.Clamp(ratio * this.bodyScrollMax, 0, this.bodyScrollMax);
+    this._applyScroll();
+    this._updateScrollbarThumb();
+  }
+
   _updateScrollbarThumb() {
     if (this.bodyScrollMax <= 0) return;
 
-    const trackHeight = this.bodyMaskHeight;
-    const totalContentHeight = this._getTotalContentHeight();
-    const thumbHeight = Math.max(30, (trackHeight / totalContentHeight) * trackHeight);
-    const scrollRatio = this.bodyScroll / this.bodyScrollMax;
-    const maxThumbOffset = trackHeight - thumbHeight;
-    const thumbY = this.scrollbarMinY + maxThumbOffset * scrollRatio;
+    const { thumbHeight, thumbY } = this._getThumbMetrics();
 
     this.scrollbarThumb.clear();
     this.scrollbarThumb.fillStyle(0x8b5e3c, 1);

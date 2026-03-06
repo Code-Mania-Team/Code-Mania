@@ -626,7 +626,7 @@ body, html {
 
 @media (max-width: 640px) {
   .container {
-    padding: 20px 10px;
+    padding: 0;
   }
   
   .stats-grid {

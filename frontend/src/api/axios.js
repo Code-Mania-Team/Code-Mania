@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.codemania.fun";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 const DEFAULT_HEADERS = {
   apikey: import.meta.env.VITE_API_KEY,

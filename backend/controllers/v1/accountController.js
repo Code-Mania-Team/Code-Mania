@@ -4,7 +4,7 @@ import { generateAccessToken, generateRefreshToken } from "../../utils/token.js"
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
 
-const FRONTEND_URL = (process.env.FRONTEND_URL || "https://codemania.fun").replace(/\/$/, "");
+const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
 const createCookieOptions = (maxAge) => {
     const isProduction = process.env.NODE_ENV === "production";

@@ -13,6 +13,20 @@
   backdrop-filter: blur(5px);
 }
 
+@media (min-width: 980px) and (max-width: 1500px) and (min-height: 860px) and (max-height: 980px) {
+  .modalOverlay {
+    align-items: center;
+    padding-top: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 979px) and (min-height: 860px) and (max-height: 980px) {
+  .modalOverlay {
+    align-items: center;
+    padding-top: 0;
+  }
+}
+
 /* Modal Container */
 .signinModal {
   background: linear-gradient(145deg, #0f172a, #1e293b);
@@ -28,7 +42,7 @@
 /* Close Button */
 .closeModal {
   position: absolute;
-  top: 1rem;
+  top: 0.5rem;
   right: 1.5rem;
   background: none;
   border: none;
@@ -344,9 +358,16 @@ input:not(:placeholder-shown):not(:focus):invalid {
 }
 
 @media (max-width: 520px) {
+  .modalOverlay {
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+  }
+
   .signinModal {
-    max-height: 92vh;
-    top: 2rem;
+    max-height: calc(100vh - 24px);
+    padding: 1.6rem 1.2rem;
+    top: auto;
   }
 
   .signinForm {
@@ -357,11 +378,124 @@ input:not(:placeholder-shown):not(:focus):invalid {
   }
 }
 
+@media (max-width: 390px) {
+  .modalOverlay {
+    padding: 8px;
+  }
+
+  .signinModal {
+    width: min(100%, 316px);
+    max-height: calc(100vh - 40px);
+    padding: 0.8rem 0.7rem;
+    border-radius: 12px;
+  }
+
+  .closeModal {
+    top: 0.5rem;
+    right: 0.8rem;
+    font-size: 1.5rem;
+  }
+
+  .welcomeSection {
+    gap: 0.4rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .welcomeSection h2 {
+    font-size: 1.02rem;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .pixelIcon {
+    width: 19px;
+    height: 19px;
+  }
+
+  .subtext {
+    font-size: 0.42rem;
+    line-height: 1.45;
+    margin-bottom: 0.7rem;
+  }
+
+  .oauthButtons {
+    margin: 10px 0;
+  }
+
+  .oauthButton {
+    padding: 9px 8px;
+    font-size: 11px;
+    border-radius: 7px;
+  }
+
+  .divider {
+    margin: 10px 0;
+    font-size: 11px;
+  }
+
+  .formGroup {
+    margin-bottom: 0.62rem;
+  }
+
+  .formGroup label {
+    font-size: 0.68rem;
+    margin-bottom: 0.38rem;
+  }
+
+  .formGroup input[type="email"],
+  .formGroup input[type="password"],
+  .formGroup input[type="text"],
+  .passwordInput {
+    font-size: 0.76rem;
+    padding: 0.48rem 0.65rem;
+  }
+
+  .passwordInput {
+    padding-right: 2.1rem;
+  }
+
+  .togglePasswordButton {
+    right: 0.55rem;
+    width: 24px;
+    height: 24px;
+  }
+
+  .togglePasswordIcon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .rememberMe {
+    margin: 0.65rem 0;
+    font-size: 0.72rem;
+  }
+
+  .signinButton,
+  .forgotPasswordButton,
+  .backButton,
+  .signupLinkButton {
+    padding: 0.58rem 0.65rem;
+    font-size: 0.52rem;
+  }
+
+  .signupHint {
+    margin-top: 1rem;
+    font-size: 0.58rem;
+    line-height: 1.5;
+  }
+
+  .signupLinkButton {
+    width: 100%;
+    margin-left: 0;
+    height: 36px;
+  }
+}
+
 @media (min-width: 521px) and (max-width: 768px) {
   .signinModal {
     padding: 2rem;
     max-height: 85vh;
-    top: 2rem;
+    top: auto;
   }
 
   .closeModal {
