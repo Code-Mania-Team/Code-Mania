@@ -1,0 +1,110 @@
+import GameDataService from "../../services/gameDataService.js";
+
+class UserGameDataController {
+    constructor() {
+        this.gameDataService = new GameDataService();
+    }
+
+    async learningData(req, res) {
+        try {
+        const user_id = res.locals.user_id;
+
+        if (!user_id) {
+            return res.status(401).json({
+            success: false,
+            message: "Unauthorized"
+            });
+        }
+
+        const programming_language_id = parseInt(
+            req.query.programming_language
+        );
+
+        if (!Number.isFinite(programming_language_id)) {
+            return res.status(400).json({
+            success: false,
+            message: "programming_language must be a valid ID"
+            });
+        }
+
+        const rows = await this.gameDataService.getLearningData(
+            user_id,
+            programming_language_id
+        );
+        const quizRows = await this.gameDataService.getQuizAttemptsByLanguage(
+            user_id,
+            programming_language_id
+        );
+        const examRows = await this.gameDataService.getExamAttemptsByLanguage(
+            user_id,
+            programming_language_id
+        );
+
+        const completedQuizStages = Array.from(
+            new Set(
+                (quizRows || [])
+                    .map((row) => {
+                        const route = row?.quizzes?.route || "";
+                        const match = String(route).match(/stage-(\d+)/i);
+                        return match ? Number(match[1]) : null;
+                    })
+                    .filter((value) => Number.isFinite(value) && value > 0)
+            )
+        ).sort((a, b) => a - b);
+
+        const questXpEarned = rows.reduce(
+            (sum, r) => sum + (r.quests?.experience || 0),
+            0
+        );
+
+        const quizXpEarned = (quizRows || []).reduce(
+            (sum, row) => sum + Number(row?.earned_xp || 0),
+            0
+        );
+
+        const latestExamByProblem = new Map();
+        (examRows || []).forEach((row) => {
+            const key = Number(row?.exam_problem_id);
+            if (!Number.isFinite(key)) return;
+
+            const existing = latestExamByProblem.get(key);
+            if (!existing || Number(row?.id || 0) > Number(existing?.id || 0)) {
+                latestExamByProblem.set(key, row);
+            }
+        });
+
+        const latestExamRows = Array.from(latestExamByProblem.values());
+
+        const examXpEarned = latestExamRows.reduce(
+            (sum, row) => sum + Number(row?.earned_xp || 0),
+            0
+        );
+
+        const examCompleted = latestExamRows.some((row) => row?.passed === true);
+
+        return res.status(200).json({
+            success: true,
+            completedQuests: rows.map(r => r.exercise_id),
+            xpEarned: questXpEarned + quizXpEarned + examXpEarned,
+            questXpEarned,
+            quizXpEarned,
+            examXpEarned,
+            examCompleted,
+            availableQuiz: (quizRows || []).length,
+            completedQuizStages,
+            quests: rows.map(r => ({
+            id: r.exercise_id,
+            xp: r.quests?.experience || 0
+            }))
+        });
+
+        } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
+        }
+    }
+}
+
+export default UserGameDataController;
