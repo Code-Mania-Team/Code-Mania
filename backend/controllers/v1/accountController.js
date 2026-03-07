@@ -43,7 +43,7 @@ class AccountController {
                 data: { email: response?.email, isNewUser: true }
             });
         } catch (err) {
-            return res.status(400).json({
+            return res.status(500).json({
                 success: false,
                 message: err.message === "email" ? "Email already exists" : err.message || "Failed to process OTP request",
             });
@@ -98,16 +98,6 @@ class AccountController {
                 user_id: authUser.user_id,
             });
         } catch (err) {
-            const message = String(err?.message || "");
-            const otpErrors = ["OTP not found", "OTP expired", "OTP already used"];
-
-            if (otpErrors.includes(message)) {
-                return res.status(200).json({
-                    success: false,
-                    message: "Invalid OTP",
-                });
-            }
-
             return res.status(500).json({ 
                 success: false, 
                 message: message || "Internal server error",
@@ -137,15 +127,13 @@ class AccountController {
             // Generate new access token (split approach)
 
             const accessToken = generateAccessToken({ user_id, username, role: res.locals.role });
-            return res.status(200).json({
+            return res.status(201).json({
                 success: true,
                 message: "Username, character, and full name set successfully",
                 accessToken,
             });
 
         } catch (err) {
-
-
 
             return res.status(500).json({ 
                 success: false, 
