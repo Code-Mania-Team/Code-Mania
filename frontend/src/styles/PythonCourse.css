@@ -71,27 +71,6 @@
   margin-bottom: 2rem;
 }
 
-.start-learning-btn {
-  background: #fbbf24;
-  color: #000;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 0.5rem;
-  font-family: 'Jersey 10', sans-serif;
-  font-size: 1.3rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
-}
-
-.start-learning-btn:hover {
-  background: #f59e0b;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.6);
-}
-
 /* Main Content Layout */
 .python-content {
   display: grid;
@@ -264,12 +243,6 @@
 .start-btn:hover {
   background: #2563eb;
   transform: scale(1.05);
-}
-
-.locked-btn {
-  background: transparent;
-  border: none;
-  cursor: not-allowed;
 }
 
 .status-icon {

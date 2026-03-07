@@ -35,6 +35,7 @@ const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 
 const FULL_NAME_MAX_LENGTH = 40;
+const EDIT_NAME_COOLDOWN_MS = 60 * 1000;
 
 
 
@@ -59,6 +60,28 @@ const Profile = ({ onSignOut }) => {
   const [fullNameDraft, setFullNameDraft] = useState('');
 
   const [editError, setEditError] = useState('');
+
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  const [editCooldownSeconds, setEditCooldownSeconds] = useState(0);
+
+  const getEditCooldownKey = () => {
+    const username = localStorage.getItem('username') || 'guest';
+    return `profileNameLastEditAt_${username}`;
+  };
+
+  const getCooldownRemainingSeconds = () => {
+    const raw = localStorage.getItem(getEditCooldownKey());
+    if (!raw) return 0;
+
+    const lastEditedAt = Number(raw);
+    if (!Number.isFinite(lastEditedAt)) return 0;
+
+    const remainingMs = EDIT_NAME_COOLDOWN_MS - (Date.now() - lastEditedAt);
+    if (remainingMs <= 0) return 0;
+
+    return Math.ceil(remainingMs / 1000);
+  };
 
 
 
@@ -828,6 +851,7 @@ const Profile = ({ onSignOut }) => {
   const handleEditAccount = () => {
     setFullNameDraft(editFormData.userName || '');
     setEditError('');
+    setEditCooldownSeconds(getCooldownRemainingSeconds());
     setIsEditModalOpen(true);
 
 
@@ -841,6 +865,15 @@ const Profile = ({ onSignOut }) => {
 
 
   const handleSaveEdit = async () => {
+
+    if (isSavingEdit) return;
+
+    const remainingSeconds = getCooldownRemainingSeconds();
+    if (remainingSeconds > 0) {
+      setEditCooldownSeconds(remainingSeconds);
+      setEditError(`Please wait ${remainingSeconds}s before changing your name again.`);
+      return;
+    }
 
     const normalizedName = (fullNameDraft || '').trim();
 
@@ -862,6 +895,8 @@ const Profile = ({ onSignOut }) => {
 
     setEditError('');
 
+    setIsSavingEdit(true);
+
 
 
     try {
@@ -881,6 +916,10 @@ const Profile = ({ onSignOut }) => {
 
 
         localStorage.setItem('fullName', response.full_name);
+
+        localStorage.setItem(getEditCooldownKey(), String(Date.now()));
+
+        setEditCooldownSeconds(Math.ceil(EDIT_NAME_COOLDOWN_MS / 1000));
 
 
 
@@ -926,6 +965,10 @@ const Profile = ({ onSignOut }) => {
 
 
 
+    } finally {
+
+      setIsSavingEdit(false);
+
     }
 
 
@@ -946,6 +989,18 @@ const Profile = ({ onSignOut }) => {
     if (editError) setEditError('');
 
   };
+
+  useEffect(() => {
+    if (!isEditModalOpen) return;
+
+    setEditCooldownSeconds(getCooldownRemainingSeconds());
+
+    const timer = setInterval(() => {
+      setEditCooldownSeconds(getCooldownRemainingSeconds());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isEditModalOpen]);
 
 
 
@@ -1540,7 +1595,11 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <button className={styles.cancelBtn} onClick={() => setIsEditModalOpen(false)}>
+              <button
+                className={styles.cancelBtn}
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isSavingEdit}
+              >
 
 
 
@@ -1552,11 +1611,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <button className={styles.saveBtn} onClick={handleSaveEdit}>
+              <button
+                className={styles.saveBtn}
+                onClick={handleSaveEdit}
+                disabled={isSavingEdit || editCooldownSeconds > 0}
+              >
 
 
 
-                Save Changes
+                {isSavingEdit
+                  ? 'Editing...'
+                  : editCooldownSeconds > 0
+                    ? `Wait ${editCooldownSeconds}s`
+                    : 'Save Changes'}
 
 
 

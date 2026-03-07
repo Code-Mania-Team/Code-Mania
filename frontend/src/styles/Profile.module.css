@@ -27,33 +27,6 @@
   position: relative;
 }
 
-/* Profile info section */
-.profileInfo {
-  position: relative;
-  margin-left: 170px; /* Width of avatar + some spacing */
-  min-height: 150px; /* Height of the avatar */
-  margin-top: 10px;
-  position: relative;
-}
-
-/* Profile picture */
-.avatarContainer {
-  position: absolute;
-  left: 0;
-  z-index: 2;
-}
-
-/* User info */
-.userInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  position: relative;
-  padding-top: 0.5rem; /* Add some top padding for the edit button */
-  min-height: 150px; /* Match avatar height */
-  position: relative;
-}
-
 /* User name */
 .userName {
   font-size: 2rem; /* Reduced from 1.8rem */
@@ -85,86 +58,6 @@
   margin-top: 0.5rem;
 }
 
-/* Rank section - Desktop */
-.rankSection {
-  position: absolute;
-  left: 35%; /* Adjusted from 40% */
-  right: 0;
-  top: 40%;
-  transform: translateY(-50%);
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem; /* Reduced from 3rem */
-  max-width: 500px;
-  margin: 0 auto;
-  padding-right: 120px; /* Space for edit button */
-}
-
-/* Rank items */
-.rankItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 80px; /* Ensure consistent width for all items */
-}
-
-.rankNumber {
-  font-size: 1.1rem; /* Slightly larger for better readability */
-  font-weight: bold;
-  color: #fff;
-  white-space: nowrap; /* Prevent numbers from wrapping */
-}
-
-.rankLabel {
-  font-size: 0.7rem; /* Smaller label */
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
-}
-
-/* Tablet and mobile - move rank section below */
-@media (max-width: 1024px) {
-  .userInfo {
-    padding-right: 0;
-  }
-  
-  .rankSection {
-    position: static;
-    transform: none;
-    margin-top: 1.5rem;
-    justify-content: flex-start;
-  }
-}
-
-/* Edit profile button */
-.editProfileBtn {
-  position: absolute;
-  right: 0;
-  top: 0;
-  background: #333;
-  color: #fff;
-  border: 2px solid #666;
-  padding: 0.5rem 1rem;
-  font-family: 'Press Start 2P', 'Courier New', monospace;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-  z-index: 10;
-  margin-top: 0.5rem;
-  margin-right: 0.5rem;
-}
-
-.editProfileBtn:hover {
-  background: #444;
-  border-color: #ff00ff;
-  color: #ff00ff;
-}
-
 .avatar {
   width: 180px;
   height: 180px;
@@ -187,39 +80,6 @@
   object-fit: cover;
   border-radius: 50%;
   image-rendering: pixelated;
-}
-
-.userDetails {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.userNameContainer {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  justify-content: center;
-}
-
-.editIconBtn {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  padding: 0.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.editIconBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 }
 
 .stats {
@@ -247,35 +107,6 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-}
-
-/* Rank section */
-.rankSection {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 1rem;
-}
-
-.rankItem {
-  text-align: center;
-  padding: 1rem 1.5rem;
-  min-width: 100px;
-  backdrop-filter: blur(10px);
-}
-
-.rankNumber {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #e2e8f0;
-  margin-bottom: 0.25rem;
-}
-
-.rankLabel {
-  font-size: 0.85rem;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .tabs {
@@ -325,56 +156,11 @@
   box-shadow: none; /* ensures no glow appears */
 }
 
-/* Achievements */
-.achievementsList {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-}
-
-.achievementItem {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 1.25rem;
-  background: rgba(30, 41, 59, 0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.achievementItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.achievementIcon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: rgba(99, 102, 241, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.75rem;
-  flex-shrink: 0;
-}
-
-.achievementDetails {
-  flex: 1;
-}
-
 .achievementTitle {
   font-size: 1.1rem;
   font-weight: 600;
   color: #e2e8f0;
   margin-bottom: 0.25rem;
-}
-
-.achievementTime {
-  font-size: 0.9rem;
-  color: #94a3b8;
 }
 
 /* Friends section */
@@ -514,24 +300,6 @@
   gap: 1.5rem;
 }
 
-.addFriendsBtn {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.75rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.addFriendsBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
-}
-
 .achievementsTable {
   background: #1a1a1a;
   border-radius: 12px;
@@ -566,14 +334,6 @@
 
 .tableRow:hover {
   background: rgba(255, 255, 255, 0.05);
-}
-
-.badgePlaceholder {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .badgeCell {
@@ -629,7 +389,6 @@
   gap: 1rem;
 }
 
-.editBtn,
 .signOutBtn,
 .deleteBtn {
   display: flex;
@@ -907,20 +666,6 @@
     justify-content: space-between;
     align-items: flex-start;
   }
-  
-  .profileInfo {
-    flex-direction: row;
-    text-align: left;
-    align-items: flex-start;
-  }
-  
-  .userDetails {
-    align-items: flex-start;
-  }
-  
-  .rankSection {
-    margin-top: 0;
-  }
 }
 
 @media (max-width: 767px) {
@@ -938,10 +683,6 @@
     gap: 0.5rem;
   }
 
-  .userNameContainer {
-    flex-direction: row;
-  }
-  
   .avatar {
     width: 100px;
     height: 100px;
@@ -950,11 +691,6 @@
   
   .userName {
     font-size: 1.5rem;
-  }
-  
-  .rankSection {
-    flex-wrap: wrap;
-    justify-content: center;
   }
   
   .tab {

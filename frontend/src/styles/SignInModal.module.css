@@ -504,31 +504,6 @@ input:not(:placeholder-shown):not(:focus):invalid {
   }
 }
 
-/* OTP Sent Message */
-.otpSent {
-  text-align: center;
-  padding: 1rem 0;
-}
-
-.otpSent h2 {
-  color: white;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.otpSent p {
-  color: #94a3b8;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 0.5rem;
-}
-
-.emailHighlight {
-  color: #7f00ff;
-  font-weight: 500;
-}
-
 .otpNote {
   color: #64748b;
   font-size: 0.75rem;
@@ -645,26 +620,3 @@ input:not(:placeholder-shown):not(:focus):invalid {
   top: -1px;
 }
 
-/* Password Input Wrapper */
-.passwordInputWrapper {
-  position: relative;
-}
-
-.passwordToggle {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.passwordToggle:hover {
-  color: white;
-}

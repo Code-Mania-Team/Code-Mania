@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Search, Send } from "lucide-react";
+import { BadgeCheck, Search, Send } from "lucide-react";
 import { containsProfanity } from "../utils/profanityFilter";
 import "../styles/FreedomWall.css";
 
@@ -12,6 +12,8 @@ const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
 const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
 const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
+
+const ADMIN_USERS = new Set(["codemania"]);
 
 const FreedomWall = ({ onOpenModal }) => {
   const getAllPosts = useGetAllPosts();
@@ -83,6 +85,7 @@ const FreedomWall = ({ onOpenModal }) => {
       avatar,
       text: post?.content ?? '',
       time: createdAtLabel,
+      isAdmin: ADMIN_USERS.has(username.trim().toLowerCase()),
     };
   };
 
@@ -269,7 +272,10 @@ const FreedomWall = ({ onOpenModal }) => {
                 />
                 <div className="comment-content">
                   <div className="comment-header">
-                    <span className="comment-user">{comment.user}</span>
+                    <span className="comment-user-wrap">
+                      <span className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}>{comment.user}</span>
+                      {comment.isAdmin ? <BadgeCheck className="verified-badge" aria-label="Verified admin" /> : null}
+                    </span>
                     <span className="comment-time">{comment.time}</span>
                   </div>
                   <p className="comment-text">{comment.text}</p>

@@ -266,24 +266,25 @@ body,
 }
 
 .dropdown-item:hover {
-  background: rgba(251, 191, 36, 0.1);
-  color: #fbbf24;
   padding-left: 2rem;
 }
 
-.dropdown-item:nth-child(1):hover {
+.dropdown-item.course-python:hover,
+.dropdown-item.course-python:active {
   color: #3CB371;
   background: rgba(60, 179, 113, 0.1);
   text-shadow: 0 0 10px rgba(60, 179, 113, 0.6);
 }
 
-.dropdown-item:nth-child(2):hover {
+.dropdown-item.course-cpp:hover,
+.dropdown-item.course-cpp:active {
   color: #5B8FB9;
   background: rgba(91, 143, 185, 0.1);
   text-shadow: 0 0 10px rgba(91, 143, 185, 0.6);
 }
 
-.dropdown-item:nth-child(3):hover {
+.dropdown-item.course-javascript:hover,
+.dropdown-item.course-javascript:active {
   color: #FFD700;
   background: rgba(255, 215, 0, 0.1);
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);

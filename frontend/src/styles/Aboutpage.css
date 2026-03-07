@@ -15,12 +15,6 @@
     background-attachment: fixed;
     min-height: 100vh;
 }
-.hero-left{
-    margin-top: 20px;
-}
-
-
-
 .about-section {
     padding: 60px;
     display: flex;

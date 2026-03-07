@@ -175,32 +175,6 @@
   gap: 1rem;
 }
 
-.optionLabel {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.optionLabel:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.optionInput {
-  display: none;
-}
-
-.optionContent {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-}
-
 .optionLetter {
   width: 2rem;
   height: 2rem;
@@ -213,61 +187,11 @@
   font-weight: bold;
 }
 
-.optionLabel:has(input:checked) .optionLetter {
-  background: #3CB371;
-}
-
-.selectedOption {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
 .optionText {
   flex: 1;
 }
 
 /* Feedback */
-.correctOption {
-  background: rgba(16, 185, 129, 0.2) !important;
-  border-color: #10b981 !important;
-}
-
-.wrongOption {
-  background: rgba(239, 68, 68, 0.2) !important;
-  border-color: #ef4444 !important;
-}
-
-.feedbackIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-left: auto;
-}
-
-/* Navigation */
-.examNavigation {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2rem;
-}
-
-.navButton {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  cursor: pointer;
-}
-
-.submitButton {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  background: #3CB371;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
 /* Results */
 .resultsContainer {
   margin-top: 2rem;
@@ -297,12 +221,6 @@
   color: white;
   line-height: 1;
   margin: 0.25rem 0 0.5rem;
-}
-
-.resultStatus {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-top: 0.25rem;
 }
 
 .resultsDetails {

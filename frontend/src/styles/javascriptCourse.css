@@ -148,8 +148,7 @@
     position: static;
   }
 
-  .course-badges-grid,
-  .javascript-course-badges-grid {
+  .course-badges-grid {
     display: flex;
     flex-wrap: nowrap;
     gap: 75px;
@@ -187,8 +186,7 @@
 }
 
 /* Course Badges Styles */
-.course-badges-grid,
-.javascript-course-badges-grid {
+.course-badges-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
@@ -266,8 +264,7 @@
     font-size: 0.82rem;
   }
 
-  .course-badges-grid,
-  .javascript-course-badges-grid {
+  .course-badges-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -284,8 +281,7 @@
 }
 
 @media (min-width: 521px) and (max-width: 1024px) {
-  .course-badges-grid,
-  .javascript-course-badges-grid {
+  .course-badges-grid {
     display: flex;
     flex-wrap: nowrap;
     gap: 75px;

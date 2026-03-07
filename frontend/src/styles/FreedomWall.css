@@ -180,6 +180,26 @@
   color: #f3f4f6;
 }
 
+.comment-user-admin {
+  background: linear-gradient(90deg, #7dd3fc 0%, #60a5fa 45%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.comment-user-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.verified-badge {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
 .comment-time {
   color: #9ca3af;
   font-size: 0.8rem;
@@ -205,7 +225,7 @@
 
 /* Responsive Design */
 @media (max-width: 640px) {
-  .community-page {
+  .freedomwall-page {
     padding: 1rem;
   }
 
@@ -214,12 +234,11 @@
     padding: 16px;
   }
 
-  .input-wrapper,
-  .comment-wrapper {
+  .comment-input-wrapper {
     gap: 12px;
   }
 
-  .input-avatar,
+  .avatar,
   .comment-avatar {
     width: 40px;
     height: 40px;

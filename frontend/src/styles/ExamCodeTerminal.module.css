@@ -70,38 +70,6 @@
   overflow: hidden;
 }
 
-.examTerminalHeader {
-  background: #1e293b;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #334155;
-  color: #e2e8f0;
-  font-family: 'VT323', monospace;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.examTerminalContent {
-  padding: 1rem;
-  min-height: 150px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.examTerminalContent pre {
-  margin: 0;
-  font-family: 'VT323', monospace;
-  font-size: 1rem;
-  color: #10b981;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.examTerminalContent pre:empty::before {
-  content: "▶ Output will appear here";
-  color: #64748b;
-  font-style: italic;
-}
-
 /* Monaco Editor Customization for Exam */
 .examCodeContainer .monaco-editor {
   border-radius: 0 0 8px 8px;
@@ -120,11 +88,6 @@
   .examCodeContainer {
     gap: 0.75rem;
   }
-  
-  .examTerminalContent {
-    min-height: 120px;
-    max-height: 250px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -140,8 +103,7 @@
     min-height: 250px;
   }
   
-  .examEditorHeader,
-  .examTerminalHeader {
+  .examEditorHeader {
     padding: 0.5rem 0.75rem;
   }
 
@@ -154,11 +116,5 @@
   .examSubmitBtn {
     padding: 0.45rem 0.7rem;
     font-size: 0.9rem;
-  }
-  
-  .examTerminalContent {
-    min-height: 100px;
-    max-height: 200px;
-    padding: 0.75rem;
   }
 }

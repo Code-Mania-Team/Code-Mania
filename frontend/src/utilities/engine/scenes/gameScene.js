@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import MapLoader from "../MapLoader";
-import { MAPS } from "../config/mapConfig";
+import { MAPS, buildMapManifest } from "../config/mapConfig";
 import QuestManager from "../systems/questManager";
 import DialogueManager from "../systems/dialogueManager";
 import CutsceneManager from "../systems/cutSceneManager";
@@ -9,7 +9,6 @@ import { CUTSCENE_OPTIONS } from "../config/cutSceneConfig";
 import pythonQuests from "../../data/pythonExercises.json";
 import jsQuests from "../../data/javascriptExercises.json";
 import cppQuests from "../../data/cppExercises.json";
-import { CHARACTERS } from "../config/characterConfig";
 import QuestHUD from "../systems/questHUD";
 import ExitArrowManager from "../systems/exitArrowHUD";
 import QuestIconManager from "../systems/questIconManager";
@@ -54,6 +53,13 @@ export default class GameScene extends Phaser.Scene {
         mapId: this.currentMapId
       });
     }
+
+    this.selectedCharacterId = Number(localStorage.getItem("selectedCharacter")) || 0;
+    this.assetManifest = buildMapManifest({
+      language: this.language,
+      mapId: this.currentMapId,
+      characterId: this.selectedCharacterId,
+    });
 
     this.playerCanMove = true;
     this.gamePausedByTerminal = false;
@@ -175,65 +181,24 @@ export default class GameScene extends Phaser.Scene {
 
   preload() {
     this.mapLoader = new MapLoader(this);
+    if (!this.assetManifest?.map) return;
+
     this.mapLoader.load(
-      this.mapData.mapKey,
-      this.mapData.mapJson,
-      this.mapData.tilesets
+      this.assetManifest.map.mapKey,
+      this.assetManifest.map.mapJson,
+      this.assetManifest.tilesets
     );
 
-    const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
-    const character =
-      CHARACTERS.find(c => c.id === selectedId) || CHARACTERS[0];
-
-    Object.entries(character.sprites).forEach(([dir, path]) => {
-      this.loadSpritesheetIfMissing(`player-${dir}`, path, {
-        frameWidth: 48,
-        frameHeight: 48
+    this.assetManifest.spritesheets.forEach((sheet) => {
+      this.loadSpritesheetIfMissing(sheet.key, sheet.path, {
+        frameWidth: sheet.frameWidth,
+        frameHeight: sheet.frameHeight,
       });
     });
 
-    this.loadSpritesheetIfMissing("npc-villager", "/assets/npcs/npc1.png", {
-      frameWidth: 48,
-      frameHeight: 48
+    this.assetManifest.audio.forEach((audio) => {
+      this.loadAudioIfMissing(audio.key, audio.path);
     });
-
-    this.loadSpritesheetIfMissing("arrow_up", "/assets/ui/arrow_up.png", {
-      frameWidth: 48,
-      frameHeight: 48
-    });
-
-    this.loadSpritesheetIfMissing("arrow_down", "/assets/ui/arrow_down.png", {
-      frameWidth: 48,
-      frameHeight: 48
-    });
-
-    this.loadSpritesheetIfMissing("arrow_left", "/assets/ui/arrow_left.png", {
-      frameWidth: 48,
-      frameHeight: 48
-    });
-
-    this.loadSpritesheetIfMissing("arrow_right", "/assets/ui/arrow_right.png", {
-      frameWidth: 48,
-      frameHeight: 48
-    });
-    this.loadSpritesheetIfMissing("quest_icon", "/assets/ui/quest_icon.png", {
-      frameWidth: 48,
-      frameHeight: 48
-    });
-    this.loadSpritesheetIfMissing("exclamation", "/assets/ui/exclamation.png", {
-      frameWidth: 48,
-      frameHeight: 48
-    });
-
-    const bgmByLanguage = {
-      Python: ["bgm-python", "/assets/audio/python.mp3"],
-      JavaScript: ["bgm-javascript", "/assets/audio/javascript.mp3"],
-      Cpp: ["bgm-cpp", "/assets/audio/cpp.mp3"]
-    };
-    const selectedBgm = bgmByLanguage[this.language];
-    if (selectedBgm) {
-      this.loadAudioIfMissing(selectedBgm[0], selectedBgm[1]);
-    }
   }
 
   onQuestComplete = async (e) => {
@@ -297,7 +262,7 @@ export default class GameScene extends Phaser.Scene {
     // 🎵 Background music removed
 
     // 🎮 PLAYER ANIMATIONS
-    const selectedId = Number(localStorage.getItem("selectedCharacter")) || 0;
+    const selectedId = this.selectedCharacterId;
 
     const characterIdleFrames = {
       0: 1,
@@ -325,17 +290,19 @@ export default class GameScene extends Phaser.Scene {
       });
     });
 
-    ["up", "down", "left", "right"].forEach(dir => {
-      if (this.anims.exists(`arrow-${dir}`)) return;
+    ["up", "down", "left", "right"].forEach((dir) => {
+      const textureKey = `arrow_${dir}`;
+      const animKey = `arrow-${dir}`;
+      if (this.anims.exists(animKey) || !this.textures.exists(textureKey)) return;
 
       this.anims.create({
-        key: `arrow-${dir}`,
-        frames: this.anims.generateFrameNumbers(`arrow_${dir}`, {
+        key: animKey,
+        frames: this.anims.generateFrameNumbers(textureKey, {
           start: 0,
-          end: 2
+          end: 2,
         }),
         frameRate: 6,
-        repeat: -1
+        repeat: -1,
       });
     });
 
@@ -675,13 +642,43 @@ export default class GameScene extends Phaser.Scene {
     // 🎬 INTRO
     this.playIntroCutscene();
     this.spawnChestQuestIcons();
+    this.scheduleNextMapPrefetch();
 
+  }
+
+  scheduleNextMapPrefetch() {
+    const nextMapId = this.mapData?.nextMap;
+    if (!nextMapId) return;
+
+    this.time.delayedCall(900, () => {
+      this.prefetchMapAssets(nextMapId);
+    });
+  }
+
+  prefetchMapAssets(mapId) {
+    const manifest = buildMapManifest({
+      language: this.language,
+      mapId,
+      characterId: this.selectedCharacterId,
+      prefetchOnly: true,
+    });
+
+    if (!manifest?.map) return;
+
+    this.mapLoader.load(manifest.map.mapKey, manifest.map.mapJson, manifest.tilesets);
+
+    const hasQueuedFiles = this.load.list?.size > 0;
+    if (!this.load.isLoading() && hasQueuedFiles) {
+      this.load.start();
+    }
   }
   createPlayerArrow() {
     // Use one of your arrow sprites (we'll rotate it dynamically)
     this.playerArrow = this.add.sprite(0, 0, "arrow_up");
     this.playerArrow.setDepth(99);
-    this.playerArrow.play("arrow-up");
+    if (this.anims.exists("arrow-up")) {
+      this.playerArrow.play("arrow-up");
+    }
 
     // Anchor center
     this.playerArrow.setOrigin(0.5);
@@ -752,15 +749,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   shouldDisableMobileControls() {
-    const activeQuest = this.questManager?.activeQuest;
-    const questInProgress = Boolean(activeQuest && !activeQuest.completed);
     const dialogueActive = Boolean(this.dialogueManager?.active);
     const questHudVisible = Boolean(this.questHUD?.visible);
 
     return (
       this.gamePausedByTerminal ||
       this.isTypingInUI() ||
-      questInProgress ||
       dialogueActive ||
       questHudVisible
     );
@@ -1473,8 +1467,9 @@ export default class GameScene extends Phaser.Scene {
         const targetSpawn =
           obj.properties.find(p => p.name === "target_spawn")?.value;
 
-        const direction =
-          obj.properties.find(p => p.name === "direction")?.value ?? "down";
+        const rawDirection = obj.properties.find(p => p.name === "direction")?.value;
+        const direction = String(rawDirection || "").toLowerCase().trim();
+        const validDirections = new Set(["up", "down", "left", "right"]);
 
         const rawQuest =
           obj.properties.find(p => p.name === "required_quest")?.value;
@@ -1498,12 +1493,14 @@ export default class GameScene extends Phaser.Scene {
         };
 
         // 🏹 EXIT-ONLY ARROW
-        zone.exitArrow = this.exitArrowManager.createArrow(
-          zone.x,
-          zone.y,
-          direction,
-          unlocked
-        );
+        zone.exitArrow = validDirections.has(direction)
+          ? this.exitArrowManager.createArrow(
+            zone.x,
+            zone.y,
+            direction,
+            unlocked
+          )
+          : null;
 
         this.mapExits.add(zone);
       });

@@ -1,3 +1,5 @@
+import { CHARACTERS } from "./characterConfig";
+
 export const MAPS = {
   Python: {
     map1: {
@@ -1113,4 +1115,83 @@ export const MAPS = {
       nextMap: null
     }
   }
-}
+};
+
+const LANGUAGE_AUDIO = {
+  Python: { key: "bgm-python", path: "/assets/audio/python.mp3" },
+  JavaScript: { key: "bgm-javascript", path: "/assets/audio/javascript.mp3" },
+  Cpp: { key: "bgm-cpp", path: "/assets/audio/cpp.mp3" },
+};
+
+const DEFAULT_UI_SPRITESHEETS = {
+  arrowUp: { key: "arrow_up", path: "/assets/ui/arrow_up.png", frameWidth: 48, frameHeight: 48 },
+  arrowDown: { key: "arrow_down", path: "/assets/ui/arrow_down.png", frameWidth: 48, frameHeight: 48 },
+  arrowLeft: { key: "arrow_left", path: "/assets/ui/arrow_left.png", frameWidth: 48, frameHeight: 48 },
+  arrowRight: { key: "arrow_right", path: "/assets/ui/arrow_right.png", frameWidth: 48, frameHeight: 48 },
+  questIcon: { key: "quest_icon", path: "/assets/ui/quest_icon.png", frameWidth: 48, frameHeight: 48 },
+  exclamation: { key: "exclamation", path: "/assets/ui/exclamation.png", frameWidth: 48, frameHeight: 48 },
+  npcVillager: { key: "npc-villager", path: "/assets/npcs/npc1.png", frameWidth: 48, frameHeight: 48 },
+};
+
+const getCharacterSprites = (characterId) => {
+  const character = CHARACTERS.find((entry) => entry.id === Number(characterId)) || CHARACTERS[0];
+  if (!character?.sprites) return [];
+
+  return Object.entries(character.sprites).map(([direction, path]) => ({
+    key: `player-${direction}`,
+    path,
+    frameWidth: 48,
+    frameHeight: 48,
+  }));
+};
+
+export const buildMapManifest = ({
+  language,
+  mapId,
+  characterId = 0,
+  prefetchOnly = false,
+} = {}) => {
+  const map = MAPS?.[language]?.[mapId];
+  if (!map) return null;
+
+  const featureFlags = map.assetManifest || {};
+  const includeNpc = featureFlags.includeNpc !== false;
+  const includeArrow = featureFlags.includeArrow !== false;
+  const includeQuestIcon = featureFlags.includeQuestIcon !== false;
+  const includeExclamation = featureFlags.includeExclamation !== false;
+  const includeBgm = featureFlags.includeBgm !== false;
+
+  const spritesheets = [];
+  if (!prefetchOnly) {
+    spritesheets.push(...getCharacterSprites(characterId));
+    if (includeNpc) spritesheets.push(DEFAULT_UI_SPRITESHEETS.npcVillager);
+    if (includeArrow) {
+      spritesheets.push(
+        DEFAULT_UI_SPRITESHEETS.arrowUp,
+        DEFAULT_UI_SPRITESHEETS.arrowDown,
+        DEFAULT_UI_SPRITESHEETS.arrowLeft,
+        DEFAULT_UI_SPRITESHEETS.arrowRight
+      );
+    }
+    if (includeQuestIcon) spritesheets.push(DEFAULT_UI_SPRITESHEETS.questIcon);
+    if (includeExclamation) spritesheets.push(DEFAULT_UI_SPRITESHEETS.exclamation);
+  }
+
+  const audio = [];
+  if (!prefetchOnly && includeBgm) {
+    const bgm = LANGUAGE_AUDIO[language];
+    if (bgm) audio.push(bgm);
+  }
+
+  return {
+    map: {
+      id: mapId,
+      mapKey: map.mapKey,
+      mapJson: map.mapJson,
+      nextMap: map.nextMap || null,
+    },
+    tilesets: Array.isArray(map.tilesets) ? map.tilesets : [],
+    spritesheets,
+    audio,
+  };
+};
