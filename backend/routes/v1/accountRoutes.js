@@ -4,6 +4,7 @@ import AccountController from '../../controllers/v1/accountController.js';
 import { authentication } from '../../middlewares/authentication.js';
 import { authorization } from '../../middlewares/authorization.js';
 import passport from 'passport';
+import { authLimiter } from '../../middlewares/rateLimiter.js';
 
 const accountRouter = express.Router();
 const account = new AccountController();
@@ -20,7 +21,7 @@ accountRouter.post('/signup/verify-otp', authorization,account.verifyOtp.bind(ac
 // Set username (requires authentication)
 accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
 
-accountRouter.post('/login', account.login.bind(account));
+accountRouter.post('/login', authLimiter(), account.login.bind(account));
 
 accountRouter.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']

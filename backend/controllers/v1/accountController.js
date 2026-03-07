@@ -170,7 +170,7 @@ class AccountController {
             const authUser = await this.accountService.loginWithPassword(email, password);
 
             if (!authUser) {
-                return res.status(200).json({ 
+                return res.status(400).json({ 
                     success: false, 
                     message: "Invalid credentials" 
                 });
