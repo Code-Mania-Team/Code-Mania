@@ -13,10 +13,10 @@ const account = new AccountController();
 // accountRouter.use(authorization);
 
 // Request OTP (signup or login) – single endpoint
-accountRouter.post('/signup/request-otp', account.requestOtp.bind(account));
+accountRouter.post('/signup/request-otp', authLimiter(), account.requestOtp.bind(account));
 
 // Verify OTP after user clicks or enters it
-accountRouter.post('/signup/verify-otp', authorization,account.verifyOtp.bind(account));
+accountRouter.post('/signup/verify-otp', authLimiter(), account.verifyOtp.bind(account));
 
 // Set username (requires authentication)
 accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
@@ -37,7 +37,7 @@ accountRouter.post('/logout', account.logout.bind(account));
 accountRouter.get('/', authentication, account.profile.bind(account));
 
 // Update profile (username/full_name)
-accountRouter.patch('/', authentication, account.updateProfile.bind(account));
+accountRouter.patch('/', authLimiter(), authentication, account.updateProfile.bind(account));
 
 // Delete account
 accountRouter.delete('/', authentication, account.deleteUser.bind(account));

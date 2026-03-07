@@ -18,7 +18,7 @@ app.disable("etag");
 ----------------------------------- */
 app.use(morgan("combined"));
 app.use(cookieParser());
-// app.set('trust-proxy', 1)
+app.set('trust-proxy', 1)
 
 app.use(
   cors({

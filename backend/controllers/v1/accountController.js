@@ -378,7 +378,6 @@ class AccountController {
 
         try {
 
-            const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
             const userId = res.locals.user_id;
 
             const data = await this.user.getProfile(userId);
@@ -406,7 +405,7 @@ class AccountController {
 
     async updateProfile(req, res) {
 
-        const { username, full_name, hasSeen_tutorial } = req.body || {};
+        const { full_name } = req.body || {};
 
         const userId = res.locals.user_id;
 
@@ -452,18 +451,11 @@ class AccountController {
                 });
 
             }
-            // Generate new access token only if username changed
-            const tokenUsername = username ?? currentUsername;
-            const accessToken = generateAccessToken({ user_id: userId, username: tokenUsername, role: role });
-
-            res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
-
+          
             return res.status(200).json({
                 success: true,
                 message: "Profile updated successfully",
                 full_name: updated?.full_name,
-                hasSeen_tutorial: updated?.hasSeen_tutorial,
-                accessToken // frontend updates memory if present
             });
 
         } catch (err) {
