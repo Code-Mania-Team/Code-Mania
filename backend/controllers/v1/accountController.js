@@ -170,7 +170,7 @@ class AccountController {
             const authUser = await this.accountService.loginWithPassword(email, password);
 
             if (!authUser) {
-                return res.status(401).json({ 
+                return res.status(200).json({ 
                     success: false, 
                     message: "Invalid credentials" 
                 });
@@ -205,13 +205,9 @@ class AccountController {
                 character_id: profile?.character_id,
                 user_id: authUser.user_id,
         });
+        
 
         } catch (err) {
-            if (err?.message === 'Email not registered yet') {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Email not registered yet' });
-            }
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
