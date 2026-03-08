@@ -466,42 +466,57 @@
 
 .congratsBtnPrimary {
   flex: 1;
-  padding: 0.8rem 1.25rem;
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  padding: 0.78rem 1rem;
+  background: #3b82f6;
   color: white;
-  border: none;
-  border-radius: 0.6rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
+  border: 2px solid #93c5fd;
+  border-radius: 0;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 4px 4px 0 #1e3a8a;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
 }
 
 .congratsBtnPrimary:hover {
-  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  background: #2563eb;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+  box-shadow: 5px 5px 0 #1e3a8a;
+}
+
+.congratsBtnPrimary:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 #1e3a8a;
 }
 
 .congratsBtnSecondary {
   flex: 1;
-  padding: 0.8rem 1.25rem;
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.6rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
+  padding: 0.78rem 1rem;
+  background: #1e293b;
+  color: #dbeafe;
+  border: 2px solid #475569;
+  border-radius: 0;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 4px 4px 0 #0f172a;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
 }
 
 .congratsBtnSecondary:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.2);
+  background: #334155;
+  border-color: #64748b;
+}
+
+.congratsBtnSecondary:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 #0f172a;
 }
 
 /* ─── Mobile Responsive ─── */
@@ -523,7 +538,7 @@
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 960px) {
   .section {
     padding: 1.25rem 0.85rem;
     min-height: auto;

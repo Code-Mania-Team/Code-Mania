@@ -76,7 +76,7 @@ const InteractiveTerminal = ({
   enableMobileSplit = true
 }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
-  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "wss://terminal.codemania.fun";
+  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const resolveInitialCode = () => {
     const dbStartingCode = typeof quest?.starting_code === "string" ? quest.starting_code : "";

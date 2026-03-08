@@ -117,4 +117,15 @@
     padding: 0.45rem 0.7rem;
     font-size: 0.9rem;
   }
+
+  .examCodeEditor {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .examCodeEditor :global(.monaco-editor),
+  .examCodeEditor :global(.monaco-editor .overflow-guard),
+  .examCodeEditor :global(.monaco-editor .monaco-scrollable-element) {
+    touch-action: pan-x pan-y !important;
+  }
 }

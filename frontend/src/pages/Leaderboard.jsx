@@ -4,6 +4,7 @@ import useGetAllLeaderboard from '../services/leaderBoard';
 
 const leaderboardBg = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/leaderboard_fryema.gif';
 const trophyIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/trophy_tho3vz.png';
+const MAX_LEADERBOARD_ROWS = 50;
 
 const Leaderboard = () => {
   const [activeTab, setActiveTab] = React.useState('all');
@@ -47,7 +48,7 @@ const Leaderboard = () => {
         users.sort((a, b) => b.selectedXP - a.selectedXP);
 
         // ❗ Recalculate ranking per tab
-        const formatted = users.map((user, index) => ({
+        const formatted = users.slice(0, MAX_LEADERBOARD_ROWS).map((user, index) => ({
           rank: index + 1,
           name: user.full_name,
           score: user.selectedXP,
