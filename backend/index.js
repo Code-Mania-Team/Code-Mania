@@ -8,6 +8,8 @@ import "dotenv/config.js";
 import v1 from "./routes/v1/index.js";
 import "./core/supabaseClient.js";
 import "./core/oauthSetup.js";
+import { globalLimiter } from "./middlewares/rateLimiter.js";
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,7 +20,8 @@ app.disable("etag");
 ----------------------------------- */
 app.use(morgan("combined"));
 app.use(cookieParser());
-app.set('trust-proxy', 1)
+app.set("trust proxy", 1);
+
 
 app.use(
   cors({
@@ -38,7 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 /* ---------------------------------
    Routes
 ----------------------------------- */
-app.use("/v1", v1);
+app.use("/v1", globalLimiter(), v1);
 
 /* ---------------------------------
    Health Check
