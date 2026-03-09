@@ -76,7 +76,7 @@ const InteractiveTerminal = ({
   enableMobileSplit = true
 }) => {
   const language = useMemo(getLanguageFromLocalStorage, []);
-  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "wss://terminal.codemania.fun";
+  const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const resolveInitialCode = () => {
     const dbStartingCode = typeof quest?.starting_code === "string" ? quest.starting_code : "";
@@ -89,6 +89,7 @@ const InteractiveTerminal = ({
   const [inputBuffer, setInputBuffer] = useState("");
   const [waitingForInput, setWaitingForInput] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [isQuestActive, setIsQuestActive] = useState(false);
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
@@ -112,6 +113,7 @@ const InteractiveTerminal = ({
   const useMobileSplit = isMobileView && enableMobileSplit;
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
+  const isBusy = isRunning || isSubmitting;
   const setActivePanel = (panel) => {
     if (onMobilePanelChange) onMobilePanelChange(panel);
     else setInternalActivePanel(panel);
@@ -170,6 +172,7 @@ const InteractiveTerminal = ({
         setIsQuestCompleted(true);
         setIsQuestActive(false);
         setIsRunning(false);
+        setIsSubmitting(false);
         setWaitingForInput(false);
         terminalRef.current?.blur();
       }
@@ -187,6 +190,9 @@ const InteractiveTerminal = ({
   useEffect(() => {
     setIsQuestActive(false);
     setIsQuestCompleted(false);
+    setIsSubmitting(false);
+    setIsRunning(false);
+    setWaitingForInput(false);
     setValidationResult(null);
     setFailedSubmissions(0);
     setCode(resolveInitialCode());
@@ -314,16 +320,15 @@ const InteractiveTerminal = ({
   =============================== */
 
   const handleSubmit = async () => {
-    if (!quest || !isQuestActive || isQuestCompleted || isRunning) return;
+    if (!quest || !isQuestActive || isQuestCompleted || isBusy) return;
 
-    setIsRunning(true);
+    setIsSubmitting(true);
 
     try {
       const outputForValidation = await executeCodeForValidation();
       
       // Check for execution errors before validating
       if (hasExecutionError(outputForValidation, language)) {
-        setIsRunning(false);
         return;
       }
 
@@ -349,8 +354,9 @@ const InteractiveTerminal = ({
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsRunning(false);
   };
 
   const handleRun = () => {
@@ -390,9 +396,9 @@ const InteractiveTerminal = ({
   };
 
   const handleSubmitDom = async () => {
-    if (!domSessionId) return;
+    if (!domSessionId || isBusy) return;
 
-    setIsRunning(true);
+    setIsSubmitting(true);
 
     try {
       const result = await validateDom(domSessionId, quest.requirements);
@@ -414,8 +420,9 @@ const InteractiveTerminal = ({
 
     } catch (err) {
       console.error("DOM validation failed:", err);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsRunning(false);
   };
 
   
@@ -501,7 +508,7 @@ const InteractiveTerminal = ({
                         !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
                       }`}
               onClick={handleRun}
-              disabled={isRunning || !isQuestActive || isQuestCompleted}
+              disabled={isBusy || !isQuestActive || isQuestCompleted}
             >
               <Play size={16} />
               {isRunning ? "Running..." : "Run"}
@@ -511,10 +518,10 @@ const InteractiveTerminal = ({
                         !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
                       }`}
               onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
-              disabled={isRunning || !isQuestActive || isQuestCompleted}
+              disabled={isBusy || !isQuestActive || isQuestCompleted}
             >
               <Check size={16} />
-              {isRunning ? "Submitting..." : "Submit"}
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>

@@ -1,8 +1,10 @@
 import DomSessionService from "../../services/domSessionServices.js";
+import ExerciseModel from "../../models/exercises.js";
 
 class DomController {
   constructor() {
     this.domService = new DomSessionService();
+    this.exerciseModel = new ExerciseModel();
   }
 
   async createSession(req, res) {
@@ -16,12 +18,47 @@ class DomController {
         });
       }
 
-      const { questId, baseHtml } = req.body;
+      const { questId } = req.body;
+
+      const quest = await this.exerciseModel.getExerciseById(questId);
+      if (!quest) {
+        return res.status(404).json({
+          success: false,
+          message: "Quest not found"
+        });
+      }
+
+      if (quest.quest_type !== "dom") {
+        return res.status(400).json({
+          success: false,
+          message: "Quest is not a DOM challenge"
+        });
+      }
+
+      let parsedRequirements = quest.requirements;
+      if (typeof quest.requirements === "string") {
+        try {
+          parsedRequirements = JSON.parse(quest.requirements);
+        } catch {
+          return res.status(400).json({
+            success: false,
+            message: "Quest has invalid validation config"
+          });
+        }
+      }
+
+      if (!quest.base_html || !parsedRequirements) {
+        return res.status(400).json({
+          success: false,
+          message: "Quest is missing DOM validation config"
+        });
+      }
 
       const result = await this.domService.createSession({
         userId,
         questId,
-        baseHtml
+        baseHtml: quest.base_html,
+        requirements: parsedRequirements
       });
 
       if (!result.ok) {
@@ -49,12 +86,9 @@ class DomController {
     try {
       const userId = res.locals.user_id;
       const sessionId = req.params.sessionId;
-      const { requirements } = req.body;
-
       const result = await this.domService.validateSession({
         sessionId,
-        userId, 
-        requirements
+        userId
       });
 
       if (!result.ok) {
