@@ -9,7 +9,7 @@ const useGetAllPosts = () => {
         `${API_BASE_URL}/v1/`,
         {
           headers: {
-            apikey: import.meta.env.VITE_API_KEY,
+            /*apikey: import.meta.env.VITE_API_KEY,*/
             "Content-Type": "application/json",
           },
         }

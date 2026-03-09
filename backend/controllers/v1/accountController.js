@@ -43,11 +43,18 @@ class AccountController {
                 data: { email: response?.email, isNewUser: true }
             });
         } catch (err) {
+
+            if (err.message === "email") {
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists"
+                });
+            }
+
             return res.status(500).json({
                 success: false,
-                message: err.message === "email" ? "Email already exists" : err.message || "Failed to process OTP request",
+                message: "Failed to process OTP request"
             });
-
         }
 
     }
@@ -160,10 +167,12 @@ class AccountController {
             if (!authUser) {
                 return res.status(400).json({ 
                     success: false, 
-                    message: "Invalid credentials" 
+                    message: "Invalid email and password" 
                 });
             }
 
+
+           
             const profile = await this.user.getProfile(authUser.user_id);
 
             const accessToken = generateAccessToken({
@@ -196,9 +205,10 @@ class AccountController {
         
 
         } catch (err) {
-            return res.status(500).json({ 
-                success: false, 
-                message: err.message 
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error"
             });
         }
     }

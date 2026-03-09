@@ -14,7 +14,6 @@ const signUp = async (email, password) => {
 
     return response.data;
   } catch (error) {
-    console.error("Error:", error.response?.data || error.message);
     throw error;
   }
 };

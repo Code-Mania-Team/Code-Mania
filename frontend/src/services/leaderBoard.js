@@ -9,7 +9,7 @@ const useGetAllLeaderboard = () => {
         `${API_BASE_URL}/v1/leaderboard`,
         {
           headers: {
-            apikey: import.meta.env.VITE_API_KEY,
+            /*apikey: import.meta.env.VITE_API_KEY,*/
             "Content-Type": "application/json",
           },
         }

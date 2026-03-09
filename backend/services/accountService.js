@@ -73,10 +73,6 @@ class AccountService {
   }
 
   async loginWithPassword(email, password) {
-    const user = await this.user.findByEmail(email);
-
-    if (!user || !user.email) throw new Error("Email not registered yet");
-
     const hashedPassword = encryptPassword(password);
 
     const authUser = await this.user.findByEmailAndPasswordHash(

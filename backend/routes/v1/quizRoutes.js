@@ -10,7 +10,6 @@ router.get('/:language/:quizId', quizController.getQuizById.bind(quizController)
 router.post(
   '/:language/:quizId/complete',
   authentication,
-  authorization,
   quizController.completeQuiz.bind(quizController)
 );
 

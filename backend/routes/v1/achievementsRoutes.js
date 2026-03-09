@@ -7,7 +7,7 @@ const achievementsRouter = express.Router();
 const achievements = new AchievementsController();
 
 achievementsRouter.get("/course/:languageId",achievements.getCourseBadges.bind(achievements));
-achievementsRouter.use(authorization);
+// achievementsRouter.use(authorization);
 
 
 
