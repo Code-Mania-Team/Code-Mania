@@ -556,9 +556,9 @@ const Profile = ({ onSignOut }) => {
   const { achievements } = useGetAchievements();
 
   const learningProgress = {
-    python: { progress: 0, total: 0, icon: <Terminal size={20} /> },
-    cpp: { progress: 0, total: 0, icon: <Code size={20} /> },
-    javascript: { progress: 0, total: 0, icon: <FileCode2 size={20} /> },
+    python: { progress: 0, total: 16, completed: 0, icon: <Terminal size={20} /> },
+    cpp: { progress: 0, total: 16, completed: 0, icon: <Code size={20} /> },
+    javascript: { progress: 0, total: 16, completed: 0, icon: <FileCode2 size={20} /> },
   };
 
   (learningProgressRows || []).forEach((row) => {
@@ -572,11 +572,17 @@ const Profile = ({ onSignOut }) => {
     const languageKey = languageById[languageId];
     if (!languageKey || !learningProgress[languageKey]) return;
 
+    const completed = Number(row?.completed || 0);
+    const total = Number(row?.total || 16);
+    const computedProgress = total > 0
+      ? Math.round((completed / total) * 100)
+      : Number(row?.percentage || 0);
+
     learningProgress[languageKey] = {
       ...learningProgress[languageKey],
-      progress: Number(row?.percentage || 0),
-      total: Number(row?.total || 0),
-      completed: Number(row?.completed || 0),
+      progress: computedProgress,
+      total,
+      completed,
     };
   });
 
@@ -1413,7 +1419,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                {Object.entries(learningProgress).map(([language, { progress, total, icon }]) => (
+                {Object.entries(learningProgress).map(([language, { progress, completed, total, icon }]) => (
 
 
 
@@ -1445,11 +1451,11 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                      </div>
+                      </div>  
 
 
 
-                      <span className={styles.progressText}>{progress}%</span>
+                      <span className={styles.progressText}>{completed}/{total}</span>
 
 
 

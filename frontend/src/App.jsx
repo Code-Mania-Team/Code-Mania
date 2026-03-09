@@ -236,13 +236,12 @@ function App() {
     }
   }, [location.search, navigate, setIsAuthenticated, setUser]);
 
-  // hide header/footer on exercise routes, dashboard, and quizzes
+  // hide header/footer on exercise routes and dashboard
   const hideGlobalHeaderFooter =
     location.pathname.startsWith("/learn/python/exercise") ||
     location.pathname.startsWith("/learn/cpp/exercise") ||
     location.pathname.startsWith("/learn/javascript/exercise") ||
-    location.pathname === "/dashboard" ||
-    location.pathname.startsWith("/quiz");
+    location.pathname === "/dashboard";
 
   const isExamRoute =
     location.pathname.startsWith("/coding-exam");
