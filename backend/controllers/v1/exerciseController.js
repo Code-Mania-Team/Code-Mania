@@ -1,4 +1,8 @@
 import ExerciseModel from "../../models/exercises.js";
+import axios from "axios";
+
+const TERMINAL_API_BASE_URL =
+  process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
 
 class ExerciseController {
   constructor() {
@@ -482,79 +486,30 @@ class ExerciseController {
         }
       }
 
-      // Normalize helper
-      const normalize = (text) =>
-        (text ?? "")
-          .toString()
-          .replace(/\r\n/g, "\n")
-          .split("\n")
-          .map((line) => line.trim())
-          .join("\n")
-          .trim();
+      const { data: validationResult } = await axios.post(
+        `${TERMINAL_API_BASE_URL}/exercise/validate`,
+        {
+          output,
+          code,
+          quest: {
+            expected_output: quest.expected_output,
+            validation_mode: quest.validation_mode,
+            requirements: quest.requirements,
+          },
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_KEY,
+          },
+        },
+      );
 
-      const safeCode = (code ?? "").toString();
-      const actual = normalize(output);
-      const expected = normalize(quest.expected_output);
-      const mode = (quest.validation_mode || quest.requirements?.validation_mode || "")
-        .toString()
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, "_");
-      const isMultiObjectiveMode =
-        mode === "MULTI_OBJECTIVE" ||
-        mode === "MUTI_OBJECTIVE" ||
-        Array.isArray(quest.requirements?.objectives);
-
-      let validationResult = { success: true };
-
-      // ==================================================
-      // 🧠 MULTI OBJECTIVE MODE
-      // ==================================================
-      if (isMultiObjectiveMode) {
-        const results = {};
-        let allPassed = true;
-
-        const normalizedOutput = normalize(output);
-
-        for (const obj of quest.requirements?.objectives || []) {
-          let passed = false;
-
-          if (obj.type === "output_contains") {
-            passed = normalizedOutput.includes(obj.value);
-          } else if (obj.type === "output_equals") {
-            passed = normalizedOutput === normalize(obj.value);
-          } else if (obj.type === "output_regex") {
-            const regex = new RegExp(obj.value, "m");
-            passed = regex.test(normalizedOutput);
-          } else if (obj.type === "code_contains") {
-            passed = safeCode.includes(obj.value);
-          } else if (obj.type === "code_regex") {
-            const regex = new RegExp(obj.value, "m");
-            passed = regex.test(safeCode);
-          } else if (obj.type === "min_print_count") {
-            const matches = safeCode.match(/\bprint\s*\(/g);
-            const count = matches ? matches.length : 0;
-            passed = count >= obj.value;
-          }
-
-          results[obj.id] = {
-            passed,
-            label: obj.label,
-            expected: obj.value,
-          };
-
-          if (!passed) allPassed = false;
-        }
-
-        if (!allPassed) {
-          return res.status(200).json({
-            success: false,
-            objectives: results,
-          });
-        }
-
-        // Store results for final response
-        validationResult.objectives = results;
+      if (!validationResult?.success) {
+        return res.status(200).json({
+          success: false,
+          objectives: validationResult?.objectives || null,
+          message: validationResult?.message,
+        });
       }
 
       // ==================================================
@@ -601,7 +556,7 @@ class ExerciseController {
           ? "Quest validated (admin preview)"
           : "Quest completed",
         xp: isAdmin ? 0 : quest.experience,
-        objectives: validationResult.objectives || null,
+        objectives: validationResult?.objectives || null,
       });
     } catch (error) {
       console.error("validateExercise error:", error);
