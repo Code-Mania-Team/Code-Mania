@@ -67,6 +67,22 @@ function hasExecutionError(output, language) {
   );
 }
 
+function normalizeTestResults(result) {
+  const candidates = [
+    result?.test_results,
+    result?.test_result,
+    result?.data?.test_results,
+    result?.data?.test_result,
+  ];
+
+  for (const item of candidates) {
+    if (Array.isArray(item)) return item;
+    if (item && typeof item === "object") return Object.values(item);
+  }
+
+  return [];
+}
+
 const InteractiveTerminal = ({
   quest,
   questId,
@@ -91,6 +107,7 @@ const InteractiveTerminal = ({
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
+  const [testResults, setTestResults] = useState(null);
   const [isQuestActive, setIsQuestActive] = useState(false);
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
   const [failedSubmissions, setFailedSubmissions] = useState(0);
@@ -111,6 +128,7 @@ const InteractiveTerminal = ({
   const terminalRef = useRef(null);
   const iframeRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
+  
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
   const isBusy = isRunning || isSubmitting;
@@ -190,6 +208,7 @@ const InteractiveTerminal = ({
   useEffect(() => {
     setIsQuestActive(false);
     setIsQuestCompleted(false);
+    setTestResults(null);
     setIsSubmitting(false);
     setIsRunning(false);
     setWaitingForInput(false);
@@ -337,10 +356,11 @@ const InteractiveTerminal = ({
         outputForValidation,
         code
       );
-
       if (result?.objectives) {
         setValidationResult(result.objectives);
       }
+
+      setTestResults(normalizeTestResults(result));
 
       if (result?.success) {
         setFailedSubmissions(0);
@@ -581,35 +601,56 @@ const InteractiveTerminal = ({
 
       </div>
       ))}
-      {validationResult && (
+      {(validationResult || (Array.isArray(testResults) && testResults.length > 0)) && (
           <div className={styles["validation-box"]}>
-            <h4 className={styles["validation-summary"]}>
-              Test Results: {passedObjectives} / {totalObjectives} passed
-            </h4>
+            {validationResult && (
+              <>
+                <h4 className={styles["validation-summary"]}>
+                  Test Results: {passedObjectives} / {totalObjectives} passed
+                </h4>
 
-            {Object.values(validationResult).map((obj, index) => (
-              <div
-                key={index}
-                className={
-                  obj.passed
-                    ? styles["test-pass"]
-                    : styles["test-fail"]
-                }
-              >
-                <span className={styles["test-icon"]}>
-                  {obj.passed ? "✔" : "✖"}
-                </span>
-                <span>{obj.label}</span>
-              </div>
-            ))}
+                {Object.values(validationResult).map((obj, index) => (
+                  <div
+                    key={index}
+                    className={
+                      obj.passed
+                        ? styles["test-pass"]
+                        : styles["test-fail"]
+                    }
+                  >
+                    <span className={styles["test-icon"]}>
+                      {obj.passed ? "✔" : "✖"}
+                    </span>
+                    <span>{obj.label}</span>
+                  </div>
+                ))}
+              </>
+            )}
 
-            {passedObjectives === totalObjectives && (
+            {Array.isArray(testResults) && testResults.length > 0 && (
+              <>
+                <h4 className={styles["validation-summary"]}>Runtime Tests</h4>
+                {testResults.map((test, index) => (
+                  <div
+                    key={`runtime-${index}`}
+                    className={test.passed ? styles["test-pass"] : styles["test-fail"]}
+                  >
+                    <span className={styles["test-icon"]}>{test.passed ? "✔" : "✖"}</span>
+                    <span>
+                      Test {index + 1} - Input: <code>{test.input}</code> | Expected: <code>{test.expected}</code> | Output: <code>{test.output}</code>
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {validationResult && passedObjectives === totalObjectives && (
               <div className={styles["all-pass"]}>
                 🎉 All tests passed!
               </div>
             )}
 
-            {unlockedHintCount > 0 && (
+            {validationResult && unlockedHintCount > 0 && (
               <div className={styles["hint-box"]}>
                 <div className={styles["hint-title"]}>Hints unlocked</div>
                 {progressiveHints.slice(0, unlockedHintCount).map((hint, index) => (

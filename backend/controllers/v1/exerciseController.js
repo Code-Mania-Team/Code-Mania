@@ -496,6 +496,7 @@ class ExerciseController {
             validation_mode: quest.validation_mode,
             requirements: quest.requirements,
           },
+          programming_language_id: quest.programming_language_id,
         },
         {
           headers: {
@@ -508,6 +509,8 @@ class ExerciseController {
         return res.status(200).json({
           success: false,
           objectives: validationResult?.objectives || null,
+          test_results: validationResult?.test_results || [],
+          runtime_passed: validationResult?.runtime_passed ?? null,
           message: validationResult?.message,
         });
       }
@@ -551,13 +554,15 @@ class ExerciseController {
       }
 
       return res.status(200).json({
-        success: true,
-        message: isAdmin
-          ? "Quest validated (admin preview)"
-          : "Quest completed",
-        xp: isAdmin ? 0 : quest.experience,
-        objectives: validationResult?.objectives || null,
-      });
+      success: true,
+      message: isAdmin
+        ? "Quest validated (admin preview)"
+        : "Quest completed",
+      xp: isAdmin ? 0 : quest.experience,
+      objectives: validationResult?.objectives || null,
+      test_results: validationResult?.test_results || [],
+      runtime_passed: validationResult?.runtime_passed ?? null,
+    });
     } catch (error) {
       console.error("validateExercise error:", error);
       return res.status(500).json({
