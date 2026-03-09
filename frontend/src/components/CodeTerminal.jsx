@@ -113,6 +113,7 @@ const InteractiveTerminal = ({
   const useMobileSplit = isMobileView && enableMobileSplit;
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
+  const isBusy = isRunning || isSubmitting;
   const setActivePanel = (panel) => {
     if (onMobilePanelChange) onMobilePanelChange(panel);
     else setInternalActivePanel(panel);
@@ -189,8 +190,9 @@ const InteractiveTerminal = ({
   useEffect(() => {
     setIsQuestActive(false);
     setIsQuestCompleted(false);
-    setIsRunning(false);
     setIsSubmitting(false);
+    setIsRunning(false);
+    setWaitingForInput(false);
     setValidationResult(null);
     setFailedSubmissions(0);
     setCode(resolveInitialCode());

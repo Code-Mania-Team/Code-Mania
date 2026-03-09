@@ -421,8 +421,6 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
     } catch (error) {
 
-      console.error('Authentication error:', error);
-
       const backendMessage =
 
         error?.response?.data?.message ||
