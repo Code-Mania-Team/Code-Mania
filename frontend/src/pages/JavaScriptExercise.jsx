@@ -633,6 +633,9 @@ const JavaScriptExercise = () => {
         badgeAlt="JavaScript Stage 4 badge"
         badgeLabel="Stage 4 badge earned"
         onTakeExam={() => navigate("/exam/javascript")}
+        showTerminalCta
+        terminalCtaLabel="Try Out Our Terminal!"
+        onTerminalCta={() => navigate("/terminal")}
         onSecondary={() => navigate("/learn/javascript")}
         onClose={() => setShowCourseCompletePrompt(false)}
       />

@@ -214,9 +214,8 @@ const PythonCourse = () => {
 
   };
 
-  const handleTutorialClose = async () => {
-    // Capture the pending route NOW before any async state changes happen
-    const nextRoute = pendingRoute;
+  const handleTutorialClose = async (routeFromTutorial = null) => {
+    const nextRoute = routeFromTutorial || pendingRoute;
 
     setShowTutorial(false);
     setPendingRoute(null);
@@ -231,6 +230,9 @@ const PythonCourse = () => {
     }
 
     if (nextRoute) {
+      localStorage.setItem("hasTouchedCourse", "true");
+      localStorage.setItem("lastCourseTitle", "Python");
+      localStorage.setItem("lastCourseRoute", "/learn/python");
       navigate(nextRoute);
     }
   };
@@ -468,7 +470,11 @@ const PythonCourse = () => {
         onSignInSuccess={onCloseModal}
       />
 
-      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
+      <TutorialOverlay
+        open={showTutorial}
+        onClose={handleTutorialClose}
+        nextRoute={pendingRoute}
+      />
     </div>
   );
 };

@@ -786,6 +786,12 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         onTakeExam={() => navigate("/exam/python")}
 
+        showTerminalCta
+
+        terminalCtaLabel="Try Out Our Terminal!"
+
+        onTerminalCta={() => navigate("/terminal")}
+
         onSecondary={() => navigate("/learn/python")}
 
         onClose={() => setShowCourseCompletePrompt(false)}

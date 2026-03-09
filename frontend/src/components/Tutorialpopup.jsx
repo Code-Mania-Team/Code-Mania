@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "../styles/Tutorialpopup.css";
 
-export default function TutorialOverlay({ open, onClose }) {
+export default function TutorialOverlay({ open, onClose, nextRoute = null }) {
   const sectionsRef = useRef([]);
   const [visibleSections, setVisibleSections] = useState([]);
 
@@ -78,7 +78,7 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-text">
                 <h2>Character Controls</h2>
                 <p>
-                  Use arrow keys (↑ ↓ ← →) to move your character around the game world.
+                  Use arrow keys <strong>(↑ ↓ ← →)</strong> to move your character around the game world.
                 </p>
               </div>
             </section>
@@ -98,12 +98,12 @@ export default function TutorialOverlay({ open, onClose }) {
               <div className="section-text">
                 <h2>Game Mechanics</h2>
                 <p>
-                  Complete coding quests and solve programming puzzles to gain experience points. "Press E" to interact with NPCs or Objects and accept quests. Each challenge you solve helps you level up your programming skills and progress through the Code Mania adventure.
+                  Complete coding quests and solve programming puzzles to gain experience points. <strong>"Press E"</strong> to interact with NPCs or Objects and accept quests. Each challenge you solve helps you level up your programming skills and progress through the Code Mania adventure.
                 </p>
               </div>
             </section>
 
-            {/* SECTION 4 */}
+            {/* SECTION 4 - NEW */}
             <section
               className={`tutorial-section scroll-section reversed ${
                 visibleSections.includes(3) ? "visible" : ""
@@ -112,13 +112,13 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="3"
             >
               <div className="section-image">
-                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770578515/welcome-achievement_l6rcbx.png" alt="Advanced Features" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1773080070/code-terminal_y43ik1.png" alt="Code Editor" />
               </div>
 
               <div className="section-text">
-                <h2>Achievement System</h2>
+                <h2>Code Editor Controls</h2>
                 <p>
-                  Earn achievement badges and experience points as you master programming concepts and complete challenges. Collect rare badges to showcase your expertise and track your progress. Each badge and XP gain represents a milestone in your coding journey.
+                  Use the <strong>Run button</strong> to test your code and see the output. Use the <strong>Submit button</strong> to validate your solution and complete the quest. Hover over buttons for more information.
                 </p>
               </div>
             </section>
@@ -132,13 +132,13 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="4"
             >
               <div className="section-image">
-                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770575075/welcome-exam_xi8wve.png" alt="Final Exam" />
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770578515/welcome-achievement_l6rcbx.png" alt="Advanced Features" />
               </div>
 
               <div className="section-text">
-                <h2>Final Exam</h2>
+                <h2>Achievement System</h2>
                 <p>
-                  Test your programming knowledge in final exam. Complete all challenges to earn your JavaScript certification and prove your mastery of coding concepts. Your final score determines your overall ranking.
+                  Earn <strong>achievement badges</strong> and <strong>experience points</strong> as you master programming concepts and complete challenges. Collect rare badges to showcase your expertise and track your progress. Each badge and XP gain represents a milestone in your coding journey.
                 </p>
               </div>
             </section>
@@ -152,19 +152,43 @@ export default function TutorialOverlay({ open, onClose }) {
               data-index="5"
             >
               <div className="section-image">
+                <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770575075/welcome-exam_xi8wve.png" alt="Final Exam" />
+              </div>
+
+              <div className="section-text">
+                <h2>Final Exam</h2>
+                <p>
+                  Test your programming knowledge in the final exam. Complete all challenges to earn exclusive final exam <strong>badges</strong> and bonus <strong>experience points</strong>. Your final score determines your reward tier and helps you climb up in leaderboard faster.
+                </p>
+              </div>
+            </section>
+
+            {/* SECTION 7 */}
+            <section
+              className={`tutorial-section scroll-section ${
+                visibleSections.includes(6) ? "visible" : ""
+              }`}
+              ref={(el) => (sectionsRef.current[6] = el)}
+              data-index="6"
+            >
+              <div className="section-image">
                 <img src="https://res.cloudinary.com/daegpuoss/image/upload/v1770453720/welcome-leaderboard_lbvloc.jpg" alt="Competition" />
               </div>
 
               <div className="section-text">
                 <h2>Competition</h2>
                 <p>
-                  Compete with other players on the global leaderboard and climb the ranking system. Participate in coding challenges to prove your skills and earn your place among the top Code Mania players worldwide.
+                  Compete with other players on the <strong>global leaderboard</strong> and climb to the ranking system. Participate in coding challenges to prove your skills and earn your place among the top <strong>Code Mania</strong> players worldwide.
                 </p>
               </div>
             </section>
 
             {/* Let's Go Button */}
-            <button className="lets-go-button" onClick={onClose}>
+            <button
+              type="button"
+              className="lets-go-button"
+              onClick={() => onClose?.(nextRoute)}
+            >
               Let's Go!
             </button>
           </div>

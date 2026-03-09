@@ -531,7 +531,7 @@ const Dashboard = ({ onSignOut }) => {
 
                       alt={`${currentCourse.name} Programming`} 
 
-                      className={styles['course-gif']}
+                      className={`${styles['course-gif']} ${currentCourse.name === 'Python' ? styles['python-course-gif'] : ''}`}
 
                     />
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "../styles/CourseCompletionPromptModal.module.css";
 
 const CourseCompletionPromptModal = ({
@@ -15,16 +15,34 @@ const CourseCompletionPromptModal = ({
   onSecondary,
   feedbackLabel,
   onFeedback,
+  showTerminalCta = false,
+  terminalCtaLabel = "Try Out Our Terminal!",
+  onTerminalCta,
   showClose = true,
   closeLabel = "Later",
   onClose,  
 }) => {
+  const [terminalUnlocked, setTerminalUnlocked] = useState(false);
+
+  useEffect(() => {
+    if (show) setTerminalUnlocked(false);
+  }, [show]);
+
   if (!show) return null;
 
-  const resolvedTitle = title || "Course completed!";
+  const resolvedTitle = title || "Story completed!";
   const resolvedSubtitle =
     subtitle ||
     `You finished the ${languageLabel} exercises. What do you want to do next?`;
+
+  const handleTerminalClick = () => {
+    if (!terminalUnlocked) {
+      setTerminalUnlocked(true);
+      return;
+    }
+
+    onTerminalCta?.();
+  };
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
@@ -69,6 +87,16 @@ const CourseCompletionPromptModal = ({
               onClick={onFeedback}
             >
               {feedbackLabel}
+            </button>
+          )}
+          {showTerminalCta && onTerminalCta && (
+            <button
+              type="button"
+              className={`${styles.terminalBtn} ${terminalUnlocked ? styles.terminalBtnUnlocked : ""}`}
+              onClick={handleTerminalClick}
+              aria-label={terminalUnlocked ? terminalCtaLabel : "Unlock Terminal Access"}
+            >
+              {terminalUnlocked ? terminalCtaLabel : "Locked Terminal - Tap to Unlock"}
             </button>
           )}
           {showClose && (

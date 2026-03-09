@@ -17,7 +17,6 @@ class ExerciseModel {
                 starting_code,
                 hints,
                 requirements,
-                expected_output,
                 validation_mode,
                 experience,
                 programming_language_id,
@@ -38,7 +37,6 @@ class ExerciseModel {
                     starting_code,
                     hints: hints || null,
                     requirements: requirements ? JSON.stringify(requirements) : null,
-                    expected_output,
                     validation_mode,
                     experience,
                     programming_language_id,
@@ -282,7 +280,6 @@ class ExerciseModel {
                 starting_code,
                 hints,
                 requirements,
-                expected_output,
                 validation_mode,
                 experience,
                 programming_language_id,
@@ -300,7 +297,6 @@ class ExerciseModel {
             if (starting_code !== undefined) updateObject.starting_code = starting_code;
             if (hints !== undefined) updateObject.hints = hints;
             if (requirements !== undefined) updateObject.requirements = requirements ? JSON.stringify(requirements) : null;
-            if (expected_output !== undefined) updateObject.expected_output = expected_output;
             if (validation_mode !== undefined) updateObject.validation_mode = validation_mode;
             if (experience !== undefined) updateObject.experience = experience;
             if (programming_language_id !== undefined) updateObject.programming_language_id = programming_language_id;

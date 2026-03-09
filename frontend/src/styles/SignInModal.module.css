@@ -423,9 +423,9 @@ input:not(:placeholder-shown):not(:focus):invalid {
   }
 
   .oauthButton {
-    padding: 9px 8px;
-    font-size: 11px;
-    border-radius: 7px;
+    padding: 5px 4px;
+    font-size: 8px;
+    border-radius: 6px;
   }
 
   .divider {
@@ -487,7 +487,330 @@ input:not(:placeholder-shown):not(:focus):invalid {
   .signupLinkButton {
     width: 100%;
     margin-left: 0;
-    height: 36px;
+    height: 32px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.45rem;
+  }
+}
+
+/* iPhone SE (2022) specific fixes - 375x667px */
+@media (max-width: 375px) and (min-height: 667px) {
+  .modalOverlay {
+    padding: 4px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .signinModal {
+    width: min(100%, 320px);
+    max-height: calc(100vh - 24px);
+    padding: 0.6rem 0.5rem;
+    border-radius: 8px;
+    overflow-y: auto;
+    position: fixed;
+    bottom: 25px;
+  }
+
+  .closeModal {
+    top: 0.3rem;
+    right: 0.5rem;
+    font-size: 1.2rem;
+  }
+
+  .welcomeSection {
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcomeSection h2 {
+    font-size: 0.85rem;
+    line-height: 1.1;
+  }
+
+  .pixelIcon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .subtext {
+    font-size: 0.35rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .formGroup {
+    margin-bottom: 0.4rem;
+  }
+
+  .formGroup label {
+    font-size: 0.58rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .formGroup input[type="email"],
+  .formGroup input[type="password"],
+  .formGroup input[type="text"],
+  .passwordInput {
+    font-size: 0.68rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .passwordInput {
+    padding-right: 1.5rem;
+  }
+
+  .togglePasswordButton {
+    right: 0.4rem;
+    width: 20px;
+    height: 20px;
+  }
+
+  .togglePasswordIcon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .rememberMe {
+    margin: 0.4rem 0;
+    font-size: 0.62rem;
+  }
+
+  .signinButton,
+  .forgotPasswordButton,
+  .backButton,
+  .signupLinkButton {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.48rem;
+  }
+
+  .signupHint {
+    margin-top: 0.6rem;
+    font-size: 0.5rem;
+  }
+
+  .oauthButtons {
+    margin: 6px 0;
+  }
+
+  .oauthButton {
+    padding: 6px 5px;
+    font-size: 9px;
+  }
+
+  .divider {
+    margin: 6px 0;
+    font-size: 9px;
+  }
+}
+
+/* iPhone SE (2022) landscape - 667x375px */
+@media (min-width: 375px) and (max-width: 667px) and (min-height: 375px) {
+  .modalOverlay {
+    padding: 8px;
+    align-items: center;
+  }
+
+  .signinModal {
+    width: min(100%, 340px);
+    max-height: calc(100vh - 16px);
+    padding: 0.8rem 0.7rem;
+  }
+
+  .closeModal {
+    top: 0.4rem;
+    right: 0.8rem;
+    font-size: 1.3rem;
+  }
+
+  .welcomeSection {
+    gap: 0.35rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .welcomeSection h2 {
+    font-size: 0.9rem;
+    line-height: 1.15;
+  }
+
+  .pixelIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .subtext {
+    font-size: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .formGroup {
+    margin-bottom: 0.5rem;
+  }
+
+  .formGroup label {
+    font-size: 0.65rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .formGroup input[type="email"],
+  .formGroup input[type="password"],
+  .formGroup input[type="text"],
+  .passwordInput {
+    font-size: 0.72rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .passwordInput {
+    padding-right: 1.8rem;
+  }
+
+  .togglePasswordButton {
+    right: 0.5rem;
+    width: 22px;
+    height: 22px;
+  }
+
+  .togglePasswordIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .rememberMe {
+    margin: 0.6rem 0;
+    font-size: 0.68rem;
+  }
+
+  .signinButton,
+  .forgotPasswordButton,
+  .backButton,
+  .signupLinkButton {
+    padding: 0.55rem 0.6rem;
+    font-size: 0.55rem;
+  }
+
+  .signupHint {
+    margin-top: 0.8rem;
+    font-size: 0.55rem;
+  }
+
+  .oauthButtons {
+    margin: 8px 0;
+  }
+
+  .oauthButton {
+    padding: 7px 6px;
+    font-size: 10px;
+  }
+
+  .divider {
+    margin: 8px 0;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 375px) {
+  .modalOverlay {
+    padding: 6px;
+    align-items: center;
+  }
+
+  .signinModal {
+    width: min(100%, 308px);
+    max-height: calc(100vh - 20px);
+    padding: 0.68rem 0.62rem;
+    border-radius: 10px;
+  }
+
+  .closeModal {
+    top: 0.35rem;
+    right: 0.6rem;
+    font-size: 1.3rem;
+  }
+
+  .welcomeSection {
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcomeSection h2 {
+    font-size: 0.92rem;
+    line-height: 1.15;
+  }
+
+  .pixelIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .subtext {
+    font-size: 0.38rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .oauthButtons {
+    margin: 8px 0;
+  }
+
+  .oauthButton {
+    padding: 8px 7px;
+    font-size: 10px;
+  }
+
+  .divider {
+    margin: 8px 0;
+    font-size: 10px;
+  }
+
+  .formGroup {
+    margin-bottom: 0.52rem;
+  }
+
+  .formGroup label {
+    font-size: 0.62rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .formGroup input[type="email"],
+  .formGroup input[type="password"],
+  .formGroup input[type="text"],
+  .passwordInput {
+    font-size: 0.72rem;
+    padding: 0.42rem 0.58rem;
+  }
+
+  .passwordInput {
+    padding-right: 1.95rem;
+  }
+
+  .togglePasswordButton {
+    width: 22px;
+    height: 22px;
+    right: 0.46rem;
+  }
+
+  .togglePasswordIcon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .rememberMe {
+    margin: 0.5rem 0;
+    font-size: 0.66rem;
+  }
+
+  .signinButton,
+  .forgotPasswordButton,
+  .backButton,
+  .signupLinkButton {
+    padding: 0.5rem 0.56rem;
+    font-size: 0.5rem;
+  }
+
+  .signupHint {
+    margin-top: 0.75rem;
+    font-size: 0.54rem;
+  }
+
+  .signupLinkButton {
+    height: 34px;
   }
 }
 

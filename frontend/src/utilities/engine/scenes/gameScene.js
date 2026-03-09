@@ -33,10 +33,21 @@ export default class GameScene extends Phaser.Scene {
     this.quest = data.quest || null;
     this.completedQuestIds = new Set(data.completedQuests || []);
 
-    const storedLanguage =
-      localStorage.getItem("lastCourseTitle") || "Python";
+    const normalizeLanguage = (value) => {
+      const normalized = String(value || "").toLowerCase();
+      if (normalized === "c++" || normalized === "cpp") return "Cpp";
+      if (normalized === "javascript" || normalized === "js") return "JavaScript";
+      if (normalized === "python" || normalized === "py") return "Python";
+      return null;
+    };
 
-    this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
+    const languageFromQuest =
+      normalizeLanguage(this.quest?.programming_languages?.slug) ||
+      normalizeLanguage(this.quest?.programming_languages?.name);
+
+    const storedLanguage = normalizeLanguage(localStorage.getItem("lastCourseTitle"));
+
+    this.language = languageFromQuest || storedLanguage || "Python";
 
     if (!this.quest || !this.quest.map_id) {
       console.error("❌ Quest missing or invalid. Using fallback map1.");
@@ -137,6 +148,23 @@ export default class GameScene extends Phaser.Scene {
     if (this.thingsLayer) this.thingsLayer.setVisible(true);
     if (this.groundInvisibleLayer) this.groundInvisibleLayer.setVisible(false);
     if (this.thingsInvisibleLayer) this.thingsInvisibleLayer.setVisible(false);
+
+  }
+
+  openGates() {
+    // Get gate layers
+    const gateCloseLayer = this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
+    const gateOpenLayer = this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
+
+    if (!gateCloseLayer || !gateOpenLayer) {
+      console.warn("⚠️ Gate layers not found in map");
+      return;
+    }
+
+    // Open gates (show open layer, hide closed layer)
+    gateCloseLayer.setVisible(false);
+    gateCloseLayer.forEachTile(t => t.setCollision(false));
+    gateOpenLayer.setVisible(true);
 
   }
 
@@ -1167,6 +1195,11 @@ export default class GameScene extends Phaser.Scene {
         this.openDoors();
       }
 
+      // GATE OPENING FOR JS_MAP15 (when quest starts)
+      if (this.currentMapId === 'map15' && this.language === 'JavaScript') {
+        this.openGates();
+      }
+
       // LAYER SWITCHING FOR JS_MAP10 (whenever quest starts)
       if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
         this.toggleLayers();
@@ -1196,12 +1229,27 @@ export default class GameScene extends Phaser.Scene {
       return true;
     }
 
-    // 3️⃣ QUEST COMPLETED → GIVE KEY
+    // 3 QUEST COMPLETED → GIVE KEY
     if (quest.completed && quest.grants) {
       if (!this.worldState.abilities.has(quest.grants)) {
         this.worldState.abilities.add(quest.grants);
 
-        // 🔄 LAYER SWITCHING FOR JS_MAP10
+        // DOOR OPENING FOR JS_MAP7
+        if (this.currentMapId === 'map7' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        // DOOR OPENING FOR JS_MAP8
+        if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        // GATE OPENING FOR JS_MAP15 (when quest completes)
+        if (this.currentMapId === 'map15' && this.language === 'JavaScript') {
+          this.openGates();
+        }
+
+        // LAYER SWITCHING FOR JS_MAP10
         if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
           this.toggleLayers();
         }
@@ -1209,18 +1257,31 @@ export default class GameScene extends Phaser.Scene {
         this.dialogueManager.startDialogue(
           [
             "Excellent work.",
-            "Take this key — it opens the gate."
+            "Take this key — it opens gate."
           ],
           () => (this.playerCanMove = true)
         );
       } else {
-        // 🔄 TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
+        // TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
+        if (this.currentMapId === 'map7' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        if (this.currentMapId === 'map15' && this.language === 'JavaScript') {
+          this.openGates();
+        }
+
+        // TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
         if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
           this.toggleLayers();
         }
 
         this.dialogueManager.startDialogue(
-          ["You already have the key."],
+          ["You already have key."],
           () => (this.playerCanMove = true)
         );
       }

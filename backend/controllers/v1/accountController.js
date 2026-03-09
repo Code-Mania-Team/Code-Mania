@@ -393,7 +393,7 @@ class AccountController {
 
     async updateProfile(req, res) {
 
-        const { full_name } = req.body || {};
+        const { username, full_name, hasSeen_tutorial } = req.body || {};
 
         const userId = res.locals.user_id;
 
@@ -444,6 +444,7 @@ class AccountController {
                 success: true,
                 message: "Profile updated successfully",
                 full_name: updated?.full_name,
+                hasSeen_tutorial: updated?.hasSeen_tutorial,
             });
 
         } catch (err) {

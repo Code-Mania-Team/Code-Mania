@@ -19,6 +19,14 @@ function getLanguageFromLocalStorage() {
   return "python";
 }
 
+function normalizeLanguage(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (normalized === "c++" || normalized === "cpp") return "cpp";
+  if (normalized === "javascript" || normalized === "js") return "javascript";
+  if (normalized === "python" || normalized === "py") return "python";
+  return null;
+}
+
 function getMonacoLang(lang) {
   if (lang === "cpp") return "cpp";
   if (lang === "javascript") return "javascript";
@@ -75,7 +83,13 @@ const InteractiveTerminal = ({
   showMobilePanelSwitcher = true,
   enableMobileSplit = true
 }) => {
-  const language = useMemo(getLanguageFromLocalStorage, []);
+  const language = useMemo(() => {
+    const fromQuest =
+      normalizeLanguage(quest?.programming_languages?.slug) ||
+      normalizeLanguage(quest?.programming_languages?.name);
+
+    return fromQuest || getLanguageFromLocalStorage();
+  }, [quest]);
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const resolveInitialCode = () => {
@@ -511,6 +525,7 @@ const InteractiveTerminal = ({
                       }`}
               onClick={handleRun}
               disabled={isRunning || isSubmitting || !isQuestActive || isQuestCompleted}
+              title="Test your code and see the output"
             >
               <Play size={16} />
               {isRunning ? "Running..." : "Run"}
@@ -521,6 +536,7 @@ const InteractiveTerminal = ({
                       }`}
               onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
               disabled={isRunning || isSubmitting || !isQuestActive || isQuestCompleted}
+              title="Submit your solution to complete the quest"
             >
               <Check size={16} />
               {isSubmitting ? "Submitting..." : "Submit"}

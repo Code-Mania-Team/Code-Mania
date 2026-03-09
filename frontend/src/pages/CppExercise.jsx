@@ -43,7 +43,7 @@ const CppExercise = () => {
     1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173779/cpp-badges1_uswk6d.png",
     2: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173779/cpp-badges2_gcwuva.png",
     3: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173778/cpp-badge3_fasnfk.png",
-    4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173778/cpp-badge4_tnch2p.png",
+    4: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173778/cpp-badge4_tnc0hz.png",
   };
 
   const stageBadgeTitleById = {
@@ -655,6 +655,12 @@ const CppExercise = () => {
         badgeLabel="Stage 4 badge earned"
 
         onTakeExam={() => navigate("/exam/cpp")}
+
+        showTerminalCta
+
+        terminalCtaLabel="Try Out Our Terminal!"
+
+        onTerminalCta={() => navigate("/terminal")}
 
         onSecondary={() => navigate("/learn/cpp")}
 

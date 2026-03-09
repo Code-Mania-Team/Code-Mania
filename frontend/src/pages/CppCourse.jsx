@@ -245,9 +245,8 @@ const CppCourse = () => {
     navigate(route);
   };
 
-  const handleTutorialClose = async () => {
-    // Capture the pending route NOW before any async state changes happen
-    const nextRoute = pendingRoute;
+  const handleTutorialClose = async (routeFromTutorial = null) => {
+    const nextRoute = routeFromTutorial || pendingRoute;
 
     setShowTutorial(false);
     setPendingRoute(null);
@@ -262,6 +261,9 @@ const CppCourse = () => {
     }
 
     if (nextRoute) {
+      localStorage.setItem("hasTouchedCourse", "true");
+      localStorage.setItem("lastCourseTitle", "C++");
+      localStorage.setItem("lastCourseRoute", "/learn/cpp");
       navigate(nextRoute);
     }
   };
@@ -480,7 +482,11 @@ const CppCourse = () => {
         onClose={() => setIsModalOpen(false)}
       />
 
-      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
+      <TutorialOverlay
+        open={showTutorial}
+        onClose={handleTutorialClose}
+        nextRoute={pendingRoute}
+      />
     </div>
   );
 
