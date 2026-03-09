@@ -15,8 +15,8 @@ class DomSessionService {
   /* ===============================
      CREATE SESSION
   =============================== */
-  async createSession({ userId, questId, baseHtml }) {
-    if (!questId || !baseHtml) {
+  async createSession({ userId, questId, baseHtml, requirements }) {
+    if (!questId || !baseHtml || !requirements) {
       return { ok: false, status: 400, message: "Missing required fields" };
     }
 
@@ -27,6 +27,7 @@ class DomSessionService {
       userId,
       questId,
       baseHtml,
+      requirements,
       userCode: "",
       createdAt: Date.now()
     });
@@ -59,7 +60,7 @@ class DomSessionService {
     return { ok: true };
   }
 
-  async validateSession({ sessionId, userId, requirements }) {
+  async validateSession({ sessionId, userId }) {
     const session = this.sessions.get(sessionId);
 
     if (!session) {
@@ -75,7 +76,10 @@ class DomSessionService {
         (Later load from DB)
     =============================== */
 
-    const validationRules = requirements;
+    const validationRules = session.requirements;
+    if (!validationRules) {
+      return { ok: false, status: 400, message: "Missing validation rules" };
+    }
 
     /* ===============================
         CALL DOCKER SERVER
