@@ -2,8 +2,12 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
+// const DEFAULT_HEADERS = {
+//   apikey: import.meta.env.VITE_API_KEY,
+//   'Content-Type': 'application/json',
+// };
+
 const DEFAULT_HEADERS = {
-  apikey: import.meta.env.VITE_API_KEY,
   'Content-Type': 'application/json',
 };
 

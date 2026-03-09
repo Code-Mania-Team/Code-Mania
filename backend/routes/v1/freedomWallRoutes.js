@@ -8,7 +8,7 @@ const freedomWallRouter = express.Router();
 const freedomPost = new FreedomWallController();
 
 // Optional: protect some routes with authorization middleware
-freedomWallRouter.use(authorization);
+// freedomWallRouter.use(authorization);
 
 freedomWallRouter.post('/', authLimiter(), authentication, freedomPost.createFreedomWallPost.bind(freedomPost));
 

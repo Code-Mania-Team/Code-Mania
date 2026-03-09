@@ -7,7 +7,7 @@ import MetricsController from "../../controllers/v1/metricsController.js";
 const router = Router();
 const metricsController = new MetricsController();
 
-router.use(authorization);
+// router.use(authorization);
 
 router.get("/admin-summary", metricsController.getAdminSummary.bind(metricsController));
 

@@ -2,11 +2,19 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
+// const gameAxios = axios.create({
+//   baseURL: API_BASE_URL,
+//   withCredentials: true,
+//   headers: {
+//     apikey: import.meta.env.VITE_API_KEY,
+//     "Content-Type": "application/json",
+//   },
+// });
+
 const gameAxios = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
-    apikey: import.meta.env.VITE_API_KEY,
     "Content-Type": "application/json",
   },
 });
