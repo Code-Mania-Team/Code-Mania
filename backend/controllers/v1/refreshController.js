@@ -36,10 +36,12 @@ class RefreshController {
                 accessToken: newAccessToken
             });
 
+            
+
         } catch (err) {
-            return res.status(401).json({ 
+            return res.status(500).json({ 
                 success: false, 
-                message: "Invalid refresh token" 
+                message: "failed to refresh access token" 
             });
         }
     }

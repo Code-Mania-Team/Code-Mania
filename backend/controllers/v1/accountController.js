@@ -43,7 +43,7 @@ class AccountController {
                 data: { email: response?.email, isNewUser: true }
             });
         } catch (err) {
-            return res.status(400).json({
+            return res.status(500).json({
                 success: false,
                 message: err.message === "email" ? "Email already exists" : err.message || "Failed to process OTP request",
             });
@@ -98,16 +98,6 @@ class AccountController {
                 user_id: authUser.user_id,
             });
         } catch (err) {
-            const message = String(err?.message || "");
-            const otpErrors = ["OTP not found", "OTP expired", "OTP already used"];
-
-            if (otpErrors.includes(message)) {
-                return res.status(200).json({
-                    success: false,
-                    message: "Invalid OTP",
-                });
-            }
-
             return res.status(500).json({ 
                 success: false, 
                 message: message || "Internal server error",
@@ -137,15 +127,13 @@ class AccountController {
             // Generate new access token (split approach)
 
             const accessToken = generateAccessToken({ user_id, username, role: res.locals.role });
-            return res.status(200).json({
+            return res.status(201).json({
                 success: true,
                 message: "Username, character, and full name set successfully",
                 accessToken,
             });
 
         } catch (err) {
-
-
 
             return res.status(500).json({ 
                 success: false, 
@@ -170,7 +158,7 @@ class AccountController {
             const authUser = await this.accountService.loginWithPassword(email, password);
 
             if (!authUser) {
-                return res.status(401).json({ 
+                return res.status(400).json({ 
                     success: false, 
                     message: "Invalid credentials" 
                 });
@@ -205,13 +193,9 @@ class AccountController {
                 character_id: profile?.character_id,
                 user_id: authUser.user_id,
         });
+        
 
         } catch (err) {
-            if (err?.message === 'Email not registered yet') {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Email not registered yet' });
-            }
             return res.status(500).json({ 
                 success: false, 
                 message: err.message 
@@ -382,7 +366,6 @@ class AccountController {
 
         try {
 
-            const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
             const userId = res.locals.user_id;
 
             const data = await this.user.getProfile(userId);
@@ -410,7 +393,7 @@ class AccountController {
 
     async updateProfile(req, res) {
 
-        const { username, full_name, hasSeen_tutorial } = req.body || {};
+        const { full_name } = req.body || {};
 
         const userId = res.locals.user_id;
 
@@ -456,18 +439,11 @@ class AccountController {
                 });
 
             }
-            // Generate new access token only if username changed
-            const tokenUsername = username ?? currentUsername;
-            const accessToken = generateAccessToken({ user_id: userId, username: tokenUsername, role: role });
-
-            res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
-
+          
             return res.status(200).json({
                 success: true,
                 message: "Profile updated successfully",
                 full_name: updated?.full_name,
-                hasSeen_tutorial: updated?.hasSeen_tutorial,
-                accessToken // frontend updates memory if present
             });
 
         } catch (err) {
