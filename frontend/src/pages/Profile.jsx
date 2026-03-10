@@ -12,6 +12,21 @@ import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'luci
 
 const profileBanner = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770453646/profile-banner_wuyk83.jpg';
 
+const LANGUAGE_LOGOS = {
+  python: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/python_gwzofh.png",
+  cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/C_tvqhay.png",
+  cplusplus: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/C_tvqhay.png",
+  "c++": "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/C_tvqhay.png",
+  javascript: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925756/javascript_pypygq.jpg",
+  js: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925756/javascript_pypygq.jpg",
+};
+
+const normalizeLanguageSlug = (raw) => {
+  const value = String(raw || "").trim().toLowerCase();
+  if (value === "c++") return "cpp";
+  return value;
+};
+
 import { useDeleteAccount } from '../services/deleteAccount';
 
 import { useEditAccount } from '../services/editAccount';
@@ -23,6 +38,10 @@ import useProfileSummary from '../services/useProfileSummary';
 import useLearningProgress from '../services/useLearningProgress';
 
 import useGetAchievements from '../services/getUserAchievements';
+
+import useGetQuizAttempts from "../services/getQuizAttempts";
+
+import useGetExamAttempts from "../services/getExamAttempts";
 
 // Character icons from Cloudinary
 
@@ -43,7 +62,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
+  const [activeTab, setActiveTab] = useState('achievements'); // achievements | learningProgress | assessments
 
 
 
@@ -555,6 +574,15 @@ const Profile = ({ onSignOut }) => {
 
   const { achievements } = useGetAchievements();
 
+  const getQuizAttempts = useGetQuizAttempts();
+
+  const getExamAttempts = useGetExamAttempts();
+
+  const [quizAttempts, setQuizAttempts] = useState([]);
+  const [examAttempts, setExamAttempts] = useState([]);
+  const [assessmentsLoading, setAssessmentsLoading] = useState(false);
+  const [assessmentsError, setAssessmentsError] = useState('');
+
   const learningProgress = {
     python: { progress: 0, total: 16, completed: 0, icon: <Terminal size={20} /> },
     cpp: { progress: 0, total: 16, completed: 0, icon: <Code size={20} /> },
@@ -595,6 +623,51 @@ const Profile = ({ onSignOut }) => {
       : 'Locked',
     badgeUrl: item?.badge_key,
   }));
+
+  useEffect(() => {
+    if (activeTab !== "assessments") return;
+    if (assessmentsLoading) return;
+    if (quizAttempts.length || examAttempts.length) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      setAssessmentsLoading(true);
+      setAssessmentsError('');
+      try {
+        const [quizRes, examRes] = await Promise.all([
+          getQuizAttempts({ limit: 200 }),
+          getExamAttempts({ limit: 200 }),
+        ]);
+
+        if (cancelled) return;
+
+        const quizRows = quizRes?.success ? (quizRes?.data || []) : [];
+        const examRows = examRes?.success ? (examRes?.data || []) : [];
+
+        setQuizAttempts(Array.isArray(quizRows) ? quizRows : []);
+        setExamAttempts(Array.isArray(examRows) ? examRows : []);
+
+        if (!quizRes?.success || !examRes?.success) {
+          setAssessmentsError(
+            quizRes?.message || examRes?.message || 'Failed to load quiz/exam history'
+          );
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setAssessmentsError(err?.response?.data?.message || err?.message || 'Failed to load quiz/exam history');
+      } finally {
+        if (cancelled) return;
+        setAssessmentsLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
 
 
 
@@ -1245,6 +1318,13 @@ const Profile = ({ onSignOut }) => {
 
           </button>
 
+          <button
+            className={`${styles.tab} ${activeTab === 'assessments' ? styles.active : ''}`}
+            onClick={() => setActiveTab('assessments')}
+          >
+            QUIZZES & EXAMS
+          </button>
+
 
 
         </div>
@@ -1503,6 +1583,137 @@ const Profile = ({ onSignOut }) => {
 
 
 
+          )}
+
+          {activeTab === 'assessments' && (
+            <div className={styles.assessmentsContainer}>
+              <h3 className={styles.progressTitle}>Your Quiz & Exam History</h3>
+
+              {assessmentsLoading ? (
+                <div className={styles.assessmentsEmpty}>
+                  Loading your attempts...
+                </div>
+              ) : assessmentsError ? (
+                <div className={styles.assessmentsEmpty}>
+                  {assessmentsError}
+                </div>
+              ) : null}
+
+              <div className={styles.assessmentsSection}>
+                <div className={styles.assessmentsSectionTitle}>Quizzes</div>
+                {quizAttempts.length === 0 ? (
+                  <div className={styles.assessmentsEmpty}>
+                    No quiz attempts yet.
+                  </div>
+                ) : (
+                  <div className={styles.historyTable}>
+                    <div className={styles.historyHeader}>
+                      <span>Type</span>
+                      <span>Score</span>
+                      <span>XP</span>
+                      <span>Date</span>
+                    </div>
+                    {quizAttempts.map((a) => (
+                      <div key={`quiz-${a.id}`} className={styles.historyRow}>
+                        <div className={styles.historyMain}>
+                          <div className={styles.historyTitle}>
+                            <span className={styles.historyType}>
+                              <img
+                                className={styles.historyLangLogo}
+                                src={LANGUAGE_LOGOS[normalizeLanguageSlug(a.language)] || LANGUAGE_LOGOS.javascript}
+                                alt={String(a.language || "language").toUpperCase()}
+                                loading="lazy"
+                              />
+                              <span className={styles.historyTypeText}>-</span>
+                            </span>
+                            {a.quizTitle || 'Quiz'}
+                          </div>
+                          <div className={styles.historyMeta}>
+                            {a.isPassed ? 'Passed' : 'Failed'}
+                            {Number.isFinite(Number(a.totalQuestions)) && Number(a.totalQuestions) > 0
+                              ? ` • ${a.totalCorrect}/${a.totalQuestions}`
+                              : ''}
+                          </div>
+                        </div>
+
+                        <div className={styles.historyStat}>
+                          {Math.round(Number(a.scorePercentage || 0))}%
+                        </div>
+
+                        <div className={styles.historyStat}>
+                          {Number(a.earnedXp || 0)}
+                        </div>
+
+                        <div className={styles.historyDate}>
+                          {a.submittedAt ? new Date(a.submittedAt).toLocaleString() : '-'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.assessmentsSection}>
+                <div className={styles.assessmentsSectionTitle}>Exams</div>
+                {examAttempts.length === 0 ? (
+                  <div className={styles.assessmentsEmpty}>
+                    No exam attempts yet.
+                  </div>
+                ) : (
+                  <div className={styles.historyTable}>
+                    <div className={styles.historyHeader}>
+                      <span>Type</span>
+                      <span>Attempt</span>
+                      <span>XP</span>
+                      <span>Date</span>
+                    </div>
+                    {examAttempts.map((a) => {
+                      const title = a?.exam_problems?.problem_title || 'Exam';
+                      const lang = a?.exam_problems?.programming_languages?.slug || a?.language || '';
+                      const attemptNo = Number(a?.attempt_number || 0);
+                      const score = Math.round(Number(a?.score_percentage || 0));
+                      const passed = Boolean(a?.passed);
+                      const xp = Number(a?.earned_xp || 0);
+                      const submittedAt = a?.created_at;
+
+                      return (
+                        <div key={`exam-${a.id}`} className={styles.historyRow}>
+                          <div className={styles.historyMain}>
+                            <div className={styles.historyTitle}>
+                              <span className={styles.historyType}>
+                                <img
+                                  className={styles.historyLangLogo}
+                                  src={LANGUAGE_LOGOS[normalizeLanguageSlug(lang)] || LANGUAGE_LOGOS.javascript}
+                                  alt={String(lang || "language").toUpperCase()}
+                                  loading="lazy"
+                                />
+                                <span className={styles.historyTypeText}>-</span>
+                              </span>
+                              {title}
+                            </div>
+                            <div className={styles.historyMeta}>
+                              {passed ? 'Passed' : 'In Progress/Failed'} • {score}%
+                            </div>
+                          </div>
+
+                          <div className={styles.historyStat}>
+                            {attemptNo}/5
+                          </div>
+
+                          <div className={styles.historyStat}>
+                            {xp}
+                          </div>
+
+                          <div className={styles.historyDate}>
+                            {submittedAt ? new Date(submittedAt).toLocaleString() : '-'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
 

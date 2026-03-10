@@ -100,15 +100,12 @@ const WelcomeOnboarding = ({ onComplete }) => {
             full_name: trimmedFullName,
             character_id: characters[selectedCharacter].id,
           }));
-
           window.dispatchEvent(new CustomEvent('characterUpdated', {
             detail: { characterIcon: characters[selectedCharacter].icon }
           }));
-            
         }
-
       } catch (error) {
-        setUsernameError("Username already taken or invalid");
+        setUsernameError(error.message || "Username already taken or invalid");
         return;
       }
       setUsernameError('');
