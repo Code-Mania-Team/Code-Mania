@@ -241,7 +241,7 @@ class AccountController {
                 res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
                 res.cookie("refreshToken", refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-                return res.redirect(`${FRONTEND_URL}/?success=true`);
+                return res.redirect(`${FRONTEND_URL}/dashboard?success=true`);
             } else {
                 return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }
