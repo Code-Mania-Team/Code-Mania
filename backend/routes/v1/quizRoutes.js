@@ -6,6 +6,13 @@ import QuizController from '../../controllers/v1/quizController.js';
 const router = Router();
 const quizController = new QuizController();
 
+// Authenticated: user attempt history
+router.get(
+  '/attempts',
+  authentication,
+  quizController.listAttempts.bind(quizController)
+);
+
 router.get('/:language/:quizId', quizController.getQuizById.bind(quizController));
 router.post(
   '/:language/:quizId/complete',

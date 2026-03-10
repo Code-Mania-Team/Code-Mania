@@ -98,6 +98,58 @@ class QuizService {
       return { ok: false, status: 400, message: "Quiz already completed" };
     }
   }
+
+  async listAttempts({ userId, languageSlug, limit = 50 }) {
+    if (!userId) {
+      return { ok: false, status: 401, message: "Unauthorized" };
+    }
+
+    const limitRaw = Number(limit);
+    const safeLimit = Number.isFinite(limitRaw)
+      ? Math.min(Math.max(limitRaw, 1), 200)
+      : 50;
+
+    try {
+      const rows = await this.model.listUserAttempts({
+        userId,
+        limit: safeLimit,
+      });
+
+      const attemptsAll = (rows || []).map((row) => {
+        const langSlug = row?.quizzes?.programming_languages?.slug || "unknown";
+        const score = Number(row?.score_percentage || 0);
+        return {
+          id: row.id,
+          quizId: row.quiz_id,
+          language: langSlug,
+          quizTitle: row?.quizzes?.quiz_title || row?.quizzes?.route || "Quiz",
+          scorePercentage: score,
+          totalCorrect: Number(row?.total_correct || 0),
+          totalQuestions: Number(row?.total_questions || 0),
+          earnedXp: Number(row?.earned_xp || 0),
+          isPassed: score >= 70,
+          submittedAt: row?.completed_at || null,
+        };
+      });
+
+      const normalizedFilter = typeof languageSlug === "string" && languageSlug
+        ? String(languageSlug).toLowerCase()
+        : null;
+
+      const attempts = normalizedFilter
+        ? attemptsAll.filter((a) => String(a.language || "").toLowerCase() === normalizedFilter)
+        : attemptsAll;
+
+      return { ok: true, data: attempts };
+    } catch (err) {
+      console.error("Failed to list quiz attempts", err);
+      return {
+        ok: false,
+        status: 500,
+        message: err?.message || "Failed to fetch quiz attempts",
+      };
+    }
+  }
 }
 
 export default QuizService;
