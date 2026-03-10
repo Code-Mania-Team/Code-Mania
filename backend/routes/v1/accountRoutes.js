@@ -4,6 +4,7 @@ import AccountController from '../../controllers/v1/accountController.js';
 import { authentication } from '../../middlewares/authentication.js';
 import { authorization } from '../../middlewares/authorization.js';
 import passport from 'passport';
+import { authLimiter } from '../../middlewares/rateLimiter.js';
 
 const accountRouter = express.Router();
 const account = new AccountController();
@@ -12,15 +13,15 @@ const account = new AccountController();
 // accountRouter.use(authorization);
 
 // Request OTP (signup or login) – single endpoint
-accountRouter.post('/signup/request-otp', account.requestOtp.bind(account));
+accountRouter.post('/signup/request-otp', authLimiter(), account.requestOtp.bind(account));
 
 // Verify OTP after user clicks or enters it
-accountRouter.post('/signup/verify-otp', authorization,account.verifyOtp.bind(account));
+accountRouter.post('/signup/verify-otp', authLimiter(), account.verifyOtp.bind(account));
 
 // Set username (requires authentication)
 accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
 
-accountRouter.post('/login', account.login.bind(account));
+accountRouter.post('/login', authLimiter(), account.login.bind(account));
 
 accountRouter.get('/login/google', passport.authenticate('google', {
     scope: ['profile', 'email']
@@ -36,7 +37,7 @@ accountRouter.post('/logout', account.logout.bind(account));
 accountRouter.get('/', authentication, account.profile.bind(account));
 
 // Update profile (username/full_name)
-accountRouter.patch('/', authentication, account.updateProfile.bind(account));
+accountRouter.patch('/', authLimiter(), authentication, account.updateProfile.bind(account));
 
 // Delete account
 accountRouter.delete('/', authentication, account.deleteUser.bind(account));

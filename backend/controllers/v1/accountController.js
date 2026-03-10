@@ -4,6 +4,19 @@ import { generateAccessToken, generateRefreshToken } from "../../utils/token.js"
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+
+const createCookieOptions = (maxAge) => {
+    const isProduction = process.env.NODE_ENV === "production";
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        ...(isProduction ? { domain: ".codemania.fun" } : {}),
+        maxAge,
+    };
+};
+
 class AccountController {
     constructor() {
         this.user = new User();
@@ -30,11 +43,18 @@ class AccountController {
                 data: { email: response?.email, isNewUser: true }
             });
         } catch (err) {
-            return res.status(400).json({
-                success: false,
-                message: err.message === "email" ? "Email already exists" : err.message || "Failed to process OTP request",
-            });
 
+            if (err.message === "email") {
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists"
+                });
+            }
+
+            return res.status(500).json({
+                success: false,
+                message: "Failed to process OTP request"
+            });
         }
 
     }
@@ -74,24 +94,9 @@ class AccountController {
             }
             // 🍪 HttpOnly cookie
             // 8. Set cookies
-            const cookieSecure = process.env.NODE_ENV === "production";
+            res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-            res.cookie('accessToken', accessToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-            });
-
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-
-            });
+            res.cookie('refreshToken', refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
 
             return res.status(200).json({
                 success: true,
@@ -100,16 +105,6 @@ class AccountController {
                 user_id: authUser.user_id,
             });
         } catch (err) {
-            const message = String(err?.message || "");
-            const otpErrors = ["OTP not found", "OTP expired", "OTP already used"];
-
-            if (otpErrors.includes(message)) {
-                return res.status(200).json({
-                    success: false,
-                    message: "Invalid OTP",
-                });
-            }
-
             return res.status(500).json({ 
                 success: false, 
                 message: message || "Internal server error",
@@ -139,15 +134,13 @@ class AccountController {
             // Generate new access token (split approach)
 
             const accessToken = generateAccessToken({ user_id, username, role: res.locals.role });
-            return res.status(200).json({
+            return res.status(201).json({
                 success: true,
                 message: "Username, character, and full name set successfully",
                 accessToken,
             });
 
         } catch (err) {
-
-
 
             return res.status(500).json({ 
                 success: false, 
@@ -172,12 +165,14 @@ class AccountController {
             const authUser = await this.accountService.loginWithPassword(email, password);
 
             if (!authUser) {
-                return res.status(401).json({ 
+                return res.status(400).json({ 
                     success: false, 
-                    message: "Invalid credentials" 
+                    message: "Invalid email and password" 
                 });
             }
 
+
+           
             const profile = await this.user.getProfile(authUser.user_id);
 
             const accessToken = generateAccessToken({
@@ -196,26 +191,9 @@ class AccountController {
                 } else {
                     await this.userToken.createUserToken(authUser.user_id, hashedRefresh);
                 }
+            res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-
-
-            const cookieSecure = process.env.NODE_ENV === "production";
-
-            res.cookie("accessToken", accessToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-            });
-
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-                });
+            res.cookie("refreshToken", refreshToken, createCookieOptions(7 * 24 * 60 * 60 * 1000));
 
             return res.status(200).json({
                 success: true,
@@ -224,16 +202,13 @@ class AccountController {
                 character_id: profile?.character_id,
                 user_id: authUser.user_id,
         });
+        
 
         } catch (err) {
-            if (err?.message === 'Email not registered yet') {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Email not registered yet' });
-            }
-            return res.status(500).json({ 
-                success: false, 
-                message: err.message 
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error"
             });
         }
     }
@@ -244,7 +219,6 @@ class AccountController {
     async googleLogin(req, res) {
         const { id, emails, provider } = req.user;
         const data = await this.accountService.googleLogin(id, emails[0].value, provider);
-        const frontendBaseUrl = (process.env.FRONTEND_URL || "https://codemania.fun").replace(/\/$/, "");
         
         try {
             if (data) {
@@ -264,30 +238,15 @@ class AccountController {
                     await this.userToken.createUserToken(data.id, hashedRefresh);
                 }
 
-                const cookieSecure = process.env.NODE_ENV === "production";
+                res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
+                res.cookie("refreshToken", refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-                res.cookie('accessToken', accessToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
-                res.cookie("refreshToken", refreshToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
-
-                const redirectPath = data?.role === "admin" ? "/admin" : "/dashboard";
-                return res.redirect(`${frontendBaseUrl}${redirectPath}?success=true`);
+                return res.redirect(`${FRONTEND_URL}/?success=true`);
             } else {
-                return res.redirect(`${frontendBaseUrl}/?error=auth_failed`);
+                return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }
         } catch (err) {
-            return res.redirect(`${frontendBaseUrl}/?error=server_error`);
+            return res.redirect(`${FRONTEND_URL}/?error=server_error`);
         }
     }
 
@@ -338,23 +297,9 @@ class AccountController {
                     role: profile?.role,
                 });
 
-                const cookieSecure = process.env.NODE_ENV === "production";
+                res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-                res.cookie("accessToken", accessToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
-
-                res.cookie("refreshToken", newRefreshToken, {
-                    httpOnly: true,
-                    secure: cookieSecure,
-                    sameSite: "none",
-                    domain: ".codemania.fun",
-                    maxAge: 24 * 60 * 60 * 1000 // 1 day
-                });
+                res.cookie("refreshToken", newRefreshToken, createCookieOptions(24 * 60 * 60 * 1000));
                 return res.status(200).json({
                     success: true,
                     accessToken,
@@ -431,7 +376,6 @@ class AccountController {
 
         try {
 
-            const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
             const userId = res.locals.user_id;
 
             const data = await this.user.getProfile(userId);
@@ -459,7 +403,7 @@ class AccountController {
 
     async updateProfile(req, res) {
 
-        const { username, full_name, hasSeen_tutorial } = req.body || {};
+        const { full_name } = req.body || {};
 
         const userId = res.locals.user_id;
 
@@ -505,26 +449,11 @@ class AccountController {
                 });
 
             }
-            // Generate new access token only if username changed
-            const tokenUsername = username ?? currentUsername;
-            const accessToken = generateAccessToken({ user_id: userId, username: tokenUsername, role: role });
-
-            const cookieSecure = process.env.NODE_ENV === "production";
-
-            res.cookie("accessToken", accessToken, {
-                httpOnly: true,
-                secure: cookieSecure,
-                sameSite: "none",
-                domain: ".codemania.fun",
-                maxAge: 24 * 60 * 60 * 1000 // 1 day
-            });
-
+          
             return res.status(200).json({
                 success: true,
                 message: "Profile updated successfully",
                 full_name: updated?.full_name,
-                hasSeen_tutorial: updated?.hasSeen_tutorial,
-                accessToken // frontend updates memory if present
             });
 
         } catch (err) {

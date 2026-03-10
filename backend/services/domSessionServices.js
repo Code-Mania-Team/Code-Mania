@@ -1,6 +1,10 @@
 import crypto from "crypto";
 import axios from "axios";
 
+const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
+
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
+
 class DomSessionService {
   constructor() {
     this.sessions = new Map();
@@ -11,8 +15,8 @@ class DomSessionService {
   /* ===============================
      CREATE SESSION
   =============================== */
-  async createSession({ userId, questId, baseHtml }) {
-    if (!questId || !baseHtml) {
+  async createSession({ userId, questId, baseHtml, requirements }) {
+    if (!questId || !baseHtml || !requirements) {
       return { ok: false, status: 400, message: "Missing required fields" };
     }
 
@@ -23,6 +27,7 @@ class DomSessionService {
       userId,
       questId,
       baseHtml,
+      requirements,
       userCode: "",
       createdAt: Date.now()
     });
@@ -31,7 +36,7 @@ class DomSessionService {
       ok: true,
       data: {
         sessionId: id,
-        sandboxUrl: `https://api.codemania.fun/v1/dom/sandbox/${id}`
+        sandboxUrl: `${API_BASE_URL}/v1/dom/sandbox/${id}`
       }
     };
   }
@@ -55,7 +60,7 @@ class DomSessionService {
     return { ok: true };
   }
 
-  async validateSession({ sessionId, userId, requirements }) {
+  async validateSession({ sessionId, userId }) {
     const session = this.sessions.get(sessionId);
 
     if (!session) {
@@ -71,14 +76,17 @@ class DomSessionService {
         (Later load from DB)
     =============================== */
 
-    const validationRules = requirements;
+    const validationRules = session.requirements;
+    if (!validationRules) {
+      return { ok: false, status: 400, message: "Missing validation rules" };
+    }
 
     /* ===============================
         CALL DOCKER SERVER
     =============================== */
 
     const { data } = await axios.post(
-        "https://terminal.codemania.fun/dom/run",
+        `${TERMINAL_API_BASE_URL}/dom/run`,
         {
         base_html: session.baseHtml,
         user_code: session.userCode,
