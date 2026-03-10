@@ -5,6 +5,24 @@ class ExerciseModel {
         this.db = supabase;
     }
 
+    normalizeExercise(row) {
+        if (!row) return row;
+
+        // Backwards-compatible: some older rows stored JSONB as a string.
+        if (typeof row.requirements === 'string') {
+            const trimmed = row.requirements.trim();
+            if (trimmed) {
+                try {
+                    row.requirements = JSON.parse(trimmed);
+                } catch {
+                    // leave as-is if not valid JSON
+                }
+            }
+        }
+
+        return row;
+    }
+
     // Create a new exercise (quest)
     async createExercise(exerciseData) {
         try {
@@ -36,7 +54,7 @@ class ExerciseModel {
                     lesson_example,
                     starting_code,
                     hints: hints || null,
-                    requirements: requirements ? JSON.stringify(requirements) : null,
+                    requirements: requirements ?? null,
                     validation_mode,
                     experience,
                     programming_language_id,
@@ -52,7 +70,7 @@ class ExerciseModel {
             if (error) {
                 throw error;
             }
-            return data;
+            return this.normalizeExercise(data);
         } catch (error) {
             throw error;
         }
@@ -234,7 +252,7 @@ class ExerciseModel {
                 throw error;
             }
 
-            return data;
+            return this.normalizeExercise(data);
         } catch (error) {
             throw error;
         }
@@ -259,7 +277,7 @@ class ExerciseModel {
             if (error) {
                 throw error;
             }
-            return data;
+            return (data || []).map((row) => this.normalizeExercise(row));
         } catch (error) {
             throw error;
         }
@@ -296,7 +314,7 @@ class ExerciseModel {
             if (lesson_example !== undefined) updateObject.lesson_example = lesson_example;
             if (starting_code !== undefined) updateObject.starting_code = starting_code;
             if (hints !== undefined) updateObject.hints = hints;
-            if (requirements !== undefined) updateObject.requirements = requirements ? JSON.stringify(requirements) : null;
+            if (requirements !== undefined) updateObject.requirements = requirements ?? null;
             if (validation_mode !== undefined) updateObject.validation_mode = validation_mode;
             if (experience !== undefined) updateObject.experience = experience;
             if (programming_language_id !== undefined) updateObject.programming_language_id = programming_language_id;
@@ -317,7 +335,7 @@ class ExerciseModel {
             if (error) {
                 throw error;
             }
-            return data;
+            return this.normalizeExercise(data);
         } catch (error) {
             throw error;
         }
