@@ -11,7 +11,7 @@ const createCookieOptions = (maxAge) => {
     return {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
+        sameSite: "none",
         ...(isProduction ? { domain: ".codemania.fun" } : {}),
         maxAge,
     };
