@@ -124,6 +124,13 @@ class AccountController {
         });
         
         try {
+            const existing = await this.user.findByUsername(username); 
+            if (existing) {
+                return res.status(409).json({ 
+                    success: false, 
+                    message: "Username already taken" 
+                });
+            }
             const updated = await this.user.setUsernameandCharacter(user_id, username, character_id, full_name);
             if (!updated) 
 

@@ -33,6 +33,14 @@ class User {
     return data;
   }
 
+  async findByUsername(username) {
+    const { data } = await this.db
+      .from("users") // can be users table or temp_user (this should be temp_users with "s")    
+      .select("user_id, email, password, provider") //
+      .eq("username", username) //
+      .maybeSingle();
+  }
+
   async findByEmailAndPasswordHash(email, password) {
     const { data, error } = await this.db
 
