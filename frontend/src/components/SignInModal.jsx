@@ -139,6 +139,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
   const [resetPasswordError, setResetPasswordError] = useState('');
 
+  // OTP resend cooldown state
+  const [otpResendCooldown, setOtpResendCooldown] = useState(0);
+
 
 
   const validatePassword = (pass) => {
@@ -237,6 +240,16 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
 
 
+  // OTP resend cooldown timer
+  React.useEffect(() => {
+    if (otpResendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setOtpResendCooldown(otpResendCooldown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpResendCooldown]);
+
   if (!isOpen) return null;
 
 
@@ -286,17 +299,21 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
           const user = await signUp(email, password);
 
-
           setShowOtpField(true);
+          setOtpResendCooldown(60); // Start 60-second cooldown
 
         } else {
 
           const result = await verifyOtp(email, otp);
 
           if (!result?.success) {
+
             setLoginError(result?.message || 'Invalid OTP');
+
             setIsLoading(false);
+
             return;
+
           }
 
           localStorage.setItem('needsUsername', 'true');
@@ -463,6 +480,25 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
     setOtp('');
 
+  };
+
+
+
+  const handleResendOtp = async () => {
+    if (otpResendCooldown > 0) return;
+    
+    try {
+      setIsLoading(true);
+      setLoginError('');
+      
+      const user = await signUp(email, password);
+      setOtpResendCooldown(60); // Reset cooldown
+      setLoginError('OTP resent! Check your email.');
+    } catch (error) {
+      setLoginError('Failed to resend OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 
@@ -1519,6 +1555,18 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   />
 
                   <p className={styles.otpNote}>We've sent a 6-digit OTP to your email</p>
+
+                  <button
+                    type="button"
+                    className={styles.resendButton}
+                    onClick={handleResendOtp}
+                    disabled={isLoading || otpResendCooldown > 0}
+                  >
+                    {otpResendCooldown > 0 
+                      ? `Resend OTP (${otpResendCooldown}s)` 
+                      : 'Resend OTP'
+                    }
+                  </button>
 
                 </div>
 
