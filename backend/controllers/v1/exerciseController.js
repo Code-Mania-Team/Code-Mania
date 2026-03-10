@@ -4,6 +4,24 @@ import axios from "axios";
 const TERMINAL_API_BASE_URL =
   process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
 
+const parseJsonIfString = (value, fieldName) => {
+  if (value === undefined) return value;
+  if (value === null) return null;
+  if (typeof value !== "string") return value;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  try {
+    return JSON.parse(trimmed);
+  } catch (err) {
+    const message = err?.message ? `: ${err.message}` : "";
+    const error = new Error(`${fieldName} must be valid JSON${message}`);
+    error.statusCode = 400;
+    throw error;
+  }
+};
+
 class ExerciseController {
   constructor() {
     this.exerciseModel = new ExerciseModel();
@@ -30,6 +48,11 @@ class ExerciseController {
         mapKey,
       } = req.body;
 
+      const normalizedRequirements = parseJsonIfString(
+        requirements,
+        "requirements",
+      );
+
       // Validate required fields
       if (!title || !description || !task || !programming_language_id) {
         return res.status(400).json({
@@ -55,7 +78,7 @@ class ExerciseController {
         lesson_example,
         starting_code,
         hints,
-        requirements,
+        requirements: normalizedRequirements,
         validation_mode,
         experience,
         programming_language_id: parseInt(programming_language_id),
@@ -83,9 +106,13 @@ class ExerciseController {
       });
     } catch (error) {
       console.error("Error in createExercise:", error);
-      res.status(500).json({
+      const status = error?.statusCode || 500;
+      res.status(status).json({
         success: false,
-        message: "Internal server error while creating exercise",
+        message:
+          status === 400
+            ? error.message
+            : "Internal server error while creating exercise",
         error:
           process.env.NODE_ENV === "development" ? error.message : undefined,
       });
@@ -305,6 +332,13 @@ class ExerciseController {
         }
       });
 
+      if (updateFields.requirements !== undefined) {
+        updateFields.requirements = parseJsonIfString(
+          updateFields.requirements,
+          "requirements",
+        );
+      }
+
       // Check if at least one field is being updated
       if (Object.keys(updateFields).length === 0) {
         return res.status(400).json({
@@ -325,9 +359,13 @@ class ExerciseController {
       });
     } catch (error) {
       console.error("Error in updateExercise:", error);
-      res.status(500).json({
+      const status = error?.statusCode || 500;
+      res.status(status).json({
         success: false,
-        message: "Internal server error while updating exercise",
+        message:
+          status === 400
+            ? error.message
+            : "Internal server error while updating exercise",
         error:
           process.env.NODE_ENV === "development" ? error.message : undefined,
       });

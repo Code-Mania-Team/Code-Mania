@@ -46,12 +46,33 @@ const ExerciseManager = () => {
     }
   };
 
+  const toPrettyJsonString = (value, fallback = "{}") => {
+    if (value === null || value === undefined) return fallback;
+
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) return fallback;
+      try {
+        return JSON.stringify(JSON.parse(trimmed), null, 2);
+      } catch {
+        // If it's already a plain string, keep it as-is.
+        return value;
+      }
+    }
+
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return fallback;
+    }
+  };
+
   const handleEdit = (exercise) => {
     setEditingExercise(exercise.id);
     setFormData({
       ...exercise,
       dialogue: JSON.stringify(exercise.dialogue || [], null, 2),
-      requirements: JSON.stringify(exercise.requirements || {}, null, 2)
+      requirements: toPrettyJsonString(exercise.requirements, "{}"),
     });
   };
 
