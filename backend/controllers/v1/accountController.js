@@ -488,14 +488,16 @@ class AccountController {
             res.clearCookie("refreshToken", 
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
+                  sameSite: "none",
+                  domain: process.env.FRONTEND_URL 
             });
 
             
              res.clearCookie("accessToken", 
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
+                  sameSite: "none",
+                  domain: process.env.FRONTEND_URL 
             });
 
             return res.status(200).json({ 
@@ -525,13 +527,15 @@ class AccountController {
             res.clearCookie("accessToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
+                sameSite: "none",
+                domain: process.env.FRONTEND_URL
             });
 
             res.clearCookie("refreshToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
+                sameSite: "none",
+                domain: process.env.FRONTEND_URL
             });
 
             return res.status(200).json({ 
