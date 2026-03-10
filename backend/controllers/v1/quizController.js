@@ -51,6 +51,36 @@ class QuizController {
       return res.status(500).json({ message: "Failed to complete quiz" });
     }
   }
+
+  async listAttempts(req, res) {
+    const userId = res.locals.user_id;
+
+    try {
+      const limit = req.query.limit;
+      const language = req.query.language;
+      const result = await this.service.listAttempts({
+        userId,
+        limit,
+        languageSlug: typeof language === "string" ? language : undefined,
+      });
+
+      if (!result.ok) {
+        return res.status(result.status || 500).json({
+          success: false,
+          message: result.message || "Failed to fetch quiz attempts",
+          data: [],
+        });
+      }
+
+      return res.status(200).json({ success: true, data: result.data || [] });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err?.message || "Failed to fetch quiz attempts",
+        data: [],
+      });
+    }
+  }
 }
 
 export default QuizController;

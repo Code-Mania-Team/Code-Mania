@@ -47,6 +47,31 @@ class QuizModel {
     if (error) throw error;
   }
 
+  async listUserAttempts({ userId, limit = 50 }) {
+    const query = supabase
+      .from("user_quiz_attempts")
+      .select(
+        `
+        id,
+        user_id,
+        quiz_id,
+        score_percentage,
+        total_correct,
+        total_questions,
+        earned_xp,
+        completed_at,
+        quizzes ( quiz_title, route, programming_languages ( slug, name ) )
+      `
+      )
+      .eq("user_id", userId)
+      .order("completed_at", { ascending: false })
+      .limit(limit);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  }
+
   async getUserRole(userId) {
     const { data, error } = await supabase
       .from("users")
