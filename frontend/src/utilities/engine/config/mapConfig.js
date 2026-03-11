@@ -775,9 +775,7 @@ export const MAPS = {
           name: "Commu-ditie3",
           key: "Commu-ditie3",
           image: "/assets/tilesets/Python/Commu-ditie3.png"
-        },
-        { name: "FutsuCity_B", key: "FutsuCity_B", image: "/assets/tilesets/Cpp/FutsuCity_B.png" },
-        { name: "commu_SF_Inside_B", key: "commu_SF_Inside_B", image: "/assets/tilesets/Cpp/commu_SF_Inside_B.png" }
+        }
       ],
       nextMap: "map4"
     },
@@ -875,8 +873,7 @@ export const MAPS = {
           key: "ModernCity_A5",
           image: "/assets/tilesets/Cpp/ModernCity_A5.png"
         },
-        { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" },
-        { name: "commu_SF_Inside_B", key: "commu_SF_Inside_B", image: "/assets/tilesets/Cpp/commu_SF_Inside_B.png" }
+        { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" }
       ],
       nextMap: "map6"
     },

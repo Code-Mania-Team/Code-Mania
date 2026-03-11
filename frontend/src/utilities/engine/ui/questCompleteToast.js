@@ -74,8 +74,9 @@ export default class QuestCompleteToast {
    * @param {string} data.title
    * @param {string|null} data.badgeKey
    * @param {number} data.exp
+   * @param {Function} [data.onHidden]
    */
-  show({ title = "", badgeKey = null, exp = 0 }) {
+  show({ title = "", badgeKey = null, exp = 0, onHidden = null }) {
     if (!this.scene || !this.scene.sys || !this.container || !this.container.scene) return;
     if (this.isShowing) return;
     this.isShowing = true;
@@ -127,6 +128,7 @@ export default class QuestCompleteToast {
         ease: "Sine.easeIn",
         onComplete: () => {
           this.isShowing = false;
+          onHidden?.();
         }
       });
     });
