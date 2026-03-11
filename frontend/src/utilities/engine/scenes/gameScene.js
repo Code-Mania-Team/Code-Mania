@@ -149,7 +149,11 @@ export default class GameScene extends Phaser.Scene {
     if (hasChestMarkers) return "Objective: Interact with the chest marked (!)";
 
     const hasNpcMarkers = Boolean(this.questIconManager?.icons?.size);
-    if (hasNpcMarkers) return "Objective: Talk to the NPC marked (?)";
+    if (hasNpcMarkers) {
+      return this.language === "JavaScript"
+        ? "Objective: Interact with the object marked (?)"
+        : "Objective: Talk to the NPC marked (?)";
+    }
 
     return "Objective: Explore the area";
   }
