@@ -249,9 +249,13 @@ const JavaScriptExercise = () => {
       const result = await getGameProgress(3);
 
       if (result?.completedQuests) {
+        const normalized = (Array.isArray(result.completedQuests)
+          ? result.completedQuests
+          : [])
+          .map((id) => Number(id))
+          .filter((id) => Number.isFinite(id));
 
-        setDbCompletedQuests(result.completedQuests);
-
+        setDbCompletedQuests(normalized);
       }
 
       setCompletedQuizStages(Array.isArray(result?.completedQuizStages) ? result.completedQuizStages : []);

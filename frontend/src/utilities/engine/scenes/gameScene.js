@@ -33,7 +33,19 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.exerciseId = data.exerciseId;
     this.quest = data.quest || null;
-    this.completedQuestIds = new Set(data.completedQuests || []);
+    const normalizedCompleted = (Array.isArray(data.completedQuests)
+      ? data.completedQuests
+      : Array.from(data.completedQuests ?? []))
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
+
+    this.completedQuestIds = new Set(normalizedCompleted);
+
+    // Keep the current quest object in sync with completion state.
+    const currentQuestId = Number(this.quest?.id);
+    if (Number.isFinite(currentQuestId) && this.completedQuestIds.has(currentQuestId)) {
+      this.quest.completed = true;
+    }
 
     this._lessonExampleSplashShownForQuestId = null;
     this.lessonExampleSplash = null;
@@ -143,6 +155,17 @@ export default class GameScene extends Phaser.Scene {
 
   getStartObjectiveText() {
     const quest = this.quest;
+
+    // Python map2: even after quest completion, the player must open the quest chest
+    // to receive the item before heading to the exit.
+    if (quest?.completed && this.isPythonMap2()) {
+      const questId = Number(quest?.id ?? this.exerciseId);
+      const chestInfo = Number.isFinite(questId)
+        ? this.findUnopenedQuestChestTile(questId)
+        : null;
+      if (chestInfo) return "Objective: Open the chest and take the item";
+    }
+
     if (quest?.completed) return "Objective: Go to the exit";
 
     const hasChestMarkers = Boolean(this.chestQuestManager?.icons?.size);
@@ -944,6 +967,13 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.spawnChestQuestIcons();
+
+    // Python map2: if quest is already completed on load, guide player to the reward chest.
+    if (this.isPythonMap2() && this.quest?.completed) {
+      const questId = Number(this.quest?.id ?? this.exerciseId);
+      const delay = hasIntro ? 1600 : 900;
+      this.time.delayedCall(delay, () => this.showPostQuestObjective(questId));
+    }
     this.scheduleNextMapPrefetch();
 
     this.events.once("shutdown", () => {
@@ -1240,9 +1270,9 @@ export default class GameScene extends Phaser.Scene {
         }
       }
 
-      for (const [questId, icon] of icons.entries()) {
-        const quest = this.questManager?.getQuestById(questId);
-        if (quest && !quest.completed && icon?.active) {
+      // Fallback: if any chest marker is active (including post-quest reward markers), point to it.
+      for (const icon of icons.values()) {
+        if (icon?.active) {
           this._pointerTargetCache.target = icon;
           return icon;
         }

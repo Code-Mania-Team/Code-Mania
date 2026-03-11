@@ -3,8 +3,12 @@ export default class QuestManager {
     this.scene = scene;
     this.quests = quests;
 
-    this.completedQuestIds = new Set(completedQuestIds);
-    this.completedQuestIds.forEach(id => {
+    const normalizedCompleted = Array.from(completedQuestIds ?? [])
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
+
+    this.completedQuestIds = new Set(normalizedCompleted);
+    this.completedQuestIds.forEach((id) => {
       const q = this.getQuestById(id);
       if (q) q.completed = true;
     });
@@ -14,7 +18,12 @@ export default class QuestManager {
 
   getQuestById(id) {
     if (!this.quests) return null;
-    return this.quests.find(q => q && q.id === id) || null;
+    const targetId = Number(id);
+    if (!Number.isFinite(targetId)) return null;
+
+    return (
+      this.quests.find((q) => q && Number(q.id) === targetId) || null
+    );
   }
 
   startQuest(id) {
@@ -54,19 +63,16 @@ export default class QuestManager {
 
 
   completeQuest(id, { emitEvent = true } = {}) {
-    const quest = this.getQuestById(id);
+    const questId = Number(id);
+    if (!Number.isFinite(questId)) return;
+
+    const quest = this.getQuestById(questId);
     if (!quest || quest.completed) return;
 
     quest.completed = true;
-    this.completedQuestIds.add(id);
+    this.completedQuestIds.add(questId);
 
-    const completed = JSON.parse(localStorage.getItem("completedQuests") || "[]");
-    if (!completed.includes(id)) {
-      completed.push(id);
-      // localStorage.setItem("completedQuests", JSON.stringify(completed));
-    }
-
-    if (this.activeQuest?.id === id) {
+    if (Number(this.activeQuest?.id) === questId) {
       this.activeQuest = null;
       localStorage.removeItem("activeQuestId");
     }
@@ -76,7 +82,7 @@ export default class QuestManager {
     if (emitEvent) {
       window.dispatchEvent(
         new CustomEvent("code-mania:quest-complete", {
-          detail: { questId: id }
+          detail: { questId: questId }
         })
       );
     }
@@ -87,7 +93,7 @@ export default class QuestManager {
     const exitZones = this.scene.mapExits?.getChildren?.() || [];
     exitZones.forEach((zone) => {
       const required = Number(zone?.exitData?.requiredQuest);
-      if (required === Number(id) || (Number.isFinite(questOrder) && required === questOrder)) {
+      if (required === questId || (Number.isFinite(questOrder) && required === questOrder)) {
         zone?.exitArrow?.setVisible(true);
         exitTarget = zone;
       }
