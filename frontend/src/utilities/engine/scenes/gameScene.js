@@ -87,6 +87,8 @@ export default class GameScene extends Phaser.Scene {
     this._mobileControlsEnabled = null;
     this._pointerTargetCache = { target: null, nextAt: 0 };
     this._arrowVisible = false;
+
+    this._bgmUnlockHandler = null;
   }
 
   getQuestLessonSplashContent(quest) {
@@ -504,20 +506,26 @@ export default class GameScene extends Phaser.Scene {
     const idleFrame = characterIdleFrames[selectedId] || 0;
 
     ["down", "up", "left", "right"].forEach(dir => {
-      this.anims.create({
-        key: `walk-${dir}`,
-        frames: this.anims.generateFrameNumbers(`player-${dir}`, {
-          start: 0,
-          end: 2
-        }),
-        frameRate: 10,
-        repeat: -1
-      });
+      const walkKey = `walk-${dir}`;
+      if (!this.anims.exists(walkKey)) {
+        this.anims.create({
+          key: walkKey,
+          frames: this.anims.generateFrameNumbers(`player-${dir}`, {
+            start: 0,
+            end: 2
+          }),
+          frameRate: 10,
+          repeat: -1
+        });
+      }
 
-      this.anims.create({
-        key: `idle-${dir}`,
-        frames: [{ key: `player-${dir}`, frame: idleFrame }]
-      });
+      const idleKey = `idle-${dir}`;
+      if (!this.anims.exists(idleKey)) {
+        this.anims.create({
+          key: idleKey,
+          frames: [{ key: `player-${dir}`, frame: idleFrame }]
+        });
+      }
     });
 
     ["up", "down", "left", "right"].forEach((dir) => {
@@ -548,15 +556,17 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
-    this.anims.create({
-      key: "exclamation",
-      frames: this.anims.generateFrameNumbers("exclamation", {
-        start: 0,
-        end: 2
-      }),
-      frameRate: 4,
-      repeat: -1
-    });
+    if (!this.anims.exists("exclamation")) {
+      this.anims.create({
+        key: "exclamation",
+        frames: this.anims.generateFrameNumbers("exclamation", {
+          start: 0,
+          end: 2
+        }),
+        frameRate: 4,
+        repeat: -1
+      });
+    }
 
     // 🧍 PLAYER
     const spawn = this.getPlayerSpawnPoint();
@@ -601,7 +611,7 @@ export default class GameScene extends Phaser.Scene {
       this.questHUD.toggle(this.questManager.activeQuest);
     });
 
-    // 🎵 Background music per language
+    // 🎵 Background music per language (start after user gesture)
     const BGM_BY_LANGUAGE = {
       Python: "bgm-python",
       JavaScript: "bgm-javascript",
@@ -611,17 +621,61 @@ export default class GameScene extends Phaser.Scene {
     const bgmKey = BGM_BY_LANGUAGE[this.language];
 
     if (bgmKey) {
-      this.bgm = this.sound.add(bgmKey, {
-        loop: true,
-        volume: 0.5
-      });
+      this.bgm = this.sound.add(bgmKey, { loop: true, volume: 0.5 });
 
-      this.bgm.play();
+      const startBgmOnce = async () => {
+        if (!this.bgm || this.bgm.isPlaying) return;
+
+        // Try to resume audio context (Chrome autoplay policy).
+        try {
+          const ctx = this.sound?.context;
+          if (ctx && ctx.state === "suspended") {
+            await ctx.resume();
+          }
+        } catch {
+          // ignore
+        }
+
+        try {
+          this.sound?.unlock?.();
+        } catch {
+          // ignore
+        }
+
+        try {
+          this.bgm.play();
+        } catch {
+          // ignore
+        }
+
+        // Remove listeners after first attempt.
+        this.input?.off?.("pointerdown", startBgmOnce);
+        this.input?.keyboard?.off?.("keydown", startBgmOnce);
+        this._bgmUnlockHandler = null;
+      };
+
+      this._bgmUnlockHandler = startBgmOnce;
+
+      // If audio is already unlocked, start immediately.
+      const ctx = this.sound?.context;
+      const ctxRunning = !ctx || ctx.state === "running";
+      if (!this.sound?.locked && ctxRunning) {
+        startBgmOnce();
+      } else {
+        this.input?.on?.("pointerdown", startBgmOnce);
+        this.input?.keyboard?.on?.("keydown", startBgmOnce);
+      }
     }
 
     this.events.once("shutdown", () => {
       if (this.bgm) {
         this.bgm.stop();
+      }
+
+      if (this._bgmUnlockHandler) {
+        this.input?.off?.("pointerdown", this._bgmUnlockHandler);
+        this.input?.keyboard?.off?.("keydown", this._bgmUnlockHandler);
+        this._bgmUnlockHandler = null;
       }
     });
 
