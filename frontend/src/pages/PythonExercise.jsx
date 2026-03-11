@@ -17,6 +17,8 @@ import MobileControls from "../components/MobileControls";
 
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
+import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+
 
 
 import styles from "../styles/PythonExercise.module.css";
@@ -101,6 +103,8 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const [activeExercise, setActiveExercise] = useState(null);
 
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
 
   useEffect(() => {
     const handleStart = async (e) => {
@@ -140,6 +144,10 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   useEffect(() => {
 
+    setIsPageLoading(true);
+    setActiveExercise(null);
+    stopGame();
+
     const fetchExercise = async () => {
 
       try {
@@ -159,6 +167,9 @@ const PythonExercise = ({ isAuthenticated }) => {
         }
 
         setActiveExercise(quest);
+
+        // keep overlay until phaser re-inits
+        setTimeout(() => setIsPageLoading(false), 120);
 
 
 
@@ -628,6 +639,8 @@ const PythonExercise = ({ isAuthenticated }) => {
   return (
 
     <div className={styles["python-exercise-page"]}>
+
+      {isPageLoading && <AuthLoadingOverlay />}
 
       <Header
 

@@ -13,6 +13,8 @@ import ProgressBar from "../components/ProgressBar";
 import CodeTerminal from "../components/CodeTerminal";
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
+import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+
 
 
 import styles from "../styles/JavaScriptExercise.module.css";
@@ -71,6 +73,8 @@ const JavaScriptExercise = () => {
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
 
   const [activeExercise, setActiveExercise] = useState(null);
+
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
 
 
@@ -158,6 +162,10 @@ const JavaScriptExercise = () => {
 
   useEffect(() => {
 
+    setIsPageLoading(true);
+    setActiveExercise(null);
+    stopGame();
+
     const fetchExercise = async () => {
 
       try {
@@ -177,6 +185,8 @@ const JavaScriptExercise = () => {
         }
 
         setActiveExercise(quest);
+
+        setTimeout(() => setIsPageLoading(false), 120);
 
       } catch (err) {
 
@@ -511,13 +521,15 @@ const JavaScriptExercise = () => {
 
 
 
-  if (!activeExercise) return null;
+  if (!activeExercise) return <AuthLoadingOverlay />;
 
 
 
   return (
 
     <div className={styles["javascript-exercise-page"]}>
+
+      {isPageLoading && <AuthLoadingOverlay />}
 
       <Header
 

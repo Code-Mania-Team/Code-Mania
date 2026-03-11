@@ -149,7 +149,11 @@ export default class GameScene extends Phaser.Scene {
     if (hasChestMarkers) return "Objective: Interact with the chest marked (!)";
 
     const hasNpcMarkers = Boolean(this.questIconManager?.icons?.size);
-    if (hasNpcMarkers) return "Objective: Talk to the NPC marked (?)";
+    if (hasNpcMarkers) {
+      return this.language === "JavaScript"
+        ? "Objective: Interact with the object marked (?)"
+        : "Objective: Talk to the NPC marked (?)";
+    }
 
     return "Objective: Explore the area";
   }
@@ -251,17 +255,15 @@ export default class GameScene extends Phaser.Scene {
     // If a closed gate blocks progression, guide the player to open it first.
     if (this.hasClosedGate()) {
       const required = this.getGateRequiredAbility();
-      if (!required) {
-        this.nextObjectiveHint.show("Objective: Find a way past the gate");
+      // Only show a gate objective when it's explicitly lockable (has a `requires` key).
+      if (required) {
+        const hasKey = this.worldState?.abilities?.has?.(required);
+        this.nextObjectiveHint.show(hasKey
+          ? "Objective: Go through the gate"
+          : "Objective: Find the key to unlock the gate"
+        );
         return;
       }
-
-      const hasKey = this.worldState?.abilities?.has?.(required);
-      this.nextObjectiveHint.show(hasKey
-        ? "Objective: Go through the gate"
-        : "Objective: Find the key to unlock the gate"
-      );
-      return;
     }
 
     const hasExit = Boolean(this.mapExits?.getChildren?.()?.length);
@@ -1335,8 +1337,11 @@ export default class GameScene extends Phaser.Scene {
         );
 
         npc.setOrigin(0.5, 1);
-        npc.body.setSize(48, 48);
-        npc.body.setOffset(8, 32);
+
+        // NPC sprite is 48x48
+        npc.setDisplaySize(48, 48);
+        npc.body.setSize(48, 48, true);
+        npc.body.setOffset(0, 0);
         npc.body.immovable = true;
 
         npc.npcData = {
@@ -1409,7 +1414,7 @@ export default class GameScene extends Phaser.Scene {
       nearestNpc.y
     );
 
-    const inRange = d <= 50;
+    const inRange = d <= 70;
 
     if (this.interactionMarker) {
       this.interactionMarker.setPosition(nearestNpc.x, nearestNpc.y - 52);
@@ -1458,7 +1463,7 @@ export default class GameScene extends Phaser.Scene {
         this.player.y,
         n.x,
         n.y
-      ) <= 50
+      ) <= 70
     );
 
     if (!npc) return false; // 👈 IMPORTANT

@@ -12,6 +12,8 @@ import ProgressBar from "../components/ProgressBar";
 
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
+import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+
 import CodeTerminal from "../components/CodeTerminal";
 
 
@@ -74,6 +76,8 @@ const CppExercise = () => {
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
 
   const [activeExercise, setActiveExercise] = useState(null);
+
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
 
 
@@ -159,6 +163,10 @@ const CppExercise = () => {
 
     const fetchExercise = async () => {
 
+       setIsPageLoading(true);
+       setActiveExercise(null);
+       stopGame();
+
       try {
 
         const quest = await getExerciseById(activeExerciseId);
@@ -175,7 +183,9 @@ const CppExercise = () => {
           return;
         }
 
-        setActiveExercise(quest);
+         setActiveExercise(quest);
+
+         setTimeout(() => setIsPageLoading(false), 120);
 
       } catch (err) {
 
@@ -505,13 +515,15 @@ const CppExercise = () => {
 
 
 
-  if (!activeExercise) return null;
+  if (!activeExercise) return <AuthLoadingOverlay />;
 
 
 
   return (
 
     <div className={styles["cpp-exercise-page"]}>
+
+      {isPageLoading && <AuthLoadingOverlay />}
 
       <Header
 
