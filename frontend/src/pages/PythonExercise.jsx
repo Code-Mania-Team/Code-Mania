@@ -274,10 +274,16 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
   );
+  const [isSmallPhone, setIsSmallPhone] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 380 : false
+  );
   const [mobileActivePanel, setMobileActivePanel] = useState("game");
 
   useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth <= 900);
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 900);
+      setIsSmallPhone(window.innerWidth <= 380);
+    };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -678,27 +684,35 @@ const PythonExercise = ({ isAuthenticated }) => {
         />
 
         {isMobileView && (
-          <div className={styles["mobile-panel-switcher-top"]}>
+          <div
+            className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
+          >
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "game" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("game")}
+              aria-label="Game Scene"
+              title="Game Scene"
             >
-              Game Scene
+              {isSmallPhone ? "Game" : "Game Scene"}
             </button>
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("editor")}
+              aria-label="Code Editor"
+              title="Code Editor"
             >
-              Code Editor
+              {isSmallPhone ? "Code" : "Code Editor"}
             </button>
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("terminal")}
+              aria-label="Terminal"
+              title="Terminal"
             >
-              Terminal
+              {isSmallPhone ? "Term" : "Terminal"}
             </button>
           </div>
         )}

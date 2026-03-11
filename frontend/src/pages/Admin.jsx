@@ -97,6 +97,7 @@ function Admin() {
   const [gaTraffic, setGaTraffic] = useState(null);
   const [gaLoading, setGaLoading] = useState(false);
   const [gaError, setGaError] = useState('');
+  const [gaTrafficMetric, setGaTrafficMetric] = useState('screenPageViews');
 
   const quizAttempts = quizMetrics?.attempts || [];
   const examAttempts = examMetrics?.attempts || [];
@@ -595,6 +596,127 @@ function Admin() {
     </div>
   );
 
+  const TRAFFIC_SERIES = [
+    { key: 'activeUsers', label: 'Active Users', color: '#38bdf8' },
+    { key: 'newusers', label: 'New Users', color: '#a78bfa' },
+    { key: 'sessions', label: 'Sessions', color: '#fbbf24' },
+    { key: 'screenPageViews', label: 'Page Views', color: '#34d399' },
+  ];
+
+  const formatGaDate = (raw) => {
+    if (!raw) return '-';
+    const s = String(raw);
+    if (s.length === 8) return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+    return s;
+  };
+
+  const TrafficChart = ({ traffic, seriesKey }) => {
+    const series = TRAFFIC_SERIES.find((s) => s.key === seriesKey) || TRAFFIC_SERIES[0];
+
+    const rows = (traffic || [])
+      .map((log) => ({
+        dateRaw: log?.date,
+        date: formatGaDate(log?.date),
+        activeUsers: Number(log?.activeUsers || 0),
+        newusers: Number(log?.newusers || 0),
+        sessions: Number(log?.sessions || 0),
+        screenPageViews: Number(log?.screenPageViews || 0),
+      }))
+      .sort((a, b) => String(a.dateRaw || a.date).localeCompare(String(b.dateRaw || b.date)));
+
+    const values = rows.map((r) => Number(r[series.key] || 0));
+    const maxValue = Math.max(1, ...values);
+
+    const W = 720;
+    const H = 240;
+    const padL = 44;
+    const padR = 16;
+    const padT = 18;
+    const padB = 42;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+    const n = Math.max(1, rows.length);
+    const gap = n > 7 ? 6 : 10;
+    const barW = Math.max(10, Math.floor((innerW - gap * (n - 1)) / n));
+
+    const xForIndex = (i) => padL + i * (barW + gap);
+    const yForValue = (v) => padT + (1 - v / maxValue) * innerH;
+    const hForValue = (v) => (v / maxValue) * innerH;
+
+    const ticks = 4;
+    const tickValues = Array.from({ length: ticks + 1 }, (_, i) => (maxValue * i) / ticks);
+
+    return (
+      <div className={styles.trafficChartWrap}>
+        <div className={styles.trafficChartMeta}>
+          <div className={styles.trafficChartMetric}>
+            <span className={styles.trafficChartMetricLabel}>{series.label}</span>
+            <span className={styles.trafficChartMetricValue}>{values.reduce((a, b) => a + b, 0)}</span>
+            <span className={styles.trafficChartMetricHint}>total (7d)</span>
+          </div>
+          <div className={styles.trafficChartMetric}>
+            <span className={styles.trafficChartMetricLabel}>Max</span>
+            <span className={styles.trafficChartMetricValue}>{values.length ? Math.max(...values) : 0}</span>
+            <span className={styles.trafficChartMetricHint}>single day</span>
+          </div>
+          <div className={styles.trafficChartMetric}>
+            <span className={styles.trafficChartMetricLabel}>Avg</span>
+            <span className={styles.trafficChartMetricValue}>{Math.round(values.reduce((a, b) => a + b, 0) / n)}</span>
+            <span className={styles.trafficChartMetricHint}>per day</span>
+          </div>
+        </div>
+
+        <div className={styles.trafficChartCanvas} role="img" aria-label={`Traffic chart for ${series.label} (last 7 days)`}>
+          <svg className={styles.trafficChartSvg} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+            {/* Grid */}
+            {tickValues.map((t, idx) => {
+              const y = yForValue(t);
+              return (
+                <g key={idx}>
+                  <line x1={padL} x2={W - padR} y1={y} y2={y} className={styles.trafficChartGridLine} />
+                  <text x={padL - 10} y={y + 4} textAnchor="end" className={styles.trafficChartTick}>
+                    {Math.round(t)}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Bars */}
+            {rows.map((r, i) => {
+              const v = Number(r[series.key] || 0);
+              const x = xForIndex(i);
+              const h = hForValue(v);
+              const y = padT + (innerH - h);
+              const label = r.date.slice(5);
+              return (
+                <g key={r.dateRaw || r.date}>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={barW}
+                    height={h}
+                    rx={3}
+                    fill={series.color}
+                    fillOpacity={0.78}
+                    className={styles.trafficChartBar}
+                  >
+                    <title>{`${r.date}: ${v}`}</title>
+                  </rect>
+                  <text x={x + barW / 2} y={H - 16} textAnchor="middle" className={styles.trafficChartXLabel}>
+                    {label}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Border */}
+            <rect x={padL} y={padT} width={innerW} height={innerH} className={styles.trafficChartFrame} />
+          </svg>
+        </div>
+      </div>
+    );
+  };
+
   const RangeSelector = ({ value, onChange }) => (
     <div className={styles.rangePicker} role="group" aria-label="Export range">
       {EXPORT_RANGE_OPTIONS.map((option) => (
@@ -691,47 +813,62 @@ function Admin() {
         {gaError ? <p className={styles.errorText} style={{ marginTop: 12 }}>{gaError}</p> : null}
 
         <div className={styles.panel} style={{ marginTop: 12, marginBottom: 24 }}>
-          <h3 className={styles.panelTitle}>Traffic Logs (Last 7 Days)</h3>
-          <div className={styles.quizTableWrap}>
-            <table className={styles.quizTable}>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Active Users</th>
-                  <th>New Users</th>
-                  <th>Sessions</th>
-                  <th>Page Views</th>
-                </tr>
-              </thead>
-              <tbody>
-                {gaLoading ? (
-                  <tr>
-                    <td colSpan={5} className={styles.quizEmpty}>Loading traffic data...</td>
-                  </tr>
-                ) : !gaTraffic || gaTraffic.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className={styles.quizEmpty}>No traffic data available.</td>
-                  </tr>
-                ) : (
-                  gaTraffic.map((log) => {
-                    const formattedDate = log.date && log.date.length === 8
-                      ? `${log.date.slice(0, 4)}-${log.date.slice(4, 6)}-${log.date.slice(6, 8)}`
-                      : log.date;
+          <div className={styles.trafficHeaderRow}>
+            <div>
+              <h3 className={styles.panelTitle} style={{ marginBottom: 4 }}>Traffic Logs (Last 7 Days)</h3>
+              <p className={styles.panelSubtitle}>Switch metrics to compare trends</p>
+            </div>
 
-                    return (
-                      <tr key={log.date}>
-                        <td>{formattedDate}</td>
-                        <td>{log.activeUsers}</td>
-                        <td>{log.newusers}</td>
-                        <td>{log.sessions}</td>
-                        <td>{log.screenPageViews}</td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+            <div className={styles.trafficSeriesPicker} role="tablist" aria-label="Traffic metric selector">
+              {TRAFFIC_SERIES.map((series) => (
+                <button
+                  key={series.key}
+                  type="button"
+                  className={`${styles.trafficSeriesButton} ${gaTrafficMetric === series.key ? styles.trafficSeriesButtonActive : ''}`}
+                  onClick={() => setGaTrafficMetric(series.key)}
+                  aria-selected={gaTrafficMetric === series.key}
+                >
+                  {series.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {gaLoading ? (
+            <div className={styles.trafficEmpty}>Loading traffic data...</div>
+          ) : !gaTraffic || gaTraffic.length === 0 ? (
+            <div className={styles.trafficEmpty}>No traffic data available.</div>
+          ) : (
+            <TrafficChart traffic={gaTraffic} seriesKey={gaTrafficMetric} />
+          )}
+
+          <details className={styles.trafficDetails}>
+            <summary className={styles.trafficDetailsSummary}>Raw table</summary>
+            <div className={styles.quizTableWrap}>
+              <table className={styles.quizTable}>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Active Users</th>
+                    <th>New Users</th>
+                    <th>Sessions</th>
+                    <th>Page Views</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(gaTraffic || []).map((log) => (
+                    <tr key={log.date}>
+                      <td>{formatGaDate(log.date)}</td>
+                      <td>{log.activeUsers}</td>
+                      <td>{log.newusers}</td>
+                      <td>{log.sessions}</td>
+                      <td>{log.screenPageViews}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </div>
 
         {/* Analytics Section */}

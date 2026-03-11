@@ -1444,9 +1444,20 @@
 
   .mobile-panel-switcher-top .mobile-switch-btn {
     flex: 1;
+    min-width: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  .mobile-panel-switcher-top-compact {
+    width: calc(100% - 16px);
+    gap: 0.35rem;
+  }
+
+  .mobile-panel-switcher-top-compact .mobile-switch-btn {
+    padding: 0.34rem 0.55rem;
+    font-size: 0.58rem;
   }
 
   .code-container {

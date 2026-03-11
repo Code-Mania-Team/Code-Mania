@@ -151,6 +151,53 @@
   display: none;
 }
 
+/* Side bookmark navigation (mobile only) */
+.sideBookmarks {
+  position: fixed;
+  right: 10px;
+  top: 86px;
+  z-index: 3500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bookmarkBtn {
+  width: 84px;
+  padding: 10px 10px;
+  border-radius: 14px 0 0 14px;
+  border: 2px solid rgba(148, 163, 184, 0.28);
+  background: rgba(2, 6, 23, 0.78);
+  color: rgba(226, 232, 240, 0.88);
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 0 rgba(2, 6, 23, 0.8);
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.bookmarkBtn:hover {
+  filter: brightness(1.08);
+}
+
+.bookmarkBtn:active {
+  transform: translateY(2px);
+}
+
+.bookmarkBtnActive {
+  border-color: rgba(56, 189, 248, 0.8);
+  color: #7dd3fc;
+  box-shadow: 0 6px 0 rgba(2, 6, 23, 0.8), 0 0 18px rgba(56, 189, 248, 0.25);
+}
+
+@media (min-width: 769px) {
+  .sideBookmarks {
+    display: none;
+  }
+}
+
 .mobileTaskTab {
   border: 1px solid rgba(147, 197, 253, 0.35);
   background: rgba(2, 6, 23, 0.92);
@@ -569,12 +616,8 @@
 }
 
 @media (max-width: 768px) {
-  :global(body.coding-exam-page) :global(.header) {
-    display: none !important;
-  }
-
   :global(body.coding-exam-page) :global(.main-content) {
-    padding-top: 0 !important;
+    padding-top: 72px !important;
     background: #0f172a;
   }
 

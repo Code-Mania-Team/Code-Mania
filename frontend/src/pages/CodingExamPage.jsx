@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import styles from "../styles/ExamPage.module.css";
 import { getCodingExamData } from "../data/codingExamData";
 import ExamCodeTerminal from "../components/ExamCodeTerminal";
+import Header from "../components/header";
 import useGetExamProblem from "../services/useGetExamProblem";
 import useExamAttempt from "../services/useExamAttempt";
 import useGetExercises from "../services/getExercise";
@@ -281,35 +282,35 @@ const CodingExamPage = () => {
 
   return (
     <div className={styles.page}>
+      <Header onOpenModal={() => navigate('/')} />
+
       {isMobileView && (
-        <>
-          <div className={styles.mobileTaskTabsWrap}>
-            <div className={styles.mobileTaskTabs}>
-              <button
-                type="button"
-                className={`${styles.mobileTaskTab} ${mobileTab === "learn" ? styles.mobileTaskTabActive : ""}`}
-                onClick={() => setMobileTab("learn")}
-              >
-                Learn
-              </button>
-              <button
-                type="button"
-                className={`${styles.mobileTaskTab} ${mobileTab === "code" ? styles.mobileTaskTabActive : ""}`}
-                onClick={() => setMobileTab("code")}
-              >
-                Code
-              </button>
-              <button
-                type="button"
-                className={`${styles.mobileTaskTab} ${mobileTab === "output" ? styles.mobileTaskTabActive : ""}`}
-                onClick={() => setMobileTab("output")}
-              >
-                Output
-              </button>
-            </div>
-          </div>
-          <div className={styles.mobileTaskTabsOffset} />
-        </>
+        <div className={styles.sideBookmarks} role="tablist" aria-label="Exam panels">
+          <button
+            type="button"
+            className={`${styles.bookmarkBtn} ${mobileTab === "learn" ? styles.bookmarkBtnActive : ""}`}
+            onClick={() => setMobileTab("learn")}
+            aria-selected={mobileTab === "learn"}
+          >
+            Learn
+          </button>
+          <button
+            type="button"
+            className={`${styles.bookmarkBtn} ${mobileTab === "code" ? styles.bookmarkBtnActive : ""}`}
+            onClick={() => setMobileTab("code")}
+            aria-selected={mobileTab === "code"}
+          >
+            Code
+          </button>
+          <button
+            type="button"
+            className={`${styles.bookmarkBtn} ${mobileTab === "output" ? styles.bookmarkBtnActive : ""}`}
+            onClick={() => setMobileTab("output")}
+            aria-selected={mobileTab === "output"}
+          >
+            Output
+          </button>
+        </div>
       )}
 
       <section

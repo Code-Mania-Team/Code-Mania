@@ -21,11 +21,16 @@ export default class QuestUI {
     this.bodyBaseY = 130;
 
     this.scrollbarWidth = 8;
-    this.scrollbarPadding = 14;
-    this.contentLeft = this.panelLeft + 30;
-    this.contentWidth = this.panelWidth - 60 - this.scrollbarWidth - this.scrollbarPadding;
 
-    this.scrollbarX = this.contentLeft + this.contentWidth + this.scrollbarPadding;
+    // Mobile scrollbar can overlap the task block background; keep extra gutter.
+    this.scrollbarPadding = this.isMobile ? 22 : 14;
+
+    const contentInsetLeft = this.isMobile ? 22 : 30;
+    const contentInsetRight = this.isMobile ? 18 : 30;
+
+    this.contentLeft = this.panelLeft + contentInsetLeft;
+    this.scrollbarX = this.panelLeft + this.panelWidth - contentInsetRight - this.scrollbarWidth;
+    this.contentWidth = Math.max(80, this.scrollbarX - this.contentLeft - this.scrollbarPadding);
     this.scrollbarMinY = this.bodyBaseY;
 
     this.panelBottomPad = 20;
