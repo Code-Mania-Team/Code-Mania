@@ -194,7 +194,7 @@ function App() {
   const presenceReconnectRef = useRef(null);
   const presenceBackoffRef = useRef(500);
   const presenceWsUrl = toWebSocketUrl(
-    import.meta.env.VITE_TERMINAL_WS_URL || "http://localhost:8000"
+    import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun"
   );
 
   useEffect(() => {
