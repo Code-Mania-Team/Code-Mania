@@ -287,6 +287,9 @@ const InteractiveTerminal = ({
       window.dispatchEvent(new Event("code-mania:terminal-active"));
       socket.send(JSON.stringify({ language, code }));
 
+      // Allow typing immediately; stdin can be buffered by the process.
+      setWaitingForInput(true);
+
       // 🔥 FORCE FOCUS
       setTimeout(() => {
         terminalRef.current?.focus();
@@ -301,10 +304,10 @@ const InteractiveTerminal = ({
       finalOutput += e.data;
       setProgramOutput(prev => prev + e.data);
 
-      if (!e.data.endsWith("\n")) {
-        setWaitingForInput(true);
-        terminalRef.current?.focus();
-      }
+      // Keep stdin enabled; relying on newline heuristics breaks for
+      // programs that wait for input after printing a full line.
+      setWaitingForInput(true);
+      terminalRef.current?.focus();
     };
 
     socket.onclose = async () => {
@@ -465,14 +468,14 @@ const InteractiveTerminal = ({
   const handleSubmitInput = () => {
     const value = inputBuffer;
     setProgramOutput(prev => prev + value + "\n");
-    if (socketRef.current) {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({ stdin: value }));
     }
     setInputBuffer("");
   };
 
   const handleKeyDown = (e) => {
-    if (!isQuestActive || isQuestCompleted || !isRunning || !waitingForInput) {
+    if (!isQuestActive || isQuestCompleted || !isRunning) {
       return;
     }
 

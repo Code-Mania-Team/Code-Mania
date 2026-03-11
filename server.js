@@ -716,7 +716,13 @@ wss.on("connection", (ws) => {
   }
 
   ws.on("message", async (raw) => {
-    const msg = JSON.parse(raw.toString());
+    let msg;
+    try {
+      msg = JSON.parse(raw.toString());
+    } catch {
+      ws.send("Invalid message\n");
+      return;
+    }
     const { mode = "exercise", language, code, testCases = [] } = msg;
 
     if (!docker) {
@@ -798,8 +804,9 @@ wss.on("connection", (ws) => {
     }
 
     // STDIN for practice mode
-    if (docker && msg.stdin) {
-      docker.stdin.write(msg.stdin + "\n");
+    if (docker && Object.prototype.hasOwnProperty.call(msg, "stdin")) {
+      const stdinValue = msg.stdin == null ? "" : String(msg.stdin);
+      docker.stdin.write(stdinValue + "\n");
       resetTimeout();
     }
   });
