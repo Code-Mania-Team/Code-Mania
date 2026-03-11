@@ -96,7 +96,8 @@ class AccountController {
             // 8. Set cookies
             res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-            res.cookie('refreshToken', refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
+            res.cookie("refreshToken", refreshToken, createCookieOptions(7 * 24 * 60 * 60 * 1000));
+
 
             return res.status(200).json({
                 success: true,
@@ -246,7 +247,8 @@ class AccountController {
                 }
 
                 res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
-                res.cookie("refreshToken", refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
+                res.cookie("refreshToken", refreshToken, createCookieOptions(7 * 24 * 60 * 60 * 1000));
+
 
                 return res.redirect(`${FRONTEND_URL}/dashboard?success=true`);
             } else {
@@ -306,7 +308,7 @@ class AccountController {
 
                 res.cookie("accessToken", accessToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-                res.cookie("refreshToken", newRefreshToken, createCookieOptions(24 * 60 * 60 * 1000));
+                res.cookie("refreshToken", newRefreshToken, createCookieOptions(7 * 24 * 60 * 60 * 1000));
                 return res.status(200).json({
                     success: true,
                     accessToken,

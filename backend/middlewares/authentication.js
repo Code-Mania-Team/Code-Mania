@@ -2,8 +2,7 @@ import jwt from "jsonwebtoken";
 
 export default function authentication(req, res, next) {
     const token =
-        req.cookies.accessToken ||
-        req.headers.authorization?.replace('Bearer ', '');
+        req.cookies.accessToken;
 
     if (!token) {
         return res.status(401).json({
