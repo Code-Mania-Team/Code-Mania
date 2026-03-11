@@ -122,7 +122,6 @@ const InteractiveTerminal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [testResults, setTestResults] = useState(null);
-  const [showTestResultsPanel, setShowTestResultsPanel] = useState(true);
   const [isQuestActive, setIsQuestActive] = useState(false);
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
   const [failedSubmissions, setFailedSubmissions] = useState(0);
@@ -288,6 +287,9 @@ const InteractiveTerminal = ({
       window.dispatchEvent(new Event("code-mania:terminal-active"));
       socket.send(JSON.stringify({ language, code }));
 
+      // Allow typing immediately; stdin can be buffered by the process.
+      setWaitingForInput(true);
+
       // 🔥 FORCE FOCUS
       setTimeout(() => {
         terminalRef.current?.focus();
@@ -302,10 +304,10 @@ const InteractiveTerminal = ({
       finalOutput += e.data;
       setProgramOutput(prev => prev + e.data);
 
-      if (!e.data.endsWith("\n")) {
-        setWaitingForInput(true);
-        terminalRef.current?.focus();
-      }
+      // Keep stdin enabled; relying on newline heuristics breaks for
+      // programs that wait for input after printing a full line.
+      setWaitingForInput(true);
+      terminalRef.current?.focus();
     };
 
     socket.onclose = async () => {
@@ -466,14 +468,14 @@ const InteractiveTerminal = ({
   const handleSubmitInput = () => {
     const value = inputBuffer;
     setProgramOutput(prev => prev + value + "\n");
-    if (socketRef.current) {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({ stdin: value }));
     }
     setInputBuffer("");
   };
 
   const handleKeyDown = (e) => {
-    if (!isQuestActive || isQuestCompleted || !isRunning || !waitingForInput) {
+    if (!isQuestActive || isQuestCompleted || !isRunning) {
       return;
     }
 
@@ -502,17 +504,6 @@ const InteractiveTerminal = ({
   const passedObjectives = validationResult
     ? Object.values(validationResult).filter(obj => obj.passed).length
     : 0;
-
-  const runtimeTotal = Array.isArray(testResults) ? testResults.length : 0;
-  const runtimePassed = Array.isArray(testResults)
-    ? testResults.filter((t) => t?.passed).length
-    : 0;
-
-  useEffect(() => {
-    if (validationResult || (Array.isArray(testResults) && testResults.length > 0)) {
-      setShowTestResultsPanel(true);
-    }
-  }, [validationResult, testResults]);
 
   /* ===============================
      RENDER
@@ -630,35 +621,13 @@ const InteractiveTerminal = ({
       </div>
       ))}
       {(validationResult || (Array.isArray(testResults) && testResults.length > 0)) && (
-        <div
-          className={`${styles["validation-box"]} ${
-            showTestResultsPanel ? "" : styles["validation-box-collapsed"]
-          }`}
-        >
-          <div className={styles["validation-header"]}>
-            <div className={styles["validation-title"]}>Test results</div>
-            <button
-              type="button"
-              className={styles["validation-toggle"]}
-              onClick={() => setShowTestResultsPanel((v) => !v)}
-              aria-label={showTestResultsPanel ? "Hide test results" : "Show test results"}
-              title={showTestResultsPanel ? "Hide" : "Show"}
-            >
-              {showTestResultsPanel ? "<<" : ">>"}
-            </button>
-          </div>
-
-          <div className={styles["validation-body"]}>
-            <div className={styles["validation-summary"]}>
-              {validationResult ? (
-                <>Test Results: {passedObjectives} / {totalObjectives} passed</>
-              ) : (
-                <>Runtime Tests: {runtimePassed} / {runtimeTotal} passed</>
-              )}
-            </div>
-
+          <div className={styles["validation-box"]}>
             {validationResult && (
               <>
+                <h4 className={styles["validation-summary"]}>
+                  Test Results: {passedObjectives} / {totalObjectives} passed
+                </h4>
+
                 {Object.values(validationResult).map((obj, index) => (
                   <div
                     key={index}
@@ -679,9 +648,7 @@ const InteractiveTerminal = ({
 
             {Array.isArray(testResults) && testResults.length > 0 && (
               <>
-                {validationResult && (
-                  <h4 className={styles["validation-subtitle"]}>Runtime Tests</h4>
-                )}
+                <h4 className={styles["validation-summary"]}>Runtime Tests</h4>
                 {testResults.map((test, index) => (
                   <div
                     key={`runtime-${index}`}
@@ -698,7 +665,7 @@ const InteractiveTerminal = ({
 
             {validationResult && passedObjectives === totalObjectives && (
               <div className={styles["all-pass"]}>
-                All tests passed!
+                🎉 All tests passed!
               </div>
             )}
 
@@ -713,20 +680,11 @@ const InteractiveTerminal = ({
               </div>
             )}
           </div>
-        </div>
         )}
 
       {(!isQuestActive || isQuestCompleted) && (
         <div className={styles["terminal-lock-overlay"]}>
-          <p
-            className={`${styles["terminal-lock-text"]} ${
-              isQuestCompleted ? styles["terminal-lock-text-done"] : ""
-            }`}
-          >
-            {isQuestCompleted
-              ? "Quest done! Follow the arrows to continue to the next quest."
-              : "Interact with something to unlock this code terminal."}
-          </p>
+          <p className={styles["terminal-lock-text"]}>Interact with something to unlock this code terminal.</p>
         </div>
       )}
     </div>
