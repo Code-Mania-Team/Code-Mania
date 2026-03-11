@@ -228,14 +228,33 @@
   margin-top: 14px;
 }
 
+/* 5-up card grid (Analytics top cards) */
+.grid5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .grid5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 980px) {
   .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid5 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid5 {
     grid-template-columns: 1fr;
   }
 }
@@ -253,6 +272,29 @@
   opacity: 0.8;
   margin: 0 0 8px;
   text-align: left;
+}
+
+.onlineTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onlineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.onlineDotOn {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18), 0 0 14px rgba(34, 197, 94, 0.45);
+}
+
+.onlineDotOff {
+  background: rgba(148, 163, 184, 0.55);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
 }
 
 .cardValue {

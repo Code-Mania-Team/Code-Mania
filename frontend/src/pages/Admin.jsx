@@ -755,9 +755,17 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
           </div>
         </div>
 
-        <div className={styles.grid}>
+        <div className={`${styles.grid} ${styles.grid5}`}>
           <StatCard
-            title="Online Users"
+            title={(
+              <span className={styles.onlineTitle}>
+                <span
+                  className={`${styles.onlineDot} ${presenceWsStatus === 'connected' ? styles.onlineDotOn : styles.onlineDotOff}`}
+                  aria-hidden="true"
+                />
+                Online Users
+              </span>
+            )}
             value={presenceWsStatus === 'connected' ? (presenceStats.uniqueUsers ?? 0) : '…'}
             subtitle={null}
           />
