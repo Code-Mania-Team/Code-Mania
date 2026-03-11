@@ -7,9 +7,13 @@ export default class ChestQuestIconManager {
 
   createIcon(x, y, questId) {
     const pooled = this.pool.pop();
-    const icon = pooled || this.scene.add.sprite(x, y - 32, "exclamation");
+    const icon = pooled || this.scene.add.sprite(x, y, "exclamation");
 
-    icon.setPosition(x, y - 32);
+    // y is typically the top of the chest tile.
+    icon
+      .setOrigin(0.5, 1)
+      .setDisplaySize(48, 48)
+      .setPosition(x, y + 6);
     icon.setActive(true);
     icon.setVisible(true);
     icon.setDepth(1000);
