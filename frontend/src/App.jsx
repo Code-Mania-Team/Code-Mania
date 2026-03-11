@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link, Navigate } from "react-router-dom";
 import "./App.css";
 import Header from "./components/header";
@@ -38,6 +38,15 @@ const ScrollToTop = () => {
   }, [pathname]);
   return null;
 };
+
+function toWebSocketUrl(input) {
+  const url = String(input || "").trim();
+  if (!url) return url;
+  if (url.startsWith("ws://") || url.startsWith("wss://")) return url;
+  if (url.startsWith("https://")) return url.replace(/^https:\/\//, "wss://");
+  if (url.startsWith("http://")) return url.replace(/^http:\/\//, "ws://");
+  return url;
+}
 
 // Home page
 const Home = () => (
@@ -172,11 +181,165 @@ function App() {
   const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
   const [isNewUser, setIsNewUser] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [presenceStats, setPresenceStats] = useState({ connections: 0, uniqueUsers: 0 });
+  const [presenceWsStatus, setPresenceWsStatus] = useState('disconnected');
   const location = useLocation();
   const navigate = useNavigate();
 
 
   const SessionOut = useSessionOut();
+
+  // Presence (online users) tracking via WebSocket
+  const presenceSocketRef = useRef(null);
+  const presenceReconnectRef = useRef(null);
+  const presenceBackoffRef = useRef(500);
+  const presenceWsUrl = toWebSocketUrl(
+    import.meta.env.VITE_TERMINAL_WS_URL || "http://localhost:8000"
+  );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setPresenceWsStatus('disconnected');
+      setPresenceStats({ connections: 0, uniqueUsers: 0 });
+      if (presenceReconnectRef.current) {
+        clearTimeout(presenceReconnectRef.current);
+        presenceReconnectRef.current = null;
+      }
+      if (presenceSocketRef.current) {
+        try {
+          presenceSocketRef.current.close();
+        } catch {
+          // ignore
+        }
+        presenceSocketRef.current = null;
+      }
+      return;
+    }
+
+    if (!presenceWsUrl) return;
+
+    let cancelled = false;
+
+    const scheduleReconnect = () => {
+      if (cancelled) return;
+      if (presenceReconnectRef.current) return;
+
+      const wait = Math.min(30000, Math.max(250, presenceBackoffRef.current));
+      presenceBackoffRef.current = Math.min(30000, presenceBackoffRef.current * 2);
+
+      presenceReconnectRef.current = setTimeout(() => {
+        presenceReconnectRef.current = null;
+        connect();
+      }, wait);
+    };
+
+    const connect = () => {
+      if (cancelled) return;
+
+      setPresenceWsStatus('connecting');
+
+      let ws;
+      try {
+        ws = new WebSocket(presenceWsUrl);
+      } catch {
+        setPresenceWsStatus('error');
+        scheduleReconnect();
+        return;
+      }
+
+      presenceSocketRef.current = ws;
+
+      ws.onopen = () => {
+        presenceBackoffRef.current = 500;
+        setPresenceWsStatus('connected');
+        try {
+          ws.send(JSON.stringify({ type: "presence:subscribe" }));
+          if (user?.user_id) {
+            ws.send(
+              JSON.stringify({
+                type: "presence:identify",
+                userId: user.user_id,
+                username: user.username || null,
+              })
+            );
+          }
+        } catch {
+          // ignore
+        }
+      };
+
+      ws.onmessage = (e) => {
+        let payload;
+        try {
+          payload = JSON.parse(String(e.data || ''));
+        } catch {
+          return;
+        }
+
+        if (payload?.type === 'presence:update') {
+          setPresenceStats({
+            connections: Number(payload.connections || 0),
+            uniqueUsers: Number(payload.uniqueUsers || 0),
+          });
+        }
+      };
+
+      ws.onclose = () => {
+        if (presenceSocketRef.current === ws) {
+          presenceSocketRef.current = null;
+        }
+        setPresenceWsStatus('disconnected');
+        scheduleReconnect();
+      };
+
+      ws.onerror = () => {
+        setPresenceWsStatus('error');
+        try {
+          ws.close();
+        } catch {
+          // ignore
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (presenceReconnectRef.current) {
+        clearTimeout(presenceReconnectRef.current);
+        presenceReconnectRef.current = null;
+      }
+      if (presenceSocketRef.current) {
+        try {
+          presenceSocketRef.current.close();
+        } catch {
+          // ignore
+        }
+        presenceSocketRef.current = null;
+      }
+    };
+  }, [isAuthenticated, presenceWsUrl]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (!user?.user_id) return;
+
+    const ws = presenceSocketRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+    try {
+      ws.send(
+        JSON.stringify({
+          type: "presence:identify",
+          userId: user.user_id,
+          username: user.username || null,
+        })
+      );
+    } catch {
+      // ignore
+    }
+  }, [isAuthenticated, user?.user_id, user?.username]);
 
   useEffect(() => {
     if (location.state?.openSignIn) {
@@ -332,7 +495,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute>
             {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
           </ProtectedRoute>} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<Admin presenceStats={presenceStats} presenceWsStatus={presenceWsStatus} />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/exam/:language" element={<ProtectedRoute>
             <CodingExamPage />

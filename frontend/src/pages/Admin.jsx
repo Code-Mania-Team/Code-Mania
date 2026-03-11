@@ -6,7 +6,7 @@ import { BarChart3, Database } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
 
-function Admin() {
+function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsStatus = 'disconnected' }) {
   const ATTEMPTS_PER_PAGE = 10;
   const EXPORT_RANGE_OPTIONS = [
     { value: '1week', label: '1 week', days: 7 },
@@ -543,6 +543,7 @@ function Admin() {
     };
   }, []);
 
+
   useEffect(() => {
     setQuizAttemptsPage(1);
   }, [quizAttempts.length]);
@@ -755,6 +756,11 @@ function Admin() {
         </div>
 
         <div className={styles.grid}>
+          <StatCard
+            title="Online Users"
+            value={presenceWsStatus === 'connected' ? (presenceStats.uniqueUsers ?? 0) : '…'}
+            subtitle={null}
+          />
           <StatCard title="Total Users" value={metricsLoading ? '…' : (metrics?.totalUsers ?? demo.totalUsers)} />
           <StatCard title="New Users (7 days)" value={metricsLoading ? '…' : (metrics?.newUsers7d ?? demo.newUsers7d)} />
           <StatCard title="New Users (30 days)" value={metricsLoading ? '…' : (metrics?.newUsers30d ?? 0)} />
