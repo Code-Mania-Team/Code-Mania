@@ -6,11 +6,6 @@ import styles from "../styles/Learn.module.css";
 const Learn = () => {
   const navigate = useNavigate();
 
-  // Check if user is logged in
-  const [isLoggedIn, setIsLoggedIn] = React.useState(() => {
-    return localStorage.getItem('token') !== null;
-  });
-
   const courses = [
     {
       id: 1,
@@ -79,10 +74,6 @@ const Learn = () => {
                 <button 
                   className={styles.button}
                   onClick={() => {
-                    if (!isLoggedIn) {
-                      navigate('/login');
-                      return;
-                    }
                     if (!course.route) return;
                     localStorage.setItem('hasTouchedCourse', 'true');
                     localStorage.setItem('lastCourseTitle', course.title);
@@ -90,7 +81,7 @@ const Learn = () => {
                     navigate(course.route);
                   }}
                 >
-                  {isLoggedIn ? 'Start Learning' : 'Login to Start'}
+                  Start Learning
                 </button>
               </div>
             </div>
