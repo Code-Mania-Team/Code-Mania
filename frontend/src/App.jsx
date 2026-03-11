@@ -42,9 +42,6 @@ const ScrollToTop = () => {
 function toWebSocketUrl(input) {
   const url = String(input || "").trim();
   if (!url) return url;
-  if (url.startsWith("ws://") || url.startsWith("wss://")) return url;
-  if (url.startsWith("https://")) return url.replace(/^https:\/\//, "wss://");
-  if (url.startsWith("http://")) return url.replace(/^http:\/\//, "ws://");
   return url;
 }
 
@@ -194,7 +191,7 @@ function App() {
   const presenceReconnectRef = useRef(null);
   const presenceBackoffRef = useRef(500);
   const presenceWsUrl = toWebSocketUrl(
-    import.meta.env.VITE_TERMINAL_WS_URL || "http://localhost:8000"
+    import.meta.env.VITE_TERMINAL_WS_URL || "ws://localhost:8000"
   );
 
   useEffect(() => {
