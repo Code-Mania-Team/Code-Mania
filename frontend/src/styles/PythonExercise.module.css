@@ -146,12 +146,22 @@
   margin: 0;
   max-width: 320px;
   padding: 0.9rem 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid rgba(148, 163, 184, 0.55);
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.92) 100%);
   color: #e2e8f0;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.66rem;
+  line-height: 1.65;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  box-shadow: 0 6px 0 rgba(2, 6, 23, 0.85);
+}
+
+.terminal-lock-text-done {
+  border-color: rgba(34, 197, 94, 0.95);
+  box-shadow: 0 6px 0 rgba(2, 6, 23, 0.85), 0 0 18px rgba(34, 197, 94, 0.18);
+  color: rgba(220, 252, 231, 0.98);
 }
 
 .code-editor,
@@ -1023,8 +1033,8 @@
   bottom: 16px;
   width: min(250px, calc(100vw - 32px));
   max-height: 48vh;
-  overflow-y: auto;
-  padding: 12px;
+  overflow: hidden;
+  padding: 0;
   background: rgba(18, 22, 30, 0.96);
   border-radius: 10px;
   border: 1px solid #2d2d2d;
@@ -1032,6 +1042,14 @@
   z-index: 1400;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
   animation: validationToastIn 180ms ease-out;
+}
+
+.validation-box-collapsed .validation-body {
+  transform: translateX(-110%);
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 @keyframes validationToastIn {
@@ -1046,8 +1064,69 @@
 }
 
 .validation-summary {
-  margin-bottom: 10px;
+  margin: 0;
   color: #e0e0e0;
+}
+
+.validation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px;
+  background: rgba(2, 6, 23, 0.65);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.validation-title {
+  font-family: "Press Start 2P", cursive;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.validation-toggle {
+  flex: 0 0 auto;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  background: rgba(2, 6, 23, 0.6);
+  color: rgba(226, 232, 240, 0.95);
+  border-radius: 0;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  line-height: 1;
+  box-shadow: 0 3px 0 rgba(2, 6, 23, 0.85);
+}
+
+.validation-body {
+  padding: 12px;
+  overflow-y: auto;
+  max-height: calc(48vh - 48px);
+  transform: translateX(0);
+  opacity: 1;
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease,
+    max-height 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, max-height;
+}
+
+.validation-toggle:hover {
+  filter: brightness(1.08);
+}
+
+.validation-toggle:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 rgba(2, 6, 23, 0.85);
+}
+
+.validation-subtitle {
+  margin: 10px 0 8px;
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 12px;
 }
 
 /* ✅ PASS STYLE */

@@ -1589,16 +1589,6 @@ const Profile = ({ onSignOut }) => {
             <div className={styles.assessmentsContainer}>
               <h3 className={styles.progressTitle}>Your Quiz & Exam History</h3>
 
-              {assessmentsLoading ? (
-                <div className={styles.assessmentsEmpty}>
-                  Loading your attempts...
-                </div>
-              ) : assessmentsError ? (
-                <div className={styles.assessmentsEmpty}>
-                  {assessmentsError}
-                </div>
-              ) : null}
-
               <div className={styles.assessmentsSection}>
                 <div className={styles.assessmentsSectionTitle}>Quizzes</div>
                 {quizAttempts.length === 0 ? (
@@ -1715,21 +1705,8 @@ const Profile = ({ onSignOut }) => {
               </div>
             </div>
           )}
-
-
-
         </div>
-
-
-
-
-
-
-
-
-
-
-
+        
       {/* Edit Account Modal */}
 
 

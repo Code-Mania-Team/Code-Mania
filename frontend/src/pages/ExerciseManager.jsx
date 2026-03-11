@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
-import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 
 const ExerciseManager = () => {
@@ -112,19 +112,6 @@ const ExerciseManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this exercise?")) {
-      try {
-        await axiosPublic.delete(`/v1/admin/exercises/${id}`, {
-          withCredentials: true
-        });
-        await fetchExercises();
-      } catch (error) {
-        console.error("Error deleting exercise:", error);
-        alert("Error deleting exercise");
-      }
-    }
-  };
 
   const handleCancel = () => {
     setEditingExercise(null);
@@ -168,7 +155,7 @@ const ExerciseManager = () => {
               style={{ marginRight: 16 }}
             >
               <ArrowLeft size={16} style={{ marginRight: 4 }} />
-              Back
+              Back to Admin
             </button>
             <h2 className={styles.title}>{course.charAt(0).toUpperCase() + course.slice(1)} Exercises</h2>
           </div>
@@ -219,14 +206,6 @@ const ExerciseManager = () => {
                     >
                       <Edit size={16} />
                     </button>
-                    <button 
-                      className={styles.button} 
-                      type="button" 
-                      onClick={() => handleDelete(exercise.id)}
-                      style={{ backgroundColor: '#ef4444' }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   </div>
                 </>
               )}
@@ -243,6 +222,21 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const formatValidationMode = (mode) => {
+    const value = String(mode || "").toLowerCase();
+    if (value === "fundamentals") return "Fundamentals";
+    if (value === "hybrid") return "Hybrid";
+    if (value === "output") return "Output";
+    return mode || "";
+  };
+
+  const formatStatus = (status) => {
+    const value = String(status || "").toLowerCase();
+    if (value === "draft") return "Draft";
+    if (value === "published") return "Published";
+    return status || "";
+  };
+
   return (
     <div className={styles.formGrid}>
       <div className={styles.formGroup}>
@@ -250,7 +244,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
         <input
           type="number"
           value={formData.exercise_id || ''}
-          onChange={(e) => handleChange('exercise_id', parseInt(e.target.value))}
+          disabled
         />
       </div>
 
@@ -259,20 +253,18 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
         <input
           type="text"
           value={formData.title || ''}
-          onChange={(e) => handleChange('title', e.target.value)}
+          disabled
         />
       </div>
 
       <div className={styles.formGroup}>
         <label>Validation Mode</label>
-        <select
-          value={formData.validation_mode || 'HYBRID'}
-          onChange={(e) => handleChange('validation_mode', e.target.value)}
-        >
-          <option value="FUNDAMENTALS">Fundamentals</option>
-          <option value="HYBRID">Hybrid</option>
-          <option value="OUTPUT">Output</option>
-        </select>
+        <input
+          type="text"
+          value={formatValidationMode(formData.validation_mode || 'HYBRID')}
+          disabled
+          readOnly
+        />
       </div>
 
       <div className={styles.formGroup}>
@@ -280,19 +272,18 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
         <input
           type="number"
           value={formData.experience || 100}
-          onChange={(e) => handleChange('experience', parseInt(e.target.value))}
+          disabled
         />
       </div>
 
       <div className={styles.formGroup}>
         <label>Status</label>
-        <select
-          value={formData.status || 'draft'}
-          onChange={(e) => handleChange('status', e.target.value)}
-        >
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-        </select>
+        <input
+          type="text"
+          value={formatStatus(formData.status || 'draft')}
+          disabled
+          readOnly
+        />
       </div>
 
       <div className={styles.formGroup}>
@@ -300,7 +291,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
         <input
           type="number"
           value={formData.order_index || 1}
-          onChange={(e) => handleChange('order_index', parseInt(e.target.value))}
+          disabled
         />
       </div>
 

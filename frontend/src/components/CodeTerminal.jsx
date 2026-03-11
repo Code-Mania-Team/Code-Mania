@@ -122,6 +122,7 @@ const InteractiveTerminal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [testResults, setTestResults] = useState(null);
+  const [showTestResultsPanel, setShowTestResultsPanel] = useState(true);
   const [isQuestActive, setIsQuestActive] = useState(false);
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
   const [failedSubmissions, setFailedSubmissions] = useState(0);
@@ -502,6 +503,17 @@ const InteractiveTerminal = ({
     ? Object.values(validationResult).filter(obj => obj.passed).length
     : 0;
 
+  const runtimeTotal = Array.isArray(testResults) ? testResults.length : 0;
+  const runtimePassed = Array.isArray(testResults)
+    ? testResults.filter((t) => t?.passed).length
+    : 0;
+
+  useEffect(() => {
+    if (validationResult || (Array.isArray(testResults) && testResults.length > 0)) {
+      setShowTestResultsPanel(true);
+    }
+  }, [validationResult, testResults]);
+
   /* ===============================
      RENDER
   =============================== */
@@ -618,13 +630,35 @@ const InteractiveTerminal = ({
       </div>
       ))}
       {(validationResult || (Array.isArray(testResults) && testResults.length > 0)) && (
-          <div className={styles["validation-box"]}>
+        <div
+          className={`${styles["validation-box"]} ${
+            showTestResultsPanel ? "" : styles["validation-box-collapsed"]
+          }`}
+        >
+          <div className={styles["validation-header"]}>
+            <div className={styles["validation-title"]}>Test results</div>
+            <button
+              type="button"
+              className={styles["validation-toggle"]}
+              onClick={() => setShowTestResultsPanel((v) => !v)}
+              aria-label={showTestResultsPanel ? "Hide test results" : "Show test results"}
+              title={showTestResultsPanel ? "Hide" : "Show"}
+            >
+              {showTestResultsPanel ? "<<" : ">>"}
+            </button>
+          </div>
+
+          <div className={styles["validation-body"]}>
+            <div className={styles["validation-summary"]}>
+              {validationResult ? (
+                <>Test Results: {passedObjectives} / {totalObjectives} passed</>
+              ) : (
+                <>Runtime Tests: {runtimePassed} / {runtimeTotal} passed</>
+              )}
+            </div>
+
             {validationResult && (
               <>
-                <h4 className={styles["validation-summary"]}>
-                  Test Results: {passedObjectives} / {totalObjectives} passed
-                </h4>
-
                 {Object.values(validationResult).map((obj, index) => (
                   <div
                     key={index}
@@ -645,7 +679,9 @@ const InteractiveTerminal = ({
 
             {Array.isArray(testResults) && testResults.length > 0 && (
               <>
-                <h4 className={styles["validation-summary"]}>Runtime Tests</h4>
+                {validationResult && (
+                  <h4 className={styles["validation-subtitle"]}>Runtime Tests</h4>
+                )}
                 {testResults.map((test, index) => (
                   <div
                     key={`runtime-${index}`}
@@ -662,7 +698,7 @@ const InteractiveTerminal = ({
 
             {validationResult && passedObjectives === totalObjectives && (
               <div className={styles["all-pass"]}>
-                🎉 All tests passed!
+                All tests passed!
               </div>
             )}
 
@@ -677,11 +713,20 @@ const InteractiveTerminal = ({
               </div>
             )}
           </div>
+        </div>
         )}
 
       {(!isQuestActive || isQuestCompleted) && (
         <div className={styles["terminal-lock-overlay"]}>
-          <p className={styles["terminal-lock-text"]}>Interact with something to unlock this code terminal.</p>
+          <p
+            className={`${styles["terminal-lock-text"]} ${
+              isQuestCompleted ? styles["terminal-lock-text-done"] : ""
+            }`}
+          >
+            {isQuestCompleted
+              ? "Quest done! Follow the arrows to continue to the next quest."
+              : "Interact with something to unlock this code terminal."}
+          </p>
         </div>
       )}
     </div>
