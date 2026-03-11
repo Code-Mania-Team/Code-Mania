@@ -93,7 +93,7 @@
                         {
                          "name":"required_quest",
                          "type":"int",
-                         "value":1
+                         "value":5
                         }, 
                         {
                          "name":"target_map",
@@ -109,8 +109,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":867.666666666667,
-                 "y":133.666666666667
+                 "x":984.666666666667,
+                 "y":102.666666666667
                 }],
          "opacity":1,
          "type":"objectgroup",
