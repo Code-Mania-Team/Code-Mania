@@ -3,6 +3,7 @@ import AccountService from "../../services/accountService.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
+import path from "path";
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
@@ -565,14 +566,16 @@ class AccountController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "none",
-                domain: ".codemania.fun"          
+                domain: ".codemania.fun",
+                path: "/"         
             });
 
             res.clearCookie("refreshToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "none",
-                domain: ".codemania.fun"
+                domain: ".codemania.fun",
+                path: "/"
             });
 
             res.set("Cache-Control", "no-store");
