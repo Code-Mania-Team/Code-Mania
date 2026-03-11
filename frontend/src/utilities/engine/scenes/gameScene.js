@@ -18,6 +18,7 @@ import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
+import LessonExampleSplash from "../ui/lessonExampleSplash";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
@@ -32,6 +33,9 @@ export default class GameScene extends Phaser.Scene {
     this.exerciseId = data.exerciseId;
     this.quest = data.quest || null;
     this.completedQuestIds = new Set(data.completedQuests || []);
+
+    this._lessonExampleSplashShownForQuestId = null;
+    this.lessonExampleSplash = null;
 
     const normalizeLanguage = (value) => {
       const normalized = String(value || "").toLowerCase();
@@ -84,6 +88,26 @@ export default class GameScene extends Phaser.Scene {
     this._arrowVisible = false;
   }
 
+  getQuestLessonSplashContent(quest) {
+    if (!quest) return { title: "", body: "" };
+    const title = String(quest.title || "").trim();
+    const body = String(quest.lesson_example || "").trim();
+    return { title, body };
+  }
+
+  maybeShowLessonExampleSplash() {
+    const questId = Number(this.quest?.id ?? this.exerciseId);
+    if (Number.isFinite(questId) && this._lessonExampleSplashShownForQuestId === questId) return;
+
+    const { title, body } = this.getQuestLessonSplashContent(this.quest);
+    if (!title && !body) return;
+
+    if (Number.isFinite(questId)) {
+      this._lessonExampleSplashShownForQuestId = questId;
+    }
+    this.lessonExampleSplash?.show({ title, body });
+  }
+
   loadSpritesheetIfMissing(key, path, options) {
     if (this.textures.exists(key)) return;
     this.load.spritesheet(key, path, options);
@@ -92,6 +116,26 @@ export default class GameScene extends Phaser.Scene {
   loadAudioIfMissing(key, path) {
     if (this.cache.audio.exists(key)) return;
     this.load.audio(key, path);
+  }
+
+  isGameplayLocked() {
+    const questActive = Boolean(
+      this.questManager?.activeQuest && !this.questManager.activeQuest.completed
+    );
+
+    const cutsceneRunning = Boolean(
+      this.cutsceneManager?.running && !this.cutsceneManager.stopRequested
+    );
+
+    return (
+      !this.playerCanMove ||
+      questActive ||
+      cutsceneRunning ||
+      this.dialogueManager?.active ||
+      this.questHUD?.visible ||
+      this.gamePausedByTerminal ||
+      this.isTypingInUI()
+    );
   }
 
   createCutsceneSkipButton(onSkip) {
@@ -109,8 +153,19 @@ export default class GameScene extends Phaser.Scene {
       .setDepth(30010)
       .setInteractive({ useHandCursor: true });
 
-    this.cutsceneSkipButton.on("pointerdown", (pointer) => {
+    this.cutsceneSkipButton.on("pointerdown", () => {
       onSkip?.();
+
+      // Immediately restore gameplay camera view when skipping.
+      if (this.player && this.cameras?.main) {
+        this.cameras.main.panEffect?.reset?.();
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.centerOn(this.player.x, this.player.y);
+      }
+      this.cinematicBars?.hide?.(250);
+      this.playerCanMove = true;
+
+      this.destroyCutsceneSkipButton();
     });
 
     this.handleCutsceneSkipResize = () => {
@@ -383,7 +438,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
     this.input.keyboard.on("keydown-E", () => {
-      if (this.isTypingInUI()) return;
+      if (this.isGameplayLocked()) return;
       this.handleInteract();
     });
 
@@ -395,8 +450,7 @@ export default class GameScene extends Phaser.Scene {
     // });
 
     this.input.keyboard.on("keydown-Q", () => {
-      if (this.isTypingInUI()) return;
-      if (this.gamePausedByTerminal) return;
+      if (this.isGameplayLocked()) return;
       this.questHUD.toggle(this.questManager.activeQuest);
     });
 
@@ -558,6 +612,7 @@ export default class GameScene extends Phaser.Scene {
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
     this.badgeUnlockPopup.container?.setDepth(30000);
     this.cinematicBars = new CinematicBars(this);
+    this.lessonExampleSplash = new LessonExampleSplash(this);
 
     const computeMobileMode = () => {
       const isMobileOs =
@@ -584,7 +639,7 @@ export default class GameScene extends Phaser.Scene {
       if (this.isMobile) {
         this.mobileControls = new MobileControls(this, {
           onInteract: () => {
-            if (this.gamePausedByTerminal || this.isTypingInUI()) return;
+            if (this.isGameplayLocked()) return;
             this.handleInteract();
           }
         });
@@ -628,6 +683,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.handleQuestStartedForMobile = () => {
       this.syncMobileControlsVisibility();
+      this.maybeShowLessonExampleSplash();
     };
 
     this.handleQuestCompletedForMobile = () => {
@@ -669,8 +725,20 @@ export default class GameScene extends Phaser.Scene {
 
     // 🎬 INTRO
     this.playIntroCutscene();
+
+    const key = `${this.language}_${this.currentMapId}_intro`;
+    const hasIntro = Boolean(CUTSCENES[key]);
+    if (!hasIntro) {
+      this.time.delayedCall(450, () => this.maybeShowLessonExampleSplash());
+    }
+
     this.spawnChestQuestIcons();
     this.scheduleNextMapPrefetch();
+
+    this.events.once("shutdown", () => {
+      this.lessonExampleSplash?.destroy();
+      this.lessonExampleSplash = null;
+    });
 
   }
 
@@ -779,12 +847,21 @@ export default class GameScene extends Phaser.Scene {
   shouldDisableMobileControls() {
     const dialogueActive = Boolean(this.dialogueManager?.active);
     const questHudVisible = Boolean(this.questHUD?.visible);
+    const cutsceneRunning = Boolean(
+      this.cutsceneManager?.running && !this.cutsceneManager.stopRequested
+    );
+    const questActive = Boolean(
+      this.questManager?.activeQuest && !this.questManager.activeQuest.completed
+    );
 
     return (
       this.gamePausedByTerminal ||
       this.isTypingInUI() ||
       dialogueActive ||
-      questHudVisible
+      questHudVisible ||
+      cutsceneRunning ||
+      !this.playerCanMove ||
+      questActive
     );
   }
 
@@ -799,9 +876,11 @@ export default class GameScene extends Phaser.Scene {
   update() {
     this.syncMobileControlsVisibility();
 
-    if (this.gamePausedByTerminal || this.isTypingInUI()) {
-      this.player.setVelocity(0);
-      this.player.anims.stop();
+    if (this.isGameplayLocked()) {
+      if (this.player?.body) {
+        this.player.setVelocity(0);
+        this.player.anims.stop();
+      }
       return;
     }
 
@@ -1293,7 +1372,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   handleInteract() {
-    if (this.gamePausedByTerminal) return;
+    if (this.isGameplayLocked()) return;
 
     if (this.tryInteractWithNPC()) return;
     if (this.tryInteractWithChest()) return;
@@ -1459,6 +1538,9 @@ export default class GameScene extends Phaser.Scene {
       // 🎬 Restore gameplay view
       this.cinematicBars.hide(500);
       this.playerCanMove = true;
+
+      // Quest 1: show lesson header splash after intro
+      this.time.delayedCall(300, () => this.maybeShowLessonExampleSplash());
     });
   }
 
