@@ -12,7 +12,6 @@ const createCookieOptions = (maxAge) => {
         httpOnly: true,
         secure: isProduction,
         sameSite: "none",
-        path: "/",
         ...(isProduction ? { domain: ".codemania.fun" } : {}),
         maxAge,
     };
@@ -267,9 +266,6 @@ class AccountController {
 
                 res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
                 res.cookie("refreshToken", refreshToken, createCookieOptions(7 * 24 * 60 * 60 * 1000));
-
-
-                res.set("Cache-Control", "no-store");
 
 
                 return res.redirect(`${FRONTEND_URL}/dashboard?success=true`);
@@ -569,16 +565,14 @@ class AccountController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "none",
-                domain: ".codemania.fun",
-                path: "/"          
+                domain: ".codemania.fun"          
             });
 
             res.clearCookie("refreshToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "none",
-                domain: ".codemania.fun",
-                path: "/"
+                domain: ".codemania.fun"
             });
 
             res.set("Cache-Control", "no-store");
