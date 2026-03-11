@@ -19,6 +19,7 @@ import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
 import LessonExampleSplash from "../ui/lessonExampleSplash";
+import NextObjectiveHint from "../ui/nextObjectiveHint";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
@@ -136,6 +137,147 @@ export default class GameScene extends Phaser.Scene {
       this.gamePausedByTerminal ||
       this.isTypingInUI()
     );
+  }
+
+  getStartObjectiveText() {
+    const quest = this.quest;
+    if (quest?.completed) return "Objective: Go to the exit";
+
+    const hasChestMarkers = Boolean(this.chestQuestManager?.icons?.size);
+    if (hasChestMarkers) return "Objective: Interact with the chest marked (!)";
+
+    const hasNpcMarkers = Boolean(this.questIconManager?.icons?.size);
+    if (hasNpcMarkers) return "Objective: Talk to the NPC marked (?)";
+
+    return "Objective: Explore the area";
+  }
+
+  isPythonMap2() {
+    return this.language === "Python" && this.currentMapId === "map2";
+  }
+
+  findUnopenedQuestChestTile(questId) {
+    const chestLayer = this.mapLoader?.map?.getLayer("chest")?.tilemapLayer || this.chestLayer;
+    if (!chestLayer) return null;
+
+    let found = null;
+    chestLayer.forEachTile((tile) => {
+      if (found) return;
+      if (!tile?.properties) return;
+      if (tile.properties.type !== "chest") return;
+      if (Number(tile.properties.quest_id) !== Number(questId)) return;
+
+      const chestKey = `${this.currentMapId}_${tile.x}_${tile.y}`;
+      if (this.openedChests?.has?.(chestKey)) return;
+
+      found = { tile, chestLayer, chestKey };
+    });
+
+    return found;
+  }
+
+  getRockRequiredAbility() {
+    const layer = this.interactableRockLayer;
+    const requiredProp =
+      layer?.layer?.properties?.find?.((p) => p?.name === "requires") || null;
+    return String(requiredProp?.value || "").trim();
+  }
+
+  hasBlockingRocks() {
+    return Boolean(this.interactableRockLayer && this.interactableRockLayer.visible);
+  }
+
+  getGateRequiredAbility() {
+    const layer = this.gateCloseLayer;
+    const requiredProp =
+      layer?.layer?.properties?.find?.((p) => p?.name === "requires") || null;
+    return String(requiredProp?.value || "").trim();
+  }
+
+  hasClosedGate() {
+    return Boolean(this.gateCloseLayer && this.gateCloseLayer.visible);
+  }
+
+  autoOpenGateIfPossible() {
+    if (!this.hasClosedGate()) return false;
+
+    const required = this.getGateRequiredAbility();
+    if (!required) return false;
+
+    const hasKey = this.worldState?.abilities?.has?.(required);
+    if (!hasKey) return false;
+
+    // Remove blockage immediately (no extra interaction step).
+    this.gateCloseLayer.setVisible(false);
+    this.gateCloseLayer.forEachTile((t) => t.setCollision(false));
+    if (this.gateOpenLayer) this.gateOpenLayer.setVisible(true);
+    return true;
+  }
+
+  showPostQuestObjective(questId) {
+    if (!this.nextObjectiveHint) return;
+
+    // Python map2: after completing quest, you must open chest to get item.
+    if (this.isPythonMap2()) {
+      const chestInfo = this.findUnopenedQuestChestTile(questId);
+      if (chestInfo) {
+        const { tile, chestLayer } = chestInfo;
+        const worldX = chestLayer.tileToWorldX(tile.x) + tile.width / 2;
+        const worldY = chestLayer.tileToWorldY(tile.y);
+
+        // Re-show chest marker for post-quest reward pickup.
+        this.chestQuestManager?.createIcon(worldX, worldY, Number(questId));
+
+        this.nextObjectiveHint.show("Objective: Open the chest and take the item");
+        return;
+      }
+
+      // After getting the item, the rocks block progression.
+      if (this.hasBlockingRocks()) {
+        const required = this.getRockRequiredAbility();
+        const hasTool = required ? this.worldState?.abilities?.has?.(required) : true;
+        if (hasTool) {
+          this.nextObjectiveHint.show("Objective: Break the rocks blocking the path");
+          return;
+        }
+      }
+    }
+
+    // If player has the key, remove the gate immediately.
+    this.autoOpenGateIfPossible();
+
+    // If a closed gate blocks progression, guide the player to open it first.
+    if (this.hasClosedGate()) {
+      const required = this.getGateRequiredAbility();
+      if (!required) {
+        this.nextObjectiveHint.show("Objective: Find a way past the gate");
+        return;
+      }
+
+      const hasKey = this.worldState?.abilities?.has?.(required);
+      this.nextObjectiveHint.show(hasKey
+        ? "Objective: Go through the gate"
+        : "Objective: Find the key to unlock the gate"
+      );
+      return;
+    }
+
+    const hasExit = Boolean(this.mapExits?.getChildren?.()?.length);
+    if (hasExit) {
+      this.nextObjectiveHint.show("Objective: Go to the exit");
+    }
+  }
+
+  showStartObjectiveHint() {
+    if (!this.nextObjectiveHint) return;
+
+    // Don't override the post-quest objective.
+    const questActive = Boolean(
+      this.questManager?.activeQuest && !this.questManager.activeQuest.completed
+    );
+    if (questActive) return;
+
+    this.nextObjectiveHint.show(this.getStartObjectiveText());
   }
 
   createCutsceneSkipButton(onSkip) {
@@ -308,7 +450,12 @@ export default class GameScene extends Phaser.Scene {
     this.questCompleteToast.show({
       title: quest.title,
       badgeKey: quest.achievements?.badge_key || null, // toast can ignore if null
-      exp: gainedExp
+      exp: gainedExp,
+      onHidden: () => {
+        // 👉 Next step hint (avoid overlap with toast)
+        this.autoOpenGateIfPossible();
+        this.showPostQuestObjective(quest.id);
+      }
     });
 
     // ✅ SECOND left-side toast for quest completion
@@ -552,6 +699,11 @@ export default class GameScene extends Phaser.Scene {
     this.gateCloseLayer =
       this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
 
+    // Some maps use a single blocking "gate" layer instead of "gate_close".
+    if (!this.gateCloseLayer) {
+      this.gateCloseLayer = this.mapLoader.map.getLayer("gate")?.tilemapLayer;
+    }
+
     this.gateOpenLayer =
       this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
 
@@ -613,6 +765,7 @@ export default class GameScene extends Phaser.Scene {
     this.badgeUnlockPopup.container?.setDepth(30000);
     this.cinematicBars = new CinematicBars(this);
     this.lessonExampleSplash = new LessonExampleSplash(this);
+    this.nextObjectiveHint = new NextObjectiveHint(this);
 
     const computeMobileMode = () => {
       const isMobileOs =
@@ -684,6 +837,7 @@ export default class GameScene extends Phaser.Scene {
     this.handleQuestStartedForMobile = () => {
       this.syncMobileControlsVisibility();
       this.maybeShowLessonExampleSplash();
+      this.nextObjectiveHint?.hide();
     };
 
     this.handleQuestCompletedForMobile = () => {
@@ -730,6 +884,7 @@ export default class GameScene extends Phaser.Scene {
     const hasIntro = Boolean(CUTSCENES[key]);
     if (!hasIntro) {
       this.time.delayedCall(450, () => this.maybeShowLessonExampleSplash());
+      this.time.delayedCall(900, () => this.showStartObjectiveHint());
     }
 
     this.spawnChestQuestIcons();
@@ -738,6 +893,9 @@ export default class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.lessonExampleSplash?.destroy();
       this.lessonExampleSplash = null;
+
+      this.nextObjectiveHint?.destroy();
+      this.nextObjectiveHint = null;
     });
 
   }
@@ -1420,6 +1578,12 @@ export default class GameScene extends Phaser.Scene {
       this.smallRockLayer.setVisible(true);
     }
 
+    // Python map2: after clearing rocks, objective becomes the exit.
+    if (this.isPythonMap2()) {
+      const questId = Number(this.quest?.id ?? this.exerciseId);
+      this.showPostQuestObjective(questId);
+    }
+
   }
 
 
@@ -1477,6 +1641,9 @@ export default class GameScene extends Phaser.Scene {
       // 3️⃣ Quest completed → OPEN CHEST
       this.playerCanMove = false;
 
+      // Post-quest reward marker no longer needed.
+      this.chestQuestManager?.hideIconForQuest?.(questId);
+
       // 🔁 Toggle layers
       this.chestLayer.setVisible(false);
       this.chestLayer.forEachTile(t => t.setCollision(false));
@@ -1503,6 +1670,10 @@ export default class GameScene extends Phaser.Scene {
           //   "openedChests",
           //   JSON.stringify([...this.openedChests])
           // );
+
+          // After collecting the reward, point to the exit.
+          this.autoOpenGateIfPossible();
+          this.showPostQuestObjective(questId);
 
           this.playerCanMove = true;
         }
@@ -1541,6 +1712,9 @@ export default class GameScene extends Phaser.Scene {
 
       // Quest 1: show lesson header splash after intro
       this.time.delayedCall(300, () => this.maybeShowLessonExampleSplash());
+
+      // Initial objective hint after intro
+      this.time.delayedCall(900, () => this.showStartObjectiveHint());
     });
   }
 
@@ -1576,6 +1750,10 @@ export default class GameScene extends Phaser.Scene {
       ["You unlock the gate.", "The path is now open."],
       () => { }
     );
+
+    // Update objective after gate opens.
+    const questId = Number(this.quest?.id ?? this.exerciseId);
+    this.showPostQuestObjective(questId);
 
   }
 
@@ -1671,6 +1849,8 @@ export default class GameScene extends Phaser.Scene {
     // Prevent multiple triggers
     this.physics.world.disable(zone);
     this.playerCanMove = false;
+
+    this.nextObjectiveHint?.hide();
 
     // Fade out
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black
