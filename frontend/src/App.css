@@ -1150,7 +1150,30 @@ body,
   }
 }
 
-@media (max-width: 1024px) {
+/* Prevent desktop header links from wrapping at mid widths */
+@media (min-width: 1201px) and (max-width: 1400px) {
+  .header {
+    padding: 1rem 4rem;
+  }
+
+  .nav {
+    gap: 1.5rem;
+    margin-right: 0;
+  }
+
+  .nav-link {
+    font-size: 1.35rem;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 1001px) {
+  .nav-link {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1000px) {
 
   html,
   body,
