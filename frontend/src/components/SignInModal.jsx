@@ -250,6 +250,40 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
     }
   }, [otpResendCooldown]);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (!error) return;
+
+    // Ensure we're on the sign-in view for auth messages.
+    setIsForgotPasswordMode(false);
+    setShowForgotPasswordOtp(false);
+    setShowResetPassword(false);
+    setIsSignUpMode(false);
+    setShowOtpField(false);
+
+    if (error === 'use_password') {
+      setLoginError("This email is registered with email/password. Please sign in with your password (not Google).");
+      return;
+    }
+
+    if (error === 'use_google') {
+      setLoginError("This email is registered with Google sign-in. Please use 'Continue with Google'.");
+      return;
+    }
+
+    if (error === 'auth_failed') {
+      setLoginError("Google sign-in failed. If you created your account with email/password, use that method instead.");
+      return;
+    }
+
+    if (error === 'server_error') {
+      setLoginError('Sign in is temporarily unavailable. Please try again.');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
 

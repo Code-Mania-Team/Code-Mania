@@ -24,7 +24,7 @@ class User {
 
       .from("users") // can be users table or temp_user (this should be temp_users with "s")
 
-      .select("user_id, email, password, provider") //
+      .select("user_id, email, password, provider, role")
 
       .eq("email", email)
 

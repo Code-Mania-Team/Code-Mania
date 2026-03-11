@@ -44,10 +44,17 @@ class AccountController {
             });
         } catch (err) {
 
+            if (err.message === "email_google") {
+                return res.status(409).json({
+                    success: false,
+                    message: "This email is registered with Google sign-in. Please use 'Continue with Google' instead."
+                });
+            }
+
             if (err.message === "email") {
                 return res.status(409).json({
                     success: false,
-                    message: "Email already exists"
+                    message: "Email already exists. Please sign in instead."
                 });
             }
 
@@ -162,7 +169,18 @@ class AccountController {
                     message: "Email and password required" });
             }
 
-            const authUser = await this.accountService.loginWithPassword(email, password);
+            let authUser;
+            try {
+                authUser = await this.accountService.loginWithPassword(email, password);
+            } catch (err) {
+                if (err?.message === "use_google") {
+                    return res.status(409).json({
+                        success: false,
+                        message: "This email is registered with Google sign-in. Please use 'Continue with Google'."
+                    });
+                }
+                throw err;
+            }
 
             if (!authUser) {
                 return res.status(400).json({ 
@@ -218,9 +236,9 @@ class AccountController {
     // GOOGLE LOGIN/SIGNUP
     async googleLogin(req, res) {
         const { id, emails, provider } = req.user;
-        const data = await this.accountService.googleLogin(id, emails[0].value, provider);
-        
+
         try {
+            const data = await this.accountService.googleLogin(id, emails[0].value, provider);
             if (data) {
                 const accessToken = generateAccessToken({
                     user_id: data.id,
@@ -246,6 +264,12 @@ class AccountController {
                 return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }
         } catch (err) {
+            if (err?.message === "use_password") {
+                return res.redirect(`${FRONTEND_URL}/?error=use_password`);
+            }
+            if (err?.message === "auth_failed") {
+                return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
+            }
             return res.redirect(`${FRONTEND_URL}/?error=server_error`);
         }
     }
