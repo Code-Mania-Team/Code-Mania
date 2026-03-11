@@ -522,7 +522,8 @@ class AccountController {
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
                   sameSite: "none",
-                  domain: ".codemania.fun"
+                  domain: ".codemania.fun",
+                  path: "/"
             });
 
             
@@ -530,8 +531,11 @@ class AccountController {
                 { httpOnly: true, 
                   secure: process.env.NODE_ENV === "production", 
                   sameSite: "none",
-                  domain: ".codemania.fun"
+                  domain: ".codemania.fun",
+                  path: "/"
             });
+
+            res.set("Cache-Control", "no-store");
 
             return res.status(200).json({ 
                 success: true, 
@@ -561,15 +565,19 @@ class AccountController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "none",
-                domain: ".codemania.fun"           
+                domain: ".codemania.fun",
+                path: "/"          
             });
 
             res.clearCookie("refreshToken", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "none",
-                domain: ".codemania.fun"
+                domain: ".codemania.fun",
+                path: "/"
             });
+
+            res.set("Cache-Control", "no-store");
 
             return res.status(200).json({ 
                 success: true, 
