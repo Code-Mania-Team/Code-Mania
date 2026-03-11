@@ -431,8 +431,7 @@ const CppCourse = () => {
                 <span>Exercises</span>
               </div>
               <span className="progress-value">
-                {userProgress.exercisesCompleted} /
-                {userProgress.totalExercises}
+                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
               </span>
             </div>
 

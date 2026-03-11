@@ -20,13 +20,23 @@ const CourseCompletionPromptModal = ({
   onTerminalCta,
   showClose = true,
   closeLabel = "Later",
-  onClose,  
+  onClose,
 }) => {
   const [terminalUnlocked, setTerminalUnlocked] = useState(false);
+  const [shouldShowTerminalCta, setShouldShowTerminalCta] = useState(false);
 
   useEffect(() => {
-    if (show) setTerminalUnlocked(false);
-  }, [show]);
+    if (!show) return;
+
+    setTerminalUnlocked(false);
+
+    const canUseStorage = typeof window !== "undefined" && !!window.localStorage;
+    const alreadyAcknowledged = canUseStorage
+      ? window.localStorage.getItem("terminalUnlockCtaSeen") === "true"
+      : false;
+
+    setShouldShowTerminalCta(Boolean(showTerminalCta && onTerminalCta && !alreadyAcknowledged));
+  }, [show, showTerminalCta, onTerminalCta]);
 
   if (!show) return null;
 
@@ -38,6 +48,12 @@ const CourseCompletionPromptModal = ({
   const handleTerminalClick = () => {
     if (!terminalUnlocked) {
       setTerminalUnlocked(true);
+
+      try {
+        window.localStorage.setItem("terminalUnlockCtaSeen", "true");
+      } catch {
+        // ignore
+      }
       return;
     }
 
@@ -89,7 +105,7 @@ const CourseCompletionPromptModal = ({
               {feedbackLabel}
             </button>
           )}
-          {showTerminalCta && onTerminalCta && (
+          {shouldShowTerminalCta && (
             <button
               type="button"
               className={`${styles.terminalBtn} ${terminalUnlocked ? styles.terminalBtnUnlocked : ""}`}
@@ -99,15 +115,7 @@ const CourseCompletionPromptModal = ({
               {terminalUnlocked ? terminalCtaLabel : "Locked Terminal - Tap to Unlock"}
             </button>
           )}
-          {showClose && (
-            <button
-              type="button"
-              className={styles.closeBtn}
-              onClick={onClose}
-            >
-              {closeLabel}
-            </button>
-          )}
+          {/* Intentionally no "Later" action for story completion */}
         </div>
       </div>
     </div>

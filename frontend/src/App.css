@@ -319,9 +319,21 @@ html {
 }
 
 .nav-link-locked {
-  opacity: 0.4;
-  cursor: not-allowed !important;
-  user-select: none;
+  opacity: 0.5;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* Keep locked link from changing on hover/active */
+.nav-link.nav-link-locked:hover,
+.nav-link.nav-link-locked:active,
+.nav-link.nav-link-locked.active {
+  color: #94a3b8;
+  opacity: 0.5;
+}
+
+.nav-link.nav-link-locked.active::after {
+  display: none;
 }
 
 .nav-locked-tooltip {

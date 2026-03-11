@@ -210,19 +210,17 @@ const Header = ({ onOpenModal, onSignOut }) => {
         <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>FREEDOM WALL</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={closeMobileMenu}>LEADERBOARD</NavLink>
 
-        {/* Terminal link — locked until 1 course is completed (admins always have access) */}
+        {/* Terminal link — visible to users; locked look until 16 exercises */}
         {isAuthenticated && (
-          (isAdmin || hasTerminalAccess) ? (
-            <NavLink to="/terminal" className="nav-link" onClick={closeMobileMenu}>TERMINAL</NavLink>
-          ) : (
-            <div className="nav-link-locked-wrapper">
-              <span className="nav-link nav-link-locked">TERMINAL</span>
-              <div className="nav-locked-tooltip">
-                <span className="locked-icon">🔒</span>
-                Complete 16 exercises in one course
-              </div>
-            </div>
-          )
+          <NavLink
+            to="/terminal"
+            className={({ isActive }) =>
+              `nav-link ${isActive ? 'active' : ''} ${isAdmin || hasTerminalAccess ? '' : 'nav-link-locked'}`
+            }
+            onClick={closeMobileMenu}
+          >
+            TERMINAL
+          </NavLink>
         )}
 
         {isLoading ? null : isAuthenticated ? (
