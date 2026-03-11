@@ -131,7 +131,13 @@ const PythonExercise = ({ isAuthenticated }) => {
         const data = await getGameProgress(1);
 
         if (data?.completedQuests) {
-          setDbCompletedQuests(data.completedQuests);
+          const normalized = (Array.isArray(data.completedQuests)
+            ? data.completedQuests
+            : [])
+            .map((id) => Number(id))
+            .filter((id) => Number.isFinite(id));
+
+          setDbCompletedQuests(normalized);
         }
         setCompletedQuizStages(Array.isArray(data?.completedQuizStages) ? data.completedQuizStages : []);
       } catch (err) {
