@@ -343,8 +343,7 @@ class AccountController {
             
             // Clear refresh token only on actual invalid token
             if (err.message === 'Invalid refresh token') {
-                res.clearCookie("accessToken", clearCookieOptions);
-                res.clearCookie("refreshToken", clearCookieOptions);
+                res.clearCookie("refreshToken");
             }
             
             return res.status(401).json({
