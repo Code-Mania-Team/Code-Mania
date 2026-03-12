@@ -216,7 +216,10 @@ const CppCourse = () => {
   const handleStartExercise = (moduleId, exerciseId) => {
     const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}`;
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -232,7 +235,10 @@ const CppCourse = () => {
   const handleStartExam = () => {
     const route = "/exam/cpp";
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -250,6 +256,13 @@ const CppCourse = () => {
 
     setShowTutorial(false);
     setPendingRoute(null);
+
+    // Always set a local fallback so tutorial doesn't loop.
+    try {
+      localStorage.setItem("hasSeenTutorial", "true");
+    } catch {
+      // ignore
+    }
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {

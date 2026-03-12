@@ -21,6 +21,7 @@ import Credits from "./pages/credits";
 import PageNotFound from "./pages/PageNotFound";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
+import ExamManager from "./pages/ExamManager";
 import CodingExamPage from "./pages/CodingExamPage";
 import QuizPage from "./pages/QuizPage";
 import TerminalPage from "./pages/TerminalPage";
@@ -386,6 +387,15 @@ function App() {
           const profile = res?.data?.data || null;
           setUser(profile);
 
+          try {
+            localStorage.setItem(
+              "hasSeenTutorial",
+              profile?.hasSeen_tutorial ? "true" : "false"
+            );
+          } catch {
+            // ignore
+          }
+
           if (!profile?.username) {
             navigate('/welcome', { replace: true });
             return;
@@ -499,6 +509,7 @@ function App() {
           </ProtectedRoute>} />
           <Route path="/admin" element={<Admin presenceStats={presenceStats} presenceWsStatus={presenceWsStatus} />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
+          <Route path="/admin/exams/:course" element={<ExamManager />} />
           <Route path="/exam/:language" element={<ProtectedRoute>
             <CodingExamPage />
           </ProtectedRoute>} />
@@ -533,6 +544,15 @@ function App() {
             const res = await axiosPublic.get("/v1/account");
             profile = res?.data?.data || null;
             setUser(profile);
+
+            try {
+              localStorage.setItem(
+                "hasSeenTutorial",
+                profile?.hasSeen_tutorial ? "true" : "false"
+              );
+            } catch {
+              // ignore
+            }
           } catch {
             setUser(null);
           }

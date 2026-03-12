@@ -36,6 +36,10 @@ const FreedomWall = ({ onOpenModal }) => {
     return `freedomwallLastPost_${user.user_id}`;
   }, [user?.user_id]);
 
+  const isAdminPoster =
+    user?.role === 'admin' ||
+    ADMIN_USERS.has(String(user?.username || '').trim().toLowerCase());
+
   const iconByCharacterId = useMemo(() => {
     return {
       0: characterIcon1,
@@ -131,25 +135,27 @@ const FreedomWall = ({ onOpenModal }) => {
       return;
     }
 
-    // 🚫 COOLDOWN CHECK
-    const lastPostTimeRaw = cooldownKey ? localStorage.getItem(cooldownKey) : null;
+    // 🚫 COOLDOWN CHECK (admins bypass)
+    if (!isAdminPoster) {
+      const lastPostTimeRaw = cooldownKey ? localStorage.getItem(cooldownKey) : null;
 
-    if (lastPostTimeRaw) {
-      const lastPostTime = parseInt(lastPostTimeRaw, 10);
+      if (lastPostTimeRaw) {
+        const lastPostTime = parseInt(lastPostTimeRaw, 10);
 
-      if (!isNaN(lastPostTime)) {
-        const now = Date.now();
-        const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
-        const timePassed = now - lastPostTime;
+        if (!isNaN(lastPostTime)) {
+          const now = Date.now();
+          const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
+          const timePassed = now - lastPostTime;
 
-        if (timePassed < cooldownMs) {
-          const remainingMs = cooldownMs - timePassed;
-          const remainingMinutes = Math.ceil(remainingMs / 60000);
+          if (timePassed < cooldownMs) {
+            const remainingMs = cooldownMs - timePassed;
+            const remainingMinutes = Math.ceil(remainingMs / 60000);
 
-          setPostError(
-            `You can post again in ${remainingMinutes} minute(s).`
-          );
-          return;
+            setPostError(
+              `You can post again in ${remainingMinutes} minute(s).`
+            );
+            return;
+          }
         }
       }
     }
@@ -162,7 +168,7 @@ const FreedomWall = ({ onOpenModal }) => {
 
       if (res?.success) {
         // 🔥 SAVE POST TIME
-        if (cooldownKey) {
+        if (cooldownKey && !isAdminPoster) {
           localStorage.setItem(cooldownKey, String(Date.now()));
         }
 
@@ -268,24 +274,38 @@ const FreedomWall = ({ onOpenModal }) => {
           ) : filteredComments.length > 0 ? (
             filteredComments.map((comment) => (
               <div key={comment.id} className="comment-card">
-                <img
-                  src={comment.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(comment.user)}`}
-                  alt={`${comment.user}'s avatar`}
-                  className="comment-avatar"
-                />
+                {comment.username && comment.username !== 'Anonymous' && !comment.isAdmin ? (
+                  <button
+                    type="button"
+                    className="comment-avatar-btn"
+                    onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
+                    aria-label={`View ${comment.username}'s profile`}
+                  >
+                    <img
+                      src={comment.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(comment.user)}`}
+                      alt={`${comment.user}'s avatar`}
+                      className="comment-avatar"
+                    />
+                  </button>
+                ) : (
+                  <img
+                    src={comment.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(comment.user)}`}
+                    alt={`${comment.user}'s avatar`}
+                    className="comment-avatar"
+                  />
+                )}
                 <div className="comment-content">
                   <div className="comment-header">
                     <span className="comment-user-wrap">
-                      {comment.username && comment.username !== 'Anonymous' ? (
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
-                          className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}
-                          style={{ background: 'transparent', border: 0, padding: 0, cursor: 'pointer' }}
-                          aria-label={`View ${comment.username}'s profile`}
-                        >
-                          {comment.user}
-                        </button>
+                      {comment.username && comment.username !== 'Anonymous' && !comment.isAdmin ? (
+                         <button
+                           type="button"
+                           onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
+                           className={`comment-user comment-user-btn ${comment.isAdmin ? 'comment-user-admin' : ''}`}
+                           aria-label={`View ${comment.username}'s profile`}
+                         >
+                           {comment.user}
+                         </button>
                       ) : (
                         <span className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}>{comment.user}</span>
                       )}

@@ -60,6 +60,8 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
   const [isAdmin, setIsAdmin] = useState(false);
   const [datasets, setDatasets] = useState([]);
   const [datasetsLoading, setDatasetsLoading] = useState(false);
+  const [examDatasets, setExamDatasets] = useState([]);
+  const [examDatasetsLoading, setExamDatasetsLoading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
@@ -244,7 +246,6 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
       setDatasets(formattedDatasets);
     } catch (error) {
       console.error("Error fetching datasets:", error);
-      // Fallback to demo data on error
       setDatasets([
         { name: "Python Quests", course: "python", total: 0, published: 0, draft: 0, status: "draft", updatedAt: "Today" },
         { name: "C++ Quests", course: "cpp", total: 0, published: 0, draft: 0, status: "published", updatedAt: "Yesterday" },
@@ -252,6 +253,53 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
       ]);
     } finally {
       setDatasetsLoading(false);
+    }
+  };
+
+  const fetchExamDatasets = async () => {
+    setExamDatasetsLoading(true);
+    try {
+      const courses = [
+        { course: 'python', slug: 'python', name: 'Python Exams' },
+        { course: 'cpp', slug: 'cpp', name: 'C++ Exams' },
+        { course: 'javascript', slug: 'javascript', name: 'JavaScript Exams' },
+      ];
+
+      const responses = await Promise.all(
+        courses.map((item) =>
+          axiosPublic.get(`/v1/exam/problems?language=${item.slug}`, { withCredentials: true })
+        )
+      );
+
+      const formatted = courses.map((item, index) => {
+        const rows = responses[index]?.data?.data || [];
+        const total = rows.length;
+
+        const latestTimestamp = rows.reduce((latest, row) => {
+          const candidate = row?.updated_at || row?.created_at;
+          if (!candidate) return latest;
+          if (!latest) return candidate;
+          return new Date(candidate) > new Date(latest) ? candidate : latest;
+        }, null);
+
+        return {
+          name: item.name,
+          course: item.course,
+          total,
+          updatedAt: latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : '-',
+        };
+      });
+
+      setExamDatasets(formatted);
+    } catch (error) {
+      console.error('Error fetching exam datasets:', error);
+      setExamDatasets([
+        { name: 'Python Exams', course: 'python', total: 0, updatedAt: '-' },
+        { name: 'C++ Exams', course: 'cpp', total: 0, updatedAt: '-' },
+        { name: 'JavaScript Exams', course: 'javascript', total: 0, updatedAt: '-' },
+      ]);
+    } finally {
+      setExamDatasetsLoading(false);
     }
   };
 
@@ -521,6 +569,7 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
           // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
             fetchDatasets();
+            fetchExamDatasets();
             fetchMetrics();
             fetchQuizMetrics();
             fetchUserQuizSummary();
@@ -1340,19 +1389,20 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>
             <Database className={styles.icon} />
-            <h2 className={styles.title}>Quests Database</h2>
+            <h2 className={styles.title}>Content Management</h2>
           </div>
         </div>
 
+        <h3 className={styles.panelTitle} style={{ marginTop: 12, marginBottom: 8 }}>Exercises</h3>
         {datasetsLoading ? (
           <div className={styles.panel}>
-            <p>Loading datasets...</p>
+            <p>Loading exercises...</p>
           </div>
         ) : (
           <div className={styles.panel}>
             <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
               {datasets.length === 0 ? (
-                <p>No quest collections found.</p>
+                <p>No exercise collections found.</p>
               ) : (
                 datasets.map((d) => (
                   <div key={d.course || d.name} className={styles.datasetRow}>
@@ -1369,7 +1419,43 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
                         onClick={() => navigate(`/admin/exercises/${d.course}`)}
                         disabled={!d.course}
                       >
-                        Edit Quests
+                        Edit Exercises
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        <h3 className={styles.panelTitle} style={{ marginTop: 16, marginBottom: 8 }}>Exams</h3>
+        {examDatasetsLoading ? (
+          <div className={styles.panel}>
+            <p>Loading exams...</p>
+          </div>
+        ) : (
+          <div className={styles.panel}>
+            <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
+              {examDatasets.length === 0 ? (
+                <p>No exam collections found.</p>
+              ) : (
+                examDatasets.map((d) => (
+                  <div key={d.course || d.name} className={styles.datasetRow}>
+                    <div className={styles.datasetLeft}>
+                      <div className={styles.datasetName}>{d.name}</div>
+                      <div className={styles.datasetMeta}>
+                        {d.total} problem{d.total !== 1 ? 's' : ''} · Updated: {d.updatedAt}
+                      </div>
+                    </div>
+                    <div className={styles.datasetActions}>
+                      <button
+                        className={styles.button}
+                        type="button"
+                        onClick={() => navigate(`/admin/exams/${d.course}`)}
+                        disabled={!d.course}
+                      >
+                        Edit Exams
                       </button>
                     </div>
                   </div>

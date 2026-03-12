@@ -159,6 +159,23 @@
   flex-shrink: 0;
 }
 
+.comment-avatar-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 0.75rem;
+}
+
+.comment-avatar-btn:focus {
+  outline: none;
+}
+
+.comment-avatar-btn:hover .comment-avatar {
+  filter: brightness(1.08);
+}
+
 .comment-content {
   flex: 1;
   display: flex;
@@ -180,11 +197,26 @@
   color: #f3f4f6;
 }
 
+button.comment-user-btn {
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+button.comment-user-btn:focus {
+  outline: none;
+}
+
 .comment-user-admin {
-  background: linear-gradient(90deg, #7dd3fc 0%, #60a5fa 45%, #a78bfa 100%);
+  display: inline-block;
+  background-image: linear-gradient(90deg, #7dd3fc 0%, #60a5fa 45%, #a78bfa 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .comment-user-wrap {
