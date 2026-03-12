@@ -273,12 +273,6 @@ class AccountController {
                 return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }
         } catch (err) {
-            if (err?.message === "use_password") {
-                return res.redirect(`${FRONTEND_URL}/?error=use_password`);
-            }
-            if (err?.message === "auth_failed") {
-                return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
-            }
             return res.redirect(`${FRONTEND_URL}/?error=server_error`);
         }
     }
