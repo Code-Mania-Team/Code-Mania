@@ -18,6 +18,7 @@ class Leaderboard {
                     )
                 ),
                 users (
+                    username,
                     full_name,
                     character_id,
                     role
@@ -42,6 +43,7 @@ class Leaderboard {
                     )
                 ),
                 users (
+                    username,
                     full_name,
                     character_id,
                     role
@@ -67,6 +69,7 @@ class Leaderboard {
                     )
                 ),
                 users (
+                    username,
                     full_name,
                     character_id,
                     role

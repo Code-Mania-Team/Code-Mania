@@ -27,6 +27,73 @@ class ExerciseController {
     this.exerciseModel = new ExerciseModel();
   }
 
+  // Validate quest output without marking completion (for "Run" checks)
+  async validateExercisePreview(req, res) {
+    try {
+      const { questId, output, code } = req.body;
+      const userId = res.locals.user_id;
+      // Preview validation is used to show test cases on Run / page load.
+      // It intentionally does NOT mark completion or award XP.
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+
+      if (!questId || typeof output !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "questId and output are required",
+        });
+      }
+
+      const quest = await this.exerciseModel.getExerciseById(questId);
+      if (!quest) {
+        return res.status(404).json({
+          success: false,
+          message: "Quest not found",
+        });
+      }
+
+      const { data: validationResult } = await axios.post(
+        `${TERMINAL_API_BASE_URL}/exercise/validate`,
+        {
+          output,
+          code,
+          quest: {
+            expected_output: quest.expected_output,
+            validation_mode: quest.validation_mode,
+            requirements: quest.requirements,
+          },
+          programming_language_id: quest.programming_language_id,
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_KEY,
+          },
+        }
+      );
+
+      const ok = Boolean(validationResult?.success);
+
+      return res.status(200).json({
+        success: ok,
+        message: ok ? "Validation passed" : (validationResult?.message || "Validation failed"),
+        objectives: validationResult?.objectives || null,
+        test_results: validationResult?.test_results || [],
+        runtime_passed: validationResult?.runtime_passed ?? null,
+      });
+    } catch (error) {
+      console.error("validateExercisePreview error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  }
+
   // Create a new exercise (admin only)
   async createExercise(req, res) {
     try {
