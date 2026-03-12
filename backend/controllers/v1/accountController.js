@@ -242,12 +242,11 @@ class AccountController {
     
 
         
-    // GOOGLE LOGIN/SIGNUP
     async googleLogin(req, res) {
         const { id, emails, provider } = req.user;
-
+        const data = await this.accountService.googleLogin(id, emails[0].value, provider);
+        
         try {
-            const data = await this.accountService.googleLogin(id, emails[0].value, provider);
             if (data) {
                 const accessToken = generateAccessToken({
                     user_id: data.id,
@@ -274,15 +273,10 @@ class AccountController {
                 return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }
         } catch (err) {
-            if (err?.message === "use_password") {
-                return res.redirect(`${FRONTEND_URL}/?error=use_password`);
-            }
-            if (err?.message === "auth_failed") {
-                return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
-            }
             return res.redirect(`${FRONTEND_URL}/?error=server_error`);
         }
     }
+
 
     // REFRESH TOKEN (ROTATION)
     async refresh(req, res) {
