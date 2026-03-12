@@ -59,6 +59,11 @@ class ExamService {
       meta: {
         test_case_count: testCases.length,
       },
+      test_cases: testCases.map(tc => ({
+        input: tc.is_hidden ? "Hidden test case" : tc.input,
+        expected: tc.is_hidden ? "Hidden" : tc.expected,
+        is_hidden: tc.is_hidden
+      })),
       created_at: problem.created_at,
       updated_at: problem.updated_at,
     };

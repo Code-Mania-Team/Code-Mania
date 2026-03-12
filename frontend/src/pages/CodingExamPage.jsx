@@ -213,6 +213,7 @@ const CodingExamPage = () => {
               title: problem.problem_title,
               description: problem.problem_description,
               starterCode: problem.starting_code,
+              testCases: problem.test_cases,
               points: Number(problem.exp || 1000)
             }
           ]
@@ -577,6 +578,7 @@ const CodingExamPage = () => {
                 <ExamCodeTerminal
                   language={language}
                   initialCode={challenge.starterCode}
+                  testCases={challenge.testCases}
                   isMobileView={isMobileView}
                   mobilePanel={mobileTab}
                   attemptId={attemptId}

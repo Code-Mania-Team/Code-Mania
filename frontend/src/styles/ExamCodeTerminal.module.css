@@ -62,12 +62,75 @@
   cursor: not-allowed;
 }
 
+.examBottomSection {
+  display: flex;
+  gap: 1rem;
+  min-height: 320px;
+}
+
 .examTerminal {
+  flex: 1;
   background: #0f172a;
   border: 1px solid #334155;
   border-radius: 8px;
-  min-height: 320px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.examTestCases {
+  width: 300px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.examTestCaseHeader {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  font-weight: 600;
+  opacity: 0.8;
+  color: white;
+}
+
+.examTestCaseBody {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.examTestCaseItem {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.examTestCaseLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.examTestCaseValue {
+  font-family: 'monospace';
+  font-size: 0.85rem;
+  background: #050b17;
+  padding: 0.5rem;
+  border-radius: 4px;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 /* Monaco Editor Customization for Exam */
@@ -97,6 +160,15 @@
 
   .examCodeEditor {
     min-height: 300px;
+  }
+
+  .examBottomSection {
+    flex-direction: column;
+  }
+
+  .examTestCases {
+    width: 100%;
+    min-height: 200px;
   }
 
   .examTerminal {

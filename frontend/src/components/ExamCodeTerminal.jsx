@@ -42,7 +42,7 @@ print("Hello world")`;
   }
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
@@ -296,110 +296,143 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
       )}
 
       {showOutput && (
-      <div
-        className={styles.examTerminal}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        style={{
-          marginTop: showEditor ? "1.5rem" : "0",
-          borderRadius: "14px",
-          overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.06)",
-          boxShadow: "0 15px 50px rgba(0,0,0,0.45)",
-          background: "linear-gradient(180deg, #0b1220, #070f1c)",
-          display: "flex",
-          flexDirection: "column"
-        }}
-      >
-        {/* HEADER */}
-        <div
-          style={{
-            padding: "0.7rem 1rem",
-            borderBottom: "1px solid rgba(255,255,255,0.05)",
-            background: "rgba(255,255,255,0.03)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}
+        <div 
+          className={styles.examBottomSection}
+          style={{ marginTop: showEditor ? "1.5rem" : "0" }}
         >
-          <span style={{ fontWeight: 600, opacity: 0.8 }}>
-            Terminal
-          </span>
-
-          <span
+          <div
+            className={styles.examTerminal}
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
             style={{
-              fontSize: "0.8rem",
-              padding: "3px 10px",
-              borderRadius: "999px",
-              background: isRunning
-                ? "rgba(59,130,246,0.2)"
-                : "rgba(34,197,94,0.15)",
-              color: isRunning ? "#3b82f6" : "#22c55e"
+              borderRadius: "14px",
+              border: "1px solid rgba(255,255,255,0.06)",
+              boxShadow: "0 15px 50px rgba(0,0,0,0.45)",
+              background: "linear-gradient(180deg, #0b1220, #070f1c)",
             }}
           >
-            {isRunning ? "Running..." : "Idle"}
-          </span>
-        </div>
-
-        {/* BODY */}
-        <div
-          ref={terminalBodyRef}
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "1rem",
-            fontFamily: "monospace",
-            fontSize: "0.9rem",
-            lineHeight: "1.5",
-            background: "#050b17",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word"
-          }}
-        >
-          <pre style={{ margin: 0, color: "#cbd5e1" }}>
-            {output}
-
-            {waitingForInput && (
-              <>
-                <span style={{ color: "#22c55e" }}>
-                  {inputBuffer}
-                </span>
-                <span style={{ color: "#22c55e" }}>|</span>
-              </>
-            )}
-
-            {!output && !waitingForInput && (
-              <span style={{ color: "#22c55e", opacity: 0.7 }}>
-                ▶ Ready for Execution
+            {/* HEADER */}
+            <div
+              style={{
+                padding: "0.7rem 1rem",
+                borderBottom: "1px solid rgba(255,255,255,0.05)",
+                background: "rgba(255,255,255,0.03)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}
+            >
+              <span style={{ fontWeight: 600, opacity: 0.8 }}>
+                Terminal
               </span>
-            )}
-          </pre>
-        </div>
-        {testResults.length > 0 && (
-          <div style={{ marginTop: "1.5rem" }}>
-            <h4 style={{ marginBottom: "1rem" }}>Test Results</h4>
 
-            {testResults.map((t, index) => (
-              <div
-                key={index}
+              <span
                 style={{
-                  padding: "1rem",
-                  borderRadius: "10px",
-                  marginBottom: "0.8rem",
-                  background: t.passed
-                    ? "rgba(16,185,129,0.1)"
-                    : "rgba(239,68,68,0.1)",
-                  border: `1px solid ${t.passed ? "#10b981" : "#ef4444"
-                    }`
+                  fontSize: "0.8rem",
+                  padding: "3px 10px",
+                  borderRadius: "999px",
+                  background: isRunning
+                    ? "rgba(59,130,246,0.2)"
+                    : "rgba(34,197,94,0.15)",
+                  color: isRunning ? "#3b82f6" : "#22c55e"
                 }}
               >
-                <strong>Test {index + 1}</strong>
-                <div>Status: {t.passed ? "✅ Passed" : "❌ Failed"}</div>
+                {isRunning ? "Running..." : "Idle"}
+              </span>
+            </div>
+
+            {/* BODY */}
+            <div
+              ref={terminalBodyRef}
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "1rem",
+                fontFamily: "monospace",
+                fontSize: "0.9rem",
+                lineHeight: "1.5",
+                background: "#050b17",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word"
+              }}
+            >
+              <pre style={{ margin: 0, color: "#cbd5e1" }}>
+                {output}
+
+                {waitingForInput && (
+                  <>
+                    <span style={{ color: "#22c55e" }}>
+                      {inputBuffer}
+                    </span>
+                    <span style={{ color: "#22c55e" }}>|</span>
+                  </>
+                )}
+
+                {!output && !waitingForInput && (
+                  <span style={{ color: "#22c55e", opacity: 0.7 }}>
+                    ▶ Ready for Execution
+                  </span>
+                )}
+              </pre>
+            </div>
+            {testResults.length > 0 && (
+              <div style={{ padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                <h4 style={{ marginBottom: "1rem" }}>Submission Results</h4>
+
+                {testResults.map((t, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      padding: "1rem",
+                      borderRadius: "10px",
+                      marginBottom: "0.8rem",
+                      background: t.passed
+                        ? "rgba(16,185,129,0.1)"
+                        : "rgba(239,68,68,0.1)",
+                      border: `1px solid ${t.passed ? "#10b981" : "#ef4444"
+                        }`
+                    }}
+                  >
+                    <strong>Test {index + 1}</strong>
+                    <div>Status: {t.passed ? "✅ Passed" : "❌ Failed"}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
-      </div>
+          
+          {testCases && testCases.length > 0 && (
+            <div 
+              className={styles.examTestCases}
+              style={{
+                borderRadius: "14px",
+                border: "1px solid rgba(255,255,255,0.06)",
+                boxShadow: "0 15px 50px rgba(0,0,0,0.45)",
+              }}
+            >
+              <div className={styles.examTestCaseHeader}>
+                Test Cases
+              </div>
+              <div className={styles.examTestCaseBody}>
+                {testCases.map((tc, idx) => (
+                  <div key={idx} className={styles.examTestCaseItem}>
+                    <div>
+                      <div className={styles.examTestCaseLabel}>Test {idx + 1} {tc.is_hidden ? "(Hidden)" : ""}</div>
+                    </div>
+                    <div>
+                      <div className={styles.examTestCaseLabel}>Input</div>
+                      <div className={styles.examTestCaseValue}>{tc.input}</div>
+                    </div>
+                    <div>
+                      <div className={styles.examTestCaseLabel}>Expected Output</div>
+                      <div className={styles.examTestCaseValue}>{tc.expected}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
 
