@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { BadgeCheck, Search, Send } from "lucide-react";
 import { containsProfanity } from "../utils/profanityFilter";
 import "../styles/FreedomWall.css";
@@ -16,6 +17,7 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const ADMIN_USERS = new Set(["codemania"]);
 
 const FreedomWall = ({ onOpenModal }) => {
+  const navigate = useNavigate();
   const getAllPosts = useGetAllPosts();
   const COOLDOWN_MINUTES = 30;
   const userPost = useUserPost();
@@ -82,6 +84,7 @@ const FreedomWall = ({ onOpenModal }) => {
     return {
       id: post?.fd_wall_id ?? post?.id ?? Date.now(),
       user: username,
+      username,
       avatar,
       text: post?.content ?? '',
       time: createdAtLabel,
@@ -273,7 +276,19 @@ const FreedomWall = ({ onOpenModal }) => {
                 <div className="comment-content">
                   <div className="comment-header">
                     <span className="comment-user-wrap">
-                      <span className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}>{comment.user}</span>
+                      {comment.username && comment.username !== 'Anonymous' ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
+                          className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}
+                          style={{ background: 'transparent', border: 0, padding: 0, cursor: 'pointer' }}
+                          aria-label={`View ${comment.username}'s profile`}
+                        >
+                          {comment.user}
+                        </button>
+                      ) : (
+                        <span className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}>{comment.user}</span>
+                      )}
                       {comment.isAdmin ? <BadgeCheck className="verified-badge" aria-label="Verified admin" /> : null}
                     </span>
                     <span className="comment-time">{comment.time}</span>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 
 
@@ -37,7 +38,15 @@ import useProfileSummary from '../services/useProfileSummary';
 
 import useLearningProgress from '../services/useLearningProgress';
 
+import useGetPublicProfile from '../services/getPublicProfile';
+
+import usePublicProfileSummary from '../services/usePublicProfileSummary';
+
+import usePublicLearningProgress from '../services/usePublicLearningProgress';
+
 import useGetAchievements from '../services/getUserAchievements';
+
+import useGetPublicAchievements from '../services/getPublicAchievements';
 
 import useGetQuizAttempts from "../services/getQuizAttempts";
 
@@ -59,6 +68,13 @@ const EDIT_NAME_COOLDOWN_MS = 60 * 1000;
 
 
 const Profile = ({ onSignOut }) => {
+
+  const { username: routeUsernameParam } = useParams();
+  const routeUsername = routeUsernameParam ? String(routeUsernameParam) : '';
+  const selfUsername = String(localStorage.getItem('username') || '').trim();
+  const isViewingOtherProfile =
+    Boolean(routeUsername) &&
+    routeUsername.toLowerCase() !== selfUsername.toLowerCase();
 
 
 
@@ -114,6 +130,8 @@ const Profile = ({ onSignOut }) => {
 
   const getProfile = useGetProfile();
 
+  const getPublicProfile = useGetPublicProfile();
+
 
 
   const [editFormData, setEditFormData] = useState(() => ({
@@ -129,6 +147,10 @@ const Profile = ({ onSignOut }) => {
 
 
   useEffect(() => {
+
+     if (isViewingOtherProfile) return;
+
+    if (isViewingOtherProfile) return;
 
 
 
@@ -344,7 +366,60 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  }, []);
+  }, [getProfile, isViewingOtherProfile]);
+
+  useEffect(() => {
+    if (!isViewingOtherProfile) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const response = await getPublicProfile(routeUsername);
+        const profile = response?.data;
+        if (!response?.success || !profile) return;
+        if (cancelled) return;
+
+        const nextUsername = profile?.username || routeUsername;
+        const nextFullName = profile?.full_name || nextUsername || 'Unknown';
+        const nextCharacterId =
+          profile?.character_id === null || profile?.character_id === undefined
+            ? null
+            : Number(profile.character_id);
+
+        const iconByCharacterId = {
+          0: characterIcon1,
+          1: characterIcon0,
+          2: characterIcon2,
+          3: characterIcon3,
+        };
+
+        const nextIcon =
+          nextCharacterId !== null && !Number.isNaN(nextCharacterId)
+            ? (iconByCharacterId[nextCharacterId] || '')
+            : '';
+
+        setEditFormData((prev) => ({
+          ...prev,
+          userName: nextFullName,
+          username: nextUsername ? `@${nextUsername}` : prev.username,
+          characterIcon: nextIcon,
+        }));
+
+        setActiveTab('achievements');
+      } catch {
+        // ignore
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getPublicProfile, isViewingOtherProfile, routeUsername]);
 
 
 
@@ -560,7 +635,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  }, []);
+  }, [isViewingOtherProfile]);
 
 
 
@@ -570,9 +645,32 @@ const Profile = ({ onSignOut }) => {
 
   const { totalXp, badgeCount } = useProfileSummary();
 
+  const { totalXp: publicTotalXp, badgeCount: publicBadgeCount } = usePublicProfileSummary(
+    isViewingOtherProfile ? routeUsername : ''
+  );
+
   const { progress: learningProgressRows } = useLearningProgress();
 
+  const { progress: publicLearningProgressRows } = usePublicLearningProgress(
+    isViewingOtherProfile ? routeUsername : ''
+  );
+
   const { achievements } = useGetAchievements();
+
+  const { achievements: publicAchievements } = useGetPublicAchievements(
+    isViewingOtherProfile ? routeUsername : ''
+  );
+
+  const displayedTotalXp = isViewingOtherProfile ? publicTotalXp : totalXp;
+  const displayedBadgeCount = isViewingOtherProfile ? publicBadgeCount : badgeCount;
+
+  const effectiveLearningProgressRows = isViewingOtherProfile
+    ? publicLearningProgressRows
+    : learningProgressRows;
+
+  const effectiveAchievements = isViewingOtherProfile
+    ? publicAchievements
+    : achievements;
 
   const getQuizAttempts = useGetQuizAttempts();
 
@@ -589,7 +687,7 @@ const Profile = ({ onSignOut }) => {
     javascript: { progress: 0, total: 16, completed: 0, icon: <FileCode2 size={20} /> },
   };
 
-  (learningProgressRows || []).forEach((row) => {
+  (effectiveLearningProgressRows || []).forEach((row) => {
     const languageId = Number(row?.programming_language_id);
     const languageById = {
       1: 'python',
@@ -614,7 +712,7 @@ const Profile = ({ onSignOut }) => {
     };
   });
 
-  const badges = (achievements || []).map((item) => ({
+  const badges = (effectiveAchievements || []).map((item) => ({
     id: item?.id,
     title: item?.title || 'Achievement',
     description: item?.description || '',
@@ -625,6 +723,7 @@ const Profile = ({ onSignOut }) => {
   }));
 
   useEffect(() => {
+    if (isViewingOtherProfile) return;
     if (activeTab !== "assessments") return;
     if (assessmentsLoading) return;
     if (quizAttempts.length || examAttempts.length) return;
@@ -667,7 +766,7 @@ const Profile = ({ onSignOut }) => {
     return () => {
       cancelled = true;
     };
-  }, [activeTab]);
+  }, [activeTab, isViewingOtherProfile]);
 
 
 
@@ -1219,7 +1318,8 @@ const Profile = ({ onSignOut }) => {
 
 
 
-            <button className={styles.coverEditProfileBtn} onClick={handleEditAccount}>
+            {!isViewingOtherProfile ? (
+              <button className={styles.coverEditProfileBtn} onClick={handleEditAccount}>
 
 
 
@@ -1231,15 +1331,16 @@ const Profile = ({ onSignOut }) => {
 
 
 
-            </button>
+              </button>
+            ) : null}
 
             <div className={styles.mobileCoverStats}>
               <div className={styles.mobileCoverStatItem}>
-                <span className={styles.mobileCoverStatValue}>{totalXp || 0}</span>
+                <span className={styles.mobileCoverStatValue}>{displayedTotalXp || 0}</span>
                 <span className={styles.mobileCoverStatLabel}>XP</span>
               </div>
               <div className={styles.mobileCoverStatItem}>
-                <span className={styles.mobileCoverStatValue}>{badgeCount || badges.length || 0}</span>
+                <span className={styles.mobileCoverStatValue}>{displayedBadgeCount || badges.length || 0}</span>
                 <span className={styles.mobileCoverStatLabel}>Badges</span>
               </div>
             </div>
@@ -1318,12 +1419,14 @@ const Profile = ({ onSignOut }) => {
 
           </button>
 
-          <button
-            className={`${styles.tab} ${activeTab === 'assessments' ? styles.active : ''}`}
-            onClick={() => setActiveTab('assessments')}
-          >
-            QUIZZES & EXAMS
-          </button>
+          {!isViewingOtherProfile ? (
+            <button
+              className={`${styles.tab} ${activeTab === 'assessments' ? styles.active : ''}`}
+              onClick={() => setActiveTab('assessments')}
+            >
+              QUIZZES & EXAMS
+            </button>
+          ) : null}
 
 
 
@@ -1585,7 +1688,7 @@ const Profile = ({ onSignOut }) => {
 
           )}
 
-          {activeTab === 'assessments' && (
+          {activeTab === 'assessments' && !isViewingOtherProfile && (
             <div className={styles.assessmentsContainer}>
               <h3 className={styles.progressTitle}>Your Quiz & Exam History</h3>
 
@@ -2033,7 +2136,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <div className={styles.sidebarCardStatValue}>{totalXp || 0}</div>
+              <div className={styles.sidebarCardStatValue}>{displayedTotalXp || 0}</div>
 
 
 
@@ -2049,7 +2152,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <div className={styles.sidebarCardStatValue}>{badgeCount || badges.length || 0}</div>
+              <div className={styles.sidebarCardStatValue}>{displayedBadgeCount || badges.length || 0}</div>
 
 
 
@@ -2121,6 +2224,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
+        {!isViewingOtherProfile ? (
         <div className={styles.sidebarCard}>
 
 
@@ -2170,6 +2274,7 @@ const Profile = ({ onSignOut }) => {
 
 
         </div>
+        ) : null}
 
 
 

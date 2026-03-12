@@ -493,6 +493,7 @@ function App() {
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route path="/profile/:username" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
             {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
           </ProtectedRoute>} />

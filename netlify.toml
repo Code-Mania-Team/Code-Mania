@@ -4,12 +4,6 @@ publish = "dist"
 command = "npm run build"
 
 [[redirects]]
-  from = "/api/v1/*"
-  to = "https://api.codemania.fun/v1/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
+  fr
   from = "/*"
   to = "/index.html"
-  status = 200

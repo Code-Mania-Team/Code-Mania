@@ -21,6 +21,7 @@ class LeaderboardService {
             if (!users[userId]) {
                 users[userId] = {
                     user_id: userId,
+                    username: row.users?.username,
                     full_name: row.users?.full_name,
                     character_id: row.users?.character_id,
                     overall_xp: 0,
@@ -48,6 +49,7 @@ class LeaderboardService {
             if (!users[userId]) {
                 users[userId] = {
                     user_id: userId,
+                    username: row.users?.username,
                     full_name: row.users?.full_name,
                     character_id: row.users?.character_id,
                     overall_xp: 0,
@@ -88,6 +90,7 @@ class LeaderboardService {
             if (!users[userId]) {
                 users[userId] = {
                     user_id: userId,
+                    username: row.users?.username,
                     full_name: row.users?.full_name,
                     character_id: row.users?.character_id,
                     overall_xp: 0,

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Leaderboard.css';
 import useGetAllLeaderboard from '../services/leaderBoard';
 
@@ -7,6 +8,7 @@ const trophyIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v176692575
 const MAX_LEADERBOARD_ROWS = 50;
 
 const Leaderboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState('all');
   const [leaderboardData, setLeaderboardData] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
@@ -50,7 +52,8 @@ const Leaderboard = () => {
         // ❗ Recalculate ranking per tab
         const formatted = users.slice(0, MAX_LEADERBOARD_ROWS).map((user, index) => ({
           rank: index + 1,
-          name: user.full_name,
+          username: user.username,
+          name: user.full_name || user.username || 'Unknown',
           score: user.selectedXP,
           avatar: characterIcons[user.character_id] || characterIcon0,
         }));
@@ -122,7 +125,25 @@ const Leaderboard = () => {
             <p style={{ textAlign: 'center' }}>No players yet.</p>
           ) : (
             leaderboardData.map((player) => (
-              <div key={player.rank} className="leaderboard-card">
+              <div
+                key={player.rank}
+                className="leaderboard-card"
+                role={player.username ? 'button' : undefined}
+                tabIndex={player.username ? 0 : undefined}
+                onClick={() => {
+                  if (!player.username) return;
+                  navigate(`/profile/${encodeURIComponent(player.username)}`);
+                }}
+                onKeyDown={(e) => {
+                  if (!player.username) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`/profile/${encodeURIComponent(player.username)}`);
+                  }
+                }}
+                style={player.username ? { cursor: 'pointer' } : undefined}
+                aria-label={player.username ? `View ${player.name}'s profile` : undefined}
+              >
                 <div className="player-rank">
                   <span
                     className={`rank-badge ${
