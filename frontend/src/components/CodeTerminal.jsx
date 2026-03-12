@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react";
 import { Play, Check } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
 import useValidateExercise from "../services/validateExercise";
+import useValidateExercisePreview from "../services/validateExercisePreview";
 import useCreateDomSession from "../services/useCreateDomSession";
 import useUpdateDomSession from "../services/useUpdateDomSession";
 import useDeleteDomSession from "../services/useDeleteDomSession";
@@ -91,6 +92,77 @@ function normalizeTestResults(result) {
   return [];
 }
 
+function normalizeObjectiveList(objectives) {
+  if (!objectives) return [];
+  if (Array.isArray(objectives)) return objectives;
+  if (typeof objectives === "object") return Object.values(objectives);
+  return [];
+}
+
+function getQuestExpectedOutput(quest) {
+  const direct = quest?.expected_output ?? quest?.expectedOutput;
+  if (typeof direct === "string" && direct.trim()) return direct;
+
+  const reqObjectives = Array.isArray(quest?.requirements?.objectives)
+    ? quest.requirements.objectives
+    : [];
+
+  const outputObj = reqObjectives.find((o) => String(o?.type || "").toLowerCase() === "output_equals");
+  const fromObjective = outputObj?.value;
+  if (typeof fromObjective === "string" && fromObjective.trim()) return fromObjective;
+
+  return "";
+}
+
+function getQuestRequirementsBlueprint(quest) {
+  const req = quest?.requirements;
+
+  // Admin/editor sometimes stores objectives as an array of { label }
+  if (Array.isArray(req)) {
+    return req
+      .map((r) => (typeof r?.label === "string" ? r.label : ""))
+      .filter((s) => s.trim())
+      .map((label) => ({ label, passed: null }));
+  }
+
+  // Multi-objective quests store { objectives: [...] }
+  const objectives = Array.isArray(req?.objectives) ? req.objectives : [];
+  if (objectives.length) {
+    return objectives
+      .filter((o) => String(o?.type || "").toLowerCase() !== "output_equals")
+      .map((o) => ({
+        label: o?.label || "Objective",
+        passed: null,
+      }));
+  }
+
+  // Game-data JSON uses { mustInclude: [...] }
+  const mustInclude = Array.isArray(req?.mustInclude) ? req.mustInclude : [];
+  if (mustInclude.length) {
+    return mustInclude
+      .map((t) => String(t || "").trim())
+      .filter(Boolean)
+      .map((token) => ({ label: `Must include: ${token}`, passed: null }));
+  }
+
+  return [];
+}
+
+function getQuestRuntimeTestBlueprint(quest) {
+  const cases = Array.isArray(quest?.requirements?.test_cases)
+    ? quest.requirements.test_cases
+    : [];
+
+  return cases
+    .map((t) => ({
+      input: t?.input ?? "",
+      expected: t?.expected ?? "",
+      output: "-",
+      passed: null,
+    }))
+    .filter((t) => String(t.input).trim() || String(t.expected).trim());
+}
+
 const InteractiveTerminal = ({
   quest,
   questId,
@@ -120,8 +192,11 @@ const InteractiveTerminal = ({
   const [waitingForInput, setWaitingForInput] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [testResults, setTestResults] = useState(null);
+  const [lastValidatedOutput, setLastValidatedOutput] = useState(null);
+  const [lastValidatedCode, setLastValidatedCode] = useState(null);
   const [isQuestActive, setIsQuestActive] = useState(false);
   const [isQuestCompleted, setIsQuestCompleted] = useState(false);
   const [failedSubmissions, setFailedSubmissions] = useState(0);
@@ -134,6 +209,7 @@ const InteractiveTerminal = ({
   const [internalActivePanel, setInternalActivePanel] = useState("editor");
 
   const validateExercise = useValidateExercise();
+  const validateExercisePreview = useValidateExercisePreview();
   const validateDom = useValidateDom();
 
   const createDomSession = useCreateDomSession();
@@ -146,7 +222,7 @@ const InteractiveTerminal = ({
   
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
-  const isBusy = isRunning || isSubmitting;
+  const isBusy = isRunning || isSubmitting || isValidating;
   const setActivePanel = (panel) => {
     if (onMobilePanelChange) onMobilePanelChange(panel);
     else setInternalActivePanel(panel);
@@ -229,10 +305,76 @@ const InteractiveTerminal = ({
     setWaitingForInput(false);
     setValidationResult(null);
     setFailedSubmissions(0);
+    setLastValidatedOutput(null);
+    setLastValidatedCode(null);
     setCode(resolveInitialCode());
     setActivePanel("editor");
     setIsValidationCollapsed(false);
   }, [questId, quest?.starting_code]);
+
+  const handleRunValidation = async () => {
+    if (!quest || !isQuestActive || isQuestCompleted || isValidating || isSubmitting) return;
+
+    // DOM quests: validate against DOM requirements (no completion here)
+    if (quest?.quest_type === "dom") {
+      if (!domSessionId) return;
+
+      setIsValidating(true);
+      try {
+        const result = await validateDom(domSessionId, quest.requirements);
+        if (result?.success) {
+          setValidationResult(result?.data?.objectives || null);
+          setTestResults([]);
+          setLastValidatedOutput("__dom__");
+          setLastValidatedCode(code);
+
+          if (result?.data?.passed) {
+            setFailedSubmissions(0);
+          } else {
+            setFailedSubmissions((prev) => prev + 1);
+          }
+        }
+      } catch (err) {
+        console.error("DOM validation failed:", err);
+      } finally {
+        setIsValidating(false);
+      }
+
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      const outputForValidation = await executeCodeForValidation();
+
+      // Check for execution errors before validating
+      if (hasExecutionError(outputForValidation, language)) {
+        setLastValidatedOutput(null);
+        setLastValidatedCode(null);
+        return;
+      }
+
+      const result = await validateExercisePreview(questId, outputForValidation, code);
+
+      if (result?.objectives) {
+        setValidationResult(result.objectives);
+      }
+
+      setTestResults(normalizeTestResults(result));
+      setLastValidatedOutput(outputForValidation);
+      setLastValidatedCode(code);
+
+      if (result?.success) {
+        setFailedSubmissions(0);
+      } else {
+        setFailedSubmissions((prev) => prev + 1);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsValidating(false);
+    }
+  };
 
   const hasAnyResults =
     Boolean(validationResult) || (Array.isArray(testResults) && testResults.length > 0);
@@ -337,6 +479,22 @@ const InteractiveTerminal = ({
     new Promise((resolve) => {
       let finalOutput = "";
       const socket = new WebSocket(terminalWsUrl);
+      let resolved = false;
+
+      const done = (value) => {
+        if (resolved) return;
+        resolved = true;
+        resolve(value);
+      };
+
+      const timer = setTimeout(() => {
+        try {
+          socket.close();
+        } catch {
+          null;
+        }
+        done(finalOutput);
+      }, 6000);
 
       socket.onopen = () => {
         socket.send(JSON.stringify({ language, code }));
@@ -347,7 +505,8 @@ const InteractiveTerminal = ({
       };
 
       socket.onclose = () => {
-        resolve(finalOutput);
+        clearTimeout(timer);
+        done(finalOutput);
       };
 
       socket.onerror = () => {
@@ -356,7 +515,8 @@ const InteractiveTerminal = ({
         } catch {
           null;
         }
-        resolve("");
+        clearTimeout(timer);
+        done(finalOutput);
       };
     });
 
@@ -365,21 +525,20 @@ const InteractiveTerminal = ({
   =============================== */
 
   const handleSubmit = async () => {
-    if (!quest || !isQuestActive || isQuestCompleted || isRunning || isSubmitting) return;
+    if (!quest || !isQuestActive || isQuestCompleted || isRunning || isSubmitting || isValidating) return;
+
+    // Submit is only allowed after a successful validation run
+    if (!lastValidatedCode || lastValidatedCode !== code) return;
+    if (!lastValidatedOutput) return;
+
+    if (!canSubmit) return;
 
     setIsSubmitting(true);
 
     try {
-      const outputForValidation = await executeCodeForValidation();
-      
-      // Check for execution errors before validating
-      if (hasExecutionError(outputForValidation, language)) {
-        return;
-      }
-
       const result = await validateExercise(
         questId,
-        outputForValidation,
+        lastValidatedOutput,
         code
       );
       if (result?.objectives) {
@@ -396,7 +555,7 @@ const InteractiveTerminal = ({
           })
         );
       } else {
-        setFailedSubmissions((prev) => prev + 1);
+        // keep hints progression on validation runs
       }
     } catch (err) {
       console.error(err);
@@ -406,17 +565,17 @@ const InteractiveTerminal = ({
   };
 
   const handleRun = () => {
-    if (isSubmitting) return;
+    if (isSubmitting || isValidating) return;
 
     setProgramOutput("");
     setInputBuffer("");
     setWaitingForInput(false);
     if (quest?.quest_type === "dom") {
-      runDOM();
-      setIsRunning(false);
+      Promise.resolve(runDOM()).then(() => handleRunValidation());
     } else {
       setIsRunning(true);
       runViaDocker();
+      handleRunValidation();
     }
   };
 
@@ -444,30 +603,21 @@ const InteractiveTerminal = ({
   };
 
   const handleSubmitDom = async () => {
-    if (!domSessionId || isSubmitting || isRunning) return;
+    if (!domSessionId || isSubmitting || isRunning || isValidating) return;
+
+    // Submit is only allowed after a successful validation run
+    if (!lastValidatedCode || lastValidatedCode !== code) return;
+
+    if (!canSubmit) return;
 
     setIsSubmitting(true);
 
     try {
-      const result = await validateDom(domSessionId, quest.requirements);
-
-      if (result.success) {
-        setValidationResult(result.data.objectives);
-
-        if (result.data.passed) {
-          setFailedSubmissions(0);
-          window.dispatchEvent(
-            new CustomEvent("code-mania:quest-complete", {
-              detail: { questId }
-            })
-          );
-        } else {
-          setFailedSubmissions((prev) => prev + 1);
-        }
-      }
-
-    } catch (err) {
-      console.error("DOM validation failed:", err);
+      window.dispatchEvent(
+        new CustomEvent("code-mania:quest-complete", {
+          detail: { questId }
+        })
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -506,21 +656,142 @@ const InteractiveTerminal = ({
     }
   };
 
-  const totalObjectives = validationResult
-  ? Object.keys(validationResult).length
-  : 0;
+  const runtimeTests = Array.isArray(testResults) ? testResults : [];
+  const runtimeBlueprint = useMemo(() => getQuestRuntimeTestBlueprint(quest), [quest]);
+  const displayedRuntimeTests = runtimeTests.length ? runtimeTests : runtimeBlueprint;
 
-  const passedObjectives = validationResult
-    ? Object.values(validationResult).filter(obj => obj.passed).length
-    : 0;
+  const initialObjectives = useMemo(() => getQuestRequirementsBlueprint(quest), [quest]);
+  const objectiveItems = validationResult
+    ? normalizeObjectiveList(validationResult)
+    : initialObjectives;
 
-  const totalRuntimeTests = Array.isArray(testResults) ? testResults.length : 0;
-  const passedRuntimeTests = Array.isArray(testResults)
-    ? testResults.filter((t) => t?.passed).length
+  const totalObjectives = objectiveItems.length;
+  const passedObjectives = objectiveItems.filter((obj) => obj?.passed).length;
+
+  const totalRuntimeTests = displayedRuntimeTests.length;
+  const passedRuntimeTests = runtimeTests.length
+    ? runtimeTests.filter((t) => t?.passed).length
     : 0;
 
   const totalChecks = totalObjectives + totalRuntimeTests;
   const passedChecks = passedObjectives + passedRuntimeTests;
+
+  const allChecksPassed = totalChecks > 0 && passedChecks === totalChecks;
+  const canSubmit =
+    allChecksPassed &&
+    Boolean(lastValidatedCode) &&
+    lastValidatedCode === code &&
+    Boolean(lastValidatedOutput);
+
+  const renderTestSidebar = () => {
+    return (
+      <aside className={styles["test-sidebar"]} aria-label="Test cases">
+        <div className={styles["test-sidebar-header"]}>
+          <div className={styles["test-sidebar-title"]}>Test Cases</div>
+          <div
+            className={`${styles["test-sidebar-pill"]} ${
+              totalChecks > 0 && passedChecks === totalChecks
+                ? styles["test-sidebar-pill-pass"]
+                : totalChecks > 0
+                  ? styles["test-sidebar-pill-warn"]
+                  : styles["test-sidebar-pill-idle"]
+            }`}
+            title={totalChecks > 0 ? `${passedChecks}/${totalChecks} passed` : "Run to validate"}
+          >
+            {totalChecks > 0 ? `${passedChecks}/${totalChecks}` : "Run"}
+          </div>
+        </div>
+
+        <div className={styles["test-sidebar-body"]}>
+          {!displayedRuntimeTests.length && !objectiveItems.length ? (
+            <div className={styles["test-sidebar-empty"]}>
+              Run your code to validate the test cases.
+            </div>
+          ) : null}
+
+          {objectiveItems.length ? (
+            <div className={styles["test-sidebar-section"]}>
+              <div className={styles["test-sidebar-section-title"]}>Objectives</div>
+              {objectiveItems.map((obj, idx) => (
+                <div
+                  key={`obj-${idx}`}
+                  className={`${styles["testcase-row"]} ${
+                    obj?.passed === null
+                      ? styles["testcase-row-pending"]
+                      : obj?.passed
+                        ? styles["testcase-pass"]
+                        : styles["testcase-fail"]
+                  }`}
+                >
+                  <span className={styles["testcase-mark"]}>
+                    {obj?.passed === null ? "--" : obj?.passed ? "✔" : "✖"}
+                  </span>
+                  <span className={styles["testcase-text"]}>{obj?.label || "Objective"}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {displayedRuntimeTests.length ? (
+            <div className={styles["test-sidebar-section"]}>
+              <div className={styles["test-sidebar-section-title"]}>Runtime Tests</div>
+              {displayedRuntimeTests.map((t, idx) => {
+                const input = t?.input ?? "";
+                const expected = t?.expected ?? "";
+                const output = t?.output ?? "";
+                const passed = t?.passed === null || t?.passed === undefined
+                  ? null
+                  : Boolean(t?.passed);
+
+                return (
+                  <div
+                    key={`tc-${idx}`}
+                    className={`${styles["testcase-card"]} ${
+                      passed === null
+                        ? styles["testcase-card-pending"]
+                        : passed
+                          ? styles["testcase-card-pass"]
+                          : styles["testcase-card-fail"]
+                    }`}
+                  >
+                    <div className={styles["testcase-card-head"]}>
+                      <div className={styles["testcase-card-title"]}>Test {idx + 1}</div>
+                      <div className={styles["testcase-status"]}>
+                        {passed === null ? "PENDING" : passed ? "PASS" : "FAIL"}
+                      </div>
+                    </div>
+                    <div className={styles["testcase-grid"]}>
+                      <div className={styles["testcase-cell"]}>
+                        <div className={styles["testcase-label"]}>Input</div>
+                        <pre className={styles["testcase-value"]}>{String(input)}</pre>
+                      </div>
+                      <div className={styles["testcase-cell"]}>
+                        <div className={styles["testcase-label"]}>Expected</div>
+                        <pre className={styles["testcase-value"]}>{String(expected)}</pre>
+                      </div>
+                      <div className={styles["testcase-cell"]}>
+                        <div className={styles["testcase-label"]}>Output</div>
+                        <pre className={styles["testcase-value"]}>{String(output)}</pre>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+
+        <div className={styles["test-sidebar-footer"]}>
+          <div className={styles["test-sidebar-footer-left"]}>
+            {canSubmit ? "Submit unlocked" : "Submit locked"}
+          </div>
+          <div className={styles["test-sidebar-footer-right"]}>
+            {canSubmit ? "All checks passed" : "Pass all tests"}
+          </div>
+        </div>
+      </aside>
+    );
+  };
 
   /* ===============================
      RENDER
@@ -564,19 +835,26 @@ const InteractiveTerminal = ({
                         !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
                       }`}
               onClick={handleRun}
-              disabled={isRunning || isSubmitting || !isQuestActive || isQuestCompleted}
+              disabled={isRunning || isSubmitting || isValidating || !isQuestActive || isQuestCompleted}
               title="Test your code and see the output"
             >
               <Play size={16} />
-              {isRunning ? "Running..." : "Run"}
+              {isValidating ? "Validating..." : isRunning ? "Running..." : "Run"}
             </button>
             <button
               className={`${styles["submit-btn"]} ${
                         !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
                       }`}
               onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
-              disabled={isRunning || isSubmitting || !isQuestActive || isQuestCompleted}
-              title="Submit your solution to complete the quest"
+              disabled={
+                isRunning ||
+                isSubmitting ||
+                isValidating ||
+                !isQuestActive ||
+                isQuestCompleted ||
+                !canSubmit
+              }
+              title={canSubmit ? "Submit your solution to complete the quest" : "Run and pass all test cases to unlock Submit"}
             >
               <Check size={16} />
               {isSubmitting ? "Submitting..." : "Submit"}
@@ -591,7 +869,12 @@ const InteractiveTerminal = ({
           value={code}
           onChange={(v) => {
             if (!isQuestActive || isQuestCompleted) return;
-            setCode(v ?? "");
+            const next = v ?? "";
+            setCode(next);
+            if (lastValidatedCode && next !== lastValidatedCode) {
+              setLastValidatedCode(null);
+              setLastValidatedOutput(null);
+            }
           }}
           options={{
             minimap: { enabled: false },
@@ -604,43 +887,47 @@ const InteractiveTerminal = ({
       )}
 
       {(!useMobileSplit || activePanel === "terminal") && (
-        quest?.quest_type === "dom" ? (
-          <iframe
-            ref={iframeRef}
-            sandbox="allow-scripts"
-            src={sandboxUrl}
-            style={{
-              width: "100%",
-              height: "400px",
-              border: "2px solid red",
-              background: "white"
-            }}
-          />
-        ) : (
-        <div
-            className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
-            ref={terminalRef}
-            tabIndex={isRunning && isQuestActive && !isQuestCompleted ? 0 : -1}
-            onClick={() => isRunning && isQuestActive && !isQuestCompleted && terminalRef.current?.focus()}
-            onKeyDown={handleKeyDown}
-          >
-        <div className={styles["terminal-header"]}>Terminal</div>
+        <div className={styles["terminal-with-tests"]}>
+          <div className={styles["terminal-main"]}>
+            {quest?.quest_type === "dom" ? (
+              <iframe
+                ref={iframeRef}
+                sandbox="allow-scripts"
+                src={sandboxUrl}
+                className={styles["dom-preview"]}
+              />
+            ) : (
+              <div
+                className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
+                ref={terminalRef}
+                tabIndex={isRunning && isQuestActive && !isQuestCompleted ? 0 : -1}
+                onClick={() =>
+                  isRunning &&
+                  isQuestActive &&
+                  !isQuestCompleted &&
+                  terminalRef.current?.focus()
+                }
+                onKeyDown={handleKeyDown}
+              >
+                <div className={styles["terminal-header"]}>Terminal</div>
+                <div className={styles["terminal-content"]}>
+                  <pre>
+                    {programOutput}
+                    {inputBuffer}
+                    <span className={styles.cursor}></span>
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
 
-        <div className={styles["terminal-content"]}>
-          <pre>
-            {programOutput}
-            {inputBuffer}
-            <span className={styles.cursor}></span>
-          </pre>
-
+          {!useMobileSplit ? renderTestSidebar() : null}
         </div>
-
-      </div>
-      ))}
-       {hasAnyResults && (
-         <div
-           className={`${styles["validation-box"]} ${isValidationCollapsed ? styles["validation-box-collapsed"] : ""}`}
-         >
+      )}
+       {useMobileSplit && hasAnyResults && (
+          <div
+            className={`${styles["validation-box"]} ${isValidationCollapsed ? styles["validation-box-collapsed"] : ""}`}
+          >
            <div className={styles["validation-header"]}>
              <div className={styles["validation-title"]}>
                {totalChecks > 0

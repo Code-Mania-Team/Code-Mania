@@ -32,6 +32,12 @@ publicExerciseRouter.post(
 );
 
 publicExerciseRouter.post(
+  "/exercises/validate-preview",
+  authentication,
+  exerciseController.validateExercisePreview.bind(exerciseController)
+);
+
+publicExerciseRouter.post(
   "/exercises/start",
   authentication,
   exerciseController.startExercise.bind(exerciseController)
