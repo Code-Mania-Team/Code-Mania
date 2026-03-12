@@ -3,39 +3,26 @@ import AccountService from "../../services/accountService.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
-import path from "path";
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
-const cookieBaseOptions = () => {
-    const isProduction = process.env.NODE_ENV === "production";
-    return {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "none",
-        ...(isProduction ? { domain: ".codemania.fun" } : {}),
-        path: "/",
-    };
-};
+const isProduction = process.env.NODE_ENV === "production";
 
-const createCookieOptions = (maxAge) => {
-    return {
-        ...cookieBaseOptions(),
-        maxAge,
-    };
-};
+const createCookieOptions = (maxAge) => ({
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "none",
+    path: "/",
+    ...(isProduction ? { domain: ".codemania.fun" } : {}),
+    maxAge,
+});
 
-const clearAuthCookies = (res) => {
-    const opts = cookieBaseOptions();
-    res.clearCookie("accessToken", opts);
-    res.clearCookie("refreshToken", opts);
-
-    // Backward compatibility: clear any host-only cookies from older deployments.
-    if (opts.domain) {
-        const { domain, ...hostOnlyOpts } = opts;
-        res.clearCookie("accessToken", hostOnlyOpts);
-        res.clearCookie("refreshToken", hostOnlyOpts);
-    }
+const clearCookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "none",
+    path: "/",
+    ...(isProduction ? { domain: ".codemania.fun" } : {}),
 };
 
 class AccountController {
@@ -369,7 +356,8 @@ class AccountController {
             
             // Clear refresh token only on actual invalid token
             if (err.message === 'Invalid refresh token') {
-                clearAuthCookies(res);
+                res.clearCookie("accessToken", clearCookieOptions);
+                res.clearCookie("refreshToken", clearCookieOptions);
             }
             
             return res.status(401).json({
@@ -539,9 +527,8 @@ class AccountController {
             });
 
             // Clear refresh token cookie
-            clearAuthCookies(res);
-
-            res.set("Cache-Control", "no-store");
+            res.clearCookie("refreshToken", clearCookieOptions);
+            res.clearCookie("accessToken", clearCookieOptions);
 
             return res.status(200).json({ 
                 success: true, 
@@ -567,7 +554,8 @@ class AccountController {
             if (userId) {
                 await this.userToken.invalidateByUserId(userId);
             }
-            clearAuthCookies(res);
+            res.clearCookie("accessToken", clearCookieOptions);
+            res.clearCookie("refreshToken", clearCookieOptions);
 
             return res.status(200).json({ 
                 success: true, 
