@@ -1454,23 +1454,11 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              {badges.length === 0 ? (
-
-
-
-                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-
-
-
-                  <p>No achievements earned yet.</p>
-
-
-
-                  <p style={{ fontSize: '14px', marginTop: '8px' }}>Complete exercises to unlock badges!</p>
-
-
-
-                </div>
+               {badges.length === 0 ? (
+                 <div className={styles.emptyState}>
+                   <p>No achievements earned yet.</p>
+                   <p className={styles.emptyStateSecondary}>Complete exercises to unlock badges!</p>
+                 </div>
 
 
 

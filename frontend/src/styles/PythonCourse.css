@@ -1,9 +1,9 @@
 /* Python Course Page */
 .python-course-page {
   width: 100%;
-  color: white;
+  color: var(--text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #0f172a;
+  background: var(--section-bg);
   min-height: 100vh;
 }
 
@@ -79,7 +79,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 3rem 2rem;
-  background: #0f172a;
+  background: var(--section-bg);
 }
 
 /* Modules Section */
@@ -90,8 +90,8 @@
 }
 
 .module-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 1rem;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -111,7 +111,7 @@
 }
 
 .module-header:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--card-bg);
 }
 
 .module-info {
@@ -137,7 +137,7 @@
 .module-title {
   font-family: 'Jersey 10', sans-serif;
   font-size: 1.8rem;
-  color: white;
+  color: var(--text-strong);
   margin: 0;
   letter-spacing: 0.5px;
 }
@@ -150,7 +150,7 @@
 
 .module-content {
   padding: 0 1.5rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border);
   animation: slideDown 0.3s ease;
 }
 
@@ -166,7 +166,7 @@
 }
 
 .module-description {
-  color: #cbd5e1;
+  color: var(--muted-2);
   font-size: 1rem;
   line-height: 1.6;
   margin: 1.5rem 0;
@@ -183,15 +183,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 0.5rem;
   transition: all 0.2s ease;
 }
 
 .exercise-item:hover {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--card-bg);
+  border-color: var(--border);
 }
 
 .exercise-item.available {
@@ -210,14 +210,14 @@
 
 .exercise-number {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .exercise-name {
   font-size: 1.1rem;
-  color: white;
+  color: var(--text-strong);
   font-weight: 500;
 }
 
@@ -284,8 +284,8 @@
 }
 
 .profile-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 1rem;
   padding: 1.5rem;
   text-align: center;
@@ -310,20 +310,20 @@
 .profile-info h4 {
   font-size: 1.2rem;
   margin: 0 0 0.25rem;
-  color: white;
+  color: var(--text-strong);
 }
 
 .profile-info p {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--muted);
   margin: 0 0 1rem;
 }
 
 .view-profile-btn {
   width: 100%;
   background: transparent;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text);
+  border: 1px solid var(--border);
   padding: 0.75rem;
   border-radius: 0.5rem;
   font-family: 'Jersey 10', sans-serif;
@@ -333,13 +333,13 @@
 }
 
 .view-profile-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--card-bg);
+  border-color: var(--border);
 }
 
 .progress-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 1rem;
   padding: 1.5rem;
 }
@@ -347,7 +347,7 @@
 .progress-title {
   font-family: 'Jersey 10', sans-serif;
   font-size: 1.3rem;
-  color: white;
+  color: var(--text-strong);
   margin: 0 0 1.5rem;
   letter-spacing: 0.5px;
 }
@@ -357,7 +357,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border);
 }
 
 .progress-item:last-child {
@@ -389,12 +389,12 @@
 }
 
 .progress-label span {
-  color: #cbd5e1;
+  color: var(--muted-2);
   font-size: 0.95rem;
 }
 
 .progress-value {
-  color: white;
+  color: var(--text-strong);
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -465,13 +465,13 @@
   height: 60px;
   border-radius: 8px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--border);
   transition: all 0.3s ease;
 }
 
 .python-course-badge:hover {
   transform: scale(1.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 

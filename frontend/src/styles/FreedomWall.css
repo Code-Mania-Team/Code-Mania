@@ -4,12 +4,17 @@
   min-height: 100vh;
   background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
               url('https://res.cloudinary.com/daegpuoss/image/upload/v1768366603/freedomwallbg_hnoh9b.gif') center/cover no-repeat fixed;
-  color: white;
+  color: var(--text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 2rem 1rem;
+}
+
+html[data-theme="light"] .freedomwall-page {
+  background: linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.6)),
+              url('https://res.cloudinary.com/daegpuoss/image/upload/v1768366603/freedomwallbg_hnoh9b.gif') center/cover no-repeat fixed;
 }
 
 .freedomwall-page > * {
@@ -27,15 +32,14 @@
 
 .search-container input {
   width: 100%;
-  background: #1a1a1a;
-  border: 1px solid #2d2d2d;
+  background: var(--page-bg);
+  border: 1px solid var(--border);
   border-radius: 9999px;
   padding: 0.75rem 1rem 0.75rem 3rem;
-  color: #e5e7eb;
+  color: var(--text);
   font-size: 0.95rem;
   transition: all 0.2s;
   box-sizing: border-box;
-  border-color: white;
 }
 
 .search-container input:focus {
@@ -57,12 +61,11 @@
 
 /* Comment Input Section */
 .comment-input-section {
-  background: #0f0f0f;
-  border: 1px solid #2d2d2d;
+  background: var(--page-bg);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  border-color: white;
 }
 
 .comment-input-wrapper {
@@ -89,7 +92,7 @@
   min-height: 5rem;
   background: transparent;
   border: none;
-  color: white;
+  color: var(--text);
   font-size: 0.95rem;
   resize: none;
   padding: 0.5rem 0;
@@ -141,8 +144,8 @@
   display: flex;
   gap: 1rem;
   padding: 1.5rem;
-  background: #0f0f0f;
-  border: 1px solid #2d2d2d;
+  background: var(--page-bg);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   transition: border-color 0.2s;
 }
@@ -177,7 +180,26 @@
 .comment-user {
   font-weight: 600;
   font-size: 1rem;
-  color: #f3f4f6;
+  color: var(--text-strong);
+}
+
+.comment-user-button {
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  line-height: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.comment-user-button:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.45);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .comment-user-admin {
@@ -185,6 +207,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .comment-user-wrap {
@@ -201,12 +224,12 @@
 }
 
 .comment-time {
-  color: #9ca3af;
+  color: var(--muted);
   font-size: 0.8rem;
 }
 
 .comment-text {
-  color: #e5e7eb;
+  color: var(--text);
   font-size: 1rem;
   line-height: 1.75;
   letter-spacing: 0.01em;

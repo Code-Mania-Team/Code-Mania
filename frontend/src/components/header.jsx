@@ -3,6 +3,7 @@ import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import useAuth from "../hooks/useAxios";
 import useLearningProgress from "../services/useLearningProgress";
+import { useTheme } from "../context/ThemeProvider.jsx";
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -19,6 +20,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [characterIcon, setCharacterIcon] = useState(() => localStorage.getItem('selectedCharacterIcon') || null);
   const { isAuthenticated, isLoading, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { progress } = useLearningProgress();
 
@@ -209,6 +211,20 @@ const Header = ({ onOpenModal, onSignOut }) => {
 
         <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>FREEDOM WALL</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={closeMobileMenu}>LEADERBOARD</NavLink>
+
+        <button
+          type="button"
+          className="nav-link theme-toggle"
+          onClick={() => {
+            toggleTheme();
+            closeMobileMenu();
+          }}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={theme === "dark" ? "Light mode" : "Dark mode"}
+        >
+          <span className="theme-toggle-icon" aria-hidden="true" />
+          <span className="theme-toggle-text">{theme === "dark" ? "LIGHT" : "DARK"}</span>
+        </button>
 
         {/* Terminal link — locked until 1 course is completed (admins always have access) */}
         {isAuthenticated && (

@@ -2,8 +2,14 @@
 .leaderboard-page {
   width: 100%;
   min-height: 100vh;
-  background: #0f172a;
-  color: white;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+    url('https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/leaderboard_fryema.gif');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: #fff;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   flex-direction: column;
@@ -11,6 +17,13 @@
   padding: 2rem 1rem;
   position: relative;
   overflow: hidden;
+}
+
+html[data-theme="light"] .leaderboard-page {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.7)),
+    url('https://res.cloudinary.com/daegpuoss/image/upload/v1766925761/leaderboard_fryema.gif');
+  color: var(--text);
 }
 
 
@@ -68,27 +81,28 @@
 }
 
 .leaderboard-container {
-  background: linear-gradient(135deg, rgba(15, 15, 15, 0.5), rgba(30, 30, 30, 0.5));
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
   border-radius: 1rem;
   padding: 1.5rem;
   margin-top: 1rem;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  color: inherit;
 }
 
 .leaderboard-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid #ffffff;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.75rem;
 }
 
 .tab {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--muted);
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -97,13 +111,13 @@
 }
 
 .tab:hover {
-  background: #1f1f1f;
-  color: #e5e7eb;
+  background: var(--card-bg);
+  color: var(--text);
 }
 
 .tab.active {
   background: #7c3aed;
-  color: white;
+  color: #fff;
 }
 
 .leaderboard-list {
@@ -115,10 +129,11 @@
 .leaderboard-card {
   display: flex;
   align-items: center;
-  background: #1a1a1a;
+  background: var(--page-bg);
   border-radius: 0.75rem;
   padding: 1rem;
   transition: transform 0.2s, box-shadow 0.2s;
+  color: var(--text);
 }
 
 .leaderboard-card:hover {
@@ -131,7 +146,7 @@
   text-align: center;
   font-weight: 700;
   font-size: 1.1rem;
-  color: #9ca3af;
+  color: var(--muted);
 }
 
 .rank-badge {
@@ -141,13 +156,13 @@
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background: #2d2d2d;
-  color: #e5e7eb;
+  background: var(--card-bg);
+  color: var(--text);
 }
 
 .rank-badge.top-three {
   background: #7c3aed;
-  color: white;
+  color: #fff;
 }
 
 .player-avatar {
@@ -171,7 +186,7 @@
 
 .player-score {
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: var(--muted);
 }
 
 /* Responsive Design */

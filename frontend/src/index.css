@@ -1,66 +1,127 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --app-bg: #0b1020;
+  --page-bg: #000000;
+  --section-bg: #0f172a;
+  --header-bg: #000000;
+  --nav-panel-bg: #000826;
+  --nav-panel-sub-bg: #041136;
+  --dropdown-bg: #0f172a;
+  --modal-bg: #111118;
+  --footer-bg: #0a0a0a;
+
+  --text: #ffffff;
+  --text-strong: #ffffff;
+  --muted: #94a3b8;
+  --muted-2: #cbd5e1;
+
+  --link: #60a5fa;
+  --link-hover: #93c5fd;
+
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.1);
+
+  --dashboard-bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --app-bg: linear-gradient(to bottom, #1e3a8a, #1e40af, #7c3aed);
+  --page-bg: #000000;
+  --section-bg: #0f172a;
+  --header-bg: #000000;
+  --nav-panel-bg: #000826;
+  --nav-panel-sub-bg: #041136;
+  --dropdown-bg: #0f172a;
+  --modal-bg: #111118;
+  --footer-bg: #0a0a0a;
+
+  --text: #ffffff;
+  --text-strong: #ffffff;
+  --muted: #94a3b8;
+  --muted-2: #cbd5e1;
+
+  --link: #60a5fa;
+  --link-hover: #93c5fd;
+
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.1);
+
+  --dashboard-bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
 }
-a:hover {
-  color: #535bf2;
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --app-bg: linear-gradient(to bottom, #f8fafc, #eef2ff, #fff7ed);
+  --page-bg: #ffffff;
+  --section-bg: #f8fafc;
+  --header-bg: rgba(255, 255, 255, 0.9);
+  --nav-panel-bg: #ffffff;
+  --nav-panel-sub-bg: #f8fafc;
+  --dropdown-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --footer-bg: #f8fafc;
+
+  --text: #0f172a;
+  --text-strong: #0b1220;
+  --muted: #475569;
+  --muted-2: #334155;
+
+  --link: #1d4ed8;
+  --link-hover: #1e40af;
+
+  --card-bg: rgba(15, 23, 42, 0.04);
+  --card-border: rgba(15, 23, 42, 0.12);
+  --border: rgba(15, 23, 42, 0.12);
+
+  --dashboard-bg: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  --glass-bg: rgba(15, 23, 42, 0.04);
+  --glass-border: rgba(15, 23, 42, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.75);
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--text);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+html[data-theme="dark"] ::selection {
+  background: rgba(147, 197, 253, 0.35);
+  color: #ffffff;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+html[data-theme="light"] ::selection {
+  background: rgba(37, 99, 235, 0.25);
+  color: var(--text-strong);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+a {
+  color: var(--link);
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: var(--link-hover);
 }

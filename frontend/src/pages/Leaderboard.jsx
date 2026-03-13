@@ -72,16 +72,6 @@ const Leaderboard = () => {
   return (
     <div
       className="leaderboard-page"
-      style={{
-        background: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${leaderboardBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-        minHeight: '100vh',
-        padding: '20px 0',
-        color: '#fff'
-      }}
     >
       <div className="leaderboard-header">
         <div className="trophy-container">

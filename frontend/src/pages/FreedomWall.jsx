@@ -280,8 +280,7 @@ const FreedomWall = ({ onOpenModal }) => {
                         <button
                           type="button"
                           onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
-                          className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}
-                          style={{ background: 'transparent', border: 0, padding: 0, cursor: 'pointer' }}
+                          className={`comment-user comment-user-button ${comment.isAdmin ? 'comment-user-admin' : ''}`}
                           aria-label={`View ${comment.username}'s profile`}
                         >
                           {comment.user}
