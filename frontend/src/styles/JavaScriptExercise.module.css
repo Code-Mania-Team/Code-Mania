@@ -32,6 +32,19 @@
   align-items: stretch;
 }
 
+.practice-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  min-height: auto;
+  gap: 1rem;
+}
+
+.practice-info-pane {
+  min-width: 0;
+  height: 100%;
+}
+
 /* Game container - Left side */
 .game-container {
   flex: 1 1 60%;
@@ -42,6 +55,62 @@
 .terminal-pane {
   flex: 0 0 min(40%, 620px);
   min-width: 420px;
+}
+
+.practice-terminal-pane {
+  min-width: 0;
+  height: 100%;
+}
+
+.practice-info {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.practice-title {
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: #93c5fd;
+  margin: 0 0 0.75rem 0;
+}
+
+.practice-desc {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.practice-task {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed rgba(148, 163, 184, 0.25);
+}
+
+.practice-task-label {
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.72rem;
+  color: #38bdf8;
+  margin-bottom: 0.55rem;
+}
+
+.practice-task-body {
+  color: #e2e8f0;
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 1024px) {
+  .practice-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 

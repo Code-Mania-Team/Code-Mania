@@ -166,6 +166,7 @@ function getQuestRuntimeTestBlueprint(quest) {
 const InteractiveTerminal = ({
   quest,
   questId,
+  practiceMode = false,
   mobileActivePanel,
   onMobilePanelChange,
   showMobilePanelSwitcher = true,
@@ -219,6 +220,8 @@ const InteractiveTerminal = ({
   const terminalRef = useRef(null);
   const iframeRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
+
+  const canInteract = practiceMode || (isQuestActive && !isQuestCompleted);
   
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
@@ -269,6 +272,10 @@ const InteractiveTerminal = ({
 
   useEffect(() => {
     const handleQuestStarted = (e) => {
+      if (practiceMode) {
+        setIsQuestActive(true);
+        return;
+      }
       const startedId = e.detail?.questId;
       if (startedId === questId && !isQuestCompleted) {
         setIsQuestActive(true);
@@ -278,6 +285,14 @@ const InteractiveTerminal = ({
     const handleQuestComplete = (e) => {
       const completedId = e.detail?.questId;
       if (String(completedId) === String(questId)) {
+        if (practiceMode) {
+          setIsRunning(false);
+          setIsSubmitting(false);
+          setWaitingForInput(false);
+          terminalRef.current?.blur();
+          setIsQuestActive(true);
+          return;
+        }
         setIsQuestCompleted(true);
         setIsQuestActive(false);
         setIsRunning(false);
@@ -294,7 +309,13 @@ const InteractiveTerminal = ({
       window.removeEventListener("code-mania:quest-started", handleQuestStarted);
       window.removeEventListener("code-mania:quest-complete", handleQuestComplete);
     };
-  }, [isQuestCompleted, questId]);
+  }, [isQuestCompleted, practiceMode, questId]);
+
+  useEffect(() => {
+    if (!practiceMode) return;
+    setIsQuestActive(true);
+    setIsQuestCompleted(false);
+  }, [practiceMode, questId]);
 
   useEffect(() => {
     setIsQuestActive(false);
@@ -313,7 +334,7 @@ const InteractiveTerminal = ({
   }, [questId, quest?.starting_code]);
 
   const handleRunValidation = async () => {
-    if (!quest || !isQuestActive || isQuestCompleted || isValidating || isSubmitting) return;
+    if (!quest || !canInteract || isValidating || isSubmitting) return;
 
     // DOM quests: validate against DOM requirements (no completion here)
     if (quest?.quest_type === "dom") {
@@ -525,7 +546,7 @@ const InteractiveTerminal = ({
   =============================== */
 
   const handleSubmit = async () => {
-    if (!quest || !isQuestActive || isQuestCompleted || isRunning || isSubmitting || isValidating) return;
+    if (!quest || !canInteract || isRunning || isSubmitting || isValidating) return;
 
     // Submit is only allowed after a successful validation run
     if (!lastValidatedCode || lastValidatedCode !== code) return;
@@ -634,7 +655,7 @@ const InteractiveTerminal = ({
   };
 
   const handleKeyDown = (e) => {
-    if (!isQuestActive || isQuestCompleted || !isRunning) {
+    if (!canInteract || !isRunning) {
       return;
     }
 
@@ -798,7 +819,7 @@ const InteractiveTerminal = ({
   =============================== */
 
   return (
-    <div className={`${styles["code-container"]} ${!isQuestActive || isQuestCompleted ? styles["code-container-locked"] : ""}`}>
+    <div className={`${styles["code-container"]} ${!canInteract ? styles["code-container-locked"] : ""}`}>
       {useMobileSplit && showMobilePanelSwitcher && (
         <div className={styles["mobile-panel-switcher"]}>
           <button
@@ -830,28 +851,27 @@ const InteractiveTerminal = ({
           </span>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              className={`${styles["submit-btn"]} ${
-                        !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
+              <button
+                className={`${styles["submit-btn"]} ${
+                        !canInteract ? styles["btn-disabled"] : ""
                       }`}
-              onClick={handleRun}
-              disabled={isRunning || isSubmitting || isValidating || !isQuestActive || isQuestCompleted}
-              title="Test your code and see the output"
-            >
+                onClick={handleRun}
+                disabled={isRunning || isSubmitting || isValidating || !canInteract}
+                title="Test your code and see the output"
+              >
               <Play size={16} />
               {isValidating ? "Validating..." : isRunning ? "Running..." : "Run"}
             </button>
             <button
               className={`${styles["submit-btn"]} ${
-                        !isQuestActive || isQuestCompleted ? styles["btn-disabled"] : ""
+                        !canInteract ? styles["btn-disabled"] : ""
                       }`}
               onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
               disabled={
                 isRunning ||
                 isSubmitting ||
                 isValidating ||
-                !isQuestActive ||
-                isQuestCompleted ||
+                !canInteract ||
                 !canSubmit
               }
               title={canSubmit ? "Submit your solution to complete the quest" : "Run and pass all test cases to unlock Submit"}
@@ -868,7 +888,7 @@ const InteractiveTerminal = ({
           theme="vs-dark"
           value={code}
           onChange={(v) => {
-            if (!isQuestActive || isQuestCompleted) return;
+            if (!canInteract) return;
             const next = v ?? "";
             setCode(next);
             if (lastValidatedCode && next !== lastValidatedCode) {
@@ -880,7 +900,7 @@ const InteractiveTerminal = ({
             minimap: { enabled: false },
             fontSize: 14,
             automaticLayout: true,
-            readOnly: !isQuestActive || isQuestCompleted
+            readOnly: !canInteract
           }}
         />
       </div>
@@ -900,11 +920,10 @@ const InteractiveTerminal = ({
               <div
                 className={`${styles["terminal"]} ${!isRunning ? styles["terminal-disabled"] : ""}`}
                 ref={terminalRef}
-                tabIndex={isRunning && isQuestActive && !isQuestCompleted ? 0 : -1}
+                tabIndex={isRunning && canInteract ? 0 : -1}
                 onClick={() =>
                   isRunning &&
-                  isQuestActive &&
-                  !isQuestCompleted &&
+                  canInteract &&
                   terminalRef.current?.focus()
                 }
                 onKeyDown={handleKeyDown}
@@ -997,7 +1016,7 @@ const InteractiveTerminal = ({
          </div>
        )}
 
-      {(!isQuestActive || isQuestCompleted) && (
+      {!canInteract && (
         <div className={styles["terminal-lock-overlay"]}>
           <p className={styles["terminal-lock-text"]}>Interact with something to unlock this code terminal.</p>
         </div>

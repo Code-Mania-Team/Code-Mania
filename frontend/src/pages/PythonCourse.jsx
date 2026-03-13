@@ -197,8 +197,9 @@ const PythonCourse = () => {
     return allStagesCompleted ? "available" : "locked";
   };
 
-  const handleStartExercise = (exerciseId) => {
-    const route = `/learn/python/exercise/${exerciseId}`;
+  const handleStartExercise = (exerciseId, options = {}) => {
+    const retry = options?.retry === true;
+    const route = `/learn/python/exercise/${exerciseId}${retry ? "?retry=1" : ""}`;
 
     const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
     const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
@@ -365,6 +366,16 @@ const PythonCourse = () => {
                                 onClick={() => handleStartExercise(exercise.id)}
                               >
                                 Start
+                              </button>
+                            ) : status === "completed" ? (
+                              <button
+                                type="button"
+                                className="retry-btn"
+                                onClick={() => handleStartExercise(exercise.id, { retry: true })}
+                                aria-label="Retry quest"
+                                title="Retry"
+                              >
+                                Done
                               </button>
                             ) : (
                               <span className="status-icon-wrap">{getStatusIcon(status)}</span>
