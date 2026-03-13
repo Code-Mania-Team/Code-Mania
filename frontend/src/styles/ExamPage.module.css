@@ -120,6 +120,141 @@
   color: #e2e8f0;
 }
 
+/* LeetCode-like problem statement blocks */
+.lcDescription {
+  color: #e2e8f0;
+  font-family: 'Inter', sans-serif;
+}
+
+.lcH2,
+.lcH3,
+.lcH4 {
+  margin: 1.15rem 0 0.6rem;
+  color: #f8fafc;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.lcH2 {
+  font-size: 1.15rem;
+}
+
+.lcH3 {
+  font-size: 1.05rem;
+}
+
+.lcH4 {
+  font-size: 1rem;
+}
+
+.lcParagraph {
+  margin: 0 0 0.75rem;
+  color: #cbd5e1;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.lcListWrap {
+  margin: 0.2rem 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(2, 6, 23, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.lcList {
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.75;
+}
+
+.lcListItem {
+  margin: 0 0 0.4rem;
+  color: #e7eefc;
+}
+
+.lcInlineCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.92em;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #f1f5f9;
+  white-space: nowrap;
+}
+
+.lcPre {
+  margin: 0.2rem 0 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: rgba(2, 6, 23, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #e7eefc;
+  overflow: auto;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  white-space: pre;
+}
+
+.lcPre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.lcChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lcChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #f1f5f9;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.lcCaseGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .lcCaseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lcCaseLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+  margin: 0 0 6px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lcTestCasesScroll {
+  max-height: 340px;
+  overflow: auto;
+  padding-right: 10px;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 560px) {
+  .lcTestCasesScroll {
+    max-height: none;
+    padding-right: 0;
+  }
+}
+
 .examLayout {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) minmax(420px, 1.35fr);
@@ -129,6 +264,19 @@
 
 .examInfoColumn {
   min-width: 0;
+}
+
+/* Make the left problem statement independently scrollable on desktop */
+@media (min-width: 980px) {
+  .examInfoColumn {
+    position: sticky;
+    top: 14px;
+    align-self: start;
+    max-height: calc(100vh - 140px);
+    overflow: auto;
+    padding-right: 10px;
+    scrollbar-gutter: stable;
+  }
 }
 
 .examCodeColumn {
