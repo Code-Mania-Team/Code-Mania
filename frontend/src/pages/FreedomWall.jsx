@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { BadgeCheck, Search, Send, Clock, Star, Zap, Trophy, ChevronRight, CheckCircle2, Lock, Home, Hash } from "lucide-react";
+import { BadgeCheck, Search, Send, Clock, Star, Zap, Trophy, ChevronRight, CheckCircle2, Lock, Home, Hash, CalendarDays, Users } from "lucide-react";
 import { containsProfanity } from "../utils/profanityFilter";
 import "../styles/FreedomWall.css";
 
@@ -39,6 +39,9 @@ const COMMUNITY_CHANNELS = [
   { id: "memes", label: "Memes" },
   { id: "bug-reports", label: "Bug Reports" },
 ];
+
+const DEFAULT_CHALLENGE_COVER =
+  "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
 
 // Mock weekly tasks for demo (used when API returns empty or errors)
 const MOCK_WEEKLY_TASKS = [
@@ -205,6 +208,16 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     const diffWeek = Math.floor(diffDay / 7);
     if (diffWeek === 1) return '1 week ago';
     return `${diffWeek} weeks ago`;
+  };
+
+  const formatChallengeDate = (dateInput) => {
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    if (!date || Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   const getTimeRemaining = (expiresAt) => {
@@ -428,7 +441,8 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     <div className="community-shell">
     <div className={`community-page ${view === "challenges" ? "has-right" : "no-right"}`}>
       {/* ═══ Left Sidebar — Navigation ═══ */}
-      <aside className="community-nav">
+      <aside className="community-nav-rail">
+        <div className="community-nav-fixed">
         <div className="community-nav-card">
           <div className="community-nav-section">
             <div className="community-nav-item-group">
@@ -468,6 +482,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
               ))}
             </div>
           </div>
+        </div>
         </div>
       </aside>
 
@@ -530,64 +545,59 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                     </div>
                   ) : null}
 
-                  <div className="sidebar-tasks-list challenges-tasks-list">
+                  <div className="challenges-wide-list">
                     {weeklyTasks.map((task) => {
                       const diff = DIFFICULTY_CONFIG[task.difficulty] || DIFFICULTY_CONFIG.medium;
-                      const isCompleted = task.userStatus === 'completed';
-                      const isInProgress = task.userStatus === 'in_progress';
+                      const isCompleted = task.userStatus === "completed";
+                      const isInProgress = task.userStatus === "in_progress";
                       const taskId = getTaskId(task) ?? task.task_id ?? task.id;
+                      const expiresLabel = task.expires_at ? formatChallengeDate(task.expires_at) : "";
+                      const cover = task.cover_image || task.coverImage || DEFAULT_CHALLENGE_COVER;
 
                       return (
                         <div
                           key={taskId}
-                          className={`task-card ${isCompleted ? 'task-card-completed' : ''} ${isInProgress ? 'task-card-active' : ''}`}
+                          className={`challenge-wide-card ${isCompleted ? "is-done" : ""} ${isInProgress ? "is-progress" : ""}`}
                         >
-                          <div className="task-card-header">
-                            <span
-                              className="task-difficulty-badge"
-                              style={{ color: diff.color, background: diff.bg }}
-                            >
-                              {diff.label}
-                            </span>
-                            <span className="task-time-remaining">
-                              <Clock size={12} />
-                              {getTimeRemaining(task.expires_at)}
-                            </span>
+                          <div className="challenge-wide-media" aria-hidden="true">
+                            <img className="challenge-wide-img" src={cover} alt="" loading="lazy" />
                           </div>
 
-                          <h3 className="task-title">{task.title}</h3>
-                          <p className="task-description">{task.description}</p>
-
-                          <div className="task-footer">
-                            <div className="task-reward">
-                              <Zap size={14} className="task-reward-icon" />
-                              <span>+{task.reward_xp} XP</span>
+                          <div className="challenge-wide-body">
+                            <div className="challenge-wide-kicker">CODE CHALLENGE</div>
+                            <div className="challenge-wide-title">
+                              {task.title}
                             </div>
+                            <div className="challenge-wide-desc">{task.description}</div>
 
+                            <div className="challenge-wide-meta">
+                              <span className="challenge-meta-item">
+                                <CalendarDays size={14} />
+                                {expiresLabel ? `Submit by ${expiresLabel}` : "Submit by -"}
+                              </span>
+                              <span className="challenge-meta-item">
+                                <Zap size={14} />
+                                +{task.reward_xp} XP
+                              </span>
+                              <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
+                                {diff.label}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="challenge-wide-actions">
                             {isCompleted ? (
-                              <button
-                                className="task-accept-btn"
-                                onClick={() => handleStartWeeklyChallenge(task)}
-                                type="button"
-                              >
+                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
                                 View
                                 <ChevronRight size={14} />
                               </button>
                             ) : isInProgress ? (
-                              <button
-                                className="task-accept-btn"
-                                onClick={() => handleStartWeeklyChallenge(task)}
-                                type="button"
-                              >
+                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
                                 Continue
                                 <ChevronRight size={14} />
                               </button>
                             ) : (
-                              <button
-                                className="task-accept-btn"
-                                onClick={() => handleStartWeeklyChallenge(task)}
-                                type="button"
-                              >
+                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
                                 Accept
                                 <ChevronRight size={14} />
                               </button>
@@ -620,96 +630,65 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                     const ended = t.expires_at ? new Date(t.expires_at) : null;
 
                     return (
-                      <details
+                      <button
                         key={`past-${t.task_id}`}
-                        className="past-card"
-                        onToggle={(e) => {
-                          if (e.currentTarget.open) {
-                            ensureParticipantsLoaded(t);
-                          }
-                        }}
+                        type="button"
+                        className="past-card past-card-button"
+                        onClick={() => navigate(`/freedomwall/challenges/past/${encodeURIComponent(String(t.task_id))}`)}
+                        title="View past challenge"
                       >
-                        <summary className="past-summary">
-                          <div className="past-summary-left">
-                            <span className="task-difficulty-badge" style={{ color: diff.color, background: diff.bg }}>
-                              {diff.label}
-                            </span>
-                            <div className="past-title-wrap">
-                              <div className="past-title">{t.title}</div>
-                              <div className="past-meta">
-                                {ended ? `Ended ${ended.toLocaleDateString()}` : "Ended"} • {Number(t.participants_count || 0)} participated
+                          <div className="challenge-wide-card past-wide" role="group">
+                            <div className="challenge-wide-media" aria-hidden="true">
+                              <img
+                                className="challenge-wide-img"
+                                src={t.cover_image || t.coverImage || DEFAULT_CHALLENGE_COVER}
+                                alt=""
+                                loading="lazy"
+                              />
+                            </div>
+
+                            <div className="challenge-wide-body">
+                              <div className="challenge-wide-kicker">CODE CHALLENGE</div>
+                              <div className="challenge-wide-title">{t.title}</div>
+                              <div className="challenge-wide-desc">{t.description}</div>
+
+                              <div className="challenge-wide-meta">
+                                <span className="challenge-meta-item">
+                                  <CalendarDays size={14} />
+                                  {ended ? `Ended ${formatChallengeDate(ended)}` : "Ended -"}
+                                </span>
+                                <span className="challenge-meta-item">
+                                  <Users size={14} />
+                                  {Number(t.participants_count || 0)} participated
+                                </span>
+                                <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
+                                  {diff.label}
+                                </span>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="past-summary-right">
-                            {winners.length ? (
-                              <div className="past-winners">
-                                <span className="past-winners-label">Winners</span>
-                                <div className="past-winners-avatars">
-                                  {winners.slice(0, 3).map((w) => (
-                                    <span key={`${t.task_id}-w-${w.user_id}`} className="past-winner-avatar" title={w.username || "Winner"}>
-                                      {(w.username || "?").slice(0, 1).toUpperCase()}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="past-winners-label">No winners yet</span>
-                            )}
-                          </div>
-                        </summary>
-
-                        <div className="past-details">
-                          <div className="past-desc">{t.description}</div>
-
-                          <div className="past-winner-list">
-                            <div className="past-section-title">Participated</div>
-                            {participantsLoadingByTaskId[t.task_id] ? (
-                              <div className="past-meta">Loading participants...</div>
-                            ) : (
-                              <div className="past-participants">
-                                {(participantsByTaskId[t.task_id] || []).slice(0, 50).map((p) => (
-                                  <button
-                                    key={`${t.task_id}-p-${p.user_id}`}
-                                    type="button"
-                                    className="past-participant"
-                                    onClick={() => p?.username && navigate(`/profile/${encodeURIComponent(p.username)}`)}
-                                    title={p?.status ? `${p.status}` : ""}
-                                  >
-                                    @{p.username || "unknown"}
-                                  </button>
-                                ))}
-
-                                {(participantsByTaskId[t.task_id] || []).length > 50 ? (
-                                  <div className="past-meta">
-                                    Showing 50 of {(participantsByTaskId[t.task_id] || []).length}.
+                            <div className="challenge-wide-actions">
+                              {winners.length ? (
+                                <div className="past-winners">
+                                  <span className="past-winners-label">Winners</span>
+                                  <div className="past-winners-avatars">
+                                    {winners.slice(0, 3).map((w) => (
+                                      <span
+                                        key={`${t.task_id}-w-${w.user_id}`}
+                                        className="past-winner-avatar"
+                                        title={w.username || "Winner"}
+                                      >
+                                        {(w.username || "?").slice(0, 1).toUpperCase()}
+                                      </span>
+                                    ))}
                                   </div>
-                                ) : null}
-                              </div>
-                            )}
-                          </div>
-
-                          {winners.length ? (
-                            <div className="past-winner-list">
-                              <div className="past-section-title">Winners</div>
-                              {winners.map((w) => (
-                                <div key={`${t.task_id}-wl-${w.user_id}`} className="past-row">
-                                  <span className="past-rank">#{w.rank || "-"}</span>
-                                  <span className="past-user">@{w.username || "unknown"}</span>
-                                  <span className="past-note">{w.note || ""}</span>
                                 </div>
-                              ))}
+                              ) : (
+                                <span className="past-winners-label">No winners yet</span>
+                              )}
                             </div>
-                          ) : null}
-
-                          {isAdminPoster ? (
-                            <button type="button" className="past-admin-btn" onClick={() => handlePickWinners(t)}>
-                              Pick winners
-                            </button>
-                          ) : null}
-                        </div>
-                      </details>
+                          </div>
+                      </button>
                     );
                   })}
                 </div>

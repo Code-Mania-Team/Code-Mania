@@ -222,6 +222,54 @@ class WeeklyTaskController {
     }
   }
 
+  // ── Public: get one past challenge w/ winners + participant count
+  async getPastTask(req, res) {
+    try {
+      const taskId = Number(req.params.task_id);
+      if (!Number.isFinite(taskId)) {
+        return res.status(400).json({ success: false, message: "Invalid task_id" });
+      }
+
+      const task = await this.model.getTaskById(taskId);
+      if (!task) {
+        return res.status(404).json({ success: false, message: "Task not found" });
+      }
+
+      const now = Date.now();
+      const expiresAtMs = task?.expires_at ? new Date(task.expires_at).getTime() : NaN;
+      const isPast = Number.isFinite(expiresAtMs) ? expiresAtMs < now : false;
+      if (!isPast) {
+        return res.status(400).json({ success: false, message: "Task is not past yet" });
+      }
+
+      const [participantsCount, winners] = await Promise.all([
+        this.model.countParticipants({ taskId }),
+        this.model.listWinners({ taskId }),
+      ]);
+
+      // Do not expose solution_code
+      const { solution_code, ...safe } = task;
+
+      return res.json({
+        success: true,
+        data: {
+          ...safe,
+          participants_count: participantsCount,
+          winners: (winners || []).map((w) => ({
+            user_id: w.user_id,
+            rank: w.rank,
+            note: w.note,
+            username: w.users?.username || null,
+            character_id: w.users?.character_id ?? null,
+          })),
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching past weekly task:", err);
+      return res.status(500).json({ success: false, message: err.message || "Failed to fetch past challenge." });
+    }
+  }
+
   // ── Admin: set winners (handpicked) ──────────────────────────
   async setWinners(req, res) {
     try {

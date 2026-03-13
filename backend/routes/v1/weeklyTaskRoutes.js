@@ -8,6 +8,7 @@ const controller = new WeeklyTaskController();
 
 // ── Public routes (no auth) ───────────────────────────────────
 weeklyTaskRouter.get('/past', controller.listPast.bind(controller));
+weeklyTaskRouter.get('/past/:task_id', controller.getPastTask.bind(controller));
 weeklyTaskRouter.get('/:task_id/participants', controller.listParticipants.bind(controller));
 
 // ── User routes (authenticated) ────────────────────────────────
