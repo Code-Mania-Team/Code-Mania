@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 
 
@@ -40,6 +40,13 @@ import useStartExercise from "../services/startExercise.js";
 
 
 const CppExercise = () => {
+
+  const location = useLocation();
+
+  const isRetryMode = useMemo(() => {
+    const params = new URLSearchParams(location.search || "");
+    return params.get("retry") === "1";
+  }, [location.search]);
 
   const stageBadgeById = {
     1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173779/cpp-badges1_uswk6d.png",
@@ -121,6 +128,7 @@ const CppExercise = () => {
   }, []);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView) return;
 
     const html = document.documentElement;
@@ -138,7 +146,7 @@ const CppExercise = () => {
       body.style.overflow = prevBodyOverflow;
       body.style.overscrollBehavior = prevBodyOverscroll;
     };
-  }, [isMobileView]);
+  }, [isMobileView, isRetryMode]);
 
 
   useEffect(() => {
@@ -294,10 +302,11 @@ const CppExercise = () => {
   }, [activeExerciseId, activeExercise]);
 
   useEffect(() => {
-    setMobileActivePanel("game");
-  }, [activeExerciseId]);
+    setMobileActivePanel(isRetryMode ? "editor" : "game");
+  }, [activeExerciseId, isRetryMode]);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView || mobileActivePanel === "game") return;
 
     window.dispatchEvent(new Event("code-mania:force-close-help"));
@@ -312,7 +321,7 @@ const CppExercise = () => {
     if (sceneManager.isPaused?.("GameScene")) {
       sceneManager.resume("GameScene");
     }
-  }, [isMobileView, mobileActivePanel]);
+  }, [isMobileView, isRetryMode, mobileActivePanel]);
 
 
 
@@ -385,6 +394,12 @@ const CppExercise = () => {
   =============================== */
 
   useEffect(() => {
+
+    if (isRetryMode) {
+      stopGame();
+      setTerminalEnabled(true);
+      return;
+    }
 
     if (!activeExercise) return;
 
@@ -473,7 +488,7 @@ const CppExercise = () => {
 
     };
 
-  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests, isRetryMode]);
 
   useEffect(() => {
     return () => {
@@ -572,7 +587,7 @@ const CppExercise = () => {
 
         />
 
-        {isMobileView && (
+        {isMobileView && !isRetryMode && (
           <div
             className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
           >
@@ -606,14 +621,60 @@ const CppExercise = () => {
           </div>
         )}
 
-
-
-        <div className={styles["main-layout"]}>
-          <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
-            <div id="phaser-container" className={styles["game-scene"]} />
+        {isMobileView && isRetryMode && (
+          <div
+            className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
+          >
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("editor")}
+              aria-label="Code Editor"
+              title="Code Editor"
+            >
+              {isSmallPhone ? "Code" : "Code Editor"}
+            </button>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("terminal")}
+              aria-label="Terminal"
+              title="Terminal"
+            >
+              {isSmallPhone ? "Term" : "Terminal"}
+            </button>
           </div>
+        )}
 
-          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
+
+
+        <div className={`${styles["main-layout"]} ${isRetryMode ? styles["practice-layout"] : ""}`}>
+          {!isRetryMode && (
+            <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
+              <div id="phaser-container" className={styles["game-scene"]} />
+            </div>
+          )}
+
+          {isRetryMode && (
+            <div className={styles["practice-info-pane"]}>
+              <div className={styles["practice-info"]}>
+                <div className={styles["practice-title"]}>
+                  {activeExercise?.title || "Quest"}
+                </div>
+                {activeExercise?.description ? (
+                  <p className={styles["practice-desc"]}>{activeExercise.description}</p>
+                ) : null}
+                {activeExercise?.task ? (
+                  <div className={styles["practice-task"]}>
+                    <div className={styles["practice-task-label"]}>Task</div>
+                    <div className={styles["practice-task-body"]}>{activeExercise.task}</div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          <div className={`${styles["terminal-pane"]} ${isRetryMode ? styles["practice-terminal-pane"] : ""} ${!isRetryMode && isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}
@@ -626,6 +687,7 @@ const CppExercise = () => {
               enableMobileSplit={isMobileView}
               mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
+              practiceMode={isRetryMode}
             />
           </div>
 

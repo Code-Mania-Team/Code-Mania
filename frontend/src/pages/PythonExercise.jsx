@@ -55,6 +55,11 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const location = useLocation();
 
+  const isRetryMode = useMemo(() => {
+    const params = new URLSearchParams(location.search || "");
+    return params.get("retry") === "1";
+  }, [location.search]);
+
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
 
   const getGameProgress = useGetGameProgress();
@@ -295,6 +300,7 @@ const PythonExercise = ({ isAuthenticated }) => {
   }, []);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView) return;
 
     const html = document.documentElement;
@@ -312,13 +318,14 @@ const PythonExercise = ({ isAuthenticated }) => {
       body.style.overflow = prevBodyOverflow;
       body.style.overscrollBehavior = prevBodyOverscroll;
     };
-  }, [isMobileView]);
+  }, [isMobileView, isRetryMode]);
 
   useEffect(() => {
-    setMobileActivePanel("game");
-  }, [activeExerciseId]);
+    setMobileActivePanel(isRetryMode ? "editor" : "game");
+  }, [activeExerciseId, isRetryMode]);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView || mobileActivePanel === "game") return;
 
     window.dispatchEvent(new Event("code-mania:force-close-help"));
@@ -333,11 +340,16 @@ const PythonExercise = ({ isAuthenticated }) => {
     if (sceneManager.isPaused?.("GameScene")) {
       sceneManager.resume("GameScene");
     }
-  }, [isMobileView, mobileActivePanel]);
+  }, [isMobileView, isRetryMode, mobileActivePanel]);
 
 
 
   useEffect(() => {
+    if (isRetryMode) {
+      stopGame();
+      setTerminalEnabled(true);
+      return;
+    }
 
     const onRequestNext = async (e) => {
 
@@ -554,7 +566,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests, isRetryMode]);
 
   useEffect(() => {
     return () => {
@@ -689,7 +701,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         />
 
-        {isMobileView && (
+        {isMobileView && !isRetryMode && (
           <div
             className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
           >
@@ -723,24 +735,70 @@ const PythonExercise = ({ isAuthenticated }) => {
           </div>
         )}
 
-
-
-        <div className={styles["main-layout"]}>
-
-          {/* ===== GAME ===== */}
-
-          <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
-            <div
-              id="phaser-container"
-              className={styles["game-scene"]}
-            />
+        {isMobileView && isRetryMode && (
+          <div
+            className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
+          >
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("editor")}
+              aria-label="Code Editor"
+              title="Code Editor"
+            >
+              {isSmallPhone ? "Code" : "Code Editor"}
+            </button>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("terminal")}
+              aria-label="Terminal"
+              title="Terminal"
+            >
+              {isSmallPhone ? "Term" : "Terminal"}
+            </button>
           </div>
+        )}
+
+
+
+        <div className={`${styles["main-layout"]} ${isRetryMode ? styles["practice-layout"] : ""}`}>
+           
+           {/* ===== GAME ===== */}
+
+          {!isRetryMode && (
+            <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
+              <div
+                id="phaser-container"
+                className={styles["game-scene"]}
+              />
+            </div>
+          )}
 
 
 
           {/* ===== TERMINAL ===== */}
 
-          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
+          {isRetryMode && (
+            <div className={styles["practice-info-pane"]}>
+              <div className={styles["practice-info"]}>
+                <div className={styles["practice-title"]}>
+                  {activeExercise?.title || "Quest"}
+                </div>
+                {activeExercise?.description ? (
+                  <p className={styles["practice-desc"]}>{activeExercise.description}</p>
+                ) : null}
+                {activeExercise?.task ? (
+                  <div className={styles["practice-task"]}>
+                    <div className={styles["practice-task-label"]}>Task</div>
+                    <div className={styles["practice-task-body"]}>{activeExercise.task}</div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          <div className={`${styles["terminal-pane"]} ${isRetryMode ? styles["practice-terminal-pane"] : ""} ${!isRetryMode && isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}
@@ -753,6 +811,7 @@ const PythonExercise = ({ isAuthenticated }) => {
               enableMobileSplit={isMobileView}
               mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
+              practiceMode={isRetryMode}
             />
           </div>
 

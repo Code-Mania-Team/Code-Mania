@@ -548,6 +548,7 @@ class ExerciseController {
       const isAdmin =
         res.locals.role === "admin" ||
         (await this.exerciseModel.isAdminUser(userId));
+      let alreadyCompleted = false;
 
       if (!userId) {
         return res.status(401).json({
@@ -580,7 +581,9 @@ class ExerciseController {
           questId,
         );
 
-        if (!questState || questState.status !== "active") {
+        alreadyCompleted = questState?.status === "completed";
+
+        if (!questState || (questState.status !== "active" && !alreadyCompleted)) {
           return res.status(403).json({
             success: false,
             message: "You must start this quest first",
@@ -643,7 +646,7 @@ class ExerciseController {
       // 🏆 MARK COMPLETE
       // ==================================================
 
-      if (!isAdmin) {
+      if (!isAdmin && !alreadyCompleted) {
         await this.exerciseModel.markQuestComplete(userId, questId);
         await this.exerciseModel.addXp(userId, quest.experience);
 
@@ -656,15 +659,17 @@ class ExerciseController {
       }
 
       return res.status(200).json({
-      success: true,
-      message: isAdmin
-        ? "Quest validated (admin preview)"
-        : "Quest completed",
-      xp: isAdmin ? 0 : quest.experience,
-      objectives: validationResult?.objectives || null,
-      test_results: validationResult?.test_results || [],
-      runtime_passed: validationResult?.runtime_passed ?? null,
-    });
+       success: true,
+       message: isAdmin
+         ? "Quest validated (admin preview)"
+         : alreadyCompleted
+           ? "Quest validated (retry)"
+           : "Quest completed",
+       xp: isAdmin ? 0 : alreadyCompleted ? 0 : quest.experience,
+       objectives: validationResult?.objectives || null,
+       test_results: validationResult?.test_results || [],
+       runtime_passed: validationResult?.runtime_passed ?? null,
+     });
     } catch (error) {
       console.error("validateExercise error:", error);
       return res.status(500).json({
