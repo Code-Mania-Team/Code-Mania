@@ -29,6 +29,7 @@ import TerminalPage from "./pages/TerminalPage";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
+import { getGuestCompletedQuestIds, clearGuestProgress } from "./utilities/guestProgress";
 import AuthLoadingOverlay from "./components/AuthLoadingOverlay";
 import ProtectedRoute from "./components/protectedRoutes";
 
@@ -347,8 +348,11 @@ function App() {
   useEffect(() => {
     if (location.state?.openSignIn) {
       setIsModalOpen(true);
+      // Clear the history state so refresh doesn't auto-open the modal.
+      const url = `${location.pathname}${location.search}${location.hash}`;
+      navigate(url, { replace: true, state: {} });
     }
-  }, [location.state]);
+  }, [location.state, location.pathname, location.search, location.hash, navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -371,6 +375,7 @@ function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
     const success = urlParams.get('success');
+    const isNew = urlParams.get('new');
 
     if (error) {
       setIsModalOpen(true);
@@ -383,10 +388,54 @@ function App() {
         setIsAuthenticated(true);
         setIsModalOpen(false);
 
+        if (isNew === '1') {
+          try {
+            localStorage.setItem('guestProgressAllowImport', '1');
+          } catch {
+            // ignore
+          }
+        }
+
         try {
           const res = await axiosPublic.get("/v1/account");
           const profile = res?.data?.data || null;
           setUser(profile);
+
+          // If sign-up just happened (email OTP or Google new user), import guest progress.
+          const allowImport = (() => {
+            try {
+              return localStorage.getItem('guestProgressAllowImport') === '1';
+            } catch {
+              return false;
+            }
+          })();
+
+          if (allowImport) {
+            const completedQuestIds = getGuestCompletedQuestIds();
+            if (completedQuestIds.length > 0) {
+              for (let attempt = 0; attempt < 3; attempt += 1) {
+                try {
+                  const importRes = await axiosPublic.post(
+                    "/v1/game/import-guest-progress",
+                    { completedQuestIds }
+                  );
+                  if (importRes?.data?.success) {
+                    clearGuestProgress();
+                    try {
+                      localStorage.removeItem('guestProgressAllowImport');
+                    } catch {
+                      // ignore
+                    }
+                    window.dispatchEvent(new Event('profileSummary:invalidate'));
+                    break;
+                  }
+                } catch {
+                  // retry
+                }
+                await new Promise((r) => setTimeout(r, 350));
+              }
+            }
+          }
 
           try {
             localStorage.setItem(
@@ -460,45 +509,43 @@ function App() {
           <Route
             path="/learn/python/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <PythonExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
-
+              <PythonExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
           <Route
             path="/learn/cpp/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <CppExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-            <CppExercise
-              isAuthenticated={isAuthenticated}
-              onOpenModal={() => setIsModalOpen(true)}
-              onSignOut={handleSignOut}
-            />
-          </ProtectedRoute>} />
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
+          <Route
+            path="/learn/cpp/exercise/:moduleId/:exerciseId"
+            element={
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route
             path="/learn/javascript/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <JavaScriptExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
+              <JavaScriptExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
@@ -546,6 +593,38 @@ function App() {
             const res = await axiosPublic.get("/v1/account");
             profile = res?.data?.data || null;
             setUser(profile);
+
+            // Import guest progress only for newly created accounts.
+            if (isNew) {
+              const completedQuestIds = getGuestCompletedQuestIds();
+              if (completedQuestIds.length > 0) {
+                // Cookies can take a moment to become visible to subsequent requests.
+                for (let attempt = 0; attempt < 3; attempt += 1) {
+                  try {
+                    const importRes = await axiosPublic.post(
+                      "/v1/game/import-guest-progress",
+                      { completedQuestIds }
+                    );
+                    if (importRes?.data?.success) {
+                      clearGuestProgress();
+                      try {
+                        localStorage.removeItem('guestProgressAllowImport');
+                      } catch {
+                        // ignore
+                      }
+                      window.dispatchEvent(new Event('profileSummary:invalidate'));
+                      break;
+                    }
+                  } catch {
+                    // retry
+                  }
+                  await new Promise((r) => setTimeout(r, 350));
+                }
+              }
+            } else {
+              // Existing user login: never import guest mode data.
+              clearGuestProgress();
+            }
 
             try {
               localStorage.setItem(

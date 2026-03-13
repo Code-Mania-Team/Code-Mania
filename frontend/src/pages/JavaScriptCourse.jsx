@@ -109,8 +109,17 @@ const JavaScriptCourse = () => {
     loadProgress();
   }, [isAuthenticated]);
 
-  const getExerciseStatus = (moduleId, exerciseId, previousExerciseId) => {
+  const getExerciseStatus = (moduleId, exercise, previousExerciseId) => {
     if (user?.role === "admin") return "available";
+
+    const exerciseId = Number(exercise?.id);
+    const orderIndex = Number(exercise?.order_index);
+
+    // Guest mode: allow first 2 lessons without progress gating.
+    if (!isAuthenticated) {
+      if (Number.isFinite(orderIndex) && orderIndex <= 2) return "available";
+      return "locked";
+    }
 
     if (completedExercises.has(exerciseId)) return "completed";
 
@@ -345,11 +354,7 @@ const JavaScriptCourse = () => {
                       const status =
                         module.id === 5
                           ? getExamStatus()
-                          : getExerciseStatus(
-                              module.id,
-                              exercise.id,
-                              previousExerciseId
-                            );
+                           : getExerciseStatus(module.id, exercise, previousExerciseId);
 
                       return (
                         <div key={exercise.id} className={`exercise-item ${status}`}>

@@ -8,6 +8,17 @@ const controller = new UserGameDataController();
 
 // userGameDataRouter.use(authorization);
 
-userGameDataRouter.get("/learning-data", authentication, controller.learningData.bind(controller));
+userGameDataRouter.get(
+  "/learning-data",
+  authentication,
+  controller.learningData.bind(controller)
+);
+
+// Import guest progress after account creation (auth required)
+userGameDataRouter.post(
+  "/import-guest-progress",
+  authentication,
+  controller.importGuestProgress.bind(controller)
+);
 
 export default userGameDataRouter;

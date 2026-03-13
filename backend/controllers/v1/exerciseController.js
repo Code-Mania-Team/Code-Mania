@@ -31,16 +31,16 @@ class ExerciseController {
   async validateExercisePreview(req, res) {
     try {
       const { questId, output, code } = req.body;
-      const userId = res.locals.user_id;
+      const userId = res.locals.user_id || null;
       // Preview validation is used to show test cases on Run / page load.
       // It intentionally does NOT mark completion or award XP.
 
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Authentication required",
-        });
-      }
+      // if (!userId) {
+      //   return res.status(401).json({
+      //     success: false,
+      //     message: "Authentication required",
+      //   });
+      // }
 
       if (!questId || typeof output !== "string") {
         return res.status(400).json({
@@ -57,30 +57,88 @@ class ExerciseController {
         });
       }
 
-      const { data: validationResult } = await axios.post(
-        `${TERMINAL_API_BASE_URL}/exercise/validate`,
-        {
-          output,
-          code,
-          quest: {
-            expected_output: quest.expected_output,
-            validation_mode: quest.validation_mode,
-            requirements: quest.requirements,
-          },
-          programming_language_id: quest.programming_language_id,
-        },
-        {
-          headers: {
-            "x-internal-key": process.env.INTERNAL_KEY,
-          },
+      const normalizeText = (value) =>
+        String(value ?? "")
+          .replace(/\r\n/g, "\n")
+          .trim();
+
+      const buildLocalObjectives = () => {
+        const objectives = [];
+        const requirements = quest?.requirements || null;
+
+        const mustInclude = Array.isArray(requirements?.mustInclude)
+          ? requirements.mustInclude
+          : [];
+
+        mustInclude.forEach((keyword) => {
+          const token = String(keyword ?? "");
+          if (!token) return;
+          objectives.push({
+            label: `Use \"${token}\"`,
+            passed: String(code ?? "").includes(token),
+          });
+        });
+
+        if (quest?.expected_output !== undefined && quest?.expected_output !== null) {
+          const expected = normalizeText(quest.expected_output);
+          if (expected) {
+            objectives.push({
+              label: "Match expected output",
+              passed: normalizeText(output) === expected,
+            });
+          }
         }
-      );
+
+        const success = objectives.length ? objectives.every((o) => o.passed) : true;
+
+        return {
+          success,
+          objectives,
+          test_results: [],
+          runtime_passed: null,
+          message: success ? "Validation passed" : "Validation failed",
+        };
+      };
+
+      const internalKey = String(process.env.INTERNAL_KEY || "").trim();
+      const canUseRemoteValidator = Boolean(internalKey);
+
+      let validationResult;
+      if (canUseRemoteValidator) {
+        try {
+          const { data } = await axios.post(
+            `${TERMINAL_API_BASE_URL}/exercise/validate`,
+            {
+              output,
+              code,
+              quest: {
+                expected_output: quest.expected_output,
+                validation_mode: quest.validation_mode,
+                requirements: quest.requirements,
+              },
+              programming_language_id: quest.programming_language_id,
+            },
+            {
+              headers: {
+                "x-internal-key": internalKey,
+              },
+            }
+          );
+          validationResult = data;
+        } catch {
+          validationResult = null;
+        }
+      }
+
+      if (!validationResult) {
+        validationResult = buildLocalObjectives();
+      }
 
       const ok = Boolean(validationResult?.success);
 
       return res.status(200).json({
         success: ok,
-        message: ok ? "Validation passed" : (validationResult?.message || "Validation failed"),
+        message: validationResult?.message || (ok ? "Validation passed" : "Validation failed"),
         objectives: validationResult?.objectives || null,
         test_results: validationResult?.test_results || [],
         runtime_passed: validationResult?.runtime_passed ?? null,
@@ -242,8 +300,10 @@ class ExerciseController {
       }
 
       // If not logged in → allow first quest only
+      // If not logged in → allow first TWO quests
       if (!userId) {
-        if (exercise.order_index === 1) {
+
+        if (exercise.order_index <= 2) {
           return res.status(200).json({
             success: true,
             data: exercise,
@@ -544,18 +604,12 @@ class ExerciseController {
   async validateExercise(req, res) {
     try {
       const { questId, output, code } = req.body;
-      const userId = res.locals.user_id;
+
+      const userId = res.locals.user_id || null;
+
       const isAdmin =
         res.locals.role === "admin" ||
-        (await this.exerciseModel.isAdminUser(userId));
-      let alreadyCompleted = false;
-
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Authentication required",
-        });
-      }
+        (userId && (await this.exerciseModel.isAdminUser(userId)));
 
       if (!questId || typeof output !== "string") {
         return res.status(400).json({
@@ -574,14 +628,14 @@ class ExerciseController {
         });
       }
 
-      // 2️⃣ Check quest state (must be active)
-      if (!isAdmin) {
+      // 2️⃣ Logged users must have started quest
+      if (!isAdmin && userId) {
         const questState = await this.exerciseModel.getQuestState(
           userId,
-          questId,
+          questId
         );
 
-        alreadyCompleted = questState?.status === "completed";
+        const alreadyCompleted = questState?.status === "completed";
 
         if (!questState || (questState.status !== "active" && !alreadyCompleted)) {
           return res.status(403).json({
@@ -591,25 +645,105 @@ class ExerciseController {
         }
       }
 
-      const { data: validationResult } = await axios.post(
-        `${TERMINAL_API_BASE_URL}/exercise/validate`,
-        {
-          output,
-          code,
-          quest: {
-            expected_output: quest.expected_output,
-            validation_mode: quest.validation_mode,
-            requirements: quest.requirements,
-          },
-          programming_language_id: quest.programming_language_id,
-        },
-        {
-          headers: {
-            "x-internal-key": process.env.INTERNAL_KEY,
-          },
-        },
-      );
+      const normalizeText = (value) =>
+        String(value ?? "")
+          .replace(/\r\n/g, "\n")
+          .trim();
 
+      const buildLocalObjectives = () => {
+        const objectives = [];
+        const requirements = quest?.requirements || null;
+
+        const mustInclude = Array.isArray(requirements?.mustInclude)
+          ? requirements.mustInclude
+          : [];
+
+        mustInclude.forEach((keyword) => {
+          const token = String(keyword ?? "");
+          if (!token) return;
+          objectives.push({
+            label: `Use \"${token}\"`,
+            passed: String(code ?? "").includes(token),
+          });
+        });
+
+        if (quest?.expected_output !== undefined && quest?.expected_output !== null) {
+          const expected = normalizeText(quest.expected_output);
+          if (expected) {
+            objectives.push({
+              label: "Match expected output",
+              passed: normalizeText(output) === expected,
+            });
+          }
+        }
+
+        const success = objectives.length ? objectives.every((o) => o.passed) : true;
+
+        return {
+          success,
+          objectives,
+          test_results: [],
+          runtime_passed: null,
+          message: success ? "Validated" : "Validation failed",
+        };
+      };
+
+      const internalKey = String(process.env.INTERNAL_KEY || "").trim();
+      const canUseRemoteValidator = Boolean(internalKey);
+
+      // 3️⃣ Run validation engine (remote) with local fallback
+      let validationResult;
+      if (canUseRemoteValidator) {
+        try {
+          const { data } = await axios.post(
+            `${TERMINAL_API_BASE_URL}/exercise/validate`,
+            {
+              output,
+              code,
+              quest: {
+                expected_output: quest.expected_output,
+                validation_mode: quest.validation_mode,
+                requirements: quest.requirements,
+              },
+              programming_language_id: quest.programming_language_id,
+            },
+            {
+              headers: {
+                "x-internal-key": internalKey,
+              },
+            }
+          );
+          validationResult = data;
+        } catch (err) {
+          // Fallback for development / missing terminal service
+          validationResult = null;
+        }
+      }
+
+      if (!validationResult) {
+        // Local validator supports early quests; for complex modes, return a clear error.
+        const mode = String(quest?.validation_mode || "").toUpperCase();
+        const supportsLocal =
+          mode === "FUNDAMENTALS" ||
+          mode === "HYBRID" ||
+          mode === "" ||
+          quest?.expected_output !== undefined ||
+          quest?.requirements;
+
+        if (!supportsLocal) {
+          return res.status(503).json({
+            success: false,
+            message: "Validation service unavailable",
+            objectives: null,
+            test_results: [],
+            runtime_passed: null,
+          });
+        }
+
+        validationResult = buildLocalObjectives();
+      }
+
+      // ❌ Validation failed
       if (!validationResult?.success) {
         return res.status(200).json({
           success: false,
@@ -621,16 +755,16 @@ class ExerciseController {
       }
 
       // ==================================================
-      // 🎮 PROGRESSION CHECK
+      // 🎮 PROGRESSION CHECK (LOGGED USERS ONLY)
       // ==================================================
 
-      if (!isAdmin) {
+      if (!isAdmin && userId) {
         const previousQuest = await this.exerciseModel.getPreviousQuest(quest);
 
         if (previousQuest) {
           const prevCompleted = await this.exerciseModel.isQuestCompleted(
             userId,
-            previousQuest.id,
+            previousQuest.id
           );
 
           if (!prevCompleted) {
@@ -643,35 +777,36 @@ class ExerciseController {
       }
 
       // ==================================================
-      // 🏆 MARK COMPLETE
+      // 🏆 MARK COMPLETE (LOGGED USERS ONLY)
       // ==================================================
 
-      if (!isAdmin && !alreadyCompleted) {
+      if (!isAdmin && userId) {
         await this.exerciseModel.markQuestComplete(userId, questId);
+
         await this.exerciseModel.addXp(userId, quest.experience);
 
         if (quest.achievements_id) {
           await this.exerciseModel.grantAchievement(
             userId,
-            quest.achievements_id,
+            quest.achievements_id
           );
         }
       }
 
       return res.status(200).json({
-       success: true,
-       message: isAdmin
-         ? "Quest validated (admin preview)"
-         : alreadyCompleted
-           ? "Quest validated (retry)"
-           : "Quest completed",
-       xp: isAdmin ? 0 : alreadyCompleted ? 0 : quest.experience,
-       objectives: validationResult?.objectives || null,
-       test_results: validationResult?.test_results || [],
-       runtime_passed: validationResult?.runtime_passed ?? null,
-     });
+        success: true,
+        message: userId
+          ? "Quest completed"
+          : "Quest validated (guest preview)",
+        xp: userId ? quest.experience : 0,
+        objectives: validationResult?.objectives || null,
+        test_results: validationResult?.test_results || [],
+        runtime_passed: validationResult?.runtime_passed ?? null,
+      });
+
     } catch (error) {
       console.error("validateExercise error:", error);
+
       return res.status(500).json({
         success: false,
         message: "Internal server error",
@@ -681,13 +816,28 @@ class ExerciseController {
 
   async startExercise(req, res) {
     try {
-      const userId = res.locals.user_id;
+      const userId = res.locals.user_id || null;
       const isAdmin =
         res.locals.role === "admin" ||
-        (await this.exerciseModel.isAdminUser(userId));
+        (userId && (await this.exerciseModel.isAdminUser(userId)));
       const { questId } = req.body;
 
-      if (!userId) return res.status(401).json({ success: false });
+      if (!questId) {
+        return res.status(400).json({ success: false, message: "questId is required" });
+      }
+
+      const quest = await this.exerciseModel.getExerciseById(questId);
+      if (!quest) {
+        return res.status(404).json({ success: false, message: "Quest not found" });
+      }
+
+      // Guest mode: allow starting Exercises 1-2 without DB writes.
+      if (!userId) {
+        if (quest.order_index <= 2) {
+          return res.status(200).json({ success: true, message: "Quest start acknowledged (guest)" });
+        }
+        return res.status(401).json({ success: false, message: "Authentication required" });
+      }
 
       if (isAdmin) {
         return res.status(200).json({ success: true });

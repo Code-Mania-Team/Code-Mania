@@ -35,6 +35,8 @@ import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise.js";
 
+import { recordGuestQuestComplete } from "../utilities/guestProgress";
+
 
 const JavaScriptExercise = () => {
 
@@ -198,24 +200,33 @@ const JavaScriptExercise = () => {
           return;
         }
 
+        // Guest gate: only allow first 2 exercises (by order_index)
+        if (!isAuthenticated && Number(quest?.order_index) > 2) {
+          window.dispatchEvent(new Event("code-mania:exit-blocked"));
+          navigate("/", { replace: true, state: { openSignIn: true } });
+          setIsPageLoading(false);
+          return;
+        }
+
         setActiveExercise(quest);
 
         setTimeout(() => setIsPageLoading(false), 120);
 
       } catch (err) {
 
-        if (err.response?.status === 403) {
-
-          const redirectId = err.response.data?.redirectTo;
-
-          if (redirectId) {
-
-            navigate(`/learn/javascript/exercise/${redirectId}`);
-
+        if (err.response?.status === 403 || err.response?.status === 401) {
+          if (!isAuthenticated) {
+            window.dispatchEvent(new Event("code-mania:exit-blocked"));
+            navigate("/", { replace: true, state: { openSignIn: true } });
+            setIsPageLoading(false);
             return;
-
           }
 
+          const redirectId = err.response?.data?.redirectTo;
+          if (redirectId) {
+            navigate(`/learn/javascript/exercise/${redirectId}`);
+            return;
+          }
         }
 
 
@@ -240,7 +251,7 @@ const JavaScriptExercise = () => {
 
     fetchExercise();
 
-  }, [activeExerciseId]);
+  }, [activeExerciseId, isAuthenticated, navigate]);
 
 
 
@@ -337,23 +348,24 @@ const JavaScriptExercise = () => {
 
     const onRequestNext = async (e) => {
 
-      const currentId = e.detail?.exerciseId;
+      const currentId = Number(e.detail?.exerciseId);
+      if (!Number.isFinite(currentId)) return;
 
-      if (!currentId) return;
+      // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in on home.
+      if (!isAuthenticated) {
+        const currentOrder = Number(activeExercise?.order_index);
+        if (!Number.isFinite(currentOrder) || currentOrder >= 2) {
+          window.dispatchEvent(new Event("code-mania:exit-blocked"));
+          navigate("/", { replace: true, state: { openSignIn: true } });
+          return;
+        }
 
-
-
-      const next = await getNextExercise(currentId);
-
-
-
-      if (!next) {
-
+        navigate(`/learn/javascript/exercise/${currentId + 1}`);
         return;
-
       }
 
-
+      const next = await getNextExercise(currentId);
+      if (!next) return;
 
       navigate(`/learn/javascript/exercise/${next.id}`);
 
@@ -383,7 +395,7 @@ const JavaScriptExercise = () => {
 
     };
 
-  }, []);
+  }, [getNextExercise, isAuthenticated, navigate]);
 
 
 
@@ -402,6 +414,12 @@ const JavaScriptExercise = () => {
     }
 
     if (!activeExercise) return;
+
+    // Prevent starting Phaser with stale quest while the route param changes.
+    const activeQuestId = Number(activeExercise?.id);
+    if (!Number.isFinite(activeQuestId) || activeQuestId !== activeExerciseId) {
+      return;
+    }
 
 
 
@@ -456,6 +474,9 @@ const JavaScriptExercise = () => {
       }
 
       if (Number(questId) === activeExerciseId) {
+        if (!isAuthenticated) {
+          recordGuestQuestComplete(questId);
+        }
         const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
         const totalExercises = Number(activeExercise?.totalExercises || 16);
         const stageNumber = Math.ceil(orderIndex / 4);

@@ -353,7 +353,8 @@ class AccountController {
                 res.cookie('accessToken', accessToken, createCookieOptions(24 * 60 * 60 * 1000));
                 res.cookie("refreshToken", refreshToken, createCookieOptions(24 * 60 * 60 * 1000));
 
-                return res.redirect(`${FRONTEND_URL}/?success=true`);
+                 const isNew = data?.isNewUser === true;
+                 return res.redirect(`${FRONTEND_URL}/?success=true&new=${isNew ? "1" : "0"}`);
             } else {
                 return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }

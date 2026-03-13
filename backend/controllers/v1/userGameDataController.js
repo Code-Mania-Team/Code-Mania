@@ -1,8 +1,10 @@
 import GameDataService from "../../services/gameDataService.js";
+import ExerciseModel from "../../models/exercises.js";
 
 class UserGameDataController {
     constructor() {
         this.gameDataService = new GameDataService();
+        this.exerciseModel = new ExerciseModel();
     }
 
     async learningData(req, res) {
@@ -103,6 +105,79 @@ class UserGameDataController {
             success: false,
             message: err.message
         });
+        }
+    }
+
+    async importGuestProgress(req, res) {
+        try {
+            const user_id = res.locals.user_id;
+            if (!user_id) {
+                return res.status(401).json({ success: false, message: "Unauthorized" });
+            }
+
+            const completedQuestIdsRaw = req.body?.completedQuestIds;
+            const normalized = Array.isArray(completedQuestIdsRaw)
+                ? Array.from(
+                    new Set(
+                        completedQuestIdsRaw
+                            .map((id) => Number(id))
+                            .filter((id) => Number.isFinite(id))
+                    )
+                )
+                : [];
+
+            if (normalized.length === 0) {
+                return res.status(200).json({ success: true, imported: 0, xpAdded: 0 });
+            }
+
+            let imported = 0;
+            let xpAdded = 0;
+
+            for (const questId of normalized) {
+                const quest = await this.exerciseModel.getExerciseById(questId);
+                if (!quest) continue;
+
+                // Safety: only allow importing the guest-available quests.
+                if (Number(quest.order_index) > 2) continue;
+
+                const alreadyCompleted = await this.exerciseModel.isQuestCompleted(user_id, questId);
+                if (alreadyCompleted) continue;
+
+                try {
+                    await this.exerciseModel.startQuest(user_id, questId);
+                    await this.exerciseModel.markQuestComplete(user_id, questId);
+                } catch {
+                    // If we can't mark this quest, skip it.
+                    continue;
+                }
+
+                const xp = Number(quest.experience || 0);
+                if (Number.isFinite(xp) && xp > 0) {
+                    try {
+                        await this.exerciseModel.addXp(user_id, xp);
+                        xpAdded += xp;
+                    } catch {
+                        // Do not fail import if XP RPC is unavailable.
+                    }
+                }
+
+                if (quest.achievements_id) {
+                    try {
+                        await this.exerciseModel.grantAchievement(user_id, quest.achievements_id);
+                    } catch (err) {
+                        // Ignore duplicates
+                        if (err?.code !== "23505") {
+                            // ignore other achievement insert errors
+                        }
+                    }
+                }
+
+                imported += 1;
+            }
+
+            return res.status(200).json({ success: true, imported, xpAdded });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message });
         }
     }
 }

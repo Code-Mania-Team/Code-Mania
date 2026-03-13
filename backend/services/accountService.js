@@ -208,6 +208,7 @@ class AccountService {
         email: newUser.email,
 
         role: newUser.role,
+        isNewUser: true,
       };
     }
 
@@ -234,6 +235,7 @@ class AccountService {
 
           role: emailExist.role,
           message: "Logged in.",
+          isNewUser: false,
         };
       }
 

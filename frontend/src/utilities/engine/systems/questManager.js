@@ -90,10 +90,27 @@ export default class QuestManager {
     let exitTarget = null;
     const questOrder = Number(quest?.order_index);
 
-    const exitZones = this.scene.mapExits?.getChildren?.() || [];
+    // mapExits can exist but be partially destroyed during scene shutdown;
+    // calling Phaser's getChildren() in that state can throw.
+    const exitsGroup = this.scene?.mapExits;
+    let exitZones = [];
+    const rawEntries = exitsGroup?.children?.entries;
+    if (Array.isArray(rawEntries)) {
+      exitZones = rawEntries;
+    } else if (exitsGroup?.children && typeof exitsGroup?.getChildren === "function") {
+      try {
+        exitZones = exitsGroup.getChildren() || [];
+      } catch {
+        exitZones = [];
+      }
+    }
+
     exitZones.forEach((zone) => {
       const required = Number(zone?.exitData?.requiredQuest);
-      if (required === questId || (Number.isFinite(questOrder) && required === questOrder)) {
+      if (
+        required === questId ||
+        (Number.isFinite(questOrder) && required === questOrder)
+      ) {
         zone?.exitArrow?.setVisible(true);
         exitTarget = zone;
       }
@@ -101,7 +118,7 @@ export default class QuestManager {
 
     // Fallback for maps without required_quest configured
     if (!exitTarget) {
-      const firstExit = this.scene.mapExits?.getChildren?.()?.[0] || null;
+      const firstExit = exitZones?.[0] || null;
       if (firstExit) {
         firstExit.exitArrow?.setVisible(true);
         exitTarget = firstExit;

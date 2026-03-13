@@ -44,9 +44,10 @@ export const AuthProvider = ({ children }) => {
     }
 
   } catch (error) {
-    // 🔥 If refresh fails (401), reload immediately
+    // Guest mode: never hard-redirect on 401.
+    // A 401 here just means "not logged in".
     if (error?.response?.status === 401) {
-      window.location.href = "/";
+      setSignedOut();
       return;
     }
 

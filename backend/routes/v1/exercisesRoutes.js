@@ -6,6 +6,16 @@ const publicExerciseRouter = express.Router(); // public router
 
 const exerciseController = new ExerciseController();
 
+// Best-effort auth: attach user context when token exists, but allow guests.
+const optionalAuthentication = (req, res, next) => {
+  const token =
+    req.cookies?.accessToken ||
+    req.headers.authorization?.replace("Bearer ", "");
+
+  if (!token) return next();
+  return authentication(req, res, next);
+};
+
 
 // ---------------- PUBLIC ROUTES ----------------
 // no authentication
@@ -16,7 +26,7 @@ publicExerciseRouter.get(
 
 publicExerciseRouter.get(
   "/exercises/:id",
-  authentication,
+  optionalAuthentication,
   exerciseController.getExerciseById.bind(exerciseController)
 );
 
@@ -27,25 +37,23 @@ publicExerciseRouter.get(
 
 publicExerciseRouter.post(
   "/exercises/validate",
-  authentication,
+  optionalAuthentication,
   exerciseController.validateExercise.bind(exerciseController)
 );
 
 publicExerciseRouter.post(
   "/exercises/validate-preview",
-  authentication,
   exerciseController.validateExercisePreview.bind(exerciseController)
 );
 
 publicExerciseRouter.post(
   "/exercises/start",
-  authentication,
+  optionalAuthentication,
   exerciseController.startExercise.bind(exerciseController)
 );
 
 publicExerciseRouter.get(
   "/exercises/:id/next",
-  authentication,
   exerciseController.getNextExercise.bind(exerciseController)
 );
 

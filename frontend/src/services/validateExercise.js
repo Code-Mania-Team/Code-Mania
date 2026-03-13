@@ -1,14 +1,14 @@
-import { Code } from "lucide-react";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { axiosPublic } from "../api/axios";
 
 const useValidateExercise = () => {
-  const axiosPrivate = useAxiosPrivate();
 
   const validateExercise = async (questId, output, code) => {
+
     if (!questId) return null;
 
     try {
-      const response = await axiosPrivate.post(
+
+      const response = await axiosPublic.post(
         "/v1/exercises/validate",
         {
           questId,
@@ -17,15 +17,19 @@ const useValidateExercise = () => {
         }
       );
 
-      return response.data; // 🔥 same structure style
+      return response.data;
+
     } catch (err) {
+
       return {
         success: false,
         message:
           err.response?.data?.message ||
           "Validation server error"
       };
+
     }
+
   };
 
   return validateExercise;

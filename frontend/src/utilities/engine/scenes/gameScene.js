@@ -66,11 +66,23 @@ export default class GameScene extends Phaser.Scene {
 
     this.language = languageFromQuest || storedLanguage || "Python";
 
-    if (!this.quest || !this.quest.map_id) {
-      console.error("❌ Quest missing or invalid. Using fallback map1.");
-      this.currentMapId = "map9";
+    const questMapId =
+      this.quest?.map_id ??
+      this.quest?.mapId ??
+      this.quest?.mapKey ??
+      this.quest?.map_key ??
+      this.quest?.mapkey ??
+      null;
+
+    if (!this.quest || !questMapId) {
+      const fallbackIndex = Number(this.quest?.order_index ?? this.exerciseId);
+      const safeIndex = Number.isFinite(fallbackIndex)
+        ? Math.min(Math.max(fallbackIndex, 1), 16)
+        : 1;
+      this.currentMapId = `map${safeIndex}`;
+      console.error("❌ Quest missing map id. Using fallback:", this.currentMapId);
     } else {
-      this.currentMapId = this.quest.map_id; // ✅ CORRECT FIELD
+      this.currentMapId = String(questMapId);
     }
 
     this.mapData = MAPS[this.language]?.[this.currentMapId];
@@ -101,6 +113,10 @@ export default class GameScene extends Phaser.Scene {
     this._arrowVisible = false;
 
     this._bgmUnlockHandler = null;
+
+    // Exit gating helpers (guest mode / blocked exits)
+    this._lastExitZone = null;
+    this._exitBlockedUntil = 0;
   }
 
   getQuestLessonSplashContent(quest) {
@@ -932,6 +948,67 @@ export default class GameScene extends Phaser.Scene {
     window.addEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
     window.addEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
 
+    this.handleExitBlocked = () => {
+      const now = this.time?.now ?? Date.now();
+      this._exitBlockedUntil = now + 1200;
+
+      // Guest attempted to exit to a locked exercise.
+      // Restore controls and fade back in so the player isn't stuck.
+      try {
+        this.cameras.main.fadeIn(220, 0, 0, 0);
+      } catch {
+        // ignore
+      }
+
+      this.playerCanMove = true;
+      this.gamePausedByTerminal = false;
+
+      const zone = this._lastExitZone || null;
+      if (zone) {
+        // Nudge player away from the exit trigger so overlap doesn't re-fire immediately.
+        try {
+          const player = this.player;
+          if (player) {
+            const dx = (player.x ?? 0) - (zone.x ?? 0);
+            const dy = (player.y ?? 0) - (zone.y ?? 0);
+            const len = Math.hypot(dx, dy);
+            const step = 52;
+
+            if (len > 0.001) {
+              player.x += (dx / len) * step;
+              player.y += (dy / len) * step;
+            } else {
+              // Fallback: push opposite of last known direction
+              const dir = String(this.lastDirection || "down").toLowerCase();
+              if (dir === "up") player.y += step;
+              else if (dir === "down") player.y -= step;
+              else if (dir === "left") player.x += step;
+              else if (dir === "right") player.x -= step;
+            }
+          }
+        } catch {
+          // ignore
+        }
+
+        try {
+          // Re-enable after a short delay so physics state settles.
+          this.time?.delayedCall?.(420, () => {
+            try {
+              this.physics.world.enable(zone);
+              zone.body?.setAllowGravity?.(false);
+              zone.body?.setImmovable?.(true);
+            } catch {
+              // ignore
+            }
+          });
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    window.addEventListener("code-mania:exit-blocked", this.handleExitBlocked);
+
     this.events.once("shutdown", () => {
       window.removeEventListener(
         "code-mania:quest-complete",
@@ -940,6 +1017,7 @@ export default class GameScene extends Phaser.Scene {
       window.removeEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
       window.removeEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
       window.removeEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
+      window.removeEventListener("code-mania:exit-blocked", this.handleExitBlocked);
     });
 
 
@@ -1928,6 +2006,9 @@ export default class GameScene extends Phaser.Scene {
 
 
   handleMapExit(player, zone) {
+    const now = this.time?.now ?? Date.now();
+    if (now < (this._exitBlockedUntil || 0)) return;
+
     const { requiredQuest } = zone.exitData;
 
     // Quest not finished → do nothing
@@ -1937,6 +2018,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Prevent multiple triggers
     this.physics.world.disable(zone);
+    this._lastExitZone = zone;
     this.playerCanMove = false;
 
     this.nextObjectiveHint?.hide();

@@ -90,8 +90,15 @@ const useProfileSummary = () => {
 
     fetchSummary();
 
+    const onInvalidate = () => {
+      summaryCache = { data: null, fetchedAt: 0, promise: null };
+      fetchSummary();
+    };
+    window.addEventListener('profileSummary:invalidate', onInvalidate);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('profileSummary:invalidate', onInvalidate);
     };
   }, [axiosPrivate, isAuthenticated, isLoading]);
 

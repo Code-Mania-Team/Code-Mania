@@ -19,8 +19,10 @@ export default class LessonExampleSplash {
   }
 
   destroy() {
+    const scene = this.scene;
+
     if (this._handleResize) {
-      this.scene.scale.off("resize", this._handleResize);
+      scene?.scale?.off?.("resize", this._handleResize);
       this._handleResize = null;
     }
 
@@ -30,9 +32,9 @@ export default class LessonExampleSplash {
     this._outEvent?.remove?.();
     this._outEvent = null;
 
-    if (this.container) this.scene.tweens.killTweensOf(this.container);
+    if (this.container) scene?.tweens?.killTweensOf?.(this.container);
 
-    this.container?.destroy(true);
+    this.container?.destroy?.(true);
     this.container = null;
     this.titleText = null;
     this.bodyText = null;
@@ -93,6 +95,13 @@ export default class LessonExampleSplash {
   }
 
   show({ title = "", body = "", hold = 2400, typeSpeedTitle = 34, typeSpeedBody = 26 } = {}) {
+    const scene = this.scene;
+    // Scene can be shutting down during route transitions.
+    if (!scene?.add || !scene?.scale || !scene?.time || !scene?.tweens) {
+      this._active = false;
+      return;
+    }
+
     const safeTitle = String(title || "").trim();
     const safeBody = String(body || "").trim();
     if (!safeTitle && !safeBody) return;
@@ -100,21 +109,21 @@ export default class LessonExampleSplash {
 
     this._active = true;
 
-    const { width, height } = this.scene.scale;
+    const { width, height } = scene.scale;
     const wrapWidth = Math.min(Math.floor(width * 0.84), 760);
     const y = Math.floor(height * this.yRatio);
 
     const titleFontSize = Math.max(28, Math.min(44, Math.floor(width / 18)));
     const bodyFontSize = Math.max(16, Math.min(22, Math.floor(width / 34)));
 
-    const container = this.scene.add
+    const container = scene.add
       .container(Math.floor(width / 2), y)
       .setScrollFactor(0)
       .setDepth(this.depth)
       .setAlpha(0)
       .setScale(0.92);
 
-    const titleText = this.scene.add
+    const titleText = scene.add
       .text(0, 0, "", {
         font: `bold ${titleFontSize}px Georgia`,
         fill: "#ffffff",
@@ -128,7 +137,7 @@ export default class LessonExampleSplash {
 
     const hasBody = Boolean(safeTitle && safeBody);
     const bodyText = hasBody
-      ? this.scene.add
+      ? scene.add
         .text(0, 0, "", {
           font: `${bodyFontSize}px Georgia`,
           fill: "#e5e7eb",
@@ -167,9 +176,9 @@ export default class LessonExampleSplash {
       this._layoutTexts();
     };
 
-    this.scene.scale.on("resize", this._handleResize);
+    scene.scale.on("resize", this._handleResize);
 
-    const inTween = this.scene.tweens.add({
+    const inTween = scene.tweens.add({
       targets: container,
       alpha: 1,
       scale: 1,
@@ -185,8 +194,8 @@ export default class LessonExampleSplash {
     this._startTypewriter(titleText, titleToType, typeSpeedTitle, () => {
       if (!this._active) return;
       if (!bodyText) {
-        this._outEvent = this.scene.time.delayedCall(Math.max(0, Number(hold) || 0), () => {
-          this.scene.tweens.add({
+        this._outEvent = scene.time.delayedCall(Math.max(0, Number(hold) || 0), () => {
+          scene.tweens.add({
             targets: container,
             alpha: 0,
             y: y - 34,
@@ -201,11 +210,11 @@ export default class LessonExampleSplash {
         return;
       }
 
-      this.scene.time.delayedCall(120, () => {
+      scene.time.delayedCall(120, () => {
         if (!this._active) return;
         this._startTypewriter(bodyText, bodyToType, typeSpeedBody, () => {
-          this._outEvent = this.scene.time.delayedCall(Math.max(0, Number(hold) || 0), () => {
-            this.scene.tweens.add({
+          this._outEvent = scene.time.delayedCall(Math.max(0, Number(hold) || 0), () => {
+            scene.tweens.add({
               targets: container,
               alpha: 0,
               y: y - 34,

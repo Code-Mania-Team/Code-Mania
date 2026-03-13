@@ -9,7 +9,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  /* Must sit above terminal lock overlay (z-index: 1200) */
+  z-index: 20000;
   backdrop-filter: blur(5px);
 }
 

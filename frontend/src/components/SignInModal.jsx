@@ -13,6 +13,11 @@ import { loginWithGoogle } from '../services/login';
 
 import { axiosPublic } from '../api/axios';
 
+import {
+  getGuestCompletedQuestIds,
+  clearGuestProgress,
+} from "../utilities/guestProgress";
+
 
 
 const swordImage = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/sword_cnrdam.png';
@@ -141,6 +146,26 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
   // OTP resend cooldown state
   const [otpResendCooldown, setOtpResendCooldown] = useState(0);
+
+  const importGuestProgressIfAny = async () => {
+    const completedQuestIds = getGuestCompletedQuestIds();
+    if (!Array.isArray(completedQuestIds) || completedQuestIds.length === 0) return;
+    try {
+      const res = await axiosPublic.post("/v1/game/import-guest-progress", { completedQuestIds });
+      if (res?.data?.success) {
+        clearGuestProgress();
+        try {
+          localStorage.removeItem('guestProgressAllowImport');
+        } catch {
+          // ignore
+        }
+        window.dispatchEvent(new Event('profileSummary:invalidate'));
+      }
+    } catch (err) {
+      // Best effort: do not block sign-up flow.
+      console.error("Failed to import guest progress", err);
+    }
+  };
 
 
 
@@ -352,6 +377,16 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
           localStorage.setItem('needsUsername', 'true');
 
+          try {
+            localStorage.setItem('guestProgressAllowImport', '1');
+          } catch {
+            // ignore
+          }
+
+          // Only import guest progress for account creation (sign-up), not for normal logins.
+          // Note: we only clear guest progress if import succeeds.
+          await importGuestProgressIfAny();
+
           onSignInSuccess(true);
 
           onClose();
@@ -461,6 +496,15 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
         }
 
 
+
+        // Login: discard guest mode data (do not import).
+        clearGuestProgress();
+
+        try {
+          localStorage.removeItem('guestProgressAllowImport');
+        } catch {
+          // ignore
+        }
 
         onSignInSuccess(needsOnboarding);
 

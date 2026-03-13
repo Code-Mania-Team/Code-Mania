@@ -7,11 +7,9 @@ const useRefreshToken = () => {
       return response.data.accessToken;
       
     } catch (error) {
-      // Silent 401 handling - don't log to console
+      // Silent 401 handling - guest mode is allowed
       if (error.response?.status === 401) {
-        console.warn("Session expired - redirecting to login...");
-        // Optional: Redirect to login page
-        window.location.href = '/';
+        // No redirect here; callers can treat this as "not logged in".
         return null;
       }
       // Log other errors (network issues, server errors)

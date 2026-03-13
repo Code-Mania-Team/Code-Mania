@@ -37,6 +37,8 @@ import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise.js";
 
+import { recordGuestQuestComplete } from "../utilities/guestProgress";
+
 
 
 const CppExercise = () => {
@@ -197,6 +199,14 @@ const CppExercise = () => {
           return;
         }
 
+        // Guest gate: only allow first 2 exercises (by order_index)
+        if (!isAuthenticated && Number(quest?.order_index) > 2) {
+          window.dispatchEvent(new Event("code-mania:exit-blocked"));
+          navigate("/", { replace: true, state: { openSignIn: true } });
+          setIsPageLoading(false);
+          return;
+        }
+
          setActiveExercise(quest);
 
          setTimeout(() => setIsPageLoading(false), 120);
@@ -335,25 +345,28 @@ const CppExercise = () => {
 
     const onRequestNext = async (e) => {
 
-      const currentId = e.detail?.exerciseId;
+      const currentId = Number(e.detail?.exerciseId);
+      if (!Number.isFinite(currentId)) return;
 
-      if (!currentId) return;
+      // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in on home.
+      if (!isAuthenticated) {
+        const currentOrder = Number(activeExercise?.order_index);
+        if (!Number.isFinite(currentOrder) || currentOrder >= 2) {
+          window.dispatchEvent(new Event("code-mania:exit-blocked"));
+          navigate("/", { replace: true, state: { openSignIn: true } });
+          return;
+        }
 
-
+        navigate(`/learn/cpp/exercise/${currentId + 1}`);
+        return;
+      }
 
       const next = await getNextExercise(currentId);
 
-
-
       if (!next) {
-
         setShowCourseCompletePrompt(true);
-
         return;
-
       }
-
-
 
       navigate(`/learn/cpp/exercise/${next.id}`);
 
@@ -383,7 +396,7 @@ const CppExercise = () => {
 
     };
 
-  }, []);
+  }, [getNextExercise, isAuthenticated, navigate]);
 
 
 
@@ -402,6 +415,12 @@ const CppExercise = () => {
     }
 
     if (!activeExercise) return;
+
+    // Prevent starting Phaser with stale quest while the route param changes.
+    const activeQuestId = Number(activeExercise?.id);
+    if (!Number.isFinite(activeQuestId) || activeQuestId !== activeExerciseId) {
+      return;
+    }
 
 
 
@@ -452,6 +471,9 @@ const CppExercise = () => {
       }
 
       if (Number(questId) === activeExerciseId) {
+        if (!isAuthenticated) {
+          recordGuestQuestComplete(questId);
+        }
         const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
         const totalExercises = Number(activeExercise?.totalExercises || 16);
         const stageNumber = Math.ceil(orderIndex / 4);

@@ -33,6 +33,8 @@ import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise";
 
+import { recordGuestQuestComplete } from "../utilities/guestProgress";
+
 
 
 
@@ -109,6 +111,17 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [activeExercise, setActiveExercise] = useState(null);
 
   const [isPageLoading, setIsPageLoading] = useState(true);
+
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+
+  // Guest gate: exercises 1-2 are playable; exercise 3+ redirects to home and opens sign-in.
+  useEffect(() => {
+    if (!isAuthenticated && activeExerciseId > 2) {
+      window.dispatchEvent(new Event("code-mania:exit-blocked"));
+      navigate("/", { replace: true, state: { openSignIn: true } });
+      setIsPageLoading(false);
+    }
+  }, [activeExerciseId, isAuthenticated, navigate]);
 
 
   useEffect(() => {
@@ -188,21 +201,21 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
 
-        // 🔒 Locked → redirect
-
-        if (err.response?.status === 403) {
-
-          const redirectId = err.response.data?.redirectTo;
-
-
-          if (redirectId) {
-
-            navigate(`/learn/python/exercise/${redirectId}`);
-
+        // 🔒 Locked
+        if (err.response?.status === 403 || err.response?.status === 401) {
+          // Guest trying to access exercise 3+
+          if (!isAuthenticated && activeExerciseId > 2) {
+            window.dispatchEvent(new Event("code-mania:exit-blocked"));
+            navigate("/", { replace: true, state: { openSignIn: true } });
+            setIsPageLoading(false);
             return;
-
           }
 
+          const redirectId = err.response?.data?.redirectTo;
+          if (redirectId) {
+            navigate(`/learn/python/exercise/${redirectId}`);
+            return;
+          }
         }
 
 
@@ -239,7 +252,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     fetchExercise();
 
-  }, [activeExerciseId]);
+  }, [activeExerciseId, isAuthenticated, navigate]);
 
 
 
@@ -352,30 +365,27 @@ const PythonExercise = ({ isAuthenticated }) => {
     }
 
     const onRequestNext = async (e) => {
+      const currentId = Number(e.detail?.exerciseId);
+      if (!Number.isFinite(currentId)) return;
 
-      const currentId = e.detail?.exerciseId;
-
-      if (!currentId) return;
-
-
-
-      const next = await getNextExercise(currentId);
-
-
-
-      if (!next) {
-
-
-        navigate("/learn/python/completed");
-
+      // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in.
+      if (!isAuthenticated) {
+        if (currentId >= 2) {
+          window.dispatchEvent(new Event("code-mania:exit-blocked"));
+          navigate("/", { replace: true, state: { openSignIn: true } });
+          return;
+        }
+        navigate(`/learn/python/exercise/${currentId + 1}`);
         return;
-
       }
 
-
+      const next = await getNextExercise(currentId);
+      if (!next) {
+        navigate("/learn/python/completed");
+        return;
+      }
 
       navigate(`/learn/python/exercise/${next.id}`);
-
     };
 
 
@@ -390,7 +400,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, []);
+  }, [getNextExercise, isAuthenticated, isRetryMode, navigate]);
 
 
 
@@ -471,6 +481,14 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     if (!activeExercise) return;
 
+    // Prevent starting Phaser with stale quest while the route param changes.
+    // When navigating between exercises, React can render with the previous quest
+    // before the new quest fetch completes.
+    const activeQuestId = Number(activeExercise?.id);
+    if (!Number.isFinite(activeQuestId) || activeQuestId !== activeExerciseId) {
+      return;
+    }
+
 
 
     startGame({
@@ -524,6 +542,9 @@ const PythonExercise = ({ isAuthenticated }) => {
       }
 
       if (Number(questId) === activeExerciseId) {
+        if (!isAuthenticated) {
+          recordGuestQuestComplete(questId);
+        }
 
         const orderIndex = Number(activeExercise?.order_index || activeExerciseId);
         const totalExercises = Number(activeExercise?.totalExercises || 16);
@@ -643,10 +664,6 @@ const PythonExercise = ({ isAuthenticated }) => {
      AUTH MODAL
 
   =============================== */
-
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-
-
 
   const handleSignInSuccess = () => {
 
