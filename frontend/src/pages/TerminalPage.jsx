@@ -12,6 +12,14 @@ const LANGUAGES = [
     { id: "javascript", label: "JavaScript", ext: "script.js", icon: "🟨" },
 ];
 
+const TERMINAL_SKINS = [
+    { id: "default", label: "Default" },
+    { id: "cosmo", label: "Cosmo" },
+    { id: "arcade", label: "Arcade" },
+    { id: "ember", label: "Ember" },
+    { id: "matrix", label: "Matrix" },
+];
+
 function getMonacoLang(lang) {
     if (lang === "cpp") return "cpp";
     if (lang === "javascript") return "javascript";
@@ -34,6 +42,8 @@ const TerminalPage = () => {
     const navigate = useNavigate();
     const { user, isLoading: authLoading } = useAuth();
     const isAdmin = user?.role === "admin";
+
+    const TERMINAL_SKIN_KEY = "cm_terminal_skin";
     const { progress, loading } = useLearningProgress();
     const hasTerminalAccess =
         isAdmin ||
@@ -53,22 +63,47 @@ const TerminalPage = () => {
     const [showLangDropdown, setShowLangDropdown] = useState(false);
     const [activeTab, setActiveTab] = useState("output"); // output or input
 
+    const [skin, setSkin] = useState(() => {
+        try {
+            const stored = window.localStorage.getItem(TERMINAL_SKIN_KEY);
+            const allowed = new Set(TERMINAL_SKINS.map((s) => s.id));
+            return allowed.has(stored) ? stored : "default";
+        } catch {
+            return "default";
+        }
+    });
+
+    const [showSkinDropdown, setShowSkinDropdown] = useState(false);
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(TERMINAL_SKIN_KEY, skin);
+        } catch {
+            // ignore
+        }
+    }, [skin]);
+
     const socketRef = useRef(null);
     const terminalRef = useRef(null);
     const terminalContentRef = useRef(null);
     const dropdownRef = useRef(null);
+    const skinDropdownRef = useRef(null);
 
     const currentLangInfo = useMemo(
         () => LANGUAGES.find((l) => l.id === language) || LANGUAGES[0],
         [language]
     );
 
+    const currentSkinInfo = useMemo(
+        () => TERMINAL_SKINS.find((s) => s.id === skin) || TERMINAL_SKINS[0],
+        [skin]
+    );
+
     // Close dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-                setShowLangDropdown(false);
-            }
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setShowLangDropdown(false);
+            if (skinDropdownRef.current && !skinDropdownRef.current.contains(e.target)) setShowSkinDropdown(false);
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -229,7 +264,15 @@ const TerminalPage = () => {
     }
 
     return (
-        <div className={styles.terminalPage}>
+        <div
+            className={
+                `${styles.terminalPage}`
+                + (skin === "cosmo" ? ` ${styles.terminalPageCosmo}` : "")
+                + (skin === "arcade" ? ` ${styles.terminalPageArcade}` : "")
+                + (skin === "ember" ? ` ${styles.terminalPageEmber}` : "")
+                + (skin === "matrix" ? ` ${styles.terminalPageMatrix}` : "")
+            }
+        >
             {/* Top toolbar */}
             <div className={styles.toolbar}>
                 <div className={styles.toolbarLeft}>
@@ -271,6 +314,39 @@ const TerminalPage = () => {
                 </div>
 
                 <div className={styles.toolbarRight}>
+                    <div className={styles.skinSelector} ref={skinDropdownRef}>
+                        <button
+                            className={`${styles.skinButton} ${skin !== "default" ? styles.skinButtonActive : ""}`}
+                            onClick={() => setShowSkinDropdown((prev) => !prev)}
+                            type="button"
+                            title="Terminal theme"
+                        >
+                            <Sparkles size={16} />
+                            <span className={styles.btnText}>{currentSkinInfo.label}</span>
+                            <ChevronDown
+                                size={14}
+                                className={`${styles.skinChevron} ${showSkinDropdown ? styles.skinChevronOpen : ""}`}
+                            />
+                        </button>
+
+                        {showSkinDropdown && (
+                            <div className={styles.skinDropdown}>
+                                {TERMINAL_SKINS.map((s) => (
+                                    <button
+                                        key={s.id}
+                                        className={`${styles.skinOption} ${skin === s.id ? styles.skinOptionActive : ""}`}
+                                        onClick={() => {
+                                            setSkin(s.id);
+                                            setShowSkinDropdown(false);
+                                        }}
+                                        type="button"
+                                    >
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <button
                         className={styles.clearBtn}
                         onClick={handleClear}

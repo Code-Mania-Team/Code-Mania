@@ -1,7 +1,7 @@
 /* Learn Page Styles */
 .page {
   width: 100%;
-  color: white;
+  color: var(--text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -60,7 +60,7 @@
 
 /* Courses Section */
 .section {
-  background: #0f172a;
+  background: var(--section-bg);
   padding: 4rem 2rem;
   min-height: 60vh;
 }
@@ -82,14 +82,14 @@
 .title {
   font-family: 'Jersey 10', sans-serif;
   font-size: 2.5rem;
-  color: white;
+  color: var(--text-strong);
   margin: 0;
   letter-spacing: 1px;
 }
 
 .subtitle {
   text-align: center;
-  color: #94a3b8;
+  color: var(--muted);
   font-size: 1.1rem;
   max-width: 800px;
   margin: 0 auto 3rem;
@@ -105,9 +105,9 @@
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
   border-radius: 1rem;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -163,7 +163,7 @@
 }
 
 .description {
-  color: #cbd5e1;
+  color: var(--muted-2);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;

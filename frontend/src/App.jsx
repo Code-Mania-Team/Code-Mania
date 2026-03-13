@@ -19,6 +19,7 @@ import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
 import Credits from "./pages/credits";
 import PageNotFound from "./pages/PageNotFound";
+import Rewards from "./pages/Rewards";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
 import ExamManager from "./pages/ExamManager";
@@ -522,6 +523,7 @@ function App() {
               <TerminalPage />
             </ProtectedRoute>
           } />
+          <Route path="/rewards" element={<Rewards />} />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="*" element={<PageNotFound />} />

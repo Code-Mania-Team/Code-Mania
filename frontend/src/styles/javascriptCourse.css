@@ -1,9 +1,9 @@
 /* JavaScript Course Page */
 .javascript-course-page {
   width: 100%;
-  color: white;
+  color: var(--text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #0f172a;
+  background: var(--section-bg);
   min-height: 100vh;
 }
 
@@ -52,6 +52,13 @@
   margin-bottom: 2rem;
 }
 
+/* Stage (+) box color */
+.javascript-course-page .module-icon {
+  background: rgba(255, 215, 0, 0.16);
+  border-color: #FFD700;
+  color: #FFD700;
+}
+
 .exercise-status {
   display: flex;
   align-items: center;
@@ -95,7 +102,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 3rem 2rem;
-  background: #0f172a;
+  background: var(--section-bg);
 }
 
 /* Module Icon - JavaScript Yellow */
@@ -110,6 +117,7 @@
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e2e8f0;
   padding: 0.4rem 1rem;
   border-radius: 2rem;
   font-size: 0.75rem;

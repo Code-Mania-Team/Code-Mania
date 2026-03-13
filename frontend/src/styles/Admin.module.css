@@ -132,7 +132,7 @@
     linear-gradient(180deg, rgba(5, 9, 19, 0.55) 100%),
     url("https://res.cloudinary.com/daegpuoss/image/upload/v1771179248/admin_n6bbed.webp");
   background-size: cover;
-  background-position: 0px -200px;
+  background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,6 +148,7 @@
 .heroSubtitle {
   font-size: 14px;
   opacity: 0.85;
+  color: rgba(231, 238, 252, 0.92);
   letter-spacing: 0.02em;
   margin: 0 0 8px;
 }
@@ -155,6 +156,7 @@
 .heroTitle {
   font-size: clamp(34px, 5vw, 56px);
   margin: 0;
+  color: #ffffff;
   text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   font-family: 'Jersey 25', sans-serif;
 }
@@ -163,6 +165,7 @@
   margin: 10px 0 0;
   font-size: 20px;
   opacity: 0.88;
+  color: rgba(231, 238, 252, 0.92);
   line-height: 1.6;
 }
 
@@ -715,4 +718,142 @@
   user-select: none;
   font-size: 12px;
   opacity: 0.85;
+}
+
+/* Light mode overrides */
+html[data-theme="light"] .page {
+  background: var(--app-bg);
+  color: var(--text);
+}
+
+html[data-theme="light"] .hero {
+  border-bottom: 1px solid var(--border);
+  background-image:
+    url("https://res.cloudinary.com/daegpuoss/image/upload/v1771179248/admin_n6bbed.webp");
+  background-position: center;
+}
+
+html[data-theme="light"] .subtitle {
+  opacity: 1;
+  color: var(--muted);
+}
+
+html[data-theme="light"] .card,
+html[data-theme="light"] .panel,
+html[data-theme="light"] .trafficChartMetric,
+html[data-theme="light"] .exerciseEditor {
+  background: var(--page-bg);
+  border: 1px solid var(--border);
+}
+
+html[data-theme="light"] .divider,
+html[data-theme="light"] .datasetRow,
+html[data-theme="light"] .quizTable th,
+html[data-theme="light"] .quizTable td,
+html[data-theme="light"] .exerciseRow {
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .track {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="light"] .day,
+html[data-theme="light"] .count,
+html[data-theme="light"] .cardTitle,
+html[data-theme="light"] .cardSubtitle,
+html[data-theme="light"] .panelSubtitle,
+html[data-theme="light"] .datasetMeta,
+html[data-theme="light"] .paginationInfo {
+  opacity: 1;
+  color: var(--muted);
+}
+
+html[data-theme="light"] .exerciseMeta,
+html[data-theme="light"] .exerciseDescription {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .exerciseTitle,
+html[data-theme="light"] .panelTitle,
+html[data-theme="light"] .datasetName,
+html[data-theme="light"] .courseName,
+html[data-theme="light"] .title {
+  color: var(--text-strong);
+}
+
+html[data-theme="light"] .button {
+  border: 1px solid var(--border);
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+html[data-theme="light"] .button:hover {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .formGroup label {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .formGroup input,
+html[data-theme="light"] .formGroup select,
+html[data-theme="light"] .formGroup textarea {
+  background: var(--page-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+html[data-theme="light"] .rangePicker,
+html[data-theme="light"] .trafficSeriesPicker {
+  border: 1px solid var(--border);
+  background: var(--page-bg);
+}
+
+html[data-theme="light"] .rangeButton,
+html[data-theme="light"] .trafficSeriesButton {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .rangeButton:hover,
+html[data-theme="light"] .trafficSeriesButton:hover {
+  color: var(--text);
+  background: rgba(15, 23, 42, 0.04);
+}
+
+html[data-theme="light"] .rangeButtonActive,
+html[data-theme="light"] .trafficSeriesButtonActive {
+  background: rgba(29, 78, 216, 0.12);
+  border-color: rgba(29, 78, 216, 0.22);
+  color: var(--text-strong);
+}
+
+html[data-theme="light"] .trafficEmpty {
+  border-color: var(--border);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+html[data-theme="light"] .trafficChartCanvas {
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(900px 260px at 50% 0%, rgba(37, 99, 235, 0.10) 0%, rgba(37, 99, 235, 0) 60%),
+    rgba(15, 23, 42, 0.02);
+}
+
+html[data-theme="light"] .trafficChartGridLine {
+  stroke: rgba(15, 23, 42, 0.18);
+}
+
+html[data-theme="light"] .trafficChartTick,
+html[data-theme="light"] .trafficChartXLabel {
+  fill: rgba(15, 23, 42, 0.72);
+}
+
+html[data-theme="light"] .trafficChartFrame {
+  stroke: rgba(29, 78, 216, 0.25);
+}
+
+html[data-theme="light"] .errorText {
+  color: #b91c1c;
 }

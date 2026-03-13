@@ -11,8 +11,371 @@
     overflow: hidden;
 }
 
+/* ─── Cosmo Skin (visualization) ─── */
+.terminalPageCosmo {
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(1000px 600px at 20% 20%, rgba(168, 85, 247, 0.18), transparent 60%),
+        radial-gradient(900px 520px at 80% 25%, rgba(59, 130, 246, 0.14), transparent 58%),
+        radial-gradient(700px 420px at 55% 85%, rgba(34, 197, 94, 0.10), transparent 62%),
+        linear-gradient(180deg, #060814, #02030a);
+}
+
+.terminalPageCosmo > * {
+    position: relative;
+    z-index: 1;
+}
+
+.terminalPageCosmo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 22% 78%, rgba(255, 255, 255, 0.75) 0 1px, transparent 2px),
+        radial-gradient(circle at 48% 42%, rgba(255, 255, 255, 0.70) 0 1px, transparent 2px),
+        radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.80) 0 1px, transparent 2px),
+        radial-gradient(circle at 86% 72%, rgba(255, 255, 255, 0.65) 0 1px, transparent 2px);
+    opacity: 0.55;
+    animation: starDrift 14s linear infinite;
+    z-index: 0;
+}
+
+.terminalPageCosmo::after {
+    content: "";
+    position: absolute;
+    inset: -40px;
+    pointer-events: none;
+    background:
+        radial-gradient(900px 420px at 30% 45%, rgba(124, 58, 237, 0.14), transparent 65%),
+        radial-gradient(850px 380px at 70% 55%, rgba(37, 99, 235, 0.12), transparent 62%),
+        repeating-linear-gradient(
+            90deg,
+            rgba(148, 163, 184, 0.05) 0,
+            rgba(148, 163, 184, 0.05) 1px,
+            transparent 1px,
+            transparent 90px
+        );
+    opacity: 0.6;
+    filter: blur(0.2px);
+    z-index: 0;
+}
+
+@keyframes starDrift {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: translate3d(-30px, 22px, 0);
+    }
+}
+
+.terminalPageCosmo .toolbar {
+    background: rgba(2, 6, 23, 0.55);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    backdrop-filter: blur(10px);
+}
+
+.terminalPageCosmo .langButton {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(148, 163, 184, 0.20);
+}
+
+.terminalPageCosmo .langButton:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(226, 232, 240, 0.25);
+}
+
+.terminalPageCosmo .fileName {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(226, 232, 240, 0.75);
+}
+
+.terminalPageCosmo .editorPanel {
+    border-right-color: rgba(148, 163, 184, 0.16);
+}
+
+.terminalPageCosmo .editorTabBar,
+.terminalPageCosmo .terminalTabBar {
+    background: rgba(2, 6, 23, 0.55);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    backdrop-filter: blur(10px);
+}
+
+.terminalPageCosmo .editorTab {
+    background: rgba(2, 6, 23, 0.65);
+    border-color: rgba(148, 163, 184, 0.20);
+    border-bottom-color: rgba(2, 6, 23, 0.65);
+}
+
+.terminalPageCosmo .terminalTabActive {
+    border-bottom-color: rgba(168, 85, 247, 0.85);
+}
+
+.terminalPageCosmo .terminalContainer {
+    background:
+        radial-gradient(800px 420px at 50% 0%, rgba(168, 85, 247, 0.14), transparent 60%),
+        radial-gradient(900px 520px at 40% 100%, rgba(59, 130, 246, 0.12), transparent 58%),
+        rgba(2, 6, 23, 0.82);
+    outline: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.terminalPageCosmo .terminalContent::-webkit-scrollbar-track {
+    background: rgba(2, 6, 23, 0.75);
+}
+
+.terminalPageCosmo .terminalContent::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.30);
+}
+
+.terminalPageCosmo .terminalContent::-webkit-scrollbar-thumb:hover {
+    background: rgba(226, 232, 240, 0.32);
+}
+
+.terminalPageCosmo .cursor {
+    color: #a78bfa;
+}
+
+/* ─── Arcade Skin (visualization) ─── */
+.terminalPageArcade {
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(1100px 650px at 25% 20%, rgba(34, 211, 238, 0.16), transparent 60%),
+        radial-gradient(900px 560px at 80% 25%, rgba(244, 63, 94, 0.14), transparent 60%),
+        radial-gradient(820px 520px at 55% 88%, rgba(168, 85, 247, 0.12), transparent 62%),
+        linear-gradient(180deg, #06061a, #02010b);
+}
+
+.terminalPageArcade > * {
+    position: relative;
+    z-index: 1;
+}
+
+.terminalPageArcade::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(90deg, rgba(34, 211, 238, 0.06) 0, rgba(34, 211, 238, 0.06) 1px, transparent 1px, transparent 72px),
+        repeating-linear-gradient(0deg, rgba(244, 63, 94, 0.05) 0, rgba(244, 63, 94, 0.05) 1px, transparent 1px, transparent 72px);
+    opacity: 0.55;
+    z-index: 0;
+}
+
+.terminalPageArcade::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.04) 0,
+        rgba(255, 255, 255, 0.04) 2px,
+        transparent 2px,
+        transparent 9px
+    );
+    opacity: 0.35;
+    animation: scanSweep 8s linear infinite;
+    z-index: 0;
+}
+
+@keyframes scanSweep {
+    from {
+        transform: translateY(-20px);
+    }
+
+    to {
+        transform: translateY(20px);
+    }
+}
+
+.terminalPageArcade .toolbar,
+.terminalPageArcade .editorTabBar,
+.terminalPageArcade .terminalTabBar {
+    background: rgba(2, 6, 23, 0.55);
+    border-bottom: 1px solid rgba(34, 211, 238, 0.18);
+    backdrop-filter: blur(10px);
+}
+
+.terminalPageArcade .langButton {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(34, 211, 238, 0.18);
+}
+
+.terminalPageArcade .langButton:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(244, 63, 94, 0.22);
+}
+
+.terminalPageArcade .terminalTabActive {
+    border-bottom-color: rgba(34, 211, 238, 0.95);
+}
+
+.terminalPageArcade .terminalContainer {
+    background:
+        radial-gradient(900px 520px at 50% 0%, rgba(34, 211, 238, 0.12), transparent 60%),
+        radial-gradient(800px 480px at 40% 100%, rgba(244, 63, 94, 0.10), transparent 58%),
+        rgba(2, 6, 23, 0.86);
+    outline: 1px solid rgba(34, 211, 238, 0.12);
+}
+
+.terminalPageArcade .cursor {
+    color: #fb7185;
+}
+
+/* ─── Ember Skin (visualization) ─── */
+.terminalPageEmber {
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(1000px 620px at 30% 18%, rgba(251, 146, 60, 0.18), transparent 62%),
+        radial-gradient(900px 560px at 78% 30%, rgba(239, 68, 68, 0.12), transparent 62%),
+        radial-gradient(820px 520px at 55% 90%, rgba(245, 158, 11, 0.10), transparent 64%),
+        linear-gradient(180deg, #0b0a0a, #050303);
+}
+
+.terminalPageEmber > * {
+    position: relative;
+    z-index: 1;
+}
+
+.terminalPageEmber::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 20% 65%, rgba(251, 146, 60, 0.28) 0 2px, transparent 3px),
+        radial-gradient(circle at 55% 45%, rgba(245, 158, 11, 0.22) 0 2px, transparent 3px),
+        radial-gradient(circle at 78% 70%, rgba(239, 68, 68, 0.22) 0 2px, transparent 3px);
+    opacity: 0.6;
+    animation: emberFloat 10s ease-in-out infinite;
+    z-index: 0;
+}
+
+@keyframes emberFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-14px);
+    }
+}
+
+.terminalPageEmber .toolbar,
+.terminalPageEmber .editorTabBar,
+.terminalPageEmber .terminalTabBar {
+    background: rgba(11, 10, 10, 0.65);
+    border-bottom: 1px solid rgba(251, 146, 60, 0.20);
+    backdrop-filter: blur(10px);
+}
+
+.terminalPageEmber .langButton {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(251, 146, 60, 0.20);
+}
+
+.terminalPageEmber .terminalTabActive {
+    border-bottom-color: rgba(251, 146, 60, 0.95);
+}
+
+.terminalPageEmber .terminalContainer {
+    background:
+        radial-gradient(900px 520px at 50% 0%, rgba(251, 146, 60, 0.12), transparent 62%),
+        radial-gradient(820px 520px at 40% 100%, rgba(239, 68, 68, 0.10), transparent 60%),
+        rgba(10, 7, 7, 0.88);
+    outline: 1px solid rgba(251, 146, 60, 0.12);
+}
+
+.terminalPageEmber .cursor {
+    color: #fb923c;
+}
+
+/* ─── Matrix Skin (visualization) ─── */
+.terminalPageMatrix {
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(1100px 650px at 40% 18%, rgba(16, 185, 129, 0.10), transparent 65%),
+        radial-gradient(900px 560px at 80% 30%, rgba(34, 197, 94, 0.08), transparent 66%),
+        linear-gradient(180deg, #010b08, #000503);
+}
+
+.terminalPageMatrix > * {
+    position: relative;
+    z-index: 1;
+}
+
+.terminalPageMatrix::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(34, 197, 94, 0.08) 0,
+        rgba(34, 197, 94, 0.08) 1px,
+        transparent 1px,
+        transparent 34px
+    );
+    opacity: 0.45;
+    animation: matrixDrift 10s linear infinite;
+    z-index: 0;
+}
+
+@keyframes matrixDrift {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-24px);
+    }
+}
+
+.terminalPageMatrix .toolbar,
+.terminalPageMatrix .editorTabBar,
+.terminalPageMatrix .terminalTabBar {
+    background: rgba(0, 8, 6, 0.72);
+    border-bottom: 1px solid rgba(34, 197, 94, 0.18);
+    backdrop-filter: blur(10px);
+}
+
+.terminalPageMatrix .langButton {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(34, 197, 94, 0.18);
+}
+
+.terminalPageMatrix .terminalTabActive {
+    border-bottom-color: rgba(34, 197, 94, 0.95);
+}
+
+.terminalPageMatrix .terminalContainer {
+    background:
+        radial-gradient(900px 520px at 50% 0%, rgba(34, 197, 94, 0.10), transparent 65%),
+        rgba(0, 8, 6, 0.86);
+    outline: 1px solid rgba(34, 197, 94, 0.14);
+}
+
+.terminalPageMatrix .terminalPre {
+    color: rgba(226, 232, 240, 0.92);
+}
+
+.terminalPageMatrix .cursor {
+    color: #22c55e;
+}
+
 /* ─── Top Toolbar ─── */
 .toolbar {
+    position: relative;
+    z-index: 50;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -87,7 +450,8 @@
     border-radius: 8px;
     padding: 0.375rem;
     min-width: 160px;
-    z-index: 50;
+    z-index: 5000;
+    pointer-events: auto;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     animation: dropIn 0.15s ease;
 }
@@ -166,6 +530,87 @@
     font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.2s ease;
+}
+
+/* ─── Skin Selector ─── */
+.skinSelector {
+    position: relative;
+}
+
+.skinButton {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.75rem;
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #8b949e;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skinButton:hover {
+    background: #21262d;
+    color: #e6edf3;
+    border-color: #484f58;
+}
+
+.skinButtonActive {
+    color: #e6edf3;
+    border-color: rgba(168, 85, 247, 0.45);
+    background: rgba(168, 85, 247, 0.08);
+    box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.12) inset;
+}
+
+.skinChevron {
+    transition: transform 0.2s ease;
+    color: #8b949e;
+}
+
+.skinChevronOpen {
+    transform: rotate(180deg);
+}
+
+.skinDropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 0.375rem;
+    min-width: 160px;
+    z-index: 5000;
+    pointer-events: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    animation: dropIn 0.15s ease;
+}
+
+.skinOption {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #c9d1d9;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+}
+
+.skinOption:hover {
+    background: #30363d;
+    color: #fff;
+}
+
+.skinOptionActive {
+    background: rgba(168, 85, 247, 0.14);
+    color: #c4b5fd;
 }
 
 .clearBtn:hover {
@@ -303,6 +748,8 @@
     display: flex;
     flex: 1;
     overflow: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 /* ─── Editor Panel ─── */
@@ -350,6 +797,8 @@
 .editorContainer {
     flex: 1;
     overflow: hidden;
+    position: relative;
+    z-index: 0;
 }
 
 /* ─── Terminal Panel ─── */
@@ -358,6 +807,8 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    position: relative;
+    z-index: 0;
 }
 
 .terminalTabBar {

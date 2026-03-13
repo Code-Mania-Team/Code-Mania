@@ -298,14 +298,14 @@ const FreedomWall = ({ onOpenModal }) => {
                   <div className="comment-header">
                     <span className="comment-user-wrap">
                       {comment.username && comment.username !== 'Anonymous' && !comment.isAdmin ? (
-                         <button
-                           type="button"
-                           onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
-                           className={`comment-user comment-user-btn ${comment.isAdmin ? 'comment-user-admin' : ''}`}
-                           aria-label={`View ${comment.username}'s profile`}
-                         >
-                           {comment.user}
-                         </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
+                          className={`comment-user comment-user-btn ${comment.isAdmin ? 'comment-user-admin' : ''}`}
+                          aria-label={`View ${comment.username}'s profile`}
+                        >
+                          {comment.user}
+                        </button>
                       ) : (
                         <span className={`comment-user ${comment.isAdmin ? 'comment-user-admin' : ''}`}>{comment.user}</span>
                       )}
