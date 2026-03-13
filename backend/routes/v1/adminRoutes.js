@@ -21,6 +21,14 @@ router.get(
 );
 
 // ---------------- EXAM (ADMIN) ----------------
+// Get exam problem (full, including test_cases)
+router.get(
+  "/exam/problems/:problemId",
+  authentication,
+  requireAdmin,
+  adminExam.getProblem.bind(adminExam),
+);
+
 // Update exam problem
 router.patch(
   "/exam/problems/:problemId",

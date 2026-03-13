@@ -402,30 +402,25 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
           </div>
           
           {testCases && testCases.length > 0 && (
-            <div 
-              className={styles.examTestCases}
-              style={{
-                borderRadius: "14px",
-                border: "1px solid rgba(255,255,255,0.06)",
-                boxShadow: "0 15px 50px rgba(0,0,0,0.45)",
-              }}
-            >
+            <div className={styles.examTestCases}>
               <div className={styles.examTestCaseHeader}>
-                Test Cases
+                <span>Test Cases</span>
+                <span className={styles.examTestCaseHeaderMeta}>{testCases.length}</span>
               </div>
               <div className={styles.examTestCaseBody}>
                 {testCases.map((tc, idx) => (
                   <div key={idx} className={styles.examTestCaseItem}>
-                    <div>
-                      <div className={styles.examTestCaseLabel}>Test {idx + 1} {tc.is_hidden ? "(Hidden)" : ""}</div>
+                    <div className={styles.examTestCaseTopRow}>
+                      <div className={styles.examTestCaseLabel}>Test {idx + 1}</div>
+                      {tc.is_hidden && <span className={styles.examTestCaseBadge}>Hidden</span>}
                     </div>
                     <div>
                       <div className={styles.examTestCaseLabel}>Input</div>
-                      <div className={styles.examTestCaseValue}>{tc.input}</div>
+                      <div className={styles.examTestCaseValue}>{tc.input || "(empty)"}</div>
                     </div>
                     <div>
                       <div className={styles.examTestCaseLabel}>Expected Output</div>
-                      <div className={styles.examTestCaseValue}>{tc.expected}</div>
+                      <div className={styles.examTestCaseValue}>{tc.expected || "(empty)"}</div>
                     </div>
                   </div>
                 ))}
