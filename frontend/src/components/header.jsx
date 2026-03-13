@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import useAuth from "../hooks/useAxios";
 import useLearningProgress from "../services/useLearningProgress";
 import { useTheme } from "../context/ThemeProvider.jsx";
+import useNotifications from "../services/useNotifications";
+
+const notificationIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1773418099/notification_scq4kg.png';
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -13,6 +16,87 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
 const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
+
+// ── Notification Bell Component ──────────────────────────────
+const NotificationBell = () => {
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const formatNotifTime = (dateStr) => {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
+  return (
+    <div className="notification-bell-wrap" ref={dropdownRef}>
+      <button
+        className="notification-bell-btn"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label="Notifications"
+        title="Notifications"
+      >
+        <img src={notificationIcon} alt="Notifications" className="notification-bell-icon" />
+        {unreadCount > 0 && (
+          <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="notification-dropdown">
+          <div className="notification-dropdown-header">
+            <span className="notification-dropdown-title">Notifications</span>
+            {unreadCount > 0 && (
+              <button className="notification-mark-all-btn" onClick={markAllAsRead}>
+                Mark all read
+              </button>
+            )}
+          </div>
+          <div className="notification-list">
+            {notifications.length > 0 ? (
+              notifications.map((notif) => (
+                <div
+                  key={notif.notification_id}
+                  className={`notification-item ${!notif.is_read ? 'notification-item-unread' : ''}`}
+                  onClick={() => {
+                    if (!notif.is_read) markAsRead(notif.notification_id);
+                  }}
+                >
+                  {!notif.is_read && <span className="notification-item-dot" />}
+                  <div className="notification-item-content">
+                    <p className="notification-item-title">{notif.title}</p>
+                    <p className="notification-item-message">{notif.message}</p>
+                    <span className="notification-item-time">{formatNotifTime(notif.created_at)}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="notification-empty">No notifications yet</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Header = ({ onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -209,7 +293,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
           </div>
         </div>
 
-        <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>FREEDOM WALL</NavLink>
+        <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>COMMUNITY</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={closeMobileMenu}>LEADERBOARD</NavLink>
 
         {/* Terminal link — locked until 1 course is completed (admins always have access) */}
@@ -268,6 +352,8 @@ const Header = ({ onOpenModal, onSignOut }) => {
                 <button type="button" className="dropdown-item dropdown-item-button" onClick={handleSignOutClick}>Sign Out</button>
               </div>
             </div>
+
+            <NotificationBell />
 
             <div className="profile-icon-container" onClick={handleProfileClick}>
               <div className="profile-icon">

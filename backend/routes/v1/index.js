@@ -28,6 +28,9 @@ import { publicExerciseRouter } from "./exercisesRoutes.js";
 
 import domRouter from './domRoutes.js';
 
+import weeklyTaskRouter from './weeklyTaskRoutes.js';
+
+import notificationRouter from './notificationRoutes.js';
 
 import examRouter from "./examRoutes.js";
 
@@ -58,6 +61,10 @@ v1.use("/forgot-password", forgotPasswordRouter);
 v1.use("/achievements", achievementsRouter);
 
 v1.use("/quizzes", quizRouter);
+
+v1.use("/weekly-tasks", weeklyTaskRouter);
+
+v1.use("/notifications", notificationRouter);
 
 v1.use("/", publicExerciseRouter);
 

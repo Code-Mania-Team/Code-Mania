@@ -4,6 +4,7 @@ import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import FreedomWall from "./pages/FreedomWall";
+import FreedomWallChannelPage from "./pages/FreedomWallChannelPage";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -26,6 +27,7 @@ import ExamManager from "./pages/ExamManager";
 import CodingExamPage from "./pages/CodingExamPage";
 import QuizPage from "./pages/QuizPage";
 import TerminalPage from "./pages/TerminalPage";
+import WeeklyChallengePage from "./pages/WeeklyChallengePage";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -424,7 +426,7 @@ function App() {
   const authenticatedHomeRedirect = user?.role === "admin" ? "/admin" : "/dashboard";
 
   // hide only footer on freedom wall and PageNotFound
-  const hideFooterOnly = location.pathname === "/freedomwall" ||
+  const hideFooterOnly = location.pathname.startsWith("/freedomwall") ||
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
 
   return (
@@ -501,7 +503,9 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
+          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="home" />} />
+          <Route path="/freedomwall/challenges" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="challenges" />} />
+          <Route path="/freedomwall/channel/:channelId" element={<FreedomWallChannelPage onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/profile/:username" element={<Profile onSignOut={handleSignOut} />} />
@@ -523,6 +527,14 @@ function App() {
               <TerminalPage />
             </ProtectedRoute>
           } />
+          <Route
+            path="/weekly-challenge/:taskId"
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <WeeklyChallengePage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />
