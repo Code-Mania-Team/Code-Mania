@@ -175,6 +175,18 @@
   transition: border-color 0.2s;
 }
 
+.jsonEditorWrap {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  overflow: hidden;
+}
+
+.jsonEditorWrap:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .helpDetails {
   margin-top: 8px;
   padding: 10px 12px;
