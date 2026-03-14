@@ -110,6 +110,18 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const [isPageLoading, setIsPageLoading] = useState(true);
 
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+
+  // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
+  useEffect(() => {
+    if (!isAuthenticated && activeExerciseId > 2) {
+      setIsSignInModalOpen(true);
+      // Keep user on the last guest-allowed exercise.
+      navigate("/learn/python/exercise/2", { replace: true });
+      setIsPageLoading(false);
+    }
+  }, [activeExerciseId, isAuthenticated, navigate]);
+
 
   useEffect(() => {
     const handleStart = async (e) => {
@@ -132,6 +144,11 @@ const PythonExercise = ({ isAuthenticated }) => {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
+        if (!isAuthenticated) {
+          setDbCompletedQuests([]);
+          setCompletedQuizStages([]);
+          return;
+        }
 
         const data = await getGameProgress(1);
 
@@ -151,7 +168,7 @@ const PythonExercise = ({ isAuthenticated }) => {
     };
 
     fetchProgress();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
 
@@ -188,21 +205,21 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
 
-        // 🔒 Locked → redirect
-
-        if (err.response?.status === 403) {
-
-          const redirectId = err.response.data?.redirectTo;
-
-
-          if (redirectId) {
-
-            navigate(`/learn/python/exercise/${redirectId}`);
-
+        // 🔒 Locked
+        if (err.response?.status === 403 || err.response?.status === 401) {
+          // Guest trying to access exercise 3+
+          if (!isAuthenticated && activeExerciseId > 2) {
+            setIsSignInModalOpen(true);
+            navigate("/learn/python/exercise/2", { replace: true });
+            setIsPageLoading(false);
             return;
-
           }
 
+          const redirectId = err.response?.data?.redirectTo;
+          if (redirectId) {
+            navigate(`/learn/python/exercise/${redirectId}`);
+            return;
+          }
         }
 
 
@@ -239,7 +256,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     fetchExercise();
 
-  }, [activeExerciseId]);
+  }, [activeExerciseId, isAuthenticated, navigate]);
 
 
 
@@ -352,30 +369,26 @@ const PythonExercise = ({ isAuthenticated }) => {
     }
 
     const onRequestNext = async (e) => {
+      const currentId = Number(e.detail?.exerciseId);
+      if (!Number.isFinite(currentId)) return;
 
-      const currentId = e.detail?.exerciseId;
-
-      if (!currentId) return;
-
-
-
-      const next = await getNextExercise(currentId);
-
-
-
-      if (!next) {
-
-
-        navigate("/learn/python/completed");
-
+      // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in.
+      if (!isAuthenticated) {
+        if (currentId >= 2) {
+          setIsSignInModalOpen(true);
+          return;
+        }
+        navigate(`/learn/python/exercise/${currentId + 1}`);
         return;
-
       }
 
-
+      const next = await getNextExercise(currentId);
+      if (!next) {
+        navigate("/learn/python/completed");
+        return;
+      }
 
       navigate(`/learn/python/exercise/${next.id}`);
-
     };
 
 
@@ -390,7 +403,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, []);
+  }, [getNextExercise, isAuthenticated, isRetryMode, navigate]);
 
 
 
@@ -470,6 +483,14 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
     if (!activeExercise) return;
+
+    // Prevent starting Phaser with stale quest while the route param changes.
+    // When navigating between exercises, React can render with the previous quest
+    // before the new quest fetch completes.
+    const activeQuestId = Number(activeExercise?.id);
+    if (!Number.isFinite(activeQuestId) || activeQuestId !== activeExerciseId) {
+      return;
+    }
 
 
 
@@ -643,10 +664,6 @@ const PythonExercise = ({ isAuthenticated }) => {
      AUTH MODAL
 
   =============================== */
-
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-
-
 
   const handleSignInSuccess = () => {
 

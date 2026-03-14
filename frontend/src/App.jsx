@@ -36,6 +36,7 @@ import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
 import AuthLoadingOverlay from "./components/AuthLoadingOverlay";
 import ProtectedRoute from "./components/protectedRoutes";
+import migrateGuestProgress from "./services/migrateGuestProgress";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -393,6 +394,15 @@ function App() {
           const profile = res?.data?.data || null;
           setUser(profile);
 
+          // Migrate guest progress only for brand-new accounts (no username yet).
+          if (!profile?.username) {
+            try {
+              await migrateGuestProgress();
+            } catch {
+              // ignore; keep guest progress for later retry
+            }
+          }
+
           try {
             localStorage.setItem(
               "hasSeenTutorial",
@@ -465,45 +475,43 @@ function App() {
           <Route
             path="/learn/python/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <PythonExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
-
+              <PythonExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
           <Route
             path="/learn/cpp/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <CppExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-            <CppExercise
-              isAuthenticated={isAuthenticated}
-              onOpenModal={() => setIsModalOpen(true)}
-              onSignOut={handleSignOut}
-            />
-          </ProtectedRoute>} />
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
+          <Route
+            path="/learn/cpp/exercise/:moduleId/:exerciseId"
+            element={
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route
             path="/learn/javascript/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <JavaScriptExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
+              <JavaScriptExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="home" />} />
@@ -579,6 +587,15 @@ function App() {
               );
             } catch {
               // ignore
+            }
+
+            // Migrate guest progress only when creating a new account.
+            if (isNew) {
+              try {
+                await migrateGuestProgress();
+              } catch {
+                // ignore; keep guest progress for later retry
+              }
             }
           } catch {
             setUser(null);
