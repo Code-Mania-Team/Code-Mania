@@ -56,7 +56,7 @@ class WeeklyTaskService {
     const task = await this.weekly.getTaskById(taskId);
     if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
 
-    const language = String(task.language || "javascript").toLowerCase();
+    const language = String(task.language || task?.programming_languages?.slug || "javascript").toLowerCase();
     const testCases = normalizeTestCases(task.test_cases);
 
     const { data: execution } = await axios.post(

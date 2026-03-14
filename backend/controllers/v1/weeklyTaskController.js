@@ -1,5 +1,6 @@
 import WeeklyTask from "../../models/weeklyTask.js";
 import WeeklyTaskService from "../../services/weeklyTaskService.js";
+import cloudinary from "../../core/cloudinaryClient.js";
 
 class WeeklyTaskController {
   constructor() {
@@ -11,7 +12,7 @@ class WeeklyTaskController {
   async createTask(req, res) {
     try {
       const user_id = res.locals.user_id;
-      const { title, description, reward_xp, reward_badge, difficulty, language, starter_code, test_cases, solution_code, min_xp_required, starts_at, expires_at } = req.body || {};
+      const { title, description, reward_xp, difficulty, language, programming_language_id, starter_code, test_cases, solution_code, min_xp_required, starts_at, expires_at, cover_image } = req.body || {};
 
       if (!title || !description) {
         return res.status(400).json({ success: false, message: "Title and description are required." });
@@ -21,12 +22,13 @@ class WeeklyTaskController {
         title,
         description,
         reward_xp,
-        reward_badge,
         difficulty,
         language,
+        programming_language_id,
         starter_code,
         test_cases,
         solution_code,
+        cover_image,
         min_xp_required,
         starts_at,
         expires_at,
@@ -37,6 +39,63 @@ class WeeklyTaskController {
     } catch (err) {
       console.error("Error creating weekly task:", err);
       res.status(500).json({ success: false, message: err.message || "Failed to create weekly task." });
+    }
+  }
+
+  // ── Admin: upload cover image (Cloudinary) ───────────────────
+  async uploadCoverImage(req, res) {
+    try {
+      if (cloudinary.__unconfigured) {
+        return res.status(500).json({
+          success: false,
+          message: "Cloudinary is not configured on the server",
+        });
+      }
+
+      const file = req.file;
+      if (!file?.buffer) {
+        return res.status(400).json({
+          success: false,
+          message: "image file is required (field name: image)",
+        });
+      }
+
+      const folder = process.env.CLOUDINARY_WEEKLY_TASKS_FOLDER || "code-mania/weekly-tasks";
+
+      const uploaded = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: "image",
+            overwrite: false,
+          },
+          (err, result) => {
+            if (err) return reject(err);
+            return resolve(result);
+          }
+        );
+
+        stream.end(file.buffer);
+      });
+
+      return res.json({
+        success: true,
+        message: "Cover image uploaded",
+        data: {
+          url: uploaded?.secure_url || uploaded?.url || null,
+          public_id: uploaded?.public_id || null,
+          bytes: uploaded?.bytes || null,
+          width: uploaded?.width || null,
+          height: uploaded?.height || null,
+          format: uploaded?.format || null,
+        },
+      });
+    } catch (err) {
+      console.error("Error uploading weekly task cover image:", err);
+      return res.status(500).json({
+        success: false,
+        message: err?.message || "Failed to upload image",
+      });
     }
   }
 

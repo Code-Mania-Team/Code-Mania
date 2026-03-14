@@ -1,7 +1,8 @@
 import express from 'express';
 import WeeklyTaskController from '../../controllers/v1/weeklyTaskController.js';
 import { authentication } from '../../middlewares/authentication.js';
-import { authorization } from '../../middlewares/authorization.js';
+import requireAdmin from '../../middlewares/requireAdmin.js';
+import uploadImage from '../../middlewares/uploadImage.js';
 
 const weeklyTaskRouter = express.Router();
 const controller = new WeeklyTaskController();
@@ -18,15 +19,16 @@ weeklyTaskRouter.post('/:task_id/complete', authentication, controller.completeT
 weeklyTaskRouter.post('/:task_id/submit', authentication, controller.submitTask.bind(controller));
 
 // ── Admin routes ───────────────────────────────────────────────
-weeklyTaskRouter.get('/all', authentication, authorization, controller.getAllTasks.bind(controller));
-weeklyTaskRouter.post('/', authentication, authorization, controller.createTask.bind(controller));
-weeklyTaskRouter.put('/:task_id', authentication, authorization, controller.updateTask.bind(controller));
-weeklyTaskRouter.delete('/:task_id', authentication, authorization, controller.deleteTask.bind(controller));
+weeklyTaskRouter.get('/all', authentication, requireAdmin, controller.getAllTasks.bind(controller));
+weeklyTaskRouter.post('/cover-image', authentication, requireAdmin, uploadImage.single('image'), controller.uploadCoverImage.bind(controller));
+weeklyTaskRouter.post('/', authentication, requireAdmin, controller.createTask.bind(controller));
+weeklyTaskRouter.put('/:task_id', authentication, requireAdmin, controller.updateTask.bind(controller));
+weeklyTaskRouter.delete('/:task_id', authentication, requireAdmin, controller.deleteTask.bind(controller));
 
 // Fetch a single task (safe). Keep this after static routes like /all.
 weeklyTaskRouter.get('/task/:task_id', authentication, controller.getTask.bind(controller));
 
 // Admin winners
-weeklyTaskRouter.post('/:task_id/winners', authentication, authorization, controller.setWinners.bind(controller));
+weeklyTaskRouter.post('/:task_id/winners', authentication, requireAdmin, controller.setWinners.bind(controller));
 
 export default weeklyTaskRouter;

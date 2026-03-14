@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { X, Save, Plus, Trash2 } from 'lucide-react';
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { X, Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import useWeeklyTasksAdmin from "../hooks/useWeeklyTasksAdmin";
 import '../styles/AdminWeeklyTaskModal.css';
 
 const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
-  const axiosPrivate = useAxiosPrivate();
-  const [loading, setLoading] = useState(false);
+  const { isAdmin, createTask, uploadCoverImage, loading, error: adminError } = useWeeklyTasksAdmin();
   const [error, setError] = useState('');
+  const [coverImage, setCoverImage] = useState(null);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverError, setCoverError] = useState('');
 
   // Form states
   const [title, setTitle] = useState('');
@@ -22,6 +24,8 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
   const [testCases, setTestCases] = useState([{ input: '', output: '' }]);
 
   if (!isOpen) return null;
+
+  if (!isAdmin) return null;
 
   const handleAddTestCase = () => {
     setTestCases([...testCases, { input: '', output: '' }]);
@@ -59,13 +63,13 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
       solution_code: solutionCode,
       test_cases: validTestCases,
       min_xp_required: parseInt(minXpRequired) || 5000,
+      cover_image: coverImage,
     };
 
     try {
-      setLoading(true);
       setError('');
-      
-      const res = await axiosPrivate.post('/v1/weekly-tasks', payload);
+
+      const res = await createTask(payload);
       if (res.data?.success) {
         if (typeof onTaskAdded === 'function') {
           onTaskAdded();
@@ -76,8 +80,6 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     } catch (err) {
       console.error(err);
       setError(err?.response?.data?.message || err.message || 'Failed to create task.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -91,7 +93,29 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     setSolutionCode('');
     setMinXpRequired(5000);
     setTestCases([{ input: '', output: '' }]);
+    setCoverImage(null);
+    setCoverUploading(false);
+    setCoverError('');
     setError('');
+  };
+
+  const handleCoverFile = async (file) => {
+    if (!file) return;
+    setCoverUploading(true);
+    setCoverError('');
+    try {
+      const res = await uploadCoverImage(file);
+      const url = res?.data?.url;
+      if (!url) {
+        throw new Error(res?.message || 'Upload succeeded but no URL returned');
+      }
+      setCoverImage(url);
+    } catch (err) {
+      setCoverError(err?.response?.data?.message || err?.message || 'Failed to upload image');
+      setCoverImage(null);
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   return (
@@ -105,7 +129,9 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="admin-modal-body">
-          {error && <div className="admin-error-message">{error}</div>}
+          {(error || adminError || coverError) && (
+            <div className="admin-error-message">{error || adminError || coverError}</div>
+          )}
 
           <div className="form-row">
             <div className="form-group">
@@ -150,6 +176,51 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
               <label>Min XP Required to Unlock</label>
               <input type="number" min="0" value={minXpRequired} onChange={e => setMinXpRequired(e.target.value)} />
             </div>
+          </div>
+
+          <div className="form-group">
+            <label>Cover Image (Optional)</label>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <label
+                className="btn-add-test"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: coverUploading || loading ? 'not-allowed' : 'pointer' }}
+              >
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  style={{ display: 'none' }}
+                  disabled={coverUploading || loading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = '';
+                    handleCoverFile(f);
+                  }}
+                />
+                <ImageIcon size={16} />
+                {coverUploading ? 'Uploading...' : (coverImage ? 'Replace Image' : 'Add Image')}
+              </label>
+
+              {coverImage ? (
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => setCoverImage(null)}
+                  disabled={coverUploading || loading}
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
+
+            {coverImage ? (
+              <div style={{ marginTop: '10px' }}>
+                <img
+                  src={coverImage}
+                  alt="Weekly task cover"
+                  style={{ width: '180px', height: '100px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.12)' }}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div className="form-group">

@@ -34,6 +34,7 @@ export default function WeeklyChallengePage() {
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const [task, setTask] = useState(() => location.state?.task || null);
   const [loadingTask, setLoadingTask] = useState(false);
@@ -292,7 +293,7 @@ export default function WeeklyChallengePage() {
                     return result;
                   }}
                   attemptNumber={1}
-                  isAdmin={true}
+                  isAdmin={isAdmin}
                   locked={false}
                 />
               </div>
