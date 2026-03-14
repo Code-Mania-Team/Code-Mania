@@ -34,7 +34,11 @@ import notificationRouter from './notificationRoutes.js';
 
 import examRouter from "./examRoutes.js";
 
+import fd_LikesRouter from "./fd_LikeRoutes.js";
+
 const v1 = new Router();
+
+v1.use("/post", fd_LikesRouter)
 
 v1.use('/dom', domRouter);
 

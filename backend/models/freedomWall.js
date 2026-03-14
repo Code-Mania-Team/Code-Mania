@@ -73,6 +73,30 @@ class FreedomWall {
                 throw new Error('An error occurred while fetching posts. Please try again later.');
             }
         }
+    
+    async getPostById(post_id) {
+
+        try {
+
+            const { data, error } = await this.fd_wall
+                .from("freedom_wall")
+                .select("*")
+                .eq("fd_wall_id", post_id)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            return data;
+
+        } catch (err) {
+
+            console.error('<error> ThreadPost.getPostById:', err);
+            throw err;
+
+        }
+
+    }
+
 }
 
 export default FreedomWall;
