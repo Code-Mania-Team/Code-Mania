@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
 import { CalendarDays, Users } from "lucide-react";
 import { axiosPublic } from "../api/axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAuth from "../hooks/useAxios";
 import useProfileSummary from "../services/useProfileSummary";
 import styles from "../styles/PastChallengePage.module.css";
 
@@ -23,6 +24,7 @@ export default function WeeklyChallengeInfoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
+  const { isAuthenticated } = useAuth();
   const { totalXp } = useProfileSummary();
 
   const [tab, setTab] = useState("overview"); // overview | participated
@@ -37,6 +39,13 @@ export default function WeeklyChallengeInfoPage() {
   const title = task?.title || "Weekly Challenge";
   const submitBy = task?.expires_at ? fmtDate(task.expires_at) : "-";
   const hasWeeklyAccess = Number(totalXp || 0) >= WEEKLY_XP_THRESHOLD;
+
+  const requestSignIn = () => {
+    navigate(location.pathname, {
+      replace: true,
+      state: { ...(location.state || {}), openSignIn: true },
+    });
+  };
 
   useEffect(() => {
     if (!Number.isFinite(numericId)) {
@@ -53,7 +62,9 @@ export default function WeeklyChallengeInfoPage() {
       try {
         const taskPromise = task && String(task?.task_id || task?.id || "") === String(numericId)
           ? Promise.resolve({ data: { success: true, data: task } })
-          : axiosPrivate.get(`/v1/weekly-tasks/task/${numericId}`);
+          : (isAuthenticated
+              ? axiosPrivate.get(`/v1/weekly-tasks/task/${numericId}`)
+              : axiosPublic.get(`/v1/weekly-tasks/task/${numericId}`));
 
         const [taskRes, partRes] = await Promise.all([
           taskPromise,
@@ -94,6 +105,10 @@ export default function WeeklyChallengeInfoPage() {
 
   const handleAcceptAndCode = async () => {
     if (!Number.isFinite(numericId)) return;
+    if (!isAuthenticated) {
+      requestSignIn();
+      return;
+    }
     if (!hasWeeklyAccess) return;
 
     setAccepting(true);
@@ -192,15 +207,25 @@ export default function WeeklyChallengeInfoPage() {
 
               <div className={styles.sideCard}>
                 <div className={styles.sideCardTitle}>
-                  {hasWeeklyAccess ? "Ready to code?" : `Locked until ${WEEKLY_XP_THRESHOLD.toLocaleString()} XP`}
+                  {!isAuthenticated
+                    ? "Sign in to start"
+                    : hasWeeklyAccess
+                      ? "Ready to code?"
+                      : `Locked until ${WEEKLY_XP_THRESHOLD.toLocaleString()} XP`}
                 </div>
                 <button
                   type="button"
                   className={styles.sideBtn}
-                  disabled={!hasWeeklyAccess || accepting}
-                  onClick={hasWeeklyAccess ? handleAcceptAndCode : undefined}
+                  disabled={accepting || (isAuthenticated && !hasWeeklyAccess)}
+                  onClick={!isAuthenticated ? requestSignIn : hasWeeklyAccess ? handleAcceptAndCode : undefined}
                 >
-                  {!hasWeeklyAccess ? "Locked" : accepting ? "Accepting..." : "Accept & Start"}
+                  {!isAuthenticated
+                    ? "Sign In"
+                    : !hasWeeklyAccess
+                      ? "Locked"
+                      : accepting
+                        ? "Accepting..."
+                        : "Accept & Start"}
                 </button>
               </div>
             </aside>

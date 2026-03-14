@@ -270,6 +270,7 @@ class WeeklyTask {
   }
 
   async getUserWeeklyTaskProgress({ userId, taskId }) {
+    if (!userId || !taskId) return null;
     const { data, error } = await this.db
       .from("user_weekly_tasks")
       .select("*")
@@ -283,6 +284,7 @@ class WeeklyTask {
 
   // ── Get user's task progress for active tasks ────────────────
   async getUserTaskProgress(user_id) {
+    if (!user_id) return [];
     const { data, error } = await this.db
       .from("user_weekly_tasks")
       .select(`

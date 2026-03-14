@@ -547,19 +547,11 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                 </div>
               ) : null}
 
-              {!isAuthenticated ? (
-                <div className="sidebar-locked-card">
-                  <Lock size={28} className="sidebar-locked-icon" />
-                  <p className="sidebar-locked-text">Sign in to view weekly challenges</p>
-                  <button className="sidebar-unlock-btn" onClick={onOpenModal}>
-                    Sign In
-                  </button>
-                </div>
-              ) : tasksLoading ? (
+              {tasksLoading ? (
                 <div className="sidebar-loading">Loading challenges...</div>
               ) : (
                 <>
-                  {!hasWeeklyAccess ? (
+                  {isAuthenticated && !hasWeeklyAccess ? (
                     <div className="sidebar-xp-progress challenges-xp-inline">
                       <div className="sidebar-xp-bar">
                         <div
@@ -667,15 +659,21 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                             ) : (
                               <button
                                 type="button"
-                                className={`challenge-wide-btn ${!hasWeeklyAccess ? "is-locked" : ""}`}
+                                className={`challenge-wide-btn ${(!isAuthenticated || !hasWeeklyAccess) ? "is-locked" : ""}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  if (!isAuthenticated) {
+                                    onOpenModal?.();
+                                    return;
+                                  }
                                   if (!hasWeeklyAccess) return;
                                   handleStartWeeklyChallenge(task);
                                 }}
-                                disabled={!hasWeeklyAccess}
+                                disabled={isAuthenticated && !hasWeeklyAccess}
                               >
-                                {hasWeeklyAccess ? (
+                                {!isAuthenticated ? (
+                                  "Sign in"
+                                ) : hasWeeklyAccess ? (
                                   <>
                                     Accept
                                     <ChevronRight size={14} />

@@ -535,11 +535,7 @@ function App() {
           <Route path="/freedomwall/challenges/past/:taskId" element={<PastChallengePage />} />
           <Route
             path="/freedomwall/challenges/task/:taskId"
-            element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <WeeklyChallengeInfoPage />
-              </ProtectedRoute>
-            }
+            element={<WeeklyChallengeInfoPage />}
           />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route

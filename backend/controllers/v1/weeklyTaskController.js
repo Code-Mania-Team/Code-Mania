@@ -143,10 +143,9 @@ class WeeklyTaskController {
   // ── User: get active tasks (only if user has 5k+ XP) ────────
   async getActiveTasks(req, res) {
     try {
-      const user_id = res.locals.user_id;
-
+      const user_id = res.locals.user_id || null;
       const tasks = await this.model.getActiveTasks();
-      const progress = await this.model.getUserTaskProgress(user_id);
+      const progress = user_id ? await this.model.getUserTaskProgress(user_id) : [];
 
       // Map progress onto tasks
       const progressMap = {};
@@ -154,12 +153,15 @@ class WeeklyTaskController {
         progressMap[p.task_id] = p;
       }
 
-      const tasksWithProgress = tasks.map((task) => ({
-        ...task,
-        userStatus: progressMap[task.task_id]?.status || "not_started",
-        completedAt: progressMap[task.task_id]?.completed_at || null,
-        xpAwarded: progressMap[task.task_id]?.xp_awarded || 0,
-      }));
+      const tasksWithProgress = tasks.map((task) => {
+        const { solution_code, ...safe } = task || {};
+        return {
+          ...safe,
+          userStatus: progressMap[task.task_id]?.status || "not_started",
+          completedAt: progressMap[task.task_id]?.completed_at || null,
+          xpAwarded: progressMap[task.task_id]?.xp_awarded || 0,
+        };
+      });
 
       res.json({ success: true, data: tasksWithProgress });
     } catch (err) {
@@ -171,7 +173,7 @@ class WeeklyTaskController {
   // ── User: fetch one weekly task (safe) ───────────────────────
   async getTask(req, res) {
     try {
-      const user_id = res.locals.user_id;
+      const user_id = res.locals.user_id || null;
       const taskId = Number(req.params.task_id);
       if (!Number.isFinite(taskId)) {
         return res.status(400).json({ success: false, message: "Invalid task_id" });

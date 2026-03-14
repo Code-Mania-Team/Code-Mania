@@ -1,6 +1,7 @@
 import express from 'express';
 import WeeklyTaskController from '../../controllers/v1/weeklyTaskController.js';
 import { authentication } from '../../middlewares/authentication.js';
+import { optionalAuthentication } from '../../middlewares/optionalAuthentication.js';
 import requireAdmin from '../../middlewares/requireAdmin.js';
 import uploadImage from '../../middlewares/uploadImage.js';
 
@@ -13,7 +14,7 @@ weeklyTaskRouter.get('/past/:task_id', controller.getPastTask.bind(controller));
 weeklyTaskRouter.get('/:task_id/participants', controller.listParticipants.bind(controller));
 
 // ── User routes (authenticated) ────────────────────────────────
-weeklyTaskRouter.get('/active', authentication, controller.getActiveTasks.bind(controller));
+weeklyTaskRouter.get('/active', optionalAuthentication, controller.getActiveTasks.bind(controller));
 weeklyTaskRouter.post('/:task_id/accept', authentication, controller.acceptTask.bind(controller));
 weeklyTaskRouter.post('/:task_id/complete', authentication, controller.completeTask.bind(controller));
 weeklyTaskRouter.post('/:task_id/submit', authentication, controller.submitTask.bind(controller));
@@ -26,7 +27,7 @@ weeklyTaskRouter.put('/:task_id', authentication, requireAdmin, controller.updat
 weeklyTaskRouter.delete('/:task_id', authentication, requireAdmin, controller.deleteTask.bind(controller));
 
 // Fetch a single task (safe). Keep this after static routes like /all.
-weeklyTaskRouter.get('/task/:task_id', authentication, controller.getTask.bind(controller));
+weeklyTaskRouter.get('/task/:task_id', optionalAuthentication, controller.getTask.bind(controller));
 
 // Admin winners
 weeklyTaskRouter.post('/:task_id/winners', authentication, requireAdmin, controller.setWinners.bind(controller));
