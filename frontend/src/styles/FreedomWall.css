@@ -815,6 +815,19 @@ html[data-theme="light"] .challenge-wide-meta {
   transform: translateY(-1px);
 }
 
+.challenge-wide-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.challenge-wide-btn.is-locked {
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(226, 232, 240, 0.85);
+}
+
 @media (max-width: 768px) {
   .challenge-wide-card {
     grid-template-columns: 1fr;

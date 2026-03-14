@@ -5,6 +5,58 @@ class Notification {
     this.db = supabase;
   }
 
+  normalizeMetadata(row) {
+    if (!row) return row;
+    const meta = row.metadata;
+    if (typeof meta === "string") {
+      const trimmed = meta.trim();
+      if (trimmed) {
+        try {
+          row.metadata = JSON.parse(trimmed);
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return row;
+  }
+
+  async hasDedupeKey(user_id, dedupe_key, limit = 200) {
+    if (!user_id || !dedupe_key) return false;
+    const { data, error } = await this.db
+      .from("notifications")
+      .select("metadata")
+      .eq("user_id", user_id)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    return rows
+      .map((r) => this.normalizeMetadata({ ...r }))
+      .some((r) => r?.metadata?.dedupe_key === dedupe_key);
+  }
+
+  async createOnce({ user_id, type, title, message, metadata, dedupe_key }) {
+    if (dedupe_key) {
+      const exists = await this.hasDedupeKey(user_id, dedupe_key);
+      if (exists) return null;
+    }
+
+    const mergedMeta = {
+      ...(metadata && typeof metadata === "object" ? metadata : {}),
+      ...(dedupe_key ? { dedupe_key } : {}),
+    };
+
+    return this.create({
+      user_id,
+      type,
+      title,
+      message,
+      metadata: mergedMeta,
+    });
+  }
+
   // ── Create a notification ────────────────────────────────────
   async create({ user_id, type, title, message, metadata }) {
     const { data, error } = await this.db
@@ -22,7 +74,7 @@ class Notification {
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return this.normalizeMetadata(data);
   }
 
   // ── Get all notifications for a user ─────────────────────────
@@ -35,7 +87,7 @@ class Notification {
       .limit(limit);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((row) => this.normalizeMetadata(row));
   }
 
   // ── Get unread count for a user ──────────────────────────────

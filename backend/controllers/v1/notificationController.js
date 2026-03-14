@@ -1,14 +1,46 @@
 import Notification from "../../models/notification.js";
+import { getTotalXpEarned } from "../../services/xpService.js";
 
 class NotificationController {
   constructor() {
     this.model = new Notification();
   }
 
+  async ensureMilestones(user_id) {
+    if (!user_id) return;
+
+    const totalXp = await getTotalXpEarned(user_id);
+
+    const milestones = [1000, 5000, 10000];
+    for (const milestone of milestones) {
+      if (totalXp >= milestone) {
+        await this.model.createOnce({
+          user_id,
+          type: "xp_milestone",
+          title: `Milestone reached: ${milestone.toLocaleString()} XP`,
+          message: "Keep going - your next unlock is closer than you think.",
+          metadata: {
+            milestone_xp: milestone,
+            href: "/dashboard",
+          },
+          dedupe_key: `xp_milestone_${milestone}`,
+        });
+      }
+    }
+  }
+
   // ── Get all notifications for the logged-in user ─────────────
   async getNotifications(req, res) {
     try {
       const user_id = res.locals.user_id;
+
+      // Backfill milestone notifications for existing users.
+      try {
+        await this.ensureMilestones(user_id);
+      } catch (err) {
+        console.error("Milestone backfill failed:", err);
+      }
+
       const notifications = await this.model.getByUser(user_id);
       const unreadCount = await this.model.getUnreadCount(user_id);
 

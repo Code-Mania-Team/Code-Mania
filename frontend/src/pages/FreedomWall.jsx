@@ -631,14 +631,22 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                             ) : (
                               <button
                                 type="button"
-                                className="challenge-wide-btn"
+                                className={`challenge-wide-btn ${!hasWeeklyAccess ? "is-locked" : ""}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  if (!hasWeeklyAccess) return;
                                   handleStartWeeklyChallenge(task);
                                 }}
+                                disabled={!hasWeeklyAccess}
                               >
-                                Accept
-                                <ChevronRight size={14} />
+                                {hasWeeklyAccess ? (
+                                  <>
+                                    Accept
+                                    <ChevronRight size={14} />
+                                  </>
+                                ) : (
+                                  "Locked"
+                                )}
                               </button>
                             )}
                           </div>

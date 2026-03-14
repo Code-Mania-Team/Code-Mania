@@ -1,4 +1,5 @@
 import { supabase } from "../core/supabaseClient.js";
+import { getTotalXpEarned } from "../services/xpService.js";
 
 class WeeklyTask {
   constructor() {
@@ -286,14 +287,7 @@ class WeeklyTask {
 
   // ── Get user's total XP (to check 5k threshold) ─────────────
   async getUserTotalXp(user_id) {
-    const { data, error } = await this.db
-      .from("users")
-      .select("total_xp")
-      .eq("user_id", user_id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data?.total_xp ?? 0;
+    return getTotalXpEarned(user_id);
   }
 
   async addXp(userId, xp) {

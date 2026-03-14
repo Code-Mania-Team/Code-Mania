@@ -198,9 +198,9 @@ export default function WeeklyChallengeInfoPage() {
                   type="button"
                   className={styles.sideBtn}
                   disabled={!hasWeeklyAccess || accepting}
-                  onClick={handleAcceptAndCode}
+                  onClick={hasWeeklyAccess ? handleAcceptAndCode : undefined}
                 >
-                  {accepting ? "Accepting..." : "Accept & Start"}
+                  {!hasWeeklyAccess ? "Locked" : accepting ? "Accepting..." : "Accept & Start"}
                 </button>
               </div>
             </aside>

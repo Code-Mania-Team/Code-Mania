@@ -31,6 +31,7 @@ import TerminalPage from "./pages/TerminalPage";
 import WeeklyChallengePage from "./pages/WeeklyChallengePage";
 import PastChallengePage from "./pages/PastChallengePage";
 import WeeklyChallengeInfoPage from "./pages/WeeklyChallengeInfoPage";
+import HomeDemoQuest from "./components/HomeDemoQuest";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -67,9 +68,23 @@ const Home = () => (
           Learn programming fundamentals through interactive story-based adventures.
           Build logic step by step while exploring new worlds.
         </p>
-        <Link to="/learn" className="get-started-btn">Get Started</Link>
+        <div className="hero-cta-row">
+          <Link to="/learn" className="get-started-btn">Get Started</Link>
+          <button
+            type="button"
+            className="hero-demo-btn"
+            onClick={() => {
+              const el = document.getElementById("home-demo-quest");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            Try Demo
+          </button>
+        </div>
       </div>
     </section>
+
+    <HomeDemoQuest />
 
     <section className="featured-languages">
       <h2 className="section-title">Featured Languages</h2>
@@ -527,7 +542,14 @@ function App() {
             }
           />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route
+            path="/profile"
+            element={
+              user?.role === "admin"
+                ? <Navigate to="/admin" replace />
+                : <Profile onSignOut={handleSignOut} />
+            }
+          />
           <Route path="/profile/:username" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
             {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
