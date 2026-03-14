@@ -406,6 +406,14 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     });
   };
 
+  const handleOpenWeeklyChallenge = (task) => {
+    const taskId = getTaskId(task);
+    if (!taskId) return;
+    navigate(`/freedomwall/challenges/task/${encodeURIComponent(String(taskId))}`, {
+      state: { task },
+    });
+  };
+
   const handlePickWinners = async (task) => {
     const taskId = getTaskId(task);
     if (!taskId) return;
@@ -557,7 +565,17 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                       return (
                         <div
                           key={taskId}
-                          className={`challenge-wide-card ${isCompleted ? "is-done" : ""} ${isInProgress ? "is-progress" : ""}`}
+                          className={`challenge-wide-card is-clickable ${isCompleted ? "is-done" : ""} ${isInProgress ? "is-progress" : ""}`}
+                          role="button"
+                          tabIndex={0}
+                          title="Open weekly challenge"
+                          onClick={() => handleOpenWeeklyChallenge(task)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleOpenWeeklyChallenge(task);
+                            }
+                          }}
                         >
                           <div className="challenge-wide-media" aria-hidden="true">
                             <img className="challenge-wide-img" src={cover} alt="" loading="lazy" />
@@ -587,17 +605,38 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
 
                           <div className="challenge-wide-actions">
                             {isCompleted ? (
-                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
+                              <button
+                                type="button"
+                                className="challenge-wide-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartWeeklyChallenge(task);
+                                }}
+                              >
                                 View
                                 <ChevronRight size={14} />
                               </button>
                             ) : isInProgress ? (
-                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
+                              <button
+                                type="button"
+                                className="challenge-wide-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartWeeklyChallenge(task);
+                                }}
+                              >
                                 Continue
                                 <ChevronRight size={14} />
                               </button>
                             ) : (
-                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
+                              <button
+                                type="button"
+                                className="challenge-wide-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartWeeklyChallenge(task);
+                                }}
+                              >
                                 Accept
                                 <ChevronRight size={14} />
                               </button>
@@ -626,7 +665,6 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                 <div className="past-challenges-list">
                   {(effectivePastChallenges || []).map((t) => {
                     const diff = DIFFICULTY_CONFIG[t.difficulty] || DIFFICULTY_CONFIG.medium;
-                    const winners = Array.isArray(t.winners) ? t.winners : [];
                     const ended = t.expires_at ? new Date(t.expires_at) : null;
 
                     return (
@@ -668,24 +706,10 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                             </div>
 
                             <div className="challenge-wide-actions">
-                              {winners.length ? (
-                                <div className="past-winners">
-                                  <span className="past-winners-label">Winners</span>
-                                  <div className="past-winners-avatars">
-                                    {winners.slice(0, 3).map((w) => (
-                                      <span
-                                        key={`${t.task_id}-w-${w.user_id}`}
-                                        className="past-winner-avatar"
-                                        title={w.username || "Winner"}
-                                      >
-                                        {(w.username || "?").slice(0, 1).toUpperCase()}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="past-winners-label">No winners yet</span>
-                              )}
+                              <div className="past-view">
+                                View
+                                <ChevronRight size={14} />
+                              </div>
                             </div>
                           </div>
                       </button>
