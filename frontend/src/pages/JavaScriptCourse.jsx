@@ -204,9 +204,9 @@ const JavaScriptCourse = () => {
     totalQuiz: 4,
   };
 
-  const handleStartExercise = (exerciseId, options = {}) => {
+  const handleStartExercise = (orderIndex, options = {}) => {
     const retry = options?.retry === true;
-    const route = `/learn/javascript/exercise/${exerciseId}${retry ? "?retry=1" : ""}`;
+    const route = `/learn/javascript/exercise/${orderIndex}${retry ? "?retry=1" : ""}`;
 
     const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
     const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
@@ -371,7 +371,7 @@ const JavaScriptCourse = () => {
                                 onClick={() =>
                                   module.id === 5
                                     ? handleStartExam()
-                                    : handleStartExercise(exercise.id)
+                                    : handleStartExercise(exercise.order_index)
                                 }
                                 disabled={status === "locked"}
                               >
@@ -381,7 +381,7 @@ const JavaScriptCourse = () => {
                               <button
                                 type="button"
                                 className="retry-btn"
-                                onClick={() => handleStartExercise(exercise.id, { retry: true })}
+                                onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
                                 aria-label="Retry quest"
                                 title="Retry"
                               >

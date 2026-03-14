@@ -66,11 +66,23 @@ export default class GameScene extends Phaser.Scene {
 
     this.language = languageFromQuest || storedLanguage || "Python";
 
-    if (!this.quest || !this.quest.map_id) {
-      console.error("❌ Quest missing or invalid. Using fallback map1.");
-      this.currentMapId = "map9";
+    const questMapId =
+      this.quest?.map_id ??
+      this.quest?.mapId ??
+      this.quest?.mapKey ??
+      this.quest?.map_key ??
+      this.quest?.mapkey ??
+      null;
+
+    if (!this.quest || !questMapId) {
+      const fallbackIndex = Number(this.quest?.order_index ?? this.exerciseId);
+      const safeIndex = Number.isFinite(fallbackIndex)
+        ? Math.min(Math.max(fallbackIndex, 1), 16)
+        : 1;
+      this.currentMapId = `map${safeIndex}`;
+      console.error("❌ Quest missing map id. Using fallback:", this.currentMapId);
     } else {
-      this.currentMapId = this.quest.map_id; // ✅ CORRECT FIELD
+      this.currentMapId = String(questMapId);
     }
 
     this.mapData = MAPS[this.language]?.[this.currentMapId];

@@ -1,10 +1,8 @@
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { axiosPublic } from "../api/axios";
 
 const CACHE_KEY_PREFIX = "exercises_cache_";
 
 const useGetExercises = () => {
-  const axiosPrivate = useAxiosPrivate();
-
   const getExercises = async (languageId) => {
     const cacheKey = `${CACHE_KEY_PREFIX}${languageId}`;
 
@@ -20,9 +18,7 @@ const useGetExercises = () => {
     }
 
     // Fetch from network and store in cache
-    const response = await axiosPrivate.get(
-      `/v1/exercises/programming-language/${languageId}`
-    );
+    const response = await axiosPublic.get(`/v1/exercises/programming-language/${languageId}`);
 
     const data = response.data.data;
     try {

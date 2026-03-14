@@ -8,6 +8,7 @@ import useCreateDomSession from "../services/useCreateDomSession";
 import useUpdateDomSession from "../services/useUpdateDomSession";
 import useDeleteDomSession from "../services/useDeleteDomSession";
 import useValidateDom from "../services/useValidateDom";
+import useAuth from "../hooks/useAxios";
 
 /* ===============================
    LANGUAGE DETECTION
@@ -92,6 +93,45 @@ function normalizeTestResults(result) {
   return [];
 }
 
+function recordGuestQuestCompletion(quest, questId) {
+  const languageId = Number(quest?.programming_language_id);
+  const qid = Number(quest?.dbId ?? questId ?? quest?.id);
+  const orderIndex = Number(quest?.order_index);
+
+  if (!Number.isFinite(languageId) || !Number.isFinite(qid)) return;
+  if (Number.isFinite(orderIndex) && orderIndex > 2) return;
+
+  const key = "guestProgress:v1";
+  let payload = null;
+  try {
+    payload = JSON.parse(localStorage.getItem(key) || "null");
+  } catch {
+    payload = null;
+  }
+
+  const completedByLang =
+    payload?.completedByLang && typeof payload.completedByLang === "object"
+      ? payload.completedByLang
+      : {};
+
+  const langKey = String(languageId);
+  const existing = Array.isArray(completedByLang[langKey]) ? completedByLang[langKey] : [];
+  const next = Array.from(new Set([...existing, qid])).sort((a, b) => a - b);
+  completedByLang[langKey] = next;
+
+  const nextPayload = {
+    version: 1,
+    completedByLang,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    localStorage.setItem(key, JSON.stringify(nextPayload));
+  } catch {
+    // ignore
+  }
+}
+
 function normalizeObjectiveList(objectives) {
   if (!objectives) return [];
   if (Array.isArray(objectives)) return objectives;
@@ -172,6 +212,12 @@ const InteractiveTerminal = ({
   showMobilePanelSwitcher = true,
   enableMobileSplit = true
 }) => {
+  const { isAuthenticated } = useAuth();
+
+  // `questId` prop is the engine quest id used by map triggers/events (typically 1-16).
+  // Backend endpoints require the DB quest id (usually `quest.id`).
+  const engineQuestId = Number(questId);
+  const backendQuestId = Number(quest?.dbId ?? quest?.id ?? questId);
   const language = useMemo(() => {
     const fromQuest =
       normalizeLanguage(quest?.programming_languages?.slug) ||
@@ -239,7 +285,7 @@ const InteractiveTerminal = ({
 
     const initSession = async () => {
       const result = await createDomSession({
-        questId: quest.id,
+        questId: backendQuestId,
         baseHtml: quest.base_html
       });
 
@@ -276,15 +322,15 @@ const InteractiveTerminal = ({
         setIsQuestActive(true);
         return;
       }
-      const startedId = e.detail?.questId;
-      if (startedId === questId && !isQuestCompleted) {
+      const startedId = Number(e.detail?.questId);
+      if (Number.isFinite(engineQuestId) && startedId === engineQuestId && !isQuestCompleted) {
         setIsQuestActive(true);
       }
     };
 
     const handleQuestComplete = (e) => {
-      const completedId = e.detail?.questId;
-      if (String(completedId) === String(questId)) {
+      const completedId = Number(e.detail?.questId);
+      if (Number.isFinite(engineQuestId) && completedId === engineQuestId) {
         if (practiceMode) {
           setIsRunning(false);
           setIsSubmitting(false);
@@ -309,13 +355,13 @@ const InteractiveTerminal = ({
       window.removeEventListener("code-mania:quest-started", handleQuestStarted);
       window.removeEventListener("code-mania:quest-complete", handleQuestComplete);
     };
-  }, [isQuestCompleted, practiceMode, questId]);
+  }, [engineQuestId, isQuestCompleted, practiceMode]);
 
   useEffect(() => {
     if (!practiceMode) return;
     setIsQuestActive(true);
     setIsQuestCompleted(false);
-  }, [practiceMode, questId]);
+  }, [practiceMode, engineQuestId]);
 
   useEffect(() => {
     setIsQuestActive(false);
@@ -331,7 +377,7 @@ const InteractiveTerminal = ({
     setCode(resolveInitialCode());
     setActivePanel("editor");
     setIsValidationCollapsed(false);
-  }, [questId, quest?.starting_code]);
+  }, [engineQuestId, backendQuestId, quest?.starting_code]);
 
   const handleRunValidation = async () => {
     if (!quest || !canInteract || isValidating || isSubmitting) return;
@@ -375,7 +421,7 @@ const InteractiveTerminal = ({
         return;
       }
 
-      const result = await validateExercisePreview(questId, outputForValidation, code);
+      const result = await validateExercisePreview(backendQuestId, outputForValidation, code);
 
       if (result?.objectives) {
         setValidationResult(result.objectives);
@@ -558,7 +604,7 @@ const InteractiveTerminal = ({
 
     try {
       const result = await validateExercise(
-        questId,
+        backendQuestId,
         lastValidatedOutput,
         code
       );
@@ -570,9 +616,17 @@ const InteractiveTerminal = ({
 
       if (result?.success) {
         setFailedSubmissions(0);
+
+        if (!isAuthenticated) {
+          recordGuestQuestCompletion(quest, backendQuestId);
+        }
+
+        const engineQuestId = Number(
+          quest?.order_index ?? quest?.orderIndex ?? questId
+        );
         window.dispatchEvent(
           new CustomEvent("code-mania:quest-complete", {
-            detail: { questId }
+            detail: { questId: Number.isFinite(engineQuestId) ? engineQuestId : questId }
           })
         );
       } else {
@@ -636,7 +690,7 @@ const InteractiveTerminal = ({
     try {
       window.dispatchEvent(
         new CustomEvent("code-mania:quest-complete", {
-          detail: { questId }
+          detail: { questId: Number.isFinite(engineQuestId) ? engineQuestId : questId }
         })
       );
     } finally {
