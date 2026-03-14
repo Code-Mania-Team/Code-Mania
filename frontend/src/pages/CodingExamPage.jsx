@@ -285,6 +285,17 @@ const CodingExamPage = () => {
       }))
     : [];
 
+  const formatCaseValue = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  };
+
   const handleRetake = async () => {
     try {
       const carryXp = Number(examState.earnedXp || 0);
@@ -632,18 +643,18 @@ const CodingExamPage = () => {
                             <div>
                               <div className={styles.lcCaseLabel}>Input</div>
                               <pre className={styles.lcPre} style={{ marginBottom: 0 }}>
-                                <code>{String(tc.input ?? "") || "(empty)"}</code>
-                              </pre>
-                            </div>
-                            <div>
-                              <div className={styles.lcCaseLabel}>Expected Output</div>
-                              <pre className={styles.lcPre} style={{ marginBottom: 0 }}>
-                                <code>{String(tc.expected ?? "") || "(empty)"}</code>
-                              </pre>
-                            </div>
+                              <code>{formatCaseValue(tc.input) || "(empty)"}</code>
+                            </pre>
+                          </div>
+                          <div>
+                            <div className={styles.lcCaseLabel}>Expected Output</div>
+                            <pre className={styles.lcPre} style={{ marginBottom: 0 }}>
+                              <code>{formatCaseValue(tc.expected) || "(empty)"}</code>
+                            </pre>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    ))}
                     </div>
 
                     {normalizedTestCases.length > 6 && (

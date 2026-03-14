@@ -3,6 +3,67 @@ import axios from "axios";
 
 const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
 
+function needsRunner(language, code) {
+  const s = String(code || "");
+  if (!s.trim()) return true;
+
+  if (language === "python") return !s.includes("sys.stdin");
+  if (language === "javascript") return !s.includes("readFileSync(0") && !s.includes("process.stdin");
+  if (language === "cpp") return !s.includes("main(");
+  return true;
+}
+
+function appendQuizRunner({ language, stageNumber, startingCode }) {
+  const base = String(startingCode || "").trimEnd();
+  if (!needsRunner(language, base)) return base;
+
+  const stage = Number(stageNumber);
+
+  if (language === "python") {
+    if (stage === 2) {
+      return `${base}\n\n# Runner helper\nimport sys\nimport ast\n\n_raw = sys.stdin.read().strip()\nif _raw:\n    try:\n        _args = ast.literal_eval(_raw)\n    except Exception:\n        _parts = _raw.replace(',', ' ').split()\n        _args = tuple(int(x) for x in _parts[:2])\n\n    if isinstance(_args, (tuple, list)):\n        print(calculate_sum(*_args))\n    else:\n        print(calculate_sum(_args, 0))\n`;
+    }
+
+    if (stage === 3) {
+      return `${base}\n\n# Runner helper\nimport sys\nimport ast\n\n_raw = sys.stdin.read().strip()\nif _raw:\n    try:\n        _numbers = ast.literal_eval(_raw)\n    except Exception:\n        _numbers = [int(x) for x in _raw.replace(',', ' ').split() if x]\n\n    print(find_max(list(_numbers)))\n`;
+    }
+
+    if (stage === 4) {
+      return `${base}\n\n# Runner helper\nimport sys\nimport ast\n\n_raw = sys.stdin.read().strip()\nif _raw:\n    try:\n        _text = ast.literal_eval(_raw)\n    except Exception:\n        _text = _raw\n\n    print(is_palindrome(str(_text)))\n`;
+    }
+  }
+
+  if (language === "javascript") {
+    if (stage === 2) {
+      return `${base}\n\n// Runner helper\nconst fs = require("fs");\nconst raw = (fs.readFileSync(0, "utf-8") || "").trim();\nif (raw) {\n  const parts = raw.split(",").map(s => s.trim()).filter(Boolean);\n  const a = Number(parts[0]);\n  const b = Number(parts[1]);\n  console.log(String(calculateSum(a, b)));\n}\n`;
+    }
+
+    if (stage === 3) {
+      return `${base}\n\n// Runner helper\nconst fs = require("fs");\nconst raw = (fs.readFileSync(0, "utf-8") || "").trim();\nif (raw) {\n  const numbers = JSON.parse(raw);\n  console.log(String(findMax(numbers)));\n}\n`;
+    }
+
+    if (stage === 4) {
+      return `${base}\n\n// Runner helper\nconst fs = require("fs");\nconst raw = (fs.readFileSync(0, "utf-8") || "").trim();\nif (raw) {\n  const text = JSON.parse(raw);\n  console.log(String(isPalindrome(String(text))));\n}\n`;
+    }
+  }
+
+  if (language === "cpp") {
+    if (stage === 2) {
+      return `${base}\n\n#include <iostream>\n\nint main() {\n    int a, b;\n    if (std::cin >> a >> b) {\n        std::cout << calculateSum(a, b);\n    }\n    return 0;\n}\n`;
+    }
+
+    if (stage === 3) {
+      return `${base}\n\n#include <iostream>\n#include <vector>\n\nint main() {\n    int n;\n    if (!(std::cin >> n)) return 0;\n    std::vector<int> numbers;\n    numbers.reserve(n);\n    for (int i = 0; i < n; i++) {\n        int x;\n        if (!(std::cin >> x)) break;\n        numbers.push_back(x);\n    }\n    std::cout << findMax(numbers);\n    return 0;\n}\n`;
+    }
+
+    if (stage === 4) {
+      return `${base}\n\n#include <iostream>\n#include <string>\n\nstatic std::string stripQuotes(const std::string& s) {\n    if (s.size() >= 2 && s.front() == '"' && s.back() == '"') {\n        return s.substr(1, s.size() - 2);\n    }\n    return s;\n}\n\nint main() {\n    std::string text;\n    std::getline(std::cin, text);\n    if (text.empty()) return 0;\n    text = stripQuotes(text);\n    std::cout << (isPalindrome(text) ? 1 : 0);\n    return 0;\n}\n`;
+    }
+  }
+
+  return base;
+}
+
 class QuizService {
   constructor(model = new QuizModel()) {
     this.model = model;
@@ -45,10 +106,11 @@ class QuizService {
     }
 
     const questions = await this.model.getQuestionsByQuizId(quizData.id);
-    let quizType = quizData.quiz_type || "mcq";
-    if (stageNumber >= 2 && stageNumber <= 4) {
-      quizType = "code";
+    let quizType = quizData.quiz_type;
+    if (!quizType) {
+      quizType = stageNumber >= 2 && stageNumber <= 4 ? "code" : "mcq";
     }
+    quizType = String(quizType).toLowerCase() === "code" ? "code" : "mcq";
 
     const responseData = {
       quiz_title: quizData.quiz_title,
@@ -78,22 +140,58 @@ class QuizService {
         {"input": "10 20", "expected": "30", "is_hidden": true}
       ];
 
-      responseData.code_prompt = quizData.code_prompt || mockPrompt;
-      responseData.starting_code = quizData.starting_code || mockStartingCode;
+      const parseMaybeJsonPrompt = (value) => {
+        if (value === null || value === undefined) return null;
+        if (typeof value !== "string") return value;
+        const trimmed = value.trim();
+        if (!trimmed) return "";
+        const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
+        if (!looksJson) return value;
+        try {
+          return JSON.parse(trimmed);
+        } catch {
+          return value;
+        }
+      };
+
+      responseData.code_prompt = parseMaybeJsonPrompt(quizData.code_prompt) || mockPrompt;
+
+      const effectiveStarting = quizData.starting_code || mockStartingCode;
+      responseData.starting_code = appendQuizRunner({
+        language,
+        stageNumber,
+        startingCode: effectiveStarting,
+      });
       responseData.exp_total = quizData.exp_total || 500;
       
-      let realTestCases = Array.isArray(quizData.test_cases) ? quizData.test_cases : [];
+      const normalizeTestCase = (tc) => {
+        const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden);
+        const input = tc?.input ?? tc?.stdin ?? "";
+        const expected = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+        return {
+          input: input === null || input === undefined ? "" : String(input),
+          expected: expected === null || expected === undefined ? "" : String(expected),
+          is_hidden: isHidden,
+        };
+      };
+
+      let realTestCases = Array.isArray(quizData.test_cases)
+        ? quizData.test_cases.map(normalizeTestCase)
+        : [];
       let testCases = realTestCases.length > 0 ? realTestCases : mockTestCases;
       
       responseData.meta = {
         test_case_count: testCases.length,
       };
       
-      responseData.test_cases = testCases.map(tc => ({
-        input: tc.is_hidden ? "Hidden test case" : tc.input,
-        expected: tc.is_hidden ? "Hidden" : tc.expected,
-        is_hidden: tc.is_hidden
-      }));
+      responseData.test_cases = testCases.map((tc) => {
+        const normalized = normalizeTestCase(tc);
+        return {
+          input: normalized.is_hidden ? "Hidden test case" : normalized.input,
+          expected: normalized.is_hidden ? "Hidden" : normalized.expected,
+          is_hidden: normalized.is_hidden,
+        };
+      });
     }
 
     return {
@@ -131,10 +229,11 @@ class QuizService {
     }
 
     const isAdmin = await this.resolveIsAdmin(userId, tokenRole);
-    let quizType = quizData.quiz_type || "mcq";
-    if (stageNumber >= 2 && stageNumber <= 4) {
-      quizType = "code";
+    let quizType = quizData.quiz_type;
+    if (!quizType) {
+      quizType = stageNumber >= 2 && stageNumber <= 4 ? "code" : "mcq";
     }
+    quizType = String(quizType).toLowerCase() === "code" ? "code" : "mcq";
 
     if (quizType === "mcq") {
       if (isAdmin) {
@@ -161,17 +260,32 @@ class QuizService {
         return { ok: false, status: 400, message: "code is required" };
       }
 
+      const normalizeTestCase = (tc) => {
+        const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden);
+        const input = tc?.input ?? tc?.stdin ?? "";
+        const expected = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+        return {
+          input: input === null || input === undefined ? "" : String(input),
+          expected: expected === null || expected === undefined ? "" : String(expected),
+          is_hidden: isHidden,
+        };
+      };
+
+      const effectiveTestCases = Array.isArray(quizData.test_cases) && quizData.test_cases.length > 0
+        ? quizData.test_cases.map(normalizeTestCase)
+        : [
+            { input: "2 3", expected: "5", is_hidden: false },
+            { input: "-1 1", expected: "0", is_hidden: true },
+            { input: "10 20", expected: "30", is_hidden: true },
+          ];
+
       try {
         const { data: execution } = await axios.post(
           `${TERMINAL_API_BASE_URL}/exam/run`,
           {
             language,
             code,
-            testCases: (Array.isArray(quizData.test_cases) && quizData.test_cases.length > 0) ? quizData.test_cases : [
-              {"input": "2 3", "expected": "5", "is_hidden": false},
-              {"input": "-1 1", "expected": "0", "is_hidden": true},
-              {"input": "10 20", "expected": "30", "is_hidden": true}
-            ],
+            testCases: effectiveTestCases,
           },
           {
             headers: {

@@ -4,6 +4,8 @@ import { axiosPublic } from "../api/axios";
 import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import examStyles from "../styles/ExamPage.module.css";
+import TestCasesEditor from "../components/TestCasesEditor";
+import JsonEditor from "../components/JsonEditor";
 
 const LANG_SLUG_BY_COURSE = {
   python: "python",
@@ -454,12 +456,13 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
 
         <div className={styles.formGroupFull}>
           <label>Description (JSON)</label>
-          <textarea
-            value={formData.problem_description || ""}
-            onChange={(e) => handleChange("problem_description", e.target.value)}
-            rows={8}
-            style={{ fontFamily: "monospace" }}
-          />
+          <div className={styles.jsonEditorWrap}>
+            <JsonEditor
+              height="220px"
+              value={formData.problem_description || ""}
+              onChange={(v) => handleChange("problem_description", v)}
+            />
+          </div>
           <details className={styles.helpDetails}>
             <summary className={styles.helpSummary}>Description JSON tags (click to expand)</summary>
             <p className={styles.helpText}>
@@ -512,13 +515,22 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
         </div>
 
         <div className={styles.formGroupFull}>
-          <label>Test Cases (JSON)</label>
-          <textarea
+          <label>Test Cases</label>
+          <TestCasesEditor
             value={formData.test_cases || "[]"}
-            onChange={(e) => handleChange("test_cases", e.target.value)}
-            rows={8}
-            style={{ fontFamily: "monospace" }}
+            onChange={(v) => handleChange("test_cases", v ?? "[]")}
           />
+          <details className={styles.helpDetails}>
+            <summary className={styles.helpSummary}>Raw JSON (advanced)</summary>
+            <div className={styles.jsonEditorWrap}>
+              <JsonEditor
+                height="240px"
+                value={formData.test_cases || "[]"}
+                onChange={(v) => handleChange("test_cases", v)}
+              />
+            </div>
+          </details>
+
           <details className={styles.helpDetails}>
             <summary className={styles.helpSummary}>Test cases JSON format (click to expand)</summary>
             <p className={styles.helpText}>

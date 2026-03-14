@@ -23,6 +23,7 @@ import Rewards from "./pages/Rewards";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
 import ExamManager from "./pages/ExamManager";
+import QuizManager from "./pages/QuizManager";
 import CodingExamPage from "./pages/CodingExamPage";
 import QuizPage from "./pages/QuizPage";
 import TerminalPage from "./pages/TerminalPage";
@@ -511,6 +512,7 @@ function App() {
           <Route path="/admin" element={<Admin presenceStats={presenceStats} presenceWsStatus={presenceWsStatus} />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/admin/exams/:course" element={<ExamManager />} />
+          <Route path="/admin/quizzes/:course" element={<QuizManager />} />
           <Route path="/exam/:language" element={<ProtectedRoute>
             <CodingExamPage />
           </ProtectedRoute>} />
