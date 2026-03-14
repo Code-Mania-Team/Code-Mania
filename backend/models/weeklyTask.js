@@ -5,20 +5,52 @@ class WeeklyTask {
     this.db = supabase;
   }
 
+  async resolveProgrammingLanguageId({ programming_language_id, language } = {}) {
+    const directId = Number(programming_language_id);
+    if (Number.isFinite(directId) && directId > 0) return directId;
+
+    const slug = String(language || "javascript").trim().toLowerCase();
+    const { data, error } = await this.db
+      .from("programming_languages")
+      .select("id, slug")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data?.id) {
+      throw new Error(`Unknown programming language slug: ${slug}`);
+    }
+    return data.id;
+  }
+
+  toApiTask(row) {
+    if (!row) return row;
+    const pl = row.programming_languages || null;
+    const { programming_languages, ...rest } = row;
+    // Keep `language` for existing frontend expectations (derived, not stored).
+    return {
+      ...rest,
+      language: pl?.slug || null,
+      programming_language: pl ? { id: pl.id, name: pl.name, slug: pl.slug } : null,
+    };
+  }
+
   // ── Admin: create a weekly task ──────────────────────────────
-  async createTask({ title, description, reward_xp, reward_badge, difficulty, language, starter_code, test_cases, solution_code, min_xp_required, starts_at, expires_at, created_by }) {
+  async createTask({ title, description, reward_xp, difficulty, language, programming_language_id, starter_code, test_cases, solution_code, min_xp_required, starts_at, expires_at, created_by, cover_image }) {
+    const resolvedLangId = await this.resolveProgrammingLanguageId({ programming_language_id, language });
+
     const { data, error } = await this.db
       .from("weekly_tasks")
       .insert({
         title,
         description,
         reward_xp: reward_xp ?? 100,
-        reward_badge: reward_badge || null,
         difficulty: difficulty || "medium",
-        language: language || "javascript",
         starter_code: starter_code || "",
         test_cases: test_cases || [],
         solution_code: solution_code || "",
+        cover_image: cover_image || null,
+        programming_language_id: resolvedLangId,
         min_xp_required: min_xp_required ?? 5000,
         starts_at: starts_at || new Date().toISOString(),
         expires_at: expires_at || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -27,24 +59,40 @@ class WeeklyTask {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .select("*")
+      .select("*, programming_languages ( id, name, slug )")
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return this.toApiTask(data);
   }
 
   // ── Admin: update a weekly task ──────────────────────────────
   async updateTask(task_id, fields) {
+    const patch = { ...(fields || {}) };
+
+    // Column may not exist anymore (legacy payload).
+    if (Object.prototype.hasOwnProperty.call(patch, "reward_badge")) {
+      delete patch.reward_badge;
+    }
+
+    if (patch.language || patch.programming_language_id) {
+      const resolvedLangId = await this.resolveProgrammingLanguageId({
+        programming_language_id: patch.programming_language_id,
+        language: patch.language,
+      });
+      patch.programming_language_id = resolvedLangId;
+      delete patch.language;
+    }
+
     const { data, error } = await this.db
       .from("weekly_tasks")
-      .update({ ...fields, updated_at: new Date().toISOString() })
+      .update({ ...patch, updated_at: new Date().toISOString() })
       .eq("task_id", task_id)
-      .select("*")
+      .select("*, programming_languages ( id, name, slug )")
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return this.toApiTask(data);
   }
 
   // ── Admin: delete a weekly task ──────────────────────────────
@@ -63,36 +111,36 @@ class WeeklyTask {
     const now = new Date().toISOString();
     const { data, error } = await this.db
       .from("weekly_tasks")
-      .select("*")
+      .select("*, programming_languages ( id, name, slug )")
       .eq("is_active", true)
       .lte("starts_at", now)
       .gte("expires_at", now)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((r) => this.toApiTask(r));
   }
 
   // ── Get all weekly tasks (admin view, include inactive) ──────
   async getAllTasks() {
     const { data, error } = await this.db
       .from("weekly_tasks")
-      .select("*")
+      .select("*, programming_languages ( id, name, slug )")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((r) => this.toApiTask(r));
   }
 
   async getTaskById(task_id) {
     const { data, error } = await this.db
       .from("weekly_tasks")
-      .select("*")
+      .select("*, programming_languages ( id, name, slug )")
       .eq("task_id", task_id)
       .maybeSingle();
 
     if (error) throw error;
-    return data || null;
+    return data ? this.toApiTask(data) : null;
   }
 
   async getPastTasks({ limit = 30 } = {}) {
@@ -101,13 +149,13 @@ class WeeklyTask {
 
     const { data, error } = await this.db
       .from("weekly_tasks")
-      .select("*")
+      .select("*, programming_languages ( id, name, slug )")
       .lt("expires_at", now)
       .order("expires_at", { ascending: false })
       .limit(capped);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map((r) => this.toApiTask(r));
   }
 
   async countParticipants({ taskId }) {

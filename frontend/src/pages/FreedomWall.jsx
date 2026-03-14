@@ -30,6 +30,17 @@ const DIFFICULTY_CONFIG = {
   hard:   { label: "Hard",   color: "#f87171", bg: "rgba(248, 113, 113, 0.12)" },
 };
 
+const LANGUAGE_CONFIG = {
+  javascript: { label: "JavaScript", color: "#60a5fa", bg: "rgba(96, 165, 250, 0.12)" },
+  python: { label: "Python", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.12)" },
+  cpp: { label: "C++", color: "#a78bfa", bg: "rgba(167, 139, 250, 0.12)" },
+};
+
+const getLanguageMeta = (task) => {
+  const slug = String(task?.language || task?.programming_language?.slug || "").trim().toLowerCase();
+  return LANGUAGE_CONFIG[slug] || (slug ? { label: slug, color: "#e2e8f0", bg: "rgba(226, 232, 240, 0.08)" } : null);
+};
+
 const COMMUNITY_CHANNELS = [
   { id: "general", label: "General" },
   { id: "introductions", label: "Introductions" },
@@ -43,65 +54,70 @@ const COMMUNITY_CHANNELS = [
 const DEFAULT_CHALLENGE_COVER =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
 
-// Mock weekly tasks for demo (used when API returns empty or errors)
-const MOCK_WEEKLY_TASKS = [
-  {
-    task_id: 1,
-    title: "Debug the Loop",
-    description: "Find and fix the bug in the provided Python while-loop snippet.",
-    reward_xp: 200,
-    difficulty: "easy",
-    min_xp_required: 5000,
-    userStatus: "not_started",
-    expires_at: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    task_id: 2,
-    title: "Refactor Challenge",
-    description: "Refactor the given JavaScript function to use async/await instead of callbacks.",
-    reward_xp: 350,
-    difficulty: "medium",
-    min_xp_required: 5000,
-    userStatus: "not_started",
-    expires_at: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    task_id: 3,
-    title: "Algorithm Sprint",
-    description: "Implement a binary search algorithm in C++ from scratch.",
-    reward_xp: 500,
-    difficulty: "hard",
-    min_xp_required: 5000,
-    userStatus: "in_progress",
-    expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+const ENABLE_MOCK_CHALLENGES = String(import.meta.env.VITE_ENABLE_MOCK_CHALLENGES || "").toLowerCase() === "true";
 
-// Mock past challenges for UI preview (used if API returns none)
-const MOCK_PAST_CHALLENGES = [
-  {
-    task_id: 9001,
-    title: "Array Flip Frenzy",
-    description: "Write a function that reverses an array. Keep it clean: no extra prints.",
-    difficulty: "easy",
-    language: "javascript",
-    reward_xp: 250,
-    expires_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    participants_count: 12,
-    winners: [
-      { user_id: 101, rank: 1, note: "Fast + clean output", username: "vader", character_id: 1 },
-      { user_id: 102, rank: 2, note: "Great edge cases", username: "philo", character_id: 2 },
-      { user_id: 103, rank: 3, note: "Nice explanation", username: "coders", character_id: 0 },
-    ],
-    mock_participants: [
-      { user_id: 101, username: "vader", status: "completed" },
-      { user_id: 102, username: "philo", status: "completed" },
-      { user_id: 103, username: "coders", status: "completed" },
-      { user_id: 104, username: "alice", status: "in_progress" },
-      { user_id: 105, username: "bob", status: "in_progress" },
-    ],
-  },
-];
+// Mock tasks can be enabled locally via VITE_ENABLE_MOCK_CHALLENGES=true
+const MOCK_WEEKLY_TASKS = ENABLE_MOCK_CHALLENGES
+  ? [
+      {
+        task_id: 1,
+        title: "Debug the Loop",
+        description: "Find and fix the bug in the provided Python while-loop snippet.",
+        reward_xp: 200,
+        difficulty: "easy",
+        min_xp_required: 5000,
+        userStatus: "not_started",
+        expires_at: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        task_id: 2,
+        title: "Refactor Challenge",
+        description: "Refactor the given JavaScript function to use async/await instead of callbacks.",
+        reward_xp: 350,
+        difficulty: "medium",
+        min_xp_required: 5000,
+        userStatus: "not_started",
+        expires_at: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        task_id: 3,
+        title: "Algorithm Sprint",
+        description: "Implement a binary search algorithm in C++ from scratch.",
+        reward_xp: 500,
+        difficulty: "hard",
+        min_xp_required: 5000,
+        userStatus: "in_progress",
+        expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ]
+  : [];
+
+const MOCK_PAST_CHALLENGES = ENABLE_MOCK_CHALLENGES
+  ? [
+      {
+        task_id: 9001,
+        title: "Array Flip Frenzy",
+        description: "Write a function that reverses an array. Keep it clean: no extra prints.",
+        difficulty: "easy",
+        language: "javascript",
+        reward_xp: 250,
+        expires_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        participants_count: 12,
+        winners: [
+          { user_id: 101, rank: 1, note: "Fast + clean output", username: "vader", character_id: 1 },
+          { user_id: 102, rank: 2, note: "Great edge cases", username: "philo", character_id: 2 },
+          { user_id: 103, rank: 3, note: "Nice explanation", username: "coders", character_id: 0 },
+        ],
+        mock_participants: [
+          { user_id: 101, username: "vader", status: "completed" },
+          { user_id: 102, username: "philo", status: "completed" },
+          { user_id: 103, username: "coders", status: "completed" },
+          { user_id: 104, username: "alice", status: "in_progress" },
+          { user_id: 105, username: "bob", status: "in_progress" },
+        ],
+      },
+    ]
+  : [];
 
 const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   const navigate = useNavigate();
@@ -111,7 +127,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   const { isAuthenticated, user } = useAuth();
   const axiosPrivate = useAxiosPrivate();
   const { totalXp } = useProfileSummary();
-  const { tasks: apiTasks, loading: tasksLoading, acceptTask } = useWeeklyTasks();
+  const { tasks: apiTasks, loading: tasksLoading, error: tasksError, acceptTask } = useWeeklyTasks();
   const { past: pastChallenges, loading: pastLoading, error: pastError, refetch: refetchPast } = usePastChallenges({ limit: 25 });
   const [comments, setComments] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
@@ -132,16 +148,14 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     return Number.isFinite(n) ? n : null;
   };
 
-  // Weekly tasks - use API tasks, fallback to mock
-  const usingMockTasks = apiTasks.length === 0;
-  const weeklyTasks = !usingMockTasks ? apiTasks : MOCK_WEEKLY_TASKS;
+  const usingMockTasks = ENABLE_MOCK_CHALLENGES && apiTasks.length === 0 && MOCK_WEEKLY_TASKS.length > 0;
+  const weeklyTasks = usingMockTasks ? MOCK_WEEKLY_TASKS : apiTasks;
   const hasWeeklyAccess = totalXp >= WEEKLY_XP_THRESHOLD;
 
   const safePastChallenges = Array.isArray(pastChallenges) ? pastChallenges : [];
-  const effectivePastChallenges =
-    (!pastLoading && !pastError && safePastChallenges.length === 0)
-      ? MOCK_PAST_CHALLENGES
-      : safePastChallenges;
+  const usingMockPast =
+    ENABLE_MOCK_CHALLENGES && !pastLoading && !pastError && safePastChallenges.length === 0 && MOCK_PAST_CHALLENGES.length > 0;
+  const effectivePastChallenges = usingMockPast ? MOCK_PAST_CHALLENGES : safePastChallenges;
 
   const ensureParticipantsLoaded = async (task) => {
     const taskId = getTaskId(task);
@@ -527,6 +541,12 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                 </div>
               ) : null}
 
+              {tasksError ? (
+                <div className="challenges-banner" role="status">
+                  {String(tasksError)}
+                </div>
+              ) : null}
+
               {!isAuthenticated ? (
                 <div className="sidebar-locked-card">
                   <Lock size={28} className="sidebar-locked-icon" />
@@ -553,14 +573,20 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                     </div>
                   ) : null}
 
-                  <div className="challenges-wide-list">
-                    {weeklyTasks.map((task) => {
-                      const diff = DIFFICULTY_CONFIG[task.difficulty] || DIFFICULTY_CONFIG.medium;
-                      const isCompleted = task.userStatus === "completed";
-                      const isInProgress = task.userStatus === "in_progress";
-                      const taskId = getTaskId(task) ?? task.task_id ?? task.id;
-                      const expiresLabel = task.expires_at ? formatChallengeDate(task.expires_at) : "";
-                      const cover = task.cover_image || task.coverImage || DEFAULT_CHALLENGE_COVER;
+                   {weeklyTasks.length === 0 ? (
+                     <div className="sidebar-loading">
+                       No weekly challenges yet.{isAdminPoster ? " Create one with + Add Task." : ""}
+                     </div>
+                   ) : (
+                   <div className="challenges-wide-list">
+                     {weeklyTasks.map((task) => {
+                       const diff = DIFFICULTY_CONFIG[task.difficulty] || DIFFICULTY_CONFIG.medium;
+                       const langMeta = getLanguageMeta(task);
+                       const isCompleted = task.userStatus === "completed";
+                       const isInProgress = task.userStatus === "in_progress";
+                       const taskId = getTaskId(task) ?? task.task_id ?? task.id;
+                       const expiresLabel = task.expires_at ? formatChallengeDate(task.expires_at) : "";
+                       const cover = task.cover_image || task.coverImage || DEFAULT_CHALLENGE_COVER;
 
                       return (
                         <div
@@ -597,9 +623,19 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                                 <Zap size={14} />
                                 +{task.reward_xp} XP
                               </span>
-                              <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
-                                {diff.label}
-                              </span>
+                             <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
+                               {diff.label}
+                             </span>
+
+                              {langMeta ? (
+                                <span
+                                  className="challenge-meta-pill"
+                                  style={{ color: langMeta.color, background: langMeta.bg }}
+                                  title={langMeta.label}
+                                >
+                                  {langMeta.label}
+                                </span>
+                              ) : null}
                             </div>
                           </div>
 
@@ -644,8 +680,9 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                           </div>
                         </div>
                       );
-                    })}
-                  </div>
+                     })}
+                   </div>
+                   )}
                 </>
               )}
             </div>
@@ -665,6 +702,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                 <div className="past-challenges-list">
                   {(effectivePastChallenges || []).map((t) => {
                     const diff = DIFFICULTY_CONFIG[t.difficulty] || DIFFICULTY_CONFIG.medium;
+                    const langMeta = getLanguageMeta(t);
                     const ended = t.expires_at ? new Date(t.expires_at) : null;
 
                     return (
@@ -702,6 +740,16 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                                 <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
                                   {diff.label}
                                 </span>
+
+                                {langMeta ? (
+                                  <span
+                                    className="challenge-meta-pill"
+                                    style={{ color: langMeta.color, background: langMeta.bg }}
+                                    title={langMeta.label}
+                                  >
+                                    {langMeta.label}
+                                  </span>
+                                ) : null}
                               </div>
                             </div>
 

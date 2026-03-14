@@ -9,13 +9,13 @@ CREATE TABLE IF NOT EXISTS weekly_tasks (
   title          TEXT NOT NULL,
   description    TEXT NOT NULL,
   reward_xp      INTEGER NOT NULL DEFAULT 100,
-  reward_badge   TEXT,                           -- optional badge name / icon reference
   difficulty     TEXT NOT NULL DEFAULT 'medium'   -- easy, medium, hard
                   CHECK (difficulty IN ('easy', 'medium', 'hard')),
-  language       TEXT NOT NULL DEFAULT 'javascript', -- 'python', 'cpp', 'javascript'
+  programming_language_id BIGINT REFERENCES programming_languages(id) ON DELETE SET NULL,
   starter_code   TEXT DEFAULT '',                -- optional starter code
   test_cases     JSONB DEFAULT '[]'::jsonb,      -- JSON array of test cases: [{input: "...", output: "..."}]
   solution_code  TEXT,                           -- actual solution logic
+  cover_image    TEXT,                           -- optional cover image URL
   min_xp_required INTEGER NOT NULL DEFAULT 5000, -- users need this much total XP to see the task
   starts_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at     TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '7 days'),
