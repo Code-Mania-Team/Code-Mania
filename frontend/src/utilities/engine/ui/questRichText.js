@@ -8,6 +8,38 @@ const escapeHtml = (value) => {
     .replace(/'/g, "&#39;");
 };
 
+const parseJsonIfLikely = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "object") return value;
+  if (typeof value !== "string") return null;
+
+  const s = value.trim();
+  if (!s) return null;
+
+  const first = s[0];
+  if (first !== "{" && first !== "[") return null;
+
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+};
+
+const normalizeRichDescriptionSpec = (description) => {
+  const obj = parseJsonIfLikely(description);
+  if (!obj || typeof obj !== "object") return null;
+
+  // Supported shapes:
+  // 1) { blocks: [...] }
+  // 2) { type: "doc", blocks: [...] }
+  // 3) [ ...blocks ]
+  const blocks = Array.isArray(obj) ? obj : obj.blocks;
+  if (!Array.isArray(blocks)) return null;
+
+  return { blocks };
+};
+
 const getAutoInlineCallRegex = (lang) => {
   const l = String(lang || "").toLowerCase();
   if (l === "python") {
@@ -68,6 +100,116 @@ const tokenizeInlineSnippet = (snippet, lang) => {
   }
 
   return null;
+};
+
+const renderSegments = (segments, lang) => {
+  if (!Array.isArray(segments)) return "";
+
+  return segments
+    .map((seg) => {
+      if (seg === null || seg === undefined) return "";
+      if (typeof seg === "string") return renderTextWithAutoCodeSpans(seg, lang);
+      if (typeof seg !== "object") return escapeHtml(String(seg));
+
+      const t = String(seg.type || seg.t || "text").toLowerCase();
+      const v = seg.value ?? seg.v ?? seg.text ?? "";
+
+      if (t === "br") return "<br>";
+
+      if (t === "code") {
+        const raw = String(v);
+        const tokenized = tokenizeInlineSnippet(raw, lang);
+        return `<code class="cm-inline language-${escapeHtml(lang)}">${tokenized || escapeHtml(raw)}</code>`;
+      }
+
+      if (t === "strong" || t === "b") {
+        return `<strong>${escapeHtml(String(v))}</strong>`;
+      }
+
+      if (t === "em" || t === "i") {
+        return `<em>${escapeHtml(String(v))}</em>`;
+      }
+
+      // default: plain text
+      return renderTextWithAutoCodeSpans(String(v), lang);
+    })
+    .join("");
+};
+
+const renderRichBlocks = (blocks, defaultLang) => {
+  const lang = String(defaultLang || "javascript");
+  const html = [];
+
+  for (const b of blocks) {
+    if (b === null || b === undefined) continue;
+
+    // Allow shorthand text blocks: "some text"
+    if (typeof b === "string") {
+      const lines = b.split(/\r?\n/).map((ln) => renderInlineCode(ln, lang)).join("<br>");
+      html.push(`<div class="cm-prose">${lines}</div>`);
+      continue;
+    }
+
+    if (typeof b !== "object") {
+      html.push(`<div class="cm-prose">${escapeHtml(String(b))}</div>`);
+      continue;
+    }
+
+    const type = String(b.type || b.t || "p").toLowerCase();
+    const blockLang = String(b.lang || b.language || lang).toLowerCase();
+
+    if (type === "code") {
+      const code = String(b.code ?? b.value ?? b.v ?? "");
+      html.push(
+        `<pre class="cm-code"><code class="language-${escapeHtml(blockLang)}">${escapeHtml(code)}</code></pre>`
+      );
+      continue;
+    }
+
+    if (type === "h1" || type === "h2" || type === "h3") {
+      const level = type === "h1" ? 1 : type === "h2" ? 2 : 3;
+      const text = String(b.text ?? b.value ?? "");
+      html.push(`<div class="cm-h cm-h${level}">${escapeHtml(text)}</div>`);
+      continue;
+    }
+
+    if (type === "ul" || type === "ol") {
+      const items = Array.isArray(b.items) ? b.items : [];
+      const tag = type;
+      const lis = items
+        .map((it) => {
+          if (typeof it === "string") return `<li>${renderTextWithAutoCodeSpans(it, lang)}</li>`;
+          if (it && typeof it === "object") {
+            const segs = it.segments || it.content || it.parts;
+            const txt = it.text;
+            if (Array.isArray(segs)) return `<li>${renderSegments(segs, lang)}</li>`;
+            if (typeof txt === "string") return `<li>${renderTextWithAutoCodeSpans(txt, lang)}</li>`;
+          }
+          return `<li>${escapeHtml(String(it ?? ""))}</li>`;
+        })
+        .join("");
+      html.push(`<${tag} class="cm-list">${lis}</${tag}>`);
+      continue;
+    }
+
+    if (type === "hr") {
+      html.push(`<div class="cm-hr"></div>`);
+      continue;
+    }
+
+    // Paragraph-like
+    const segments = b.segments || b.content || b.parts;
+    if (Array.isArray(segments)) {
+      html.push(`<div class="cm-prose">${renderSegments(segments, lang)}</div>`);
+      continue;
+    }
+
+    const text = String(b.text ?? b.value ?? b.v ?? "");
+    const lines = text.split(/\r?\n/).map((ln) => renderInlineCode(ln, lang)).join("<br>");
+    html.push(`<div class="cm-prose">${lines}</div>`);
+  }
+
+  return html.join("");
 };
 
 const renderTextWithAutoCodeSpans = (text, lang) => {
@@ -207,6 +349,13 @@ export const renderQuestRichHtml = ({ lessonHeader, description, task, prismLang
   .cm-quest .cm-lesson-header { font-weight: 700; color: #ffd37a; font-size: 18px; margin: 0 0 10px 0; }
   .cm-quest .cm-prose { font-size: 16px; white-space: normal; }
   .cm-quest .cm-prose + .cm-prose { margin-top: 8px; }
+  .cm-quest .cm-h { color: #ffd37a; font-weight: 700; margin: 14px 0 8px 0; }
+  .cm-quest .cm-h1 { font-size: 18px; }
+  .cm-quest .cm-h2 { font-size: 17px; }
+  .cm-quest .cm-h3 { font-size: 16px; }
+  .cm-quest .cm-list { margin: 8px 0 10px 22px; padding: 0; }
+  .cm-quest .cm-list li { margin: 4px 0; }
+  .cm-quest .cm-hr { height: 1px; background: rgba(255, 211, 122, 0.18); margin: 12px 0; }
   .cm-quest .cm-code { margin: 10px 0; padding: 12px 12px; border-radius: 10px; background: #0b1220; border: 1px solid rgba(255, 211, 122, 0.18); overflow-x: auto; }
   .cm-quest .cm-code code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 14px; }
   .cm-quest code.cm-inline { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; background: rgba(10,16,28,0.65); border: 1px solid rgba(255,211,122,0.22); padding: 1px 6px; border-radius: 8px; color: #e2e8f0; }
@@ -234,18 +383,23 @@ export const renderQuestRichHtml = ({ lessonHeader, description, task, prismLang
   if (head) chunks.push(`<div class="cm-lesson-header">${escapeHtml(head)}</div>`);
 
   if (desc) {
-    const blocks = parseBlocks(desc);
-    for (const b of blocks) {
-      if (b.type === "code") {
-        const code = String(b.text || "").replace(/^\s{2}/gm, "");
-        const blockLang = (b.lang || lang).toLowerCase();
-        chunks.push(
-          `<pre class="cm-code"><code class="language-${escapeHtml(blockLang)}">${escapeHtml(code)}</code></pre>`
-        );
-      } else {
-        const lines = String(b.text || "").split(/\r?\n/);
-        const htmlLines = lines.map((ln) => renderInlineCode(ln, lang)).join("<br>");
-        chunks.push(`<div class="cm-prose">${htmlLines}</div>`);
+    const richSpec = normalizeRichDescriptionSpec(description);
+    if (richSpec) {
+      chunks.push(renderRichBlocks(richSpec.blocks, lang));
+    } else {
+      const blocks = parseBlocks(desc);
+      for (const b of blocks) {
+        if (b.type === "code") {
+          const code = String(b.text || "").replace(/^\s{2}/gm, "");
+          const blockLang = (b.lang || lang).toLowerCase();
+          chunks.push(
+            `<pre class="cm-code"><code class="language-${escapeHtml(blockLang)}">${escapeHtml(code)}</code></pre>`
+          );
+        } else {
+          const lines = String(b.text || "").split(/\r?\n/);
+          const htmlLines = lines.map((ln) => renderInlineCode(ln, lang)).join("<br>");
+          chunks.push(`<div class="cm-prose">${htmlLines}</div>`);
+        }
       }
     }
   }
