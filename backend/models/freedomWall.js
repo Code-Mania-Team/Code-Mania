@@ -1,79 +1,177 @@
 import { supabase } from "../core/supabaseClient.js";
 
-
 class FreedomWall {
+
     constructor() {
         this.fd_wall = supabase;
     }
-    // create FREEDOM WALL POSTS
-    
-    async createPost(user_id, content) {
-        const { data, error } = await this.fd_wall
-            .from("freedom_wall")
-            .insert({
-                user_id,
-                content,
-                created_at: new Date().toISOString()
-            })
-            .select("*")
-            .maybeSingle();
-        if (error) throw error;
-        return data;
-    }
 
-    async getUserProfile(user_id) {
+    // CREATE POST + HANDLE HASHTAGS
+    async createPost(user_id, content) {
+
         try {
-            const { data, error } = await this.fd_wall
-                .from("users")
-                .select("username, email")
-                .eq("user_id", user_id)
+
+            const { data: post, error } = await this.fd_wall
+                .from("freedom_wall")
+                .insert({
+                    user_id,
+                    content,
+                    created_at: new Date().toISOString()
+                })
+                .select("*")
                 .maybeSingle();
 
             if (error) throw error;
-            return data;
+
+            const postId = post.fd_wall_id;
+
+            // extract hashtags
+            const hashtags = content.match(/#\w+/g);
+
+            if (hashtags && hashtags.length > 0) {
+
+                for (let tag of hashtags) {
+
+                    const cleanTag = tag.toLowerCase().trim();
+
+                    const hashtagId = await this.insertHashtag(cleanTag);
+
+                    await this.linkHashtagToPost(postId, hashtagId);
+
+                }
+
+            }
+
+            return post;
+
         } catch (err) {
-            throw new Error("Failed to fetch user profile");
+
+            console.error("<error> FreedomWall.createPost", err);
+            throw err;
+
         }
+
     }
 
-    async getCharacterIdByUserId(user_id) {
+
+    // INSERT HASHTAG (IF NOT EXISTS)
+    async insertHashtag(hashtag) {
+
         try {
-        const { data: userProfile, error } = await this.fd_wall
-            .from("users")
-            .select("character_id")
-            .eq("user_id", user_id)
-            .maybeSingle();
 
-        if (error) throw error;
+            const { data: existing, error: findError } = await this.fd_wall
+                .from("hashtags")
+                .select("hashtag_id")
+                .eq("hashtag_text", hashtag)
+                .maybeSingle();
 
-        return userProfile?.character_id ?? null;
+            if (findError) throw findError;
+
+            if (existing) {
+                return existing.hashtag_id;
+            }
+
+            const { data, error } = await this.fd_wall
+                .from("hashtags")
+                .insert({
+                    hashtag_text: hashtag
+                })
+                .select("hashtag_id")
+                .maybeSingle();
+
+            if (error) throw error;
+
+            return data.hashtag_id;
+
         } catch (err) {
-        throw new Error("Failed to fetch character ID");
+
+            console.error("<error> insertHashtag", err);
+            throw err;
+
         }
+
     }
 
+
+    // LINK POST TO HASHTAG
+    async linkHashtagToPost(fd_wall_id, hashtag_id) {
+
+        try {
+
+            const { error } = await this.fd_wall
+                .from("post_hashtags")
+                .insert({
+                    fd_wall_id,
+                    hashtag_id
+                });
+
+            if (error) throw error;
+
+        } catch (err) {
+
+            console.error("<error> linkHashtagToPost", err);
+            throw err;
+
+        }
+
+    }
+
+
+    // REMOVE HASHTAGS FROM POST
+    async removePostHashtags(fd_wall_id) {
+
+        try {
+
+            const { error } = await this.fd_wall
+                .from("post_hashtags")
+                .delete()
+                .eq("fd_wall_id", fd_wall_id);
+
+            if (error) throw error;
+
+        } catch (err) {
+
+            console.error("<error> removePostHashtags", err);
+            throw err;
+
+        }
+
+    }
+
+
+    // GET POSTS
     async getPost() {
-        try{
+
+        try {
+
             const { data, error } = await this.fd_wall
                 .from("freedom_wall")
                 .select(`
-                        fd_wall_id,
-                        content,
-                        created_at,
-                        user_id,
-                        users (
-                            username,
-                            character_id
-                        )
-                        `)
+                    fd_wall_id,
+                    content,
+                    created_at,
+                    user_id,
+                    users (
+                        username,
+                        character_id
+                    )
+                `)
                 .order("created_at", { ascending: false });
+
             if (error) throw error;
+
             return data;
+
         } catch (err) {
-                throw new Error('An error occurred while fetching posts. Please try again later.');
-            }
+
+            throw new Error("An error occurred while fetching posts.");
+
         }
-    
+
+    }
+
+
+    // GET POST BY ID
     async getPostById(post_id) {
 
         try {
@@ -90,7 +188,36 @@ class FreedomWall {
 
         } catch (err) {
 
-            console.error('<error> ThreadPost.getPostById:', err);
+            console.error("<error> getPostById:", err);
+            throw err;
+
+        }
+
+    }
+
+
+    // GET TRENDING HASHTAGS
+    async getTopHashtags(limit = 10) {
+
+        try {
+
+            const { data, error } = await this.fd_wall
+                .from("post_hashtags")
+                .select(`
+                    hashtag_id,
+                    hashtags (
+                        hashtag_text
+                    )
+                `)
+                .limit(limit);
+
+            if (error) throw error;
+
+            return data;
+
+        } catch (err) {
+
+            console.error("<error> getTopHashtags:", err);
             throw err;
 
         }
