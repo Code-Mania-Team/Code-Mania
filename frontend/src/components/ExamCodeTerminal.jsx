@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/ExamCodeTerminal.module.css";
@@ -51,6 +51,23 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const [inputBuffer, setInputBuffer] = useState("");
   const [waitingForInput, setWaitingForInput] = useState(false);
   const [testResults, setTestResults] = useState([]);
+  const [activeTestCaseIndex, setActiveTestCaseIndex] = useState(0);
+
+  const formatCaseValue = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  };
+
+  const formatOrEmpty = (value) => {
+    const formatted = formatCaseValue(value);
+    return formatted && String(formatted).trim() ? formatted : "(empty)";
+  };
   const storageKey = `exam_code_${attemptId}_${language}`;
   const MAX_ATTEMPTS = 5;
   const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS;
@@ -69,6 +86,13 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
       el.scrollTop = el.scrollHeight;
     }
   }, [output, inputBuffer]);
+
+  useEffect(() => {
+    setActiveTestCaseIndex((prev) => {
+      const max = Math.max(0, (testCases?.length || 1) - 1);
+      return Math.min(prev, max);
+    });
+  }, [testCases?.length]);
 
   useEffect(() => {
     setCode(initialCode || "");
@@ -283,6 +307,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
           value={code}
           onChange={(v) => setCode(v ?? "")}
           options={{
+            contextmenu: false,
             minimap: { enabled: false },
             fontSize: 14,
             automaticLayout: true,
@@ -401,37 +426,56 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
             )}
           </div>
           
-          {testCases && testCases.length > 0 && (
-            <div 
-              className={styles.examTestCases}
-              style={{
-                borderRadius: "14px",
-                border: "1px solid rgba(255,255,255,0.06)",
-                boxShadow: "0 15px 50px rgba(0,0,0,0.45)",
-              }}
-            >
-              <div className={styles.examTestCaseHeader}>
-                Test Cases
-              </div>
-              <div className={styles.examTestCaseBody}>
-                {testCases.map((tc, idx) => (
-                  <div key={idx} className={styles.examTestCaseItem}>
-                    <div>
-                      <div className={styles.examTestCaseLabel}>Test {idx + 1} {tc.is_hidden ? "(Hidden)" : ""}</div>
-                    </div>
-                    <div>
-                      <div className={styles.examTestCaseLabel}>Input</div>
-                      <div className={styles.examTestCaseValue}>{tc.input}</div>
-                    </div>
-                    <div>
-                      <div className={styles.examTestCaseLabel}>Expected Output</div>
-                      <div className={styles.examTestCaseValue}>{tc.expected}</div>
-                    </div>
+           {testCases && testCases.length > 0 && (
+             <div className={styles.examTestCases}>
+               <div className={styles.examTestCaseHeader}>
+                 <span>Test Cases</span>
+                 <span className={styles.examTestCaseHeaderMeta}>{testCases.length}</span>
+               </div>
+               <div className={styles.examTestCaseBody}>
+                  <div className={styles.examTestTabs} role="tablist" aria-label="Exam test cases">
+                    {testCases.map((tc, idx) => {
+                      const isActive = idx === activeTestCaseIndex;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          className={`${styles.examTestTab} ${isActive ? styles.examTestTabActive : ""}`}
+                          onClick={() => setActiveTestCaseIndex(idx)}
+                          role="tab"
+                          aria-selected={isActive}
+                        >
+                          Case {idx + 1}
+                          {tc?.is_hidden ? <span className={styles.examTestTabDot} title="Hidden" /> : null}
+                        </button>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+
+                  {(() => {
+                    const tc = testCases[activeTestCaseIndex] || {};
+                    return (
+                      <div className={styles.examTestPanel} role="tabpanel">
+                        <div className={styles.examTestPanelHead}>
+                          <div className={styles.examTestPanelTitle}>Case {activeTestCaseIndex + 1}</div>
+                          {tc?.is_hidden ? <span className={styles.examTestCaseBadge}>Hidden</span> : null}
+                        </div>
+
+                        <div>
+                          <div className={styles.examTestCaseLabel}>Input</div>
+                          <div className={styles.examTestCaseValue}>{formatOrEmpty(tc.input)}</div>
+                        </div>
+
+                        <div>
+                          <div className={styles.examTestCaseLabel}>Expected Output</div>
+                          <div className={styles.examTestCaseValue}>{formatOrEmpty(tc.expected)}</div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+               </div>
+             </div>
+           )}
         </div>
       )}
     </div>

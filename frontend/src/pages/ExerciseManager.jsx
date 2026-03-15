@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
 import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
+import JsonEditor from "../components/JsonEditor";
 
 const ExerciseManager = () => {
   const { course } = useParams();
@@ -360,22 +361,24 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
 
       <div className={styles.formGroupFull}>
         <label>Dialogue (JSON)</label>
-        <textarea
-          value={formData.dialogue || '[]'}
-          onChange={(e) => handleChange('dialogue', e.target.value)}
-          rows={5}
-          style={{ fontFamily: 'monospace' }}
-        />
+        <div className={styles.jsonEditorWrap}>
+          <JsonEditor
+            height="220px"
+            value={formData.dialogue || "[]"}
+            onChange={(v) => handleChange("dialogue", v)}
+          />
+        </div>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Requirements (JSON)</label>
-        <textarea
-          value={formData.requirements || '{}'}
-          onChange={(e) => handleChange('requirements', e.target.value)}
-          rows={3}
-          style={{ fontFamily: 'monospace' }}
-        />
+        <div className={styles.jsonEditorWrap}>
+          <JsonEditor
+            height="180px"
+            value={formData.requirements || "{}"}
+            onChange={(v) => handleChange("requirements", v)}
+          />
+        </div>
       </div>
 
       <div className={styles.formActions}>

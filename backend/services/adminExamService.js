@@ -26,6 +26,15 @@ class AdminExamService {
     this.exam = new ExamModel();
   }
 
+  async getProblem(problemId) {
+    const problem = await this.exam.getProblemById(problemId);
+    if (!problem) {
+      return { ok: false, status: 404, message: "Problem not found" };
+    }
+
+    return { ok: true, data: problem };
+  }
+
   async updateProblem(problemId, body) {
     const update = {};
 

@@ -139,6 +139,22 @@ function normalizeObjectiveList(objectives) {
   return [];
 }
 
+function formatCaseValue(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function formatOrEmpty(value) {
+  const formatted = formatCaseValue(value);
+  return formatted && String(formatted).trim() ? formatted : "(empty)";
+}
+
 function getQuestExpectedOutput(quest) {
   const direct = quest?.expected_output ?? quest?.expectedOutput;
   if (typeof direct === "string" && direct.trim()) return direct;
@@ -254,6 +270,12 @@ const InteractiveTerminal = ({
   const [domSessionId, setDomSessionId] = useState(null);
   const [sandboxUrl, setSandboxUrl] = useState(null);
   const [internalActivePanel, setInternalActivePanel] = useState("editor");
+  const [activeRuntimeTestIndex, setActiveRuntimeTestIndex] = useState(0);
+  const [activeObjectiveIndex, setActiveObjectiveIndex] = useState(0);
+  const [activeSidebarTab, setActiveSidebarTab] = useState("objectives");
+  const [bottomPanelTab, setBottomPanelTab] = useState("terminal");
+  const [resultView, setResultView] = useState("runtime");
+  const [activeResultCaseIndex, setActiveResultCaseIndex] = useState(0);
 
   const validateExercise = useValidateExercise();
   const validateExercisePreview = useValidateExercisePreview();
@@ -446,9 +468,45 @@ const InteractiveTerminal = ({
   const hasAnyResults =
     Boolean(validationResult) || (Array.isArray(testResults) && testResults.length > 0);
 
+  const resultObjectives = useMemo(
+    () => (validationResult ? normalizeObjectiveList(validationResult) : []),
+    [validationResult]
+  );
+  const resultRuntimeTests = useMemo(
+    () => (Array.isArray(testResults) ? testResults : []),
+    [testResults]
+  );
+  const hasResultObjectives = resultObjectives.length > 0;
+  const hasResultRuntimeTests = resultRuntimeTests.length > 0;
+
   useEffect(() => {
     if (hasAnyResults) setIsValidationCollapsed(false);
   }, [hasAnyResults]);
+
+  useEffect(() => {
+    // Desktop: after running, jump to the "Test Result" tab.
+    if (useMobileSplit) return;
+    if (!hasAnyResults) return;
+    setBottomPanelTab("result");
+  }, [hasAnyResults, useMobileSplit]);
+
+  useEffect(() => {
+    if (hasResultRuntimeTests) {
+      setResultView("runtime");
+      return;
+    }
+    if (hasResultObjectives) {
+      setResultView("objectives");
+    }
+  }, [hasResultObjectives, hasResultRuntimeTests]);
+
+  useEffect(() => {
+    const activeList = resultView === "runtime" ? resultRuntimeTests : resultObjectives;
+    setActiveResultCaseIndex((prev) => {
+      const max = Math.max(0, activeList.length - 1);
+      return Math.min(prev, max);
+    });
+  }, [resultView, resultObjectives.length, resultRuntimeTests.length]);
 
   const progressiveHints = useMemo(() => {
     const questHints = Array.isArray(quest?.hints)
@@ -735,10 +793,32 @@ const InteractiveTerminal = ({
   const runtimeBlueprint = useMemo(() => getQuestRuntimeTestBlueprint(quest), [quest]);
   const displayedRuntimeTests = runtimeTests.length ? runtimeTests : runtimeBlueprint;
 
+  useEffect(() => {
+    setActiveRuntimeTestIndex((prev) => {
+      const max = Math.max(0, displayedRuntimeTests.length - 1);
+      return Math.min(prev, max);
+    });
+  }, [displayedRuntimeTests.length]);
+
   const initialObjectives = useMemo(() => getQuestRequirementsBlueprint(quest), [quest]);
   const objectiveItems = validationResult
     ? normalizeObjectiveList(validationResult)
     : initialObjectives;
+
+  const hasObjectives = objectiveItems.length > 0;
+  const hasRuntimeTests = displayedRuntimeTests.length > 0;
+
+  useEffect(() => {
+    if (hasRuntimeTests) return;
+    setActiveSidebarTab("objectives");
+  }, [hasRuntimeTests]);
+
+  useEffect(() => {
+    setActiveObjectiveIndex((prev) => {
+      const max = Math.max(0, objectiveItems.length - 1);
+      return Math.min(prev, max);
+    });
+  }, [objectiveItems.length]);
 
   const totalObjectives = objectiveItems.length;
   const passedObjectives = objectiveItems.filter((obj) => obj?.passed).length;
@@ -758,9 +838,12 @@ const InteractiveTerminal = ({
     lastValidatedCode === code &&
     Boolean(lastValidatedOutput);
 
-  const renderTestSidebar = () => {
+  const renderTestSidebar = ({ fullWidth = false } = {}) => {
     return (
-      <aside className={styles["test-sidebar"]} aria-label="Test cases">
+      <aside
+        className={`${styles["test-sidebar"]} ${fullWidth ? styles["test-sidebar-full"] : ""}`}
+        aria-label="Test cases"
+      >
         <div className={styles["test-sidebar-header"]}>
           <div className={styles["test-sidebar-title"]}>Test Cases</div>
           <div
@@ -777,83 +860,180 @@ const InteractiveTerminal = ({
           </div>
         </div>
 
-        <div className={styles["test-sidebar-body"]}>
-          {!displayedRuntimeTests.length && !objectiveItems.length ? (
-            <div className={styles["test-sidebar-empty"]}>
-              Run your code to validate the test cases.
-            </div>
-          ) : null}
+          <div className={styles["test-sidebar-body"]}>
+            {!hasRuntimeTests && !hasObjectives ? (
+              <div className={styles["test-sidebar-empty"]}>
+                Run your code to validate the test cases.
+              </div>
+            ) : null}
 
-          {objectiveItems.length ? (
-            <div className={styles["test-sidebar-section"]}>
-              <div className={styles["test-sidebar-section-title"]}>Objectives</div>
-              {objectiveItems.map((obj, idx) => (
-                <div
-                  key={`obj-${idx}`}
-                  className={`${styles["testcase-row"]} ${
-                    obj?.passed === null
-                      ? styles["testcase-row-pending"]
-                      : obj?.passed
-                        ? styles["testcase-pass"]
-                        : styles["testcase-fail"]
-                  }`}
-                >
-                  <span className={styles["testcase-mark"]}>
-                    {obj?.passed === null ? "--" : obj?.passed ? "✔" : "✖"}
-                  </span>
-                  <span className={styles["testcase-text"]}>{obj?.label || "Objective"}</span>
+            {hasObjectives || hasRuntimeTests ? (
+              <div className={styles["test-sidebar-tabs"]} role="tablist" aria-label="Test sidebar">
+                {hasObjectives ? (
+                  <button
+                    type="button"
+                    className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "objectives" ? styles["test-sidebar-tab-active"] : ""}`}
+                    onClick={() => setActiveSidebarTab("objectives")}
+                    role="tab"
+                    aria-selected={activeSidebarTab === "objectives"}
+                  >
+                    Objectives
+                  </button>
+                ) : null}
+
+                {hasRuntimeTests ? (
+                  <button
+                    type="button"
+                    className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "runtime" ? styles["test-sidebar-tab-active"] : ""}`}
+                    onClick={() => setActiveSidebarTab("runtime")}
+                    role="tab"
+                    aria-selected={activeSidebarTab === "runtime"}
+                  >
+                    Runtime Tests
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {hasObjectives && activeSidebarTab === "objectives" ? (
+              <div className={styles["test-sidebar-section"]}>
+                <div className={styles["test-sidebar-section-title"]}>Objectives</div>
+
+                <div className={styles["runtime-tabs"]} role="tablist" aria-label="Objective cases">
+                  {objectiveItems.map((obj, idx) => {
+                    const passed = obj?.passed === null || obj?.passed === undefined
+                      ? null
+                      : Boolean(obj?.passed);
+                    const isActive = idx === activeObjectiveIndex;
+                    const mark = passed === null ? "--" : passed ? "✔" : "✖";
+
+                    return (
+                      <button
+                        key={`obj-tab-${idx}`}
+                        type="button"
+                        className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                        onClick={() => setActiveObjectiveIndex(idx)}
+                        role="tab"
+                        aria-selected={isActive}
+                        title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
+                      >
+                        <span className={styles["runtime-tab-mark"]}>{mark}</span>
+                        <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          ) : null}
 
-          {displayedRuntimeTests.length ? (
-            <div className={styles["test-sidebar-section"]}>
-              <div className={styles["test-sidebar-section-title"]}>Runtime Tests</div>
-              {displayedRuntimeTests.map((t, idx) => {
-                const input = t?.input ?? "";
-                const expected = t?.expected ?? "";
-                const output = t?.output ?? "";
+                {(() => {
+                  const obj = objectiveItems[activeObjectiveIndex] || {};
+                  const passed = obj?.passed === null || obj?.passed === undefined
+                    ? null
+                    : Boolean(obj?.passed);
+
+                  return (
+                    <div
+                      className={`${styles["runtime-panel"]} ${
+                        passed === null
+                          ? styles["testcase-card-pending"]
+                          : passed
+                            ? styles["testcase-card-pass"]
+                            : styles["testcase-card-fail"]
+                      }`}
+                      role="tabpanel"
+                    >
+                      <div className={styles["runtime-panel-head"]}>
+                        <div className={styles["testcase-card-title"]}>Case {activeObjectiveIndex + 1}</div>
+                        <div className={styles["testcase-status"]}>
+                          {passed === null ? "PENDING" : passed ? "PASS" : "FAIL"}
+                        </div>
+                      </div>
+
+                      <div className={styles["runtime-panel-body"]}>
+                        <div className={styles["testcase-cell"]}>
+                          <div className={styles["testcase-label"]}>Requirement</div>
+                          <pre className={styles["testcase-value"]}>{formatOrEmpty(obj?.label)}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : null}
+
+            {hasRuntimeTests && activeSidebarTab === "runtime" ? (
+              <div className={styles["test-sidebar-section"]}>
+                <div className={styles["test-sidebar-section-title"]}>Runtime Tests</div>
+
+              <div className={styles["runtime-tabs"]} role="tablist" aria-label="Runtime test cases">
+                {displayedRuntimeTests.map((t, idx) => {
+                  const passed = t?.passed === null || t?.passed === undefined
+                    ? null
+                    : Boolean(t?.passed);
+                  const isActive = idx === activeRuntimeTestIndex;
+                  const mark = passed === null ? "--" : passed ? "✔" : "✖";
+
+                  return (
+                    <button
+                      key={`rt-tab-${idx}`}
+                      type="button"
+                      className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                      onClick={() => setActiveRuntimeTestIndex(idx)}
+                      role="tab"
+                      aria-selected={isActive}
+                      title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
+                    >
+                      <span className={styles["runtime-tab-mark"]}>{mark}</span>
+                      <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {(() => {
+                const t = displayedRuntimeTests[activeRuntimeTestIndex] || {};
                 const passed = t?.passed === null || t?.passed === undefined
                   ? null
                   : Boolean(t?.passed);
 
                 return (
                   <div
-                    key={`tc-${idx}`}
-                    className={`${styles["testcase-card"]} ${
+                    className={`${styles["runtime-panel"]} ${
                       passed === null
                         ? styles["testcase-card-pending"]
                         : passed
                           ? styles["testcase-card-pass"]
                           : styles["testcase-card-fail"]
                     }`}
+                    role="tabpanel"
                   >
-                    <div className={styles["testcase-card-head"]}>
-                      <div className={styles["testcase-card-title"]}>Test {idx + 1}</div>
+                    <div className={styles["runtime-panel-head"]}>
+                      <div className={styles["testcase-card-title"]}>Case {activeRuntimeTestIndex + 1}</div>
                       <div className={styles["testcase-status"]}>
                         {passed === null ? "PENDING" : passed ? "PASS" : "FAIL"}
                       </div>
                     </div>
-                    <div className={styles["testcase-grid"]}>
+
+                    <div className={styles["runtime-panel-body"]}>
                       <div className={styles["testcase-cell"]}>
                         <div className={styles["testcase-label"]}>Input</div>
-                        <pre className={styles["testcase-value"]}>{String(input)}</pre>
+                        <pre className={styles["testcase-value"]}>{formatOrEmpty(t?.input)}</pre>
                       </div>
-                      <div className={styles["testcase-cell"]}>
-                        <div className={styles["testcase-label"]}>Expected</div>
-                        <pre className={styles["testcase-value"]}>{String(expected)}</pre>
-                      </div>
+
                       <div className={styles["testcase-cell"]}>
                         <div className={styles["testcase-label"]}>Output</div>
-                        <pre className={styles["testcase-value"]}>{String(output)}</pre>
+                        <pre className={styles["testcase-value"]}>{formatOrEmpty(t?.output)}</pre>
+                      </div>
+
+                      <div className={styles["testcase-cell"]}>
+                        <div className={styles["testcase-label"]}>Expected</div>
+                        <pre className={styles["testcase-value"]}>{formatOrEmpty(t?.expected)}</pre>
                       </div>
                     </div>
                   </div>
                 );
-              })}
-            </div>
-          ) : null}
+              })()}
+             </div>
+           ) : null}
         </div>
 
         <div className={styles["test-sidebar-footer"]}>
@@ -865,6 +1045,145 @@ const InteractiveTerminal = ({
           </div>
         </div>
       </aside>
+    );
+  };
+
+  const renderTestResultPanel = () => {
+    const totalResultChecks = resultObjectives.length + resultRuntimeTests.length;
+    const passedResultChecks =
+      resultObjectives.filter((o) => o?.passed).length +
+      resultRuntimeTests.filter((t) => t?.passed).length;
+
+    const allPassed = totalResultChecks > 0 && passedResultChecks === totalResultChecks;
+    const statusText = !totalResultChecks
+      ? "No Results"
+      : allPassed
+        ? "Accepted"
+        : "Wrong Answer";
+
+    const activeList = resultView === "runtime" ? resultRuntimeTests : resultObjectives;
+    const activeCase = activeList[activeResultCaseIndex] || {};
+    const runtimeMs =
+      typeof activeCase?.execution_time_ms === "number"
+        ? activeCase.execution_time_ms
+        : typeof activeCase?.runtime_ms === "number"
+          ? activeCase.runtime_ms
+          : null;
+
+    return (
+      <div className={styles["result-wrap"]} aria-label="Test result">
+        <div className={styles["result-header"]}>
+          <div
+            className={`${styles["result-status"]} ${
+              allPassed ? styles["result-status-accepted"] : styles["result-status-wrong"]
+            }`}
+          >
+            {statusText}
+          </div>
+          <div className={styles["result-meta"]}>
+            {runtimeMs !== null
+              ? `Runtime: ${runtimeMs} ms`
+              : `${passedResultChecks}/${totalResultChecks} passed`}
+          </div>
+        </div>
+
+        {(hasResultRuntimeTests || hasResultObjectives) ? (
+          <div className={styles["result-top-tabs"]} role="tablist" aria-label="Result category">
+            {hasResultRuntimeTests ? (
+              <button
+                type="button"
+                className={`${styles["result-top-tab"]} ${resultView === "runtime" ? styles["result-top-tab-active"] : ""}`}
+                onClick={() => setResultView("runtime")}
+                role="tab"
+                aria-selected={resultView === "runtime"}
+              >
+                Testcase
+              </button>
+            ) : null}
+            {hasResultObjectives ? (
+              <button
+                type="button"
+                className={`${styles["result-top-tab"]} ${resultView === "objectives" ? styles["result-top-tab-active"] : ""}`}
+                onClick={() => setResultView("objectives")}
+                role="tab"
+                aria-selected={resultView === "objectives"}
+              >
+                Objectives
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {!hasAnyResults ? (
+          <div className={styles["result-empty"]}>Run your code to see test results.</div>
+        ) : null}
+
+        {activeList.length ? (
+          <>
+            <div className={styles["runtime-tabs"]} role="tablist" aria-label="Result cases">
+              {activeList.map((item, idx) => {
+                const passed = item?.passed === null || item?.passed === undefined
+                  ? null
+                  : Boolean(item?.passed);
+                const isActive = idx === activeResultCaseIndex;
+                const mark = passed === null ? "--" : passed ? "✔" : "✖";
+
+                return (
+                  <button
+                    key={`res-case-${idx}`}
+                    type="button"
+                    className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                    onClick={() => setActiveResultCaseIndex(idx)}
+                    role="tab"
+                    aria-selected={isActive}
+                    title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
+                  >
+                    <span className={styles["runtime-tab-mark"]}>{mark}</span>
+                    <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {resultView === "runtime" ? (
+              <div className={styles["result-panel"]} role="tabpanel">
+                <div className={styles["result-section-title"]}>Input</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.input)}</pre>
+                </div>
+
+                <div className={styles["result-section-title"]}>Output</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.output)}</pre>
+                </div>
+
+                <div className={styles["result-section-title"]}>Expected</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.expected)}</pre>
+                </div>
+              </div>
+            ) : (
+              <div className={styles["result-panel"]} role="tabpanel">
+                <div className={styles["result-section-title"]}>Requirement</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.label)}</pre>
+                </div>
+              </div>
+            )}
+
+            {validationResult && unlockedHintCount > 0 ? (
+              <div className={styles["hint-box"]} style={{ marginTop: 14 }}>
+                <div className={styles["hint-title"]}>Hints unlocked</div>
+                {progressiveHints.slice(0, unlockedHintCount).map((hint, index) => (
+                  <div key={index} className={styles["hint-item"]}>
+                    <strong>{hint.level}:</strong> {hint.text}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </div>
     );
   };
 
@@ -960,8 +1279,8 @@ const InteractiveTerminal = ({
       </div>
       )}
 
-      {(!useMobileSplit || activePanel === "terminal") && (
-        <div className={styles["terminal-with-tests"]}>
+      {(!useMobileSplit || activePanel === "terminal") && (() => {
+        const terminalView = (
           <div className={styles["terminal-main"]}>
             {quest?.quest_type === "dom" ? (
               <iframe
@@ -993,82 +1312,54 @@ const InteractiveTerminal = ({
               </div>
             )}
           </div>
+        );
 
-          {!useMobileSplit ? renderTestSidebar() : null}
-        </div>
-      )}
-       {useMobileSplit && hasAnyResults && (
-          <div
-            className={`${styles["validation-box"]} ${isValidationCollapsed ? styles["validation-box-collapsed"] : ""}`}
-          >
-           <div className={styles["validation-header"]}>
-             <div className={styles["validation-title"]}>
-               {totalChecks > 0
-                 ? `TEST RESULTS: ${passedChecks} / ${totalChecks} PASSED`
-                 : "TEST RESULTS"}
-             </div>
-             <button
-               type="button"
-               className={styles["validation-toggle"]}
-               onClick={() => setIsValidationCollapsed((prev) => !prev)}
-               aria-label={isValidationCollapsed ? "Show test results" : "Hide test results"}
-               title={isValidationCollapsed ? "Show" : "Hide"}
-             >
-               {isValidationCollapsed ? ">>" : "<<"}
-             </button>
-           </div>
+        return (
+          <div className={styles["bottom-panel"]}>
+            <div className={styles["bottom-panel-tabs"]} role="tablist" aria-label="Bottom panel">
+              <button
+                type="button"
+                className={`${styles["bottom-panel-tab"]} ${bottomPanelTab === "terminal" ? styles["bottom-panel-tab-active"] : ""}`}
+                onClick={() => setBottomPanelTab("terminal")}
+                role="tab"
+                aria-selected={bottomPanelTab === "terminal"}
+              >
+                Terminal
+              </button>
+              <button
+                type="button"
+                className={`${styles["bottom-panel-tab"]} ${bottomPanelTab === "tests" ? styles["bottom-panel-tab-active"] : ""}`}
+                onClick={() => setBottomPanelTab("tests")}
+                role="tab"
+                aria-selected={bottomPanelTab === "tests"}
+              >
+                Test Cases
+              </button>
+              <button
+                type="button"
+                className={`${styles["bottom-panel-tab"]} ${bottomPanelTab === "result" ? styles["bottom-panel-tab-active"] : ""}`}
+                onClick={() => setBottomPanelTab("result")}
+                role="tab"
+                aria-selected={bottomPanelTab === "result"}
+                disabled={!hasAnyResults}
+                title={!hasAnyResults ? "Run to see results" : ""}
+              >
+                Test Result
+              </button>
+            </div>
 
-           <div className={styles["validation-body"]}>
-             {validationResult && (
-               <>
-                 <div className={styles["validation-subtitle"]}>Objectives</div>
-                 {Object.values(validationResult).map((obj, index) => (
-                   <div
-                     key={index}
-                     className={obj.passed ? styles["test-pass"] : styles["test-fail"]}
-                   >
-                     <span className={styles["test-icon"]}>{obj.passed ? "✔" : "✖"}</span>
-                     <span>{obj.label}</span>
-                   </div>
-                 ))}
-               </>
-             )}
-
-             {Array.isArray(testResults) && testResults.length > 0 && (
-               <>
-                 <div className={styles["validation-subtitle"]}>Runtime Tests</div>
-                 {testResults.map((test, index) => (
-                   <div
-                     key={`runtime-${index}`}
-                     className={test.passed ? styles["test-pass"] : styles["test-fail"]}
-                   >
-                     <span className={styles["test-icon"]}>{test.passed ? "✔" : "✖"}</span>
-                     <span>
-                       Test {index + 1} - Input: <code>{test.input}</code> | Expected:{" "}
-                       <code>{test.expected}</code> | Output: <code>{test.output}</code>
-                     </span>
-                   </div>
-                 ))}
-               </>
-             )}
-
-             {totalChecks > 0 && passedChecks === totalChecks && (
-               <div className={styles["all-pass"]}>🎉 All tests passed!</div>
-             )}
-
-             {validationResult && unlockedHintCount > 0 && (
-               <div className={styles["hint-box"]}>
-                 <div className={styles["hint-title"]}>Hints unlocked</div>
-                 {progressiveHints.slice(0, unlockedHintCount).map((hint, index) => (
-                   <div key={index} className={styles["hint-item"]}>
-                     <strong>{hint.level}:</strong> {hint.text}
-                   </div>
-                 ))}
-               </div>
-             )}
-           </div>
-         </div>
-       )}
+            <div className={styles["bottom-panel-body"]} role="tabpanel">
+              {bottomPanelTab === "terminal" ? (
+                terminalView
+              ) : bottomPanelTab === "tests" ? (
+                renderTestSidebar({ fullWidth: true })
+              ) : (
+                renderTestResultPanel()
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {!canInteract && (
         <div className={styles["terminal-lock-overlay"]}>
