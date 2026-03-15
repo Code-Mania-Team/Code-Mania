@@ -1,3 +1,6 @@
+import MarkdownIt from "markdown-it";
+import DOMPurify from "dompurify";
+
 const escapeHtml = (value) => {
   const s = String(value ?? "");
   return s
@@ -21,6 +24,85 @@ const getAutoInlineCallRegex = (lang) => {
     return /\b(?:cout|cin)\b/g;
   }
   return null;
+};
+
+const isFenceLine = (value) => {
+  const s = String(value ?? "");
+  return /^\s*```\s*([a-zA-Z0-9_+-]+)?\s*$/.test(s);
+};
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: false,
+  typographer: true,
+});
+
+const autoInlineCallBackticks = (markdown, lang) => {
+  const src = String(markdown ?? "");
+  const rx = getAutoInlineCallRegex(lang);
+  if (!rx) return src;
+
+  const lines = src.split(/\r?\n/);
+  let inFence = false;
+  const out = [];
+
+  for (const line of lines) {
+    if (isFenceLine(line)) {
+      inFence = !inFence;
+      out.push(line);
+      continue;
+    }
+
+    if (inFence) {
+      out.push(line);
+      continue;
+    }
+
+    // Avoid touching existing inline code: split by backticks.
+    const parts = String(line ?? "").split("`");
+    for (let i = 0; i < parts.length; i += 1) {
+      if (i % 2 === 0) {
+        parts[i] = parts[i].replace(rx, (m) => `\`${m}\``);
+      }
+    }
+    out.push(parts.join("`"));
+  }
+
+  return out.join("\n");
+};
+
+const sanitizeQuestHtml = (html) => {
+  return DOMPurify.sanitize(String(html ?? ""), {
+    ALLOWED_TAGS: [
+      "p",
+      "br",
+      "hr",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "strong",
+      "em",
+      "del",
+      "blockquote",
+      "ul",
+      "ol",
+      "li",
+      "code",
+      "pre",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+      "a",
+    ],
+    ALLOWED_ATTR: ["class", "href", "target", "rel"],
+  });
 };
 
 const tokenizeInlineSnippet = (snippet, lang) => {
@@ -70,6 +152,78 @@ const tokenizeInlineSnippet = (snippet, lang) => {
   return null;
 };
 
+const findNextEmphasisMarker = (s, fromIndex) => {
+  const idxBold = s.indexOf("**", fromIndex);
+  const idxIt = s.indexOf("*", fromIndex);
+
+  let idx = -1;
+  let type = null;
+
+  if (idxBold !== -1 && (idxIt === -1 || idxBold <= idxIt)) {
+    idx = idxBold;
+    type = "bold";
+  } else if (idxIt !== -1) {
+    // Skip '*' that is part of '**'
+    if (s[idxIt + 1] === "*") {
+      return findNextEmphasisMarker(s, idxIt + 2);
+    }
+    idx = idxIt;
+    type = "italic";
+  }
+
+  return { idx, type };
+};
+
+const renderTextWithEmphasisAndAutoCodeSpans = (text, lang) => {
+  const raw = String(text ?? "");
+  if (!raw.includes("*")) return renderTextWithAutoCodeSpans(raw, lang);
+
+  let out = "";
+  let i = 0;
+
+  while (i < raw.length) {
+    const { idx, type } = findNextEmphasisMarker(raw, i);
+    if (idx === -1) {
+      out += renderTextWithAutoCodeSpans(raw.slice(i), lang);
+      break;
+    }
+
+    if (idx > i) out += renderTextWithAutoCodeSpans(raw.slice(i, idx), lang);
+
+    if (type === "bold") {
+      const close = raw.indexOf("**", idx + 2);
+      if (close === -1) {
+        out += renderTextWithAutoCodeSpans(raw.slice(idx), lang);
+        break;
+      }
+      const inner = raw.slice(idx + 2, close);
+      if (inner.trim().length) {
+        out += `<strong>${renderTextWithEmphasisAndAutoCodeSpans(inner, lang)}</strong>`;
+      } else {
+        out += renderTextWithAutoCodeSpans(raw.slice(idx, close + 2), lang);
+      }
+      i = close + 2;
+      continue;
+    }
+
+    // italic
+    const close = raw.indexOf("*", idx + 1);
+    if (close === -1) {
+      out += renderTextWithAutoCodeSpans(raw.slice(idx), lang);
+      break;
+    }
+    const inner = raw.slice(idx + 1, close);
+    if (inner.trim().length) {
+      out += `<em>${renderTextWithEmphasisAndAutoCodeSpans(inner, lang)}</em>`;
+    } else {
+      out += renderTextWithAutoCodeSpans(raw.slice(idx, close + 1), lang);
+    }
+    i = close + 1;
+  }
+
+  return out;
+};
+
 const renderTextWithAutoCodeSpans = (text, lang) => {
   const raw = String(text ?? "");
   const re = getAutoInlineCallRegex(lang);
@@ -91,12 +245,12 @@ const renderTextWithAutoCodeSpans = (text, lang) => {
   return out;
 };
 
-const renderInlineCode = (line, lang) => {
+const renderInlineMarkdown = (line, lang) => {
   const raw = String(line ?? "");
 
   // Simple backtick pairing: `code`
   const parts = raw.split("`");
-  if (parts.length === 1) return renderTextWithAutoCodeSpans(raw, lang);
+  if (parts.length === 1) return renderTextWithEmphasisAndAutoCodeSpans(raw, lang);
 
   let out = "";
   for (let i = 0; i < parts.length; i += 1) {
@@ -108,10 +262,98 @@ const renderInlineCode = (line, lang) => {
       const tokenized = tokenizeInlineSnippet(chunk, lang);
       out += `<code class="cm-inline language-${escapeHtml(lang)}">${tokenized || escapeHtml(chunk)}</code>`;
     } else {
-      out += renderTextWithAutoCodeSpans(chunk, lang);
+      out += renderTextWithEmphasisAndAutoCodeSpans(chunk, lang);
     }
   }
   return out;
+};
+
+const renderMarkdownLinesToHtml = (lines, lang) => {
+  const src = Array.isArray(lines) ? lines : String(lines ?? "").split(/\r?\n/);
+  const out = [];
+
+  let i = 0;
+  const isBlank = (l) => String(l ?? "").trim().length === 0;
+
+  while (i < src.length) {
+    let line = String(src[i] ?? "");
+    if (isBlank(line)) {
+      i += 1;
+      continue;
+    }
+
+    // Headings
+    const h = line.match(/^\s*(#{1,6})\s+(.+?)\s*$/);
+    if (h) {
+      const levelRaw = h[1].length;
+      const level = Math.min(4, Math.max(1, levelRaw));
+      const content = h[2];
+      out.push(
+        `<div class="cm-heading cm-h${level}">${renderInlineMarkdown(content, lang)}</div>`
+      );
+      i += 1;
+      continue;
+    }
+
+    // Unordered list
+    const ul = line.match(/^\s*[-*]\s+(.+?)\s*$/);
+    if (ul) {
+      const items = [];
+      while (i < src.length) {
+        const l = String(src[i] ?? "");
+        const m = l.match(/^\s*[-*]\s+(.+?)\s*$/);
+        if (!m) break;
+        items.push(m[1]);
+        i += 1;
+      }
+      out.push(`<ul class="cm-list cm-ul">`);
+      for (const it of items) {
+        out.push(`<li class="cm-li">${renderInlineMarkdown(it, lang)}</li>`);
+      }
+      out.push(`</ul>`);
+      continue;
+    }
+
+    // Ordered list
+    const ol = line.match(/^\s*(\d+)\.\s+(.+?)\s*$/);
+    if (ol) {
+      const items = [];
+      while (i < src.length) {
+        const l = String(src[i] ?? "");
+        const m = l.match(/^\s*(\d+)\.\s+(.+?)\s*$/);
+        if (!m) break;
+        items.push(m[2]);
+        i += 1;
+      }
+      out.push(`<ol class="cm-list cm-ol">`);
+      for (const it of items) {
+        out.push(`<li class="cm-li">${renderInlineMarkdown(it, lang)}</li>`);
+      }
+      out.push(`</ol>`);
+      continue;
+    }
+
+    // Paragraph: gather until blank line
+    const para = [];
+    while (i < src.length && !isBlank(src[i])) {
+      const l = String(src[i] ?? "");
+      // stop paragraph if next line is a heading/list
+      if (/^\s*#{1,6}\s+/.test(l) || /^\s*[-*]\s+/.test(l) || /^\s*\d+\.\s+/.test(l)) {
+        if (para.length === 0) {
+          para.push(l);
+          i += 1;
+        }
+        break;
+      }
+      para.push(l);
+      i += 1;
+    }
+
+    const htmlLines = para.map((ln) => renderInlineMarkdown(ln, lang)).join("<br>");
+    out.push(`<div class="cm-prose">${htmlLines}</div>`);
+  }
+
+  return out.join("");
 };
 
 const detectIndentCodeLines = (text) => {
@@ -144,14 +386,21 @@ const parseBlocks = (text) => {
   const lines = src.split(/\r?\n/);
   const blocks = [];
 
+  const isFenceLine = (value) => {
+    const s = String(value ?? "");
+    return /^\s*```\s*([a-zA-Z0-9_+-]+)?\s*$/.test(s);
+  };
+
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
-    const fence = line.match(/^\s*```\s*([a-zA-Z0-9_+-]+)?\s*$/);
+    const fence = isFenceLine(line)
+      ? String(line).match(/^\s*```\s*([a-zA-Z0-9_+-]+)?\s*$/)
+      : null;
     if (!fence) {
       // Accumulate until next fence.
       const chunk = [];
-      while (i < lines.length && !/^\s*```/.test(lines[i])) {
+      while (i < lines.length && !isFenceLine(lines[i])) {
         chunk.push(lines[i]);
         i += 1;
       }
@@ -196,20 +445,47 @@ export const inferPrismLanguage = (quest) => {
 
 export const renderQuestRichHtml = ({ lessonHeader, description, task, prismLanguage }) => {
   const head = String(lessonHeader ?? "").trim();
-  const desc = String(description ?? "").trim();
-  const taskText = String(task ?? "").trim();
   const lang = String(prismLanguage || "javascript");
+  const desc = autoInlineCallBackticks(String(description ?? "").trim(), lang);
+  const taskText = autoInlineCallBackticks(String(task ?? "").trim(), lang);
 
   const chunks = [];
   chunks.push(`
 <style>
   .cm-quest { font-family: Georgia, serif; color: #f5f0d6; line-height: 1.45; }
   .cm-quest .cm-lesson-header { font-weight: 700; color: #ffd37a; font-size: 18px; margin: 0 0 10px 0; }
+  .cm-quest .cm-heading { color: #f7f0d3; margin: 10px 0 6px; line-height: 1.2; font-weight: 800; }
+  .cm-quest .cm-h1 { font-size: 20px; }
+  .cm-quest .cm-h2 { font-size: 18px; }
+  .cm-quest .cm-h3 { font-size: 16px; }
+  .cm-quest .cm-h4 { font-size: 15px; }
   .cm-quest .cm-prose { font-size: 16px; white-space: normal; }
   .cm-quest .cm-prose + .cm-prose { margin-top: 8px; }
+  .cm-quest .cm-list { margin: 8px 0 10px; padding-left: 20px; }
+  .cm-quest .cm-li { margin: 4px 0; font-size: 16px; }
+
+  /* Classic markdown tags (markdown-it output) */
+  .cm-quest h1, .cm-quest h2, .cm-quest h3, .cm-quest h4 { color: #f7f0d3; margin: 10px 0 6px; line-height: 1.2; font-weight: 800; }
+  .cm-quest h1 { font-size: 20px; }
+  .cm-quest h2 { font-size: 18px; }
+  .cm-quest h3 { font-size: 16px; }
+  .cm-quest h4 { font-size: 15px; }
+  .cm-quest p { font-size: 16px; margin: 0 0 8px 0; white-space: normal; }
+  .cm-quest ul, .cm-quest ol { margin: 8px 0 10px; padding-left: 20px; }
+  .cm-quest li { margin: 4px 0; font-size: 16px; }
+  .cm-quest blockquote { margin: 8px 0 10px; padding: 0.2rem 0.9rem; border-left: 3px solid rgba(255, 211, 122, 0.25); opacity: 0.95; }
+  .cm-quest hr { border: none; border-top: 1px solid rgba(255, 211, 122, 0.18); margin: 12px 0; }
+  .cm-quest table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 15px; }
+  .cm-quest th, .cm-quest td { border: 1px solid rgba(255,255,255,0.12); padding: 6px 8px; vertical-align: top; }
+  .cm-quest th { background: rgba(255,255,255,0.06); color: #f7f0d3; }
+  .cm-quest strong { font-weight: 800; }
+  .cm-quest em { font-style: italic; }
   .cm-quest .cm-code { margin: 10px 0; padding: 12px 12px; border-radius: 10px; background: #0b1220; border: 1px solid rgba(255, 211, 122, 0.18); overflow-x: auto; }
   .cm-quest .cm-code code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 14px; }
   .cm-quest code.cm-inline { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; background: rgba(10,16,28,0.65); border: 1px solid rgba(255,211,122,0.22); padding: 1px 6px; border-radius: 8px; color: #e2e8f0; }
+  .cm-quest :not(pre) > code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; background: rgba(10,16,28,0.65); border: 1px solid rgba(255,211,122,0.22); padding: 1px 6px; border-radius: 8px; color: #e2e8f0; }
+  .cm-quest pre { margin: 10px 0; padding: 12px 12px; border-radius: 10px; background: #0b1220; border: 1px solid rgba(255, 211, 122, 0.18); overflow-x: auto; }
+  .cm-quest pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 14px; padding: 0; border: none; background: transparent; }
 
   /* Prism-like token colors (custom, lightweight) */
   .cm-quest .token.comment, .cm-quest .token.prolog, .cm-quest .token.doctype, .cm-quest .token.cdata { color: #94a3b8; }
@@ -225,7 +501,7 @@ export const renderQuestRichHtml = ({ lessonHeader, description, task, prismLang
 
   .cm-quest .cm-task { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #0d2b00; border: 1px solid rgba(168, 255, 96, 0.25); }
   .cm-quest .cm-task-title { font-weight: 700; color: #d8ffb0; margin-bottom: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-  .cm-quest .cm-task-body { color: #a8ff60; font-size: 16px; white-space: pre-wrap; }
+  .cm-quest .cm-task-body { color: #a8ff60; font-size: 16px; white-space: normal; }
 </style>
 `);
 
@@ -234,27 +510,15 @@ export const renderQuestRichHtml = ({ lessonHeader, description, task, prismLang
   if (head) chunks.push(`<div class="cm-lesson-header">${escapeHtml(head)}</div>`);
 
   if (desc) {
-    const blocks = parseBlocks(desc);
-    for (const b of blocks) {
-      if (b.type === "code") {
-        const code = String(b.text || "").replace(/^\s{2}/gm, "");
-        const blockLang = (b.lang || lang).toLowerCase();
-        chunks.push(
-          `<pre class="cm-code"><code class="language-${escapeHtml(blockLang)}">${escapeHtml(code)}</code></pre>`
-        );
-      } else {
-        const lines = String(b.text || "").split(/\r?\n/);
-        const htmlLines = lines.map((ln) => renderInlineCode(ln, lang)).join("<br>");
-        chunks.push(`<div class="cm-prose">${htmlLines}</div>`);
-      }
-    }
+    const rendered = md.render(desc);
+    chunks.push(sanitizeQuestHtml(rendered));
   }
 
   if (taskText) {
     chunks.push(`<div class="cm-task">`);
     chunks.push(`<div class="cm-task-title">Task</div>`);
-    const taskLines = taskText.split(/\r?\n/).map((ln) => renderInlineCode(ln, lang)).join("<br>");
-    chunks.push(`<div class="cm-task-body">${taskLines}</div>`);
+    const renderedTask = md.render(taskText);
+    chunks.push(`<div class="cm-task-body">${sanitizeQuestHtml(renderedTask)}</div>`);
     chunks.push(`</div>`);
   }
 

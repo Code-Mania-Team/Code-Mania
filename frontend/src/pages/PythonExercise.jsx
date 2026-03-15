@@ -18,6 +18,7 @@ import MobileControls from "../components/MobileControls";
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 
 
@@ -803,12 +804,16 @@ const PythonExercise = ({ isAuthenticated }) => {
                   {activeExercise?.title || "Quest"}
                 </div>
                 {activeExercise?.description ? (
-                  <p className={styles["practice-desc"]}>{activeExercise.description}</p>
+                  <MarkdownRenderer className={styles["practice-desc"]}>
+                    {activeExercise.description}
+                  </MarkdownRenderer>
                 ) : null}
                 {activeExercise?.task ? (
                   <div className={styles["practice-task"]}>
                     <div className={styles["practice-task-label"]}>Task</div>
-                    <div className={styles["practice-task-body"]}>{activeExercise.task}</div>
+                    <MarkdownRenderer className={styles["practice-task-body"]}>
+                      {activeExercise.task}
+                    </MarkdownRenderer>
                   </div>
                 ) : null}
               </div>

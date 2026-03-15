@@ -1,20 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { Play } from "lucide-react";
 import styles from "../styles/ExamCodeTerminal.module.css";
-
-/* ===============================
-   LANGUAGE FROM URL PARAMS
-=============================== */
-function getLanguageFromPathname() {
-  const pathname = window.location.pathname;
-
-  if (pathname.includes("/python")) return "python";
-  if (pathname.includes("/javascript")) return "javascript";
-  if (pathname.includes("/cpp")) return "cpp";
-
-  return "python";
-}
 
 function getMonacoLang(lang) {
   if (lang === "cpp") return "cpp";
@@ -22,24 +9,17 @@ function getMonacoLang(lang) {
   return "python";
 }
 
-function getStarterCode(lang) {
-  switch (lang) {
-    case "javascript":
-      return `// Write code below ❤️
-console.log("Hello world");`;
-
-    case "cpp":
-      return `#include <iostream>
-
-int main() {
-  std::cout << "Hello world" << std::endl;
-  return 0;
-}`;
-
-    default:
-      return `# Write code below ❤️
-print("Hello world")`;
+function coerceBool(value) {
+  if (value === true) return true;
+  if (value === false) return false;
+  if (value === 1) return true;
+  if (value === 0) return false;
+  if (typeof value === "string") {
+    const s = value.trim().toLowerCase();
+    if (s === "true" || s === "1" || s === "yes") return true;
+    if (s === "false" || s === "0" || s === "no" || s === "") return false;
   }
+  return Boolean(value);
 }
 
 const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
@@ -52,6 +32,9 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const [waitingForInput, setWaitingForInput] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [activeTestCaseIndex, setActiveTestCaseIndex] = useState(0);
+  const [activeResultCaseIndex, setActiveResultCaseIndex] = useState(0);
+  const [activeBottomTab, setActiveBottomTab] = useState("terminal");
+  const [lastSubmitResult, setLastSubmitResult] = useState(null);
 
   const formatCaseValue = (value) => {
     if (value === null || value === undefined) return "";
@@ -68,6 +51,134 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     const formatted = formatCaseValue(value);
     return formatted && String(formatted).trim() ? formatted : "(empty)";
   };
+
+  const buildInputVarsForDisplay = (tc) => {
+    const raw = tc && typeof tc === "object" ? tc : {};
+
+    if (Array.isArray(raw.vars) && raw.vars.length) {
+      return raw.vars
+        .map((v) => ({ name: v?.name, value: v?.value }))
+        .filter((v) => String(v.name || "").trim().length);
+    }
+
+    if (raw.input_vars && typeof raw.input_vars === "object" && !Array.isArray(raw.input_vars)) {
+      return Object.entries(raw.input_vars).map(([name, value]) => ({ name, value }));
+    }
+
+    // If input isn't a string (e.g. JS structured cases), show it as a single value.
+    if (raw.input !== null && raw.input !== undefined && typeof raw.input !== "string") {
+      return [{ name: "input", value: raw.input }];
+    }
+
+    const stdin = String(raw.input ?? "");
+    const lines = stdin.split(/\r?\n/);
+    while (lines.length && lines[lines.length - 1] === "") lines.pop();
+    if (!lines.length) return [];
+
+    const parseWarriorTrialInput = (allLines) => {
+      const head = String(allLines[0] ?? "").trim();
+      if (!/^\d+$/.test(head)) return null;
+      const total = Number(head);
+      if (!Number.isFinite(total) || total <= 0) return null;
+
+      const rest = allLines.slice(1).map((l) => String(l ?? "").trim()).filter(Boolean);
+      if (!rest.length) return null;
+
+      const isYesNo = (v) => {
+        const s = String(v || "").toLowerCase();
+        return s === "yes" || s === "no";
+      };
+      const isInt = (v) => /^-?\d+$/.test(String(v ?? "").trim());
+
+      // Format A: one value per line: name, age, strength, intelligence, armor
+      const looksLikePerLine = rest.length === total * 5;
+      if (looksLikePerLine) {
+        const warriors = [];
+        for (let i = 0; i < total; i += 1) {
+          const base = i * 5;
+          const name = rest[base];
+          const age = rest[base + 1];
+          const strength = rest[base + 2];
+          const intelligence = rest[base + 3];
+          const armor = rest[base + 4];
+
+          if (!name || !isInt(age) || !isInt(strength) || !isInt(intelligence) || !isYesNo(armor)) {
+            return null;
+          }
+
+          warriors.push({
+            name,
+            age: Number(age),
+            strength: Number(strength),
+            intelligence: Number(intelligence),
+            armor: String(armor).toLowerCase(),
+          });
+        }
+
+        if (total === 1) {
+          const w = warriors[0];
+          return [
+            { name: "total_warriors", value: total },
+            { name: "name", value: w.name },
+            { name: "age", value: w.age },
+            { name: "strength", value: w.strength },
+            { name: "intelligence", value: w.intelligence },
+            { name: "armor", value: w.armor },
+          ];
+        }
+
+        return [
+          { name: "total_warriors", value: total },
+          { name: "warriors", value: warriors },
+        ];
+      }
+
+      // Format B: one warrior per line: "name age strength intelligence armor"
+      if (rest.length === total) {
+        const warriors = [];
+        for (let i = 0; i < total; i += 1) {
+          const parts = rest[i].split(/\s+/);
+          if (parts.length < 5) return null;
+          const [name, age, strength, intelligence, armor] = parts;
+          if (!name || !isInt(age) || !isInt(strength) || !isInt(intelligence) || !isYesNo(armor)) {
+            return null;
+          }
+          warriors.push({
+            name,
+            age: Number(age),
+            strength: Number(strength),
+            intelligence: Number(intelligence),
+            armor: String(armor).toLowerCase(),
+          });
+        }
+
+        if (total === 1) {
+          const w = warriors[0];
+          return [
+            { name: "total_warriors", value: total },
+            { name: "name", value: w.name },
+            { name: "age", value: w.age },
+            { name: "strength", value: w.strength },
+            { name: "intelligence", value: w.intelligence },
+            { name: "armor", value: w.armor },
+          ];
+        }
+
+        return [
+          { name: "total_warriors", value: total },
+          { name: "warriors", value: warriors },
+        ];
+      }
+
+      return null;
+    };
+
+    const warriorVars = parseWarriorTrialInput(lines);
+    if (warriorVars) return warriorVars;
+
+    // Fallback: show stdin lines as "Line 1", "Line 2", ...
+    return lines.map((line, idx) => ({ name: `Line ${idx + 1}`, value: line }));
+  };
   const storageKey = `exam_code_${attemptId}_${language}`;
   const MAX_ATTEMPTS = 5;
   const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS;
@@ -75,6 +186,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const showEditor = !isMobileView || mobilePanel === "code";
   const showOutput = !isMobileView || mobilePanel === "output";
   const editorHeight = isMobileView ? "320px" : "430px";
+  const testCasesCount = Array.isArray(testCases) ? testCases.length : 0;
   const terminalBodyRef = useRef(null);
 
   const socketRef = useRef(null);
@@ -88,11 +200,47 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   }, [output, inputBuffer]);
 
   useEffect(() => {
+    if (testCasesCount === 0) {
+      if (activeBottomTab === "cases") setActiveBottomTab("terminal");
+    }
+  }, [testCasesCount, activeBottomTab]);
+
+  useEffect(() => {
     setActiveTestCaseIndex((prev) => {
       const max = Math.max(0, (testCases?.length || 1) - 1);
       return Math.min(prev, max);
     });
   }, [testCases?.length]);
+
+  useEffect(() => {
+    setActiveResultCaseIndex((prev) => {
+      const max = Math.max(0, (testCases?.length || 1) - 1);
+      return Math.min(prev, max);
+    });
+  }, [testCases?.length]);
+
+  const visibleResultCaseIndices = useMemo(() => {
+    const casesArr = Array.isArray(testCases) ? testCases : [];
+    const out = [];
+    for (let i = 0; i < casesArr.length; i += 1) {
+      const tc = casesArr[i];
+      const hidden = coerceBool(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+      if (!hidden) out.push(i);
+    }
+    return out;
+  }, [testCases]);
+
+  const hiddenResultCaseCount = useMemo(() => {
+    const total = Array.isArray(testCases) ? testCases.length : 0;
+    return Math.max(0, total - visibleResultCaseIndices.length);
+  }, [testCases, visibleResultCaseIndices]);
+
+  useEffect(() => {
+    // Keep the result tab focused on a visible (non-hidden) case like LeetCode.
+    if (!visibleResultCaseIndices.length) return;
+    if (visibleResultCaseIndices.includes(activeResultCaseIndex)) return;
+    setActiveResultCaseIndex(visibleResultCaseIndices[0]);
+  }, [activeResultCaseIndex, visibleResultCaseIndices]);
 
   useEffect(() => {
     setCode(initialCode || "");
@@ -140,8 +288,6 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     resetTerminal();
     setIsRunning(true);
 
-    let finalOutput = "";
-
     const socket = new WebSocket(terminalWsUrl);
     socketRef.current = socket;
 
@@ -156,8 +302,6 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
     socket.onmessage = (e) => {
       const text = e.data;
-
-      finalOutput += text;
       write(text);
 
       // If output doesn't end with newline,
@@ -197,6 +341,13 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         localStorage.removeItem(storageKey);
       }
 
+      setLastSubmitResult(result);
+      setTestResults(Array.isArray(result?.results) ? result.results : []);
+      setActiveResultCaseIndex((prev) => {
+        if (visibleResultCaseIndices.length) return visibleResultCaseIndices[0];
+        return Math.max(0, Math.min(prev, Math.max(0, (testCases?.length || 1) - 1)));
+      });
+
       write("\n=== EXAM RESULT ===\n");
       write(`Score: ${result.score_percentage}%\n`);
       write(`Passed: ${result.passed ? "YES" : "NO"}\n`);
@@ -229,6 +380,49 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
       setIsRunning(false);
     }
   };
+
+  const normalizeResultRow = (row, fallbackIndex) => {
+    const r = row && typeof row === "object" ? row : {};
+    const idxRaw = r.test_index ?? r.testIndex ?? fallbackIndex + 1;
+
+    const isHidden = coerceBool(r.is_hidden ?? r.isHidden ?? r.hidden);
+
+    const output = isHidden
+      ? ""
+      : (r.output ??
+        r.stdout ??
+        r.actual_output ??
+        r.actualOutput ??
+        r.actual ??
+        r.result ??
+        "");
+
+    const runtimeMs =
+      typeof r.execution_time_ms === "number"
+        ? r.execution_time_ms
+        : typeof r.runtime_ms === "number"
+          ? r.runtime_ms
+          : typeof r.time_ms === "number"
+            ? r.time_ms
+            : null;
+
+    return {
+      test_index: Number(idxRaw) || fallbackIndex + 1,
+      passed: Boolean(r.passed),
+      output: output === undefined ? "" : output,
+      runtimeMs,
+      isHidden,
+    };
+  };
+
+  const resultsByIndex = useMemo(() => {
+    const map = new Map();
+    (testResults || []).forEach((row, i) => {
+      const norm = normalizeResultRow(row, i);
+      map.set(norm.test_index, norm);
+    });
+    return map;
+  }, [testResults]);
 
   /* ===============================
      HANDLE USER INPUT
@@ -327,8 +521,8 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         >
           <div
             className={styles.examTerminal}
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
+            tabIndex={activeBottomTab === "terminal" ? 0 : -1}
+            onKeyDown={activeBottomTab === "terminal" ? handleKeyDown : undefined}
             style={{
               borderRadius: "14px",
               border: "1px solid rgba(255,255,255,0.06)",
@@ -337,28 +531,48 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
             }}
           >
             {/* HEADER */}
-            <div
-              style={{
-                padding: "0.7rem 1rem",
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
-                background: "rgba(255,255,255,0.03)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              <span style={{ fontWeight: 600, opacity: 0.8 }}>
-                Terminal
-              </span>
+            <div className={styles.examTerminalHeader}>
+              <div className={styles.examTerminalTabs} role="tablist" aria-label="Exam output tabs">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeBottomTab === "terminal"}
+                  className={`${styles.examTerminalTab} ${activeBottomTab === "terminal" ? styles.examTerminalTabActive : ""}`}
+                  onClick={() => setActiveBottomTab("terminal")}
+                >
+                  Terminal
+                </button>
+
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeBottomTab === "cases"}
+                  className={`${styles.examTerminalTab} ${activeBottomTab === "cases" ? styles.examTerminalTabActive : ""}`}
+                  onClick={() => setActiveBottomTab("cases")}
+                  disabled={testCasesCount === 0}
+                  title={testCasesCount === 0 ? "No test cases" : undefined}
+                >
+                  Test Cases
+                  {testCasesCount ? <span className={styles.examTerminalTabCount}>{testCasesCount}</span> : null}
+                </button>
+
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeBottomTab === "result"}
+                  className={`${styles.examTerminalTab} ${activeBottomTab === "result" ? styles.examTerminalTabActive : ""}`}
+                  onClick={() => setActiveBottomTab("result")}
+                  disabled={!lastSubmitResult}
+                  title={!lastSubmitResult ? "Submit to see results" : undefined}
+                >
+                  Test Result
+                </button>
+              </div>
 
               <span
+                className={styles.examTerminalStatus}
                 style={{
-                  fontSize: "0.8rem",
-                  padding: "3px 10px",
-                  borderRadius: "999px",
-                  background: isRunning
-                    ? "rgba(59,130,246,0.2)"
-                    : "rgba(34,197,94,0.15)",
+                  background: isRunning ? "rgba(59,130,246,0.2)" : "rgba(34,197,94,0.15)",
                   color: isRunning ? "#3b82f6" : "#22c55e"
                 }}
               >
@@ -367,115 +581,232 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
             </div>
 
             {/* BODY */}
-            <div
-              ref={terminalBodyRef}
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                padding: "1rem",
-                fontFamily: "monospace",
-                fontSize: "0.9rem",
-                lineHeight: "1.5",
-                background: "#050b17",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word"
-              }}
-            >
-              <pre style={{ margin: 0, color: "#cbd5e1" }}>
-                {output}
+            <div className={styles.examTerminalBody}>
+              {activeBottomTab === "terminal" && (
+                <div ref={terminalBodyRef} className={styles.examTerminalScroll}>
+                  <pre style={{ margin: 0, color: "#cbd5e1" }}>
+                    {output}
 
-                {waitingForInput && (
-                  <>
-                    <span style={{ color: "#22c55e" }}>
-                      {inputBuffer}
-                    </span>
-                    <span style={{ color: "#22c55e" }}>|</span>
-                  </>
-                )}
+                    {waitingForInput && (
+                      <>
+                        <span style={{ color: "#22c55e" }}>
+                          {inputBuffer}
+                        </span>
+                        <span style={{ color: "#22c55e" }}>|</span>
+                      </>
+                    )}
 
-                {!output && !waitingForInput && (
-                  <span style={{ color: "#22c55e", opacity: 0.7 }}>
-                    ▶ Ready for Execution
-                  </span>
-                )}
-              </pre>
-            </div>
-            {testResults.length > 0 && (
-              <div style={{ padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                <h4 style={{ marginBottom: "1rem" }}>Submission Results</h4>
+                    {!output && !waitingForInput && (
+                      <span style={{ color: "#22c55e", opacity: 0.7 }}>
+                        ▶ Ready for Execution
+                      </span>
+                    )}
+                  </pre>
+                </div>
+              )}
 
-                {testResults.map((t, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      padding: "1rem",
-                      borderRadius: "10px",
-                      marginBottom: "0.8rem",
-                      background: t.passed
-                        ? "rgba(16,185,129,0.1)"
-                        : "rgba(239,68,68,0.1)",
-                      border: `1px solid ${t.passed ? "#10b981" : "#ef4444"
-                        }`
-                    }}
-                  >
-                    <strong>Test {index + 1}</strong>
-                    <div>Status: {t.passed ? "✅ Passed" : "❌ Failed"}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-           {testCases && testCases.length > 0 && (
-             <div className={styles.examTestCases}>
-               <div className={styles.examTestCaseHeader}>
-                 <span>Test Cases</span>
-                 <span className={styles.examTestCaseHeaderMeta}>{testCases.length}</span>
-               </div>
-               <div className={styles.examTestCaseBody}>
-                  <div className={styles.examTestTabs} role="tablist" aria-label="Exam test cases">
-                    {testCases.map((tc, idx) => {
-                      const isActive = idx === activeTestCaseIndex;
+              {activeBottomTab === "cases" && (
+                <div className={styles.examTabPanel} role="tabpanel">
+                  <div className={styles.examTestCaseBody}>
+                    <div className={styles.examTestTabs} role="tablist" aria-label="Exam test cases">
+                      {(testCases || []).map((tc, idx) => {
+                        const isActive = idx === activeTestCaseIndex;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            className={`${styles.examTestTab} ${isActive ? styles.examTestTabActive : ""}`}
+                            onClick={() => setActiveTestCaseIndex(idx)}
+                            role="tab"
+                            aria-selected={isActive}
+                          >
+                            Case {idx + 1}
+                            {Boolean(tc?.is_hidden ?? tc?.isHidden) ? (
+                              <span className={styles.examTestTabDot} title="Hidden" />
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {(() => {
+                      const tc = (testCases || [])[activeTestCaseIndex] || {};
                       return (
-                        <button
-                          key={idx}
-                          type="button"
-                          className={`${styles.examTestTab} ${isActive ? styles.examTestTabActive : ""}`}
-                          onClick={() => setActiveTestCaseIndex(idx)}
-                          role="tab"
-                          aria-selected={isActive}
-                        >
-                          Case {idx + 1}
-                          {tc?.is_hidden ? <span className={styles.examTestTabDot} title="Hidden" /> : null}
-                        </button>
+                        <div className={styles.examTestPanel} role="tabpanel">
+                            <div className={styles.examTestPanelHead}>
+                              <div className={styles.examTestPanelTitle}>Case {activeTestCaseIndex + 1}</div>
+                              {Boolean(tc?.is_hidden ?? tc?.isHidden) ? (
+                                <span className={styles.examTestCaseBadge}>Hidden</span>
+                              ) : null}
+                            </div>
+
+                          <div>
+                            <div className={styles.examTestCaseLabel}>Input</div>
+                            {(() => {
+                              const vars = buildInputVarsForDisplay(tc);
+                              if (vars.length) {
+                                return (
+                                  <div className={styles.caseVars}>
+                                    {vars.map((v, i) => (
+                                      <div key={`${v.name}-${i}`} className={styles.caseVar}>
+                                        <div className={styles.caseVarLabel}>
+                                          <span className={styles.caseVarName}>{String(v.name)}</span>
+                                          <span className={styles.caseVarEq}>=</span>
+                                        </div>
+                                        <div className={styles.caseVarValue}>{formatOrEmpty(v.value)}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+
+                              return <div className={styles.examTestCaseValue}>{formatOrEmpty(tc.input)}</div>;
+                            })()}
+                          </div>
+
+                          <div>
+                            <div className={styles.examTestCaseLabel}>Expected Output</div>
+                            <div className={styles.examTestCaseValue}>{formatOrEmpty(tc.expected)}</div>
+                          </div>
+                        </div>
                       );
-                    })}
+                    })()}
                   </div>
+                </div>
+              )}
 
-                  {(() => {
-                    const tc = testCases[activeTestCaseIndex] || {};
-                    return (
-                      <div className={styles.examTestPanel} role="tabpanel">
-                        <div className={styles.examTestPanelHead}>
-                          <div className={styles.examTestPanelTitle}>Case {activeTestCaseIndex + 1}</div>
-                          {tc?.is_hidden ? <span className={styles.examTestCaseBadge}>Hidden</span> : null}
-                        </div>
+              {activeBottomTab === "result" && (
+                <div className={styles.examTabPanel} role="tabpanel">
+                  {!lastSubmitResult ? (
+                    <div className={styles.examEmptyPanel}>No submission yet.</div>
+                  ) : (
+                    (() => {
+                      const total = Array.isArray(testCases) ? testCases.length : 0;
+                      const activeTc = (testCases || [])[activeResultCaseIndex] || {};
+                      const activeTestIndex = activeResultCaseIndex + 1;
+                      const rawRowByOrder = (testResults || [])[activeResultCaseIndex];
+                      const r =
+                        resultsByIndex.get(activeTestIndex) ||
+                        normalizeResultRow(rawRowByOrder || null, activeResultCaseIndex);
 
-                        <div>
-                          <div className={styles.examTestCaseLabel}>Input</div>
-                          <div className={styles.examTestCaseValue}>{formatOrEmpty(tc.input)}</div>
-                        </div>
+                      const hasStdoutField = (() => {
+                        const row = rawRowByOrder && typeof rawRowByOrder === "object" ? rawRowByOrder : null;
+                        if (!row) return false;
+                        return (
+                          "output" in row ||
+                          "stdout" in row ||
+                          "actual_output" in row ||
+                          "actualOutput" in row ||
+                          "result" in row ||
+                          "actual" in row
+                        );
+                      })();
+                      const accepted = Boolean(lastSubmitResult?.passed) || Number(lastSubmitResult?.score_percentage || 0) === 100;
 
-                        <div>
-                          <div className={styles.examTestCaseLabel}>Expected Output</div>
-                          <div className={styles.examTestCaseValue}>{formatOrEmpty(tc.expected)}</div>
+                      const runtimeMs = (() => {
+                        const all = (testResults || [])
+                          .map((row, i) => normalizeResultRow(row, i))
+                          .map((x) => x.runtimeMs)
+                          .filter((x) => typeof x === "number");
+                        if (!all.length) return null;
+                        return all.reduce((a, b) => a + b, 0);
+                      })();
+
+                      const safeInputHidden = coerceBool(activeTc?.is_hidden ?? activeTc?.isHidden ?? r.isHidden);
+                      const safeExpected = safeInputHidden ? "Hidden" : formatOrEmpty(activeTc?.expected);
+
+                      return (
+                        <div className={styles.resultWrap}>
+                          <div className={styles.resultTop}>
+                            <div className={styles.resultVerdictRow}>
+                              <div className={`${styles.resultVerdict} ${accepted ? styles.resultVerdictOk : styles.resultVerdictBad}`}
+                              >
+                                {accepted ? "Accepted" : "Not Accepted"}
+                              </div>
+                              <div className={styles.resultRuntime}>
+                                Runtime: {typeof runtimeMs === "number" ? `${runtimeMs} ms` : "-"}
+                              </div>
+                            </div>
+
+                            <div className={styles.resultCaseTabs} role="tablist" aria-label="Result test cases">
+                              {(visibleResultCaseIndices.length ? visibleResultCaseIndices : []).map((origIdx, visibleIdx) => {
+                                const testIndex = origIdx + 1;
+                                const row = resultsByIndex.get(testIndex);
+                                const passed = Boolean(row?.passed);
+                                const isActive = origIdx === activeResultCaseIndex;
+                                return (
+                                  <button
+                                    key={testIndex}
+                                    type="button"
+                                    className={`${styles.resultCaseTab} ${isActive ? styles.resultCaseTabActive : ""}`}
+                                    onClick={() => setActiveResultCaseIndex(origIdx)}
+                                    role="tab"
+                                    aria-selected={isActive}
+                                  >
+                                    <span
+                                      className={`${styles.resultCaseIcon} ${passed ? styles.resultCaseIconOk : styles.resultCaseIconBad}`}
+                                    />
+                                    Case {visibleIdx + 1}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className={styles.resultSection}>
+                            <div className={styles.resultLabel}>Input</div>
+                            {safeInputHidden ? (
+                              <div className={styles.resultBox}>(Hidden test case)</div>
+                            ) : (
+                              <div className={styles.resultVarsWrap}>
+                                {(() => {
+                                  const vars = buildInputVarsForDisplay(activeTc);
+                                  if (!vars.length) return <div className={styles.resultBox}>(empty)</div>;
+                                  return (
+                                    <div className={styles.caseVars}>
+                                      {vars.map((v, i) => (
+                                        <div key={`${v.name}-${i}`} className={styles.caseVar}>
+                                          <div className={styles.caseVarLabel}>
+                                            <span className={styles.caseVarName}>{String(v.name)}</span>
+                                            <span className={styles.caseVarEq}>=</span>
+                                          </div>
+                                          <div className={styles.caseVarValue}>{formatOrEmpty(v.value)}</div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className={styles.resultSection}>
+                            <div className={styles.resultLabel}>Stdout</div>
+                            <div className={styles.resultBox}>
+                              {safeInputHidden
+                                ? "Hidden"
+                                : String(formatOrEmpty(r.output)) === "(empty)" && !hasStdoutField
+                                  ? "(Runner did not return stdout for this case)"
+                                  : formatOrEmpty(r.output)}
+                            </div>
+                          </div>
+
+                          <div className={styles.resultSection}>
+                            <div className={styles.resultLabel}>Expected</div>
+                            <div className={styles.resultBox}>{safeExpected}</div>
+                          </div>
+
+                          <div className={styles.resultRuntime}>
+                            Visible cases: {visibleResultCaseIndices.length} • Hidden cases: {hiddenResultCaseCount}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })()}
-               </div>
-             </div>
-           )}
+                      );
+                    })()
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

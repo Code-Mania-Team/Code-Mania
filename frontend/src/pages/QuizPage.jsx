@@ -10,6 +10,7 @@ import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import styles from "../styles/QuizPage.module.css";
 import examStyles from "../styles/ExamPage.module.css";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const QuizPage = () => {
   const navigate = useNavigate();
@@ -476,9 +477,11 @@ const QuizPage = () => {
                       return null;
                     })
                   ) : (
-                    <p style={{ color: "#cbd5e1", whiteSpace: "pre-wrap", lineHeight: "1.6" }}>
-                      {typeof quizData.code_prompt === "string" ? quizData.code_prompt : JSON.stringify(quizData.code_prompt)}
-                    </p>
+                    <MarkdownRenderer className={examStyles.lcDescription}>
+                      {typeof quizData.code_prompt === "string"
+                        ? quizData.code_prompt
+                        : JSON.stringify(quizData.code_prompt)}
+                    </MarkdownRenderer>
                   )}
                 </div>
               </div>
