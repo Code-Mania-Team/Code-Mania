@@ -1,5 +1,8 @@
 import ExerciseModel from "../../models/exercises.js";
 import axios from "axios";
+import Notification from "../../models/notification.js";
+import QuizModel from "../../models/quiz.js";
+import { getTotalXpEarned } from "../../services/xpService.js";
 
 const TERMINAL_API_BASE_URL =
   process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
@@ -25,6 +28,68 @@ const parseJsonIfString = (value, fieldName) => {
 class ExerciseController {
   constructor() {
     this.exerciseModel = new ExerciseModel();
+    this.notificationModel = new Notification();
+    this.quizModel = new QuizModel();
+  }
+
+  async maybeTriggerNotifications({ userId, quest, beforeXp, afterXp }) {
+    if (!userId || !quest) return;
+    const langSlug = quest?.programming_languages?.slug || null;
+
+    // XP milestone notifications (selected milestones)
+    const before = Number(beforeXp || 0);
+    const after = Number(afterXp || 0);
+    const milestones = [1000, 5000, 10000];
+    for (const milestone of milestones) {
+      if (before < milestone && after >= milestone) {
+        await this.notificationModel.createOnce({
+          user_id: userId,
+          type: "xp_milestone",
+          title: `Milestone reached: ${milestone.toLocaleString()} XP`,
+          message: "Keep going - your next unlock is closer than you think.",
+          metadata: {
+            milestone_xp: milestone,
+            href: "/dashboard",
+          },
+          dedupe_key: `xp_milestone_${milestone}`,
+        });
+      }
+    }
+
+    // Quiz reminder at stage boundaries (every 4 quests)
+    const orderIndex = Number(quest?.order_index);
+    const languageId = Number(quest?.programming_language_id);
+    const isBoundary = Number.isFinite(orderIndex) && orderIndex > 0 && orderIndex % 4 === 0;
+
+    if (isBoundary && Number.isFinite(languageId) && langSlug) {
+      const stageNumber = Math.floor(orderIndex / 4);
+      try {
+        const quiz = await this.quizModel.getQuizByLanguageAndStage({
+          programmingLanguageId: languageId,
+          stageNumber,
+          select: "id, route",
+        });
+
+        const hasAttempt = await this.quizModel.hasUserAttempt({ userId, quizId: quiz?.id });
+        if (!hasAttempt) {
+          await this.notificationModel.createOnce({
+            user_id: userId,
+            type: "system",
+            title: `Quiz unlocked: ${langSlug.toUpperCase()} Stage ${stageNumber}`,
+            message: "Take the quiz now to lock in what you just learned.",
+            metadata: {
+              language: langSlug,
+              stage: stageNumber,
+              kind: "quiz_reminder",
+              href: `/quiz/${encodeURIComponent(langSlug)}/${encodeURIComponent(String(stageNumber))}`,
+            },
+            dedupe_key: `quiz_reminder_${langSlug}_stage_${stageNumber}`,
+          });
+        }
+      } catch {
+        // If the quiz doesn't exist yet, skip silently.
+      }
+    }
   }
 
   // Validate quest output without marking completion (for "Run" checks)
@@ -647,9 +712,21 @@ class ExerciseController {
       // ==================================================
 
       if (!isAdmin && userId && !alreadyCompleted) {
+<<<<<<< HEAD
+=======
+        const beforeXp = await getTotalXpEarned(userId);
+>>>>>>> d2adc22680f2b0a2915e8ceec5946ec3c48ddc18
         await this.exerciseModel.markQuestComplete(userId, questId);
 
         await this.exerciseModel.addXp(userId, quest.experience);
+
+        const afterXp = Number(beforeXp || 0) + Number(quest.experience || 0);
+        try {
+          await this.maybeTriggerNotifications({ userId, quest, beforeXp, afterXp });
+        } catch (err) {
+          // Notifications are best-effort; do not fail quest completion.
+          console.error("Notification trigger failed:", err);
+        }
 
         if (quest.achievements_id) {
           await this.exerciseModel.grantAchievement(

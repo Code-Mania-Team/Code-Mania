@@ -47,6 +47,20 @@ class QuizModel {
     if (error) throw error;
   }
 
+  async hasUserAttempt({ userId, quizId }) {
+    if (!userId || !quizId) return false;
+    const { data, error } = await supabase
+      .from("user_quiz_attempts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("quiz_id", quizId)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return Boolean(data?.id);
+  }
+
   async listUserAttempts({ userId, limit = 50 }) {
     const query = supabase
       .from("user_quiz_attempts")

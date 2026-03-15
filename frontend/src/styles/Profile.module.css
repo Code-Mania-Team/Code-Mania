@@ -697,9 +697,9 @@ html[data-theme="light"] .signOutBtn:hover {
 }
 
 .deleteBtn {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(239, 68, 68, 0.12);
   color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(239, 68, 68, 0.92);
   padding: 0.5rem 1rem;
   font-family: 'Jersey 10';
   font-size: 1.5rem;
@@ -708,25 +708,25 @@ html[data-theme="light"] .signOutBtn:hover {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 5px 5px 0 rgb(255, 255, 255);
+  box-shadow: 5px 5px 0 rgb(239, 68, 68);
   transition: all 0.3s ease;
   border-radius: 0%;
 }
 
 .deleteBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 7px 7px 0 rgb(255, 255, 255);
+  box-shadow: 7px 7px 0 rgb(239, 68, 68);
 }
 
 html[data-theme="light"] .deleteBtn {
-  background: var(--page-bg);
+  background: rgba(239, 68, 68, 0.08);
   color: var(--text-strong);
-  border: 2px solid var(--border);
-  box-shadow: 5px 5px 0 rgba(15, 23, 42, 0.18);
+  border: 2px solid rgba(239, 68, 68, 0.72);
+  box-shadow: 5px 5px 0 rgba(239, 68, 68, 0.35);
 }
 
 html[data-theme="light"] .deleteBtn:hover {
-  box-shadow: 7px 7px 0 rgba(15, 23, 42, 0.18);
+  box-shadow: 7px 7px 0 rgba(239, 68, 68, 0.35);
 }
 
 /* Modal Styles */
