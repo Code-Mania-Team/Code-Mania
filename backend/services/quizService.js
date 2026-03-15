@@ -148,7 +148,14 @@ class QuizService {
         const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
         if (!looksJson) return value;
         try {
-          return JSON.parse(trimmed);
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            return { sections: parsed };
+          }
+          if (parsed && typeof parsed === "object" && Array.isArray(parsed.sections)) {
+            return parsed;
+          }
+          return value;
         } catch {
           return value;
         }

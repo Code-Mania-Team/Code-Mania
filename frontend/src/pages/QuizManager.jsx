@@ -5,6 +5,7 @@ import { axiosPublic } from "../api/axios";
 import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import TestCasesEditor from "../components/TestCasesEditor";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const LANG_SLUG_BY_COURSE = {
   python: "python",
@@ -78,9 +79,17 @@ const QuizManager = () => {
 
   const handleEdit = async (quiz) => {
     setEditingQuiz(quiz.id);
+    const initialPromptFormat =
+      typeof quiz.code_prompt === "object" && quiz.code_prompt !== null
+        ? "json"
+        : String(quiz.code_prompt ?? "").trim().startsWith("{") ||
+          String(quiz.code_prompt ?? "").trim().startsWith("[")
+          ? "json"
+          : "markdown";
     setFormData({
       ...quiz,
       code_prompt: toPrettyJsonString(quiz.code_prompt, quiz.code_prompt || ""),
+      code_prompt_format: initialPromptFormat,
       test_cases: toPrettyJsonString(quiz.test_cases, "[]"),
     });
 
@@ -90,9 +99,17 @@ const QuizManager = () => {
       });
       if (res.data?.success && res.data?.data) {
         const full = res.data.data;
+        const fullPromptFormat =
+          typeof full.code_prompt === "object" && full.code_prompt !== null
+            ? "json"
+            : String(full.code_prompt ?? "").trim().startsWith("{") ||
+              String(full.code_prompt ?? "").trim().startsWith("[")
+              ? "json"
+              : "markdown";
         setFormData({
           ...full,
           code_prompt: toPrettyJsonString(full.code_prompt, full.code_prompt || ""),
+          code_prompt_format: fullPromptFormat,
           test_cases: toPrettyJsonString(full.test_cases, "[]"),
         });
       }
@@ -129,17 +146,29 @@ const QuizManager = () => {
         }
       }
 
+      const promptFormat = String(formData.code_prompt_format || "markdown").toLowerCase();
       let normalizedPrompt = formData.code_prompt;
-      if (typeof normalizedPrompt === "string") {
-        const raw = normalizedPrompt.trim();
-        const looksJson = raw.startsWith("{") || raw.startsWith("[");
-        if (looksJson && raw) {
+      if (promptFormat === "json") {
+        if (typeof normalizedPrompt === "string") {
+          const raw = normalizedPrompt.trim();
+          if (!raw) {
+            normalizedPrompt = { sections: [] };
+          } else {
+            try {
+              normalizedPrompt = JSON.parse(raw);
+            } catch {
+              alert("Code prompt must be valid JSON when format is JSON.");
+              setSaving(false);
+              return;
+            }
+          }
+        }
+      } else {
+        if (typeof normalizedPrompt !== "string") {
           try {
-            normalizedPrompt = JSON.parse(raw);
+            normalizedPrompt = JSON.stringify(normalizedPrompt, null, 2);
           } catch {
-            alert("Code prompt JSON is invalid. Use plain text or valid JSON.");
-            setSaving(false);
-            return;
+            normalizedPrompt = String(normalizedPrompt ?? "");
           }
         }
       }
@@ -289,10 +318,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const looksLikeJson = (value) => {
-    const s = String(value ?? "").trim();
-    return s.startsWith("{") || s.startsWith("[");
-  };
+  const promptFormat = String(formData.code_prompt_format || "markdown").toLowerCase();
 
   const baseEditorOptions = {
     contextmenu: false,
@@ -352,20 +378,39 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
 
       {isCode ? (
         <>
-          <div className={styles.formGroupFull}>
-            <label>Code Prompt (plain text or JSON)</label>
-            <Editor
+          <div className={styles.formGroup}>
+            <label>Code Prompt Format</label>
+            <select
+              value={promptFormat}
+              onChange={(e) => handleChange("code_prompt_format", e.target.value)}
+            >
+              <option value="markdown">markdown</option>
+              <option value="json">json</option>
+            </select>
+          </div>
+
+           <div className={styles.formGroupFull}>
+            <label>Code Prompt ({promptFormat})</label>
+           <Editor
               height="220px"
-              language={looksLikeJson(formData.code_prompt) ? "json" : "markdown"}
+              language={promptFormat === "json" ? "json" : "markdown"}
               theme="vs-dark"
               value={formData.code_prompt || ""}
               onChange={(v) => handleChange("code_prompt", v ?? "")}
               options={baseEditorOptions}
             />
+
+            {promptFormat === "markdown" ? (
+              <details className={styles.helpDetails}>
+                <summary className={styles.helpSummary}>Preview (Markdown)</summary>
+                <MarkdownRenderer>{formData.code_prompt || ""}</MarkdownRenderer>
+              </details>
+            ) : null}
             <details className={styles.helpDetails}>
-              <summary className={styles.helpSummary}>Prompt JSON format (optional)</summary>
+              <summary className={styles.helpSummary}>Prompt format notes</summary>
               <p className={styles.helpText}>
-                You can paste plain text, or JSON like <code>{"{"} "sections": [...] {"}"}</code>.
+                Use <code>markdown</code> for normal prompts. Use <code>json</code> only for legacy prompts like{" "}
+                <code>{"{"} "sections": [...] {"}"}</code>.
               </p>
             </details>
           </div>

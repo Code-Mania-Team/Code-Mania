@@ -272,7 +272,8 @@
     position: sticky;
     top: 14px;
     align-self: start;
-    max-height: calc(100vh - 140px);
+    /* Match the visible height of the right code+terminal column */
+    max-height: calc(100vh - 28px);
     overflow: auto;
     padding-right: 10px;
     scrollbar-gutter: stable;

@@ -11,6 +11,7 @@ import useGetGameProgress from "../services/getGameProgress";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
 import useAuth from "../hooks/useAxios";
 import { postAchievement } from "../services/postAchievement";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 // Badge IDs for exam completion
 const EXAM_BADGE_MAP = {
@@ -545,126 +546,81 @@ const CodingExamPage = () => {
                 </ul>
               </div>
               <div className={`${styles.questionText} ${styles.lcDescription}`}>
-                {challenge.description?.sections?.map((section, index) => {
-                  if (section?.type === "heading") {
-                    const level = Math.min(4, Math.max(2, Number(section.level || 2)));
-                    const Tag = `h${level}`;
-                    const headingClass =
-                      level === 2 ? styles.lcH2 : level === 3 ? styles.lcH3 : styles.lcH4;
+                {typeof challenge.description === "string" ? (
+                  <MarkdownRenderer>{challenge.description}</MarkdownRenderer>
+                ) : (
+                  challenge.description?.sections?.map((section, index) => {
+                    if (section?.type === "heading") {
+                      const level = Math.min(4, Math.max(2, Number(section.level || 2)));
+                      const Tag = `h${level}`;
+                      const headingClass =
+                        level === 2 ? styles.lcH2 : level === 3 ? styles.lcH3 : styles.lcH4;
 
-                    return (
-                      <Tag
-                        key={index}
-                        className={headingClass}
-                        style={{ marginTop: index === 0 ? 0 : undefined }}
-                      >
-                        {renderInlineCode(section.content, `h-${index}`)}
-                      </Tag>
-                    );
-                  }
-
-                  if (section?.type === "paragraph") {
-                    if (looksLikeExampleBlock(section.content)) {
                       return (
-                        <pre key={index} className={styles.lcPre}>
-                          <code>{String(section.content ?? "")}</code>
-                        </pre>
+                        <Tag
+                          key={index}
+                          className={headingClass}
+                          style={{ marginTop: index === 0 ? 0 : undefined }}
+                        >
+                          {renderInlineCode(section.content, `h-${index}`)}
+                        </Tag>
                       );
                     }
 
-                    return (
-                      <p key={index} className={styles.lcParagraph}>
-                        {renderInlineCode(section.content, `p-${index}`)}
-                      </p>
-                    );
-                  }
+                    if (section?.type === "paragraph") {
+                      if (looksLikeExampleBlock(section.content)) {
+                        return (
+                          <pre key={index} className={styles.lcPre}>
+                            <code>{String(section.content ?? "")}</code>
+                          </pre>
+                        );
+                      }
 
-                  if (section?.type === "list") {
-                    const ListTag = section.style === "number" ? "ol" : "ul";
-                    if (!Array.isArray(section.items) || section.items.length === 0) return null;
+                      return (
+                        <p key={index} className={styles.lcParagraph}>
+                          {renderInlineCode(section.content, `p-${index}`)}
+                        </p>
+                      );
+                    }
 
-                    const allCodeOnly = section.items.every(isBacktickWrapped);
-                    if (allCodeOnly) {
+                    if (section?.type === "list") {
+                      const ListTag = section.style === "number" ? "ol" : "ul";
+                      if (!Array.isArray(section.items) || section.items.length === 0) return null;
+
+                      const allCodeOnly = section.items.every(isBacktickWrapped);
+                      if (allCodeOnly) {
+                        return (
+                          <div key={index} className={styles.lcListWrap}>
+                            <div className={styles.lcChipRow}>
+                              {section.items.map((item, i) => (
+                                <span key={i} className={styles.lcChip}>
+                                  {stripBackticks(item)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+
                       return (
                         <div key={index} className={styles.lcListWrap}>
-                          <div className={styles.lcChipRow}>
+                          <ListTag className={styles.lcList}>
                             {section.items.map((item, i) => (
-                              <span key={i} className={styles.lcChip}>
-                                {stripBackticks(item)}
-                              </span>
+                              <li key={i} className={styles.lcListItem}>
+                                {renderInlineCode(item, `li-${index}-${i}`)}
+                              </li>
                             ))}
-                          </div>
+                          </ListTag>
                         </div>
                       );
                     }
 
-                    return (
-                      <div key={index} className={styles.lcListWrap}>
-                        <ListTag className={styles.lcList}>
-                          {section.items.map((item, i) => (
-                            <li key={i} className={styles.lcListItem}>
-                              {renderInlineCode(item, `li-${index}-${i}`)}
-                            </li>
-                          ))}
-                        </ListTag>
-                      </div>
-                    );
-                  }
-
-                  return null;
-                })}
+                    return null;
+                  })
+                )}
               </div>
 
-              {normalizedTestCases.length > 0 && (
-                <div style={{ marginTop: "1.25rem" }}>
-                  <h3 className={styles.lcH3}>Test Cases</h3>
-                  <div className={styles.lcListWrap}>
-                    <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 10 }}>
-                      Some test cases may be hidden.
-                    </div>
-
-                    <div className={styles.lcTestCasesScroll}>
-                      {normalizedTestCases.slice(0, 6).map((tc, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            padding: "10px 10px",
-                            borderRadius: 12,
-                            border: "1px solid rgba(148,163,184,0.12)",
-                            background: "rgba(255,255,255,0.02)",
-                            marginBottom: 12,
-                          }}
-                        >
-                          <div style={{ fontWeight: 800, color: "#e7eefc", marginBottom: 10 }}>
-                            Test {idx + 1} {tc.is_hidden ? "(Hidden)" : ""}
-                          </div>
-
-                          <div className={styles.lcCaseGrid}>
-                            <div>
-                              <div className={styles.lcCaseLabel}>Input</div>
-                              <pre className={styles.lcPre} style={{ marginBottom: 0 }}>
-                              <code>{formatCaseValue(tc.input) || "(empty)"}</code>
-                            </pre>
-                          </div>
-                          <div>
-                            <div className={styles.lcCaseLabel}>Expected Output</div>
-                            <pre className={styles.lcPre} style={{ marginBottom: 0 }}>
-                              <code>{formatCaseValue(tc.expected) || "(empty)"}</code>
-                            </pre>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    </div>
-
-                    {normalizedTestCases.length > 6 && (
-                      <div style={{ fontSize: 13, color: "#94a3b8" }}>
-                        Showing first 6 test cases.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Test cases now live in the terminal tab strip */}
 
               {showHints && (
                 <div style={{ marginTop: "1rem" }}>

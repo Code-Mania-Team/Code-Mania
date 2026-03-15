@@ -145,3 +145,127 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.varsBox {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(2, 6, 23, 0.25);
+  border-radius: 12px;
+  padding: 10px 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.varsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.varsTitle {
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.95);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.varsActions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.varsBtn {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(148, 163, 184, 0.06);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.varsBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.varsEmpty {
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.varsGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.varRow {
+  display: grid;
+  grid-template-columns: 180px 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.varNameWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.varName {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.45);
+  color: rgba(226, 232, 240, 0.95);
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.varEq {
+  color: rgba(148, 163, 184, 0.9);
+  font-weight: 900;
+}
+
+.varValue {
+  width: 100%;
+  resize: vertical;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(2, 6, 23, 0.45);
+  color: rgba(226, 232, 240, 0.95);
+  font-size: 13px;
+  line-height: 1.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.varRemove {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(148, 163, 184, 0.06);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 12px;
+  height: 36px;
+}
+
+.varRemove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .varRow {
+    grid-template-columns: 1fr;
+  }
+}
