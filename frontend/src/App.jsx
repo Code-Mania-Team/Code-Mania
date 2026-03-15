@@ -4,6 +4,7 @@ import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import FreedomWall from "./pages/FreedomWall";
+import FreedomWallChannelPage from "./pages/FreedomWallChannelPage";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -23,9 +24,14 @@ import Rewards from "./pages/Rewards";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
 import ExamManager from "./pages/ExamManager";
+import QuizManager from "./pages/QuizManager";
 import CodingExamPage from "./pages/CodingExamPage";
 import QuizPage from "./pages/QuizPage";
 import TerminalPage from "./pages/TerminalPage";
+import WeeklyChallengePage from "./pages/WeeklyChallengePage";
+import PastChallengePage from "./pages/PastChallengePage";
+import WeeklyChallengeInfoPage from "./pages/WeeklyChallengeInfoPage";
+import HomeDemoQuest from "./components/HomeDemoQuest";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -62,9 +68,23 @@ const Home = () => (
           Learn programming fundamentals through interactive story-based adventures.
           Build logic step by step while exploring new worlds.
         </p>
-        <Link to="/learn" className="get-started-btn">Get Started</Link>
+        <div className="hero-cta-row">
+          <Link to="/learn" className="get-started-btn">Get Started</Link>
+          <button
+            type="button"
+            className="hero-demo-btn"
+            onClick={() => {
+              const el = document.getElementById("home-demo-quest");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            Try Demo
+          </button>
+        </div>
       </div>
     </section>
+
+    <HomeDemoQuest />
 
     <section className="featured-languages">
       <h2 className="section-title">Featured Languages</h2>
@@ -434,7 +454,7 @@ function App() {
   const authenticatedHomeRedirect = user?.role === "admin" ? "/admin" : "/dashboard";
 
   // hide only footer on freedom wall and PageNotFound
-  const hideFooterOnly = location.pathname === "/freedomwall" ||
+  const hideFooterOnly = location.pathname.startsWith("/freedomwall") ||
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
 
   return (
@@ -509,9 +529,23 @@ function App() {
               />
             }
           />
-          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
+          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="home" />} />
+          <Route path="/freedomwall/challenges" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="challenges" />} />
+          <Route path="/freedomwall/channel/:channelId" element={<FreedomWallChannelPage onOpenModal={() => setIsModalOpen(true)} />} />
+          <Route path="/freedomwall/challenges/past/:taskId" element={<PastChallengePage />} />
+          <Route
+            path="/freedomwall/challenges/task/:taskId"
+            element={<WeeklyChallengeInfoPage />}
+          />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route
+            path="/profile"
+            element={
+              user?.role === "admin"
+                ? <Navigate to="/admin" replace />
+                : <Profile onSignOut={handleSignOut} />
+            }
+          />
           <Route path="/profile/:username" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
             {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
@@ -519,6 +553,7 @@ function App() {
           <Route path="/admin" element={<Admin presenceStats={presenceStats} presenceWsStatus={presenceWsStatus} />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/admin/exams/:course" element={<ExamManager />} />
+          <Route path="/admin/quizzes/:course" element={<QuizManager />} />
           <Route path="/exam/:language" element={<ProtectedRoute>
             <CodingExamPage />
           </ProtectedRoute>} />
@@ -531,6 +566,14 @@ function App() {
               <TerminalPage />
             </ProtectedRoute>
           } />
+          <Route
+            path="/weekly-challenge/:taskId"
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <WeeklyChallengePage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />

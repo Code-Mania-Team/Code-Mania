@@ -55,6 +55,35 @@ const resolveExamXpDisplay = ({ serverXp, attemptNumber, baseXp }) => {
   return Math.max(0, numericBaseXp - (attemptsUsed * penaltyPerFailedSubmit));
 };
 
+const renderInlineCode = (text, keyPrefix = "t") => {
+  const raw = String(text ?? "");
+  if (!raw.includes("`")) return raw;
+
+  const parts = raw.split("`");
+  return parts.map((part, idx) => {
+    const isCode = idx % 2 === 1;
+    if (!isCode) return part;
+    return (
+      <code key={`${keyPrefix}-${idx}`} className={styles.lcInlineCode}>
+        {part}
+      </code>
+    );
+  });
+};
+
+const isBacktickWrapped = (value) => {
+  const s = String(value ?? "").trim();
+  return s.length >= 2 && s.startsWith("`") && s.endsWith("`") && s.slice(1, -1).trim().length > 0;
+};
+
+const stripBackticks = (value) => String(value ?? "").trim().replace(/^`/, "").replace(/`$/, "");
+
+const looksLikeExampleBlock = (value) => {
+  const s = String(value ?? "");
+  if (!s.includes("\n")) return false;
+  return /(\bInput:|\bOutput:|\bExplanation:)/.test(s);
+};
+
 const CodingExamPage = () => {
   const navigate = useNavigate();
   const { language } = useParams();
@@ -247,6 +276,25 @@ const CodingExamPage = () => {
   if (!examData) return <AuthLoadingOverlay />;
 
   const challenge = examData.challenges[currentChallenge];
+
+  const normalizedTestCases = Array.isArray(challenge?.testCases)
+    ? challenge.testCases.map((tc) => ({
+        input: tc?.input ?? tc?.stdin ?? "",
+        expected: tc?.expected ?? tc?.expectedOutput ?? tc?.expected_output ?? "",
+        is_hidden: Boolean(tc?.is_hidden ?? tc?.isHidden),
+      }))
+    : [];
+
+  const formatCaseValue = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  };
 
   const handleRetake = async () => {
     try {
@@ -496,59 +544,66 @@ const CodingExamPage = () => {
                   <li>Exam starts at {Number(challenge.points || 1000)} XP.</li>
                 </ul>
               </div>
-              <div className={styles.questionText}>
+              <div className={`${styles.questionText} ${styles.lcDescription}`}>
                 {challenge.description?.sections?.map((section, index) => {
+                  if (section?.type === "heading") {
+                    const level = Math.min(4, Math.max(2, Number(section.level || 2)));
+                    const Tag = `h${level}`;
+                    const headingClass =
+                      level === 2 ? styles.lcH2 : level === 3 ? styles.lcH3 : styles.lcH4;
 
-                  if (section.type === "heading") {
-                    const Tag = `h${section.level}`;
                     return (
                       <Tag
                         key={index}
-                        style={{
-                          marginTop: index === 0 ? "0" : "1.5rem",
-                          marginBottom: "0.75rem",
-                          color: "#f1f5f9",
-                          fontWeight: "700"
-                        }}
+                        className={headingClass}
+                        style={{ marginTop: index === 0 ? 0 : undefined }}
                       >
-                        {section.content}
+                        {renderInlineCode(section.content, `h-${index}`)}
                       </Tag>
                     );
                   }
 
-                  if (section.type === "paragraph") {
+                  if (section?.type === "paragraph") {
+                    if (looksLikeExampleBlock(section.content)) {
+                      return (
+                        <pre key={index} className={styles.lcPre}>
+                          <code>{String(section.content ?? "")}</code>
+                        </pre>
+                      );
+                    }
+
                     return (
-                      <p
-                        key={index}
-                        style={{
-                          marginBottom: "0.75rem",
-                          color: "#cbd5e1",
-                          lineHeight: "1.6"
-                        }}
-                      >
-                        {section.content}
+                      <p key={index} className={styles.lcParagraph}>
+                        {renderInlineCode(section.content, `p-${index}`)}
                       </p>
                     );
                   }
 
-                  if (section.type === "list") {
+                  if (section?.type === "list") {
                     const ListTag = section.style === "number" ? "ol" : "ul";
+                    if (!Array.isArray(section.items) || section.items.length === 0) return null;
+
+                    const allCodeOnly = section.items.every(isBacktickWrapped);
+                    if (allCodeOnly) {
+                      return (
+                        <div key={index} className={styles.lcListWrap}>
+                          <div className={styles.lcChipRow}>
+                            {section.items.map((item, i) => (
+                              <span key={i} className={styles.lcChip}>
+                                {stripBackticks(item)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
 
                     return (
-                      <div
-                        key={index}
-                        style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(255,255,255,0.06)",
-                          borderRadius: "8px",
-                          padding: "0.75rem 1rem",
-                          marginBottom: "1rem"
-                        }}
-                      >
-                        <ListTag style={{ paddingLeft: "1.2rem", lineHeight: "1.7" }}>
+                      <div key={index} className={styles.lcListWrap}>
+                        <ListTag className={styles.lcList}>
                           {section.items.map((item, i) => (
-                            <li key={i} style={{ marginBottom: "0.4rem" }}>
-                              {item}
+                            <li key={i} className={styles.lcListItem}>
+                              {renderInlineCode(item, `li-${index}-${i}`)}
                             </li>
                           ))}
                         </ListTag>
@@ -559,6 +614,58 @@ const CodingExamPage = () => {
                   return null;
                 })}
               </div>
+
+              {normalizedTestCases.length > 0 && (
+                <div style={{ marginTop: "1.25rem" }}>
+                  <h3 className={styles.lcH3}>Test Cases</h3>
+                  <div className={styles.lcListWrap}>
+                    <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 10 }}>
+                      Some test cases may be hidden.
+                    </div>
+
+                    <div className={styles.lcTestCasesScroll}>
+                      {normalizedTestCases.slice(0, 6).map((tc, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: "10px 10px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(148,163,184,0.12)",
+                            background: "rgba(255,255,255,0.02)",
+                            marginBottom: 12,
+                          }}
+                        >
+                          <div style={{ fontWeight: 800, color: "#e7eefc", marginBottom: 10 }}>
+                            Test {idx + 1} {tc.is_hidden ? "(Hidden)" : ""}
+                          </div>
+
+                          <div className={styles.lcCaseGrid}>
+                            <div>
+                              <div className={styles.lcCaseLabel}>Input</div>
+                              <pre className={styles.lcPre} style={{ marginBottom: 0 }}>
+                              <code>{formatCaseValue(tc.input) || "(empty)"}</code>
+                            </pre>
+                          </div>
+                          <div>
+                            <div className={styles.lcCaseLabel}>Expected Output</div>
+                            <pre className={styles.lcPre} style={{ marginBottom: 0 }}>
+                              <code>{formatCaseValue(tc.expected) || "(empty)"}</code>
+                            </pre>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    </div>
+
+                    {normalizedTestCases.length > 6 && (
+                      <div style={{ fontSize: 13, color: "#94a3b8" }}>
+                        Showing first 6 test cases.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {showHints && (
                 <div style={{ marginTop: "1rem" }}>
                   <h4>Hints:</h4>
