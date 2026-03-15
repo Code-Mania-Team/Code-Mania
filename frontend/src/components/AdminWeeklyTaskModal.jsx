@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import useWeeklyTasksAdmin from "../hooks/useWeeklyTasksAdmin";
 import '../styles/AdminWeeklyTaskModal.css';
 
-const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
-  const { isAdmin, createTask, uploadCoverImage, loading, error: adminError } = useWeeklyTasksAdmin();
+const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null }) => {
+  const { isAdmin, createTask, updateTask, uploadCoverImage, loading, error: adminError } = useWeeklyTasksAdmin();
   const [error, setError] = useState('');
   const [coverImage, setCoverImage] = useState(null);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverError, setCoverError] = useState('');
+  const [didInit, setDidInit] = useState(false);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -22,6 +23,41 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
   
   // Test cases state
   const [testCases, setTestCases] = useState([{ input: '', output: '' }]);
+
+  const taskId = initialTask?.task_id ?? initialTask?.id ?? null;
+  const isEdit = Boolean(taskId);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setDidInit(false);
+      return;
+    }
+    if (!initialTask || didInit) return;
+
+    setTitle(initialTask?.title || '');
+    setDescription(initialTask?.description || '');
+    setRewardXp(Number(initialTask?.reward_xp ?? 100));
+    setDifficulty(String(initialTask?.difficulty || 'medium'));
+    setLanguage(String(initialTask?.language || 'javascript'));
+    setStarterCode(initialTask?.starter_code || '');
+    setSolutionCode(initialTask?.solution_code || '');
+    setMinXpRequired(Number(initialTask?.min_xp_required ?? 5000));
+    setCoverImage(initialTask?.cover_image || null);
+
+    const rawTcs = Array.isArray(initialTask?.test_cases) ? initialTask.test_cases : [];
+    const mapped = rawTcs
+      .map((tc) => {
+        const input = tc?.input ?? '';
+        const output = tc?.output ?? tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? '';
+        return { input: String(input ?? ''), output: String(output ?? '') };
+      })
+      .filter((tc) => tc.input.trim() !== '' || tc.output.trim() !== '');
+
+    setTestCases(mapped.length ? mapped : [{ input: '', output: '' }]);
+
+    setDidInit(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialTask, didInit]);
 
   if (!isOpen) return null;
 
@@ -50,6 +86,8 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
       return;
     }
 
+    if (loading || coverUploading) return;
+
     // Filter out empty test cases
     const validTestCases = testCases.filter(tc => tc.input.trim() !== '' || tc.output.trim() !== '');
 
@@ -69,13 +107,21 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     try {
       setError('');
 
-      const res = await createTask(payload);
-      if (res.data?.success) {
-        if (typeof onTaskAdded === 'function') {
-          onTaskAdded();
-        }
+      const res = isEdit
+        ? await updateTask({ taskId, fields: payload })
+        : await createTask(payload);
+
+      if (res?.success) {
         resetForm();
-        onClose();
+        // Close first so reload/refetch doesn't leave the modal hanging.
+        if (typeof onClose === 'function') {
+          onClose();
+        }
+        if (typeof onTaskAdded === 'function') {
+          setTimeout(() => onTaskAdded(), 0);
+        } else {
+          setTimeout(() => window.location.reload(), 0);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -105,7 +151,7 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     setCoverError('');
     try {
       const res = await uploadCoverImage(file);
-      const url = res?.data?.url;
+      const url = res?.url;
       if (!url) {
         throw new Error(res?.message || 'Upload succeeded but no URL returned');
       }
@@ -121,9 +167,17 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
   return (
     <div className="admin-modal-overlay">
       <div className="admin-modal-content">
+        {loading ? (
+          <div className="admin-modal-saving" aria-live="polite" aria-busy="true">
+            <div className="admin-modal-saving-card">
+              <div className="admin-modal-saving-spinner" />
+              <div className="admin-modal-saving-text">Saving weekly task...</div>
+            </div>
+          </div>
+        ) : null}
         <div className="admin-modal-header">
-          <h2>Create Weekly Task (Code Quiz)</h2>
-          <button className="admin-modal-close" onClick={onClose}>
+          <h2>{isEdit ? 'Edit Weekly Task (Code Quiz)' : 'Create Weekly Task (Code Quiz)'}</h2>
+          <button className="admin-modal-close" onClick={onClose} disabled={loading}>
             <X size={24} />
           </button>
         </div>
@@ -289,9 +343,9 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
               Cancel
             </button>
             <button type="submit" className="btn-submit" disabled={loading}>
-              {loading ? 'Creating...' : (
+              {loading ? (isEdit ? 'Saving...' : 'Creating...') : (
                 <>
-                  <Save size={18} /> Save Weekly Task
+                  <Save size={18} /> {isEdit ? 'Save Changes' : 'Save Weekly Task'}
                 </>
               )}
             </button>

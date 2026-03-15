@@ -779,6 +779,19 @@ html[data-theme="light"] .challenge-wide-meta {
   gap: 0.4rem;
 }
 
+.challenge-meta-prize {
+  max-width: 100%;
+}
+
+.challenge-meta-thumb {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .challenge-meta-pill {
   font-size: 0.7rem;
   font-weight: 900;

@@ -715,9 +715,24 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                                 <Zap size={14} />
                                 +{task.reward_xp} XP
                               </span>
-                             <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
-                               {diff.label}
-                             </span>
+                              {task?.reward_cosmetic ? (
+                                <span className="challenge-meta-item challenge-meta-prize" title={task.reward_cosmetic.name || "Cosmetic"}>
+                                  <Trophy size={14} />
+                                  {task.reward_cosmetic.asset_url ? (
+                                    <img
+                                      className="challenge-meta-thumb"
+                                      src={task.reward_cosmetic.asset_url}
+                                      alt=""
+                                      loading="lazy"
+                                      aria-hidden="true"
+                                    />
+                                  ) : null}
+                                  {task.reward_cosmetic.name || "Cosmetic"}
+                                </span>
+                              ) : null}
+                              <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
+                                {diff.label}
+                              </span>
 
                               {langMeta ? (
                                 <span

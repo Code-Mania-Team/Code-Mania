@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
-import { CalendarDays, Users } from "lucide-react";
+import { CalendarDays, Users, Pencil } from "lucide-react";
 import { axiosPublic } from "../api/axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAxios";
 import useProfileSummary from "../services/useProfileSummary";
 import styles from "../styles/PastChallengePage.module.css";
+import AdminWeeklyTaskModal from "../components/AdminWeeklyTaskModal";
 
 const DEFAULT_COVER =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
@@ -24,8 +25,9 @@ export default function WeeklyChallengeInfoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { totalXp } = useProfileSummary();
+  const isAdmin = user?.role === "admin";
 
   const [tab, setTab] = useState("overview"); // overview | participated
   const [task, setTask] = useState(() => location.state?.task || null);
@@ -33,6 +35,8 @@ export default function WeeklyChallengeInfoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [accepting, setAccepting] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [reloadNonce, setReloadNonce] = useState(0);
 
   const cover = task?.cover_image || task?.coverImage || DEFAULT_COVER;
   const participatedCount = Number(task?.participants_count || participants.length || 0);
@@ -96,7 +100,7 @@ export default function WeeklyChallengeInfoPage() {
     return () => {
       cancelled = true;
     };
-  }, [numericId]);
+  }, [numericId, isAuthenticated, reloadNonce]);
 
   const pageKicker = useMemo(() => {
     const difficulty = String(task?.difficulty || "").trim();
@@ -132,7 +136,17 @@ export default function WeeklyChallengeInfoPage() {
 
         <div className={styles.headerRow}>
           <h1 className={styles.title}>{title}</h1>
-          <button type="button" className={styles.backBtn} onClick={() => navigate("/freedomwall/challenges")}>Back</button>
+          <div style={{ display: "inline-flex", gap: "10px", alignItems: "center" }}>
+            {isAdmin ? (
+              <button type="button" className={styles.backBtn} onClick={() => setEditOpen(true)}>
+                <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                  <Pencil size={16} />
+                  Edit
+                </span>
+              </button>
+            ) : null}
+            <button type="button" className={styles.backBtn} onClick={() => navigate("/freedomwall/challenges")}>Back</button>
+          </div>
         </div>
 
         <div className={styles.tabs} role="tablist" aria-label="Weekly challenge tabs">
@@ -228,10 +242,55 @@ export default function WeeklyChallengeInfoPage() {
                         : "Accept & Start"}
                 </button>
               </div>
+
+              {task?.reward_cosmetic ? (
+                <div className={styles.sideCard}>
+                  <div className={styles.sideCardTitle}>Prize</div>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    {task.reward_cosmetic.asset_url ? (
+                      <div
+                        style={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 14,
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: "rgba(255,255,255,0.03)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flex: "0 0 auto",
+                        }}
+                      >
+                        <img
+                          src={task.reward_cosmetic.asset_url}
+                          alt={task.reward_cosmetic.name || "Cosmetic"}
+                          style={{ width: 44, height: 44, objectFit: "contain" }}
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : null}
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 900 }}>{task.reward_cosmetic.name || "Cosmetic"}</div>
+                      <div style={{ color: "rgba(203, 213, 225, 0.9)", fontSize: "0.9rem" }}>
+                        {task.reward_cosmetic.type === "avatar_frame" ? "Avatar frame" : "Terminal theme"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </aside>
           </div>
         )}
       </div>
+
+      {isAdmin ? (
+        <AdminWeeklyTaskModal
+          isOpen={editOpen}
+          onClose={() => setEditOpen(false)}
+          onTaskAdded={() => setReloadNonce((n) => n + 1)}
+          initialTask={task}
+        />
+      ) : null}
     </div>
   );
 }

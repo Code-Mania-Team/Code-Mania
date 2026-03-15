@@ -37,31 +37,44 @@ class WeeklyTask {
   }
 
   // ── Admin: create a weekly task ──────────────────────────────
-  async createTask({ title, description, reward_xp, difficulty, language, programming_language_id, starter_code, test_cases, solution_code, min_xp_required, starts_at, expires_at, created_by, cover_image }) {
+  async createTask({ title, description, reward_xp, difficulty, language, programming_language_id, starter_code, test_cases, solution_code, min_xp_required, starts_at, expires_at, created_by, cover_image, reward_avatar_frame_key, reward_terminal_skin_id }) {
     const resolvedLangId = await this.resolveProgrammingLanguageId({ programming_language_id, language });
 
-    const { data, error } = await this.db
-      .from("weekly_tasks")
-      .insert({
-        title,
-        description,
-        reward_xp: reward_xp ?? 100,
-        difficulty: difficulty || "medium",
-        starter_code: starter_code || "",
-        test_cases: test_cases || [],
-        solution_code: solution_code || "",
-        cover_image: cover_image || null,
-        programming_language_id: resolvedLangId,
-        min_xp_required: min_xp_required ?? 5000,
-        starts_at: starts_at || new Date().toISOString(),
-        expires_at: expires_at || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        is_active: true,
-        created_by,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select("*, programming_languages ( id, name, slug )")
-      .maybeSingle();
+    const payload = {
+      title,
+      description,
+      reward_xp: reward_xp ?? 100,
+      difficulty: difficulty || "medium",
+      starter_code: starter_code || "",
+      test_cases: test_cases || [],
+      solution_code: solution_code || "",
+      cover_image: cover_image || null,
+      programming_language_id: resolvedLangId,
+      min_xp_required: min_xp_required ?? 5000,
+      starts_at: starts_at || new Date().toISOString(),
+      expires_at: expires_at || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      is_active: true,
+      created_by,
+      reward_avatar_frame_key: reward_avatar_frame_key || null,
+      reward_terminal_skin_id: reward_terminal_skin_id || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Some environments may not have reward columns yet; retry without them.
+    const tryInsert = async (row) => {
+      return this.db
+        .from("weekly_tasks")
+        .insert(row)
+        .select("*, programming_languages ( id, name, slug )")
+        .maybeSingle();
+    };
+
+    let { data, error } = await tryInsert(payload);
+    if (error && /reward_(avatar_frame_key|terminal_skin_id)/i.test(String(error.message || ""))) {
+      const { reward_avatar_frame_key: _a, reward_terminal_skin_id: _t, ...fallback } = payload;
+      ({ data, error } = await tryInsert(fallback));
+    }
 
     if (error) throw error;
     return this.toApiTask(data);
@@ -74,6 +87,13 @@ class WeeklyTask {
     // Column may not exist anymore (legacy payload).
     if (Object.prototype.hasOwnProperty.call(patch, "reward_badge")) {
       delete patch.reward_badge;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(patch, "reward_avatar_frame_key")) {
+      patch.reward_avatar_frame_key = patch.reward_avatar_frame_key || null;
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, "reward_terminal_skin_id")) {
+      patch.reward_terminal_skin_id = patch.reward_terminal_skin_id || null;
     }
 
     if (patch.language || patch.programming_language_id) {
@@ -91,6 +111,19 @@ class WeeklyTask {
       .eq("task_id", task_id)
       .select("*, programming_languages ( id, name, slug )")
       .maybeSingle();
+
+    if (error && /reward_(avatar_frame_key|terminal_skin_id)/i.test(String(error.message || ""))) {
+      delete patch.reward_avatar_frame_key;
+      delete patch.reward_terminal_skin_id;
+      const retry = await this.db
+        .from("weekly_tasks")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("task_id", task_id)
+        .select("*, programming_languages ( id, name, slug )")
+        .maybeSingle();
+      if (retry.error) throw retry.error;
+      return this.toApiTask(retry.data);
+    }
 
     if (error) throw error;
     return this.toApiTask(data);
