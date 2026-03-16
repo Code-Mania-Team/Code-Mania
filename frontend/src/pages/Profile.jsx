@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+
+
+
+
 
 
 
@@ -7,78 +10,87 @@ import styles from '../styles/Profile.module.css';
 
 
 
+
+
+
+
 import { Code, FileCode2, Terminal, LogOut, Trash2, Edit2, Calendar } from 'lucide-react';
+
+
+
+
 
 
 
 const profileBanner = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770453646/profile-banner_wuyk83.jpg';
 
-const LANGUAGE_LOGOS = {
-  python: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/python_gwzofh.png",
-  cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/C_tvqhay.png",
-  cplusplus: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/C_tvqhay.png",
-  "c++": "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/C_tvqhay.png",
-  javascript: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925756/javascript_pypygq.jpg",
-  js: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925756/javascript_pypygq.jpg",
-};
 
-const normalizeLanguageSlug = (raw) => {
-  const value = String(raw || "").trim().toLowerCase();
-  if (value === "c++") return "cpp";
-  return value;
-};
 
 import { useDeleteAccount } from '../services/deleteAccount';
 
+
+
 import { useEditAccount } from '../services/editAccount';
+
+
 
 import useGetProfile from '../services/getProfile';
 
+
+
 import useProfileSummary from '../services/useProfileSummary';
+
+
 
 import useLearningProgress from '../services/useLearningProgress';
 
-import useGetPublicProfile from '../services/getPublicProfile';
 
-import usePublicProfileSummary from '../services/usePublicProfileSummary';
-
-import usePublicLearningProgress from '../services/usePublicLearningProgress';
 
 import useGetAchievements from '../services/getUserAchievements';
 
-import useGetPublicAchievements from '../services/getPublicAchievements';
 
-import useGetQuizAttempts from "../services/getQuizAttempts";
-
-import useGetExamAttempts from "../services/getExamAttempts";
 
 // Character icons from Cloudinary
 
+
+
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
+
+
 
 const characterIcon1 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character1_a6sw9d.png';
 
+
+
 const characterIcon2 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character3_bavsbw.png';
+
+
 
 const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character4_y9owfi.png';
 
+
+
 const FULL_NAME_MAX_LENGTH = 40;
-const EDIT_NAME_COOLDOWN_MS = 60 * 1000;
+
+
+
+
 
 
 
 const Profile = ({ onSignOut }) => {
 
-  const { username: routeUsernameParam } = useParams();
-  const routeUsername = routeUsernameParam ? String(routeUsernameParam) : '';
-  const selfUsername = String(localStorage.getItem('username') || '').trim();
-  const isViewingOtherProfile =
-    Boolean(routeUsername) &&
-    routeUsername.toLowerCase() !== selfUsername.toLowerCase();
 
 
 
-  const [activeTab, setActiveTab] = useState('achievements'); // achievements | learningProgress | assessments
+
+
+
+  const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
+
+
+
+
 
 
 
@@ -86,37 +98,31 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+
+
+
 
 
 
   const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
 
+
+
   const [fullNameDraft, setFullNameDraft] = useState('');
+
+
 
   const [editError, setEditError] = useState('');
 
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
-  const [editCooldownSeconds, setEditCooldownSeconds] = useState(0);
 
-  const getEditCooldownKey = () => {
-    const username = localStorage.getItem('username') || 'guest';
-    return `profileNameLastEditAt_${username}`;
-  };
 
-  const getCooldownRemainingSeconds = () => {
-    const raw = localStorage.getItem(getEditCooldownKey());
-    if (!raw) return 0;
-
-    const lastEditedAt = Number(raw);
-    if (!Number.isFinite(lastEditedAt)) return 0;
-
-    const remainingMs = EDIT_NAME_COOLDOWN_MS - (Date.now() - lastEditedAt);
-    if (remainingMs <= 0) return 0;
-
-    return Math.ceil(remainingMs / 1000);
-  };
 
 
 
@@ -124,33 +130,55 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
   const editAccount = useEditAccount();
+
+
+
+
 
 
 
   const getProfile = useGetProfile();
 
-  const getPublicProfile = useGetPublicProfile();
+
+
+
 
 
 
   const [editFormData, setEditFormData] = useState(() => ({
 
+
+
     userName: localStorage.getItem('fullName') || localStorage.getItem('username') || 'Unknown',
+
+
 
     username: localStorage.getItem('username') ? `@${localStorage.getItem('username')}` : '@',
 
+
+
     characterIcon: localStorage.getItem('selectedCharacterIcon') || '',
+
+
 
   }));
 
 
 
+
+
+
+
   useEffect(() => {
 
-     if (isViewingOtherProfile) return;
 
-    if (isViewingOtherProfile) return;
+
+
 
 
 
@@ -158,11 +186,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       let response;
 
 
 
+
+
+
+
       try {
+
+
+
+
 
 
 
@@ -170,7 +210,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       } catch {
+
+
+
+
 
 
 
@@ -178,7 +226,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       }
+
+
+
+
 
 
 
@@ -186,7 +242,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       const profile = response?.data;
+
+
+
+
 
 
 
@@ -194,7 +258,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       const nextUsername = profile?.username || '';
+
+
+
+
 
 
 
@@ -202,7 +274,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       const nextCharacterId =
+
+
+
+
 
 
 
@@ -210,7 +290,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           ? null
+
+
+
+
 
 
 
@@ -218,7 +306,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       if (nextUsername) localStorage.setItem('username', nextUsername);
+
+
+
+
 
 
 
@@ -226,7 +322,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       if (nextCharacterId !== null && !Number.isNaN(nextCharacterId)) {
+
+
+
+
 
 
 
@@ -234,7 +338,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         const expectedIcon = {
+
+
+
+
 
 
 
@@ -242,7 +354,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           1: characterIcon0,
+
+
+
+
 
 
 
@@ -250,7 +370,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           3: characterIcon3,
+
+
+
+
 
 
 
@@ -258,7 +386,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         if (expectedIcon) {
+
+
+
+
 
 
 
@@ -266,7 +402,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         } else {
+
+
+
+
 
 
 
@@ -274,11 +418,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         }
 
 
 
+
+
+
+
       }
+
+
+
+
 
 
 
@@ -286,7 +442,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         const displayUsername = nextUsername ? `@${nextUsername}` : prev.username;
+
+
+
+
 
 
 
@@ -294,11 +458,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         const nextIcon =
 
 
 
+
+
+
+
           nextCharacterId !== null && !Number.isNaN(nextCharacterId)
+
+
+
+
 
 
 
@@ -306,7 +482,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 0: characterIcon1,
+
+
+
+
 
 
 
@@ -314,7 +498,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 2: characterIcon2,
+
+
+
+
 
 
 
@@ -322,7 +514,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               }[nextCharacterId] || ''
+
+
+
+
 
 
 
@@ -330,11 +530,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         return {
 
 
 
+
+
+
+
           ...prev,
+
+
+
+
 
 
 
@@ -342,7 +554,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           username: displayUsername,
+
+
+
+
 
 
 
@@ -350,7 +570,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         };
+
+
+
+
 
 
 
@@ -358,7 +586,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     };
+
+
+
+
 
 
 
@@ -366,64 +602,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  }, [getProfile, isViewingOtherProfile]);
 
-  useEffect(() => {
-    if (!isViewingOtherProfile) {
-      return;
-    }
 
-    let cancelled = false;
 
-    const load = async () => {
-      try {
-        const response = await getPublicProfile(routeUsername);
-        const profile = response?.data;
-        if (!response?.success || !profile) return;
-        if (cancelled) return;
 
-        const nextUsername = profile?.username || routeUsername;
-        const nextFullName = profile?.full_name || nextUsername || 'Unknown';
-        const nextCharacterId =
-          profile?.character_id === null || profile?.character_id === undefined
-            ? null
-            : Number(profile.character_id);
+  }, []);
 
-        const iconByCharacterId = {
-          0: characterIcon1,
-          1: characterIcon0,
-          2: characterIcon2,
-          3: characterIcon3,
-        };
 
-        const nextIcon =
-          nextCharacterId !== null && !Number.isNaN(nextCharacterId)
-            ? (iconByCharacterId[nextCharacterId] || '')
-            : '';
 
-        setEditFormData((prev) => ({
-          ...prev,
-          userName: nextFullName,
-          username: nextUsername ? `@${nextUsername}` : prev.username,
-          characterIcon: nextIcon,
-        }));
 
-        setActiveTab('achievements');
-      } catch {
-        // ignore
-      }
-    };
-
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getPublicProfile, isViewingOtherProfile, routeUsername]);
 
 
 
   useEffect(() => {
+
+
+
+
 
 
 
@@ -431,7 +626,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       0: characterIcon1,
+
+
+
+
 
 
 
@@ -439,7 +642,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       2: characterIcon2,
+
+
+
+
 
 
 
@@ -447,7 +658,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     };
+
+
+
+
+
+
+
+
 
 
 
@@ -459,7 +682,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       const storedCharacterIdRaw = localStorage.getItem('selectedCharacter');
+
+
+
+
 
 
 
@@ -471,7 +702,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
       if (storedCharacterId === null || Number.isNaN(storedCharacterId)) {
+
+
+
+
 
 
 
@@ -479,7 +722,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         setEditFormData(prev => ({
+
+
+
+
 
 
 
@@ -487,7 +738,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           characterIcon: storedIcon,
+
+
+
+
 
 
 
@@ -495,11 +754,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         return;
 
 
 
+
+
+
+
       }
+
+
+
+
+
+
+
+
 
 
 
@@ -511,7 +786,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       if (expectedIcon) {
+
+
+
+
 
 
 
@@ -519,11 +802,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       } else {
 
 
 
+
+
+
+
         localStorage.removeItem('selectedCharacterIcon');
+
+
+
+
 
 
 
@@ -535,7 +830,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
       setEditFormData(prev => ({
+
+
+
+
 
 
 
@@ -543,7 +850,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         characterIcon: expectedIcon || '',
+
+
+
+
 
 
 
@@ -551,7 +866,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     };
+
+
+
+
+
+
+
+
 
 
 
@@ -567,7 +894,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
     const handleStorageChange = (e) => {
+
+
+
+
 
 
 
@@ -575,7 +914,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         loadCharacterIcon();
+
+
+
+
 
 
 
@@ -583,7 +930,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     };
+
+
+
+
+
+
+
+
 
 
 
@@ -595,11 +954,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       loadCharacterIcon();
 
 
 
+
+
+
+
     };
+
+
+
+
+
+
+
+
 
 
 
@@ -611,7 +986,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     window.addEventListener('characterUpdated', handleCharacterUpdate);
+
+
+
+
+
+
+
+
 
 
 
@@ -623,7 +1010,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       window.removeEventListener('storage', handleStorageChange);
+
+
+
+
 
 
 
@@ -631,11 +1026,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     };
 
 
 
-  }, [isViewingOtherProfile]);
+
+
+
+
+  }, []);
+
+
+
+
+
+
+
+
 
 
 
@@ -645,128 +1056,93 @@ const Profile = ({ onSignOut }) => {
 
   const { totalXp, badgeCount } = useProfileSummary();
 
-  const { totalXp: publicTotalXp, badgeCount: publicBadgeCount } = usePublicProfileSummary(
-    isViewingOtherProfile ? routeUsername : ''
-  );
+
 
   const { progress: learningProgressRows } = useLearningProgress();
 
-  const { progress: publicLearningProgressRows } = usePublicLearningProgress(
-    isViewingOtherProfile ? routeUsername : ''
-  );
+
 
   const { achievements } = useGetAchievements();
 
-  const { achievements: publicAchievements } = useGetPublicAchievements(
-    isViewingOtherProfile ? routeUsername : ''
-  );
+  console.log("Achievements data:", achievements);
 
-  const displayedTotalXp = isViewingOtherProfile ? publicTotalXp : totalXp;
-  const displayedBadgeCount = isViewingOtherProfile ? publicBadgeCount : badgeCount;
 
-  const effectiveLearningProgressRows = isViewingOtherProfile
-    ? publicLearningProgressRows
-    : learningProgressRows;
-
-  const effectiveAchievements = isViewingOtherProfile
-    ? publicAchievements
-    : achievements;
-
-  const getQuizAttempts = useGetQuizAttempts();
-
-  const getExamAttempts = useGetExamAttempts();
-
-  const [quizAttempts, setQuizAttempts] = useState([]);
-  const [examAttempts, setExamAttempts] = useState([]);
-  const [assessmentsLoading, setAssessmentsLoading] = useState(false);
-  const [assessmentsError, setAssessmentsError] = useState('');
 
   const learningProgress = {
-    python: { progress: 0, total: 16, completed: 0, icon: <Terminal size={20} /> },
-    cpp: { progress: 0, total: 16, completed: 0, icon: <Code size={20} /> },
-    javascript: { progress: 0, total: 16, completed: 0, icon: <FileCode2 size={20} /> },
+
+    python: { progress: 0, total: 0, icon: <Terminal size={20} /> },
+
+    cpp: { progress: 0, total: 0, icon: <Code size={20} /> },
+
+    javascript: { progress: 0, total: 0, icon: <FileCode2 size={20} /> },
+
   };
 
-  (effectiveLearningProgressRows || []).forEach((row) => {
+
+
+  (learningProgressRows || []).forEach((row) => {
+
     const languageId = Number(row?.programming_language_id);
+
     const languageById = {
+
       1: 'python',
+
       2: 'cpp',
+
       3: 'javascript',
+
     };
+
+
 
     const languageKey = languageById[languageId];
+
     if (!languageKey || !learningProgress[languageKey]) return;
 
-    const completed = Number(row?.completed || 0);
-    const total = Number(row?.total || 16);
-    const computedProgress = total > 0
-      ? Math.round((completed / total) * 100)
-      : Number(row?.percentage || 0);
+
 
     learningProgress[languageKey] = {
+
       ...learningProgress[languageKey],
-      progress: computedProgress,
-      total,
-      completed,
+
+      progress: Number(row?.percentage || 0),
+
+      total: Number(row?.total || 0),
+
+      completed: Number(row?.completed || 0),
+
     };
+
   });
 
-  const badges = (effectiveAchievements || []).map((item) => ({
+
+
+  const badges = (achievements || []).map((item) => ({
+
     id: item?.id,
+
     title: item?.title || 'Achievement',
+
     description: item?.description || '',
+
     received: item?.earned_at
+
       ? new Date(item.earned_at).toLocaleString()
+
       : 'Locked',
+
     badgeUrl: item?.badge_key,
+
   }));
 
-  useEffect(() => {
-    if (isViewingOtherProfile) return;
-    if (activeTab !== "assessments") return;
-    if (assessmentsLoading) return;
-    if (quizAttempts.length || examAttempts.length) return;
 
-    let cancelled = false;
 
-    const load = async () => {
-      setAssessmentsLoading(true);
-      setAssessmentsError('');
-      try {
-        const [quizRes, examRes] = await Promise.all([
-          getQuizAttempts({ limit: 200 }),
-          getExamAttempts({ limit: 200 }),
-        ]);
 
-        if (cancelled) return;
 
-        const quizRows = quizRes?.success ? (quizRes?.data || []) : [];
-        const examRows = examRes?.success ? (examRes?.data || []) : [];
 
-        setQuizAttempts(Array.isArray(quizRows) ? quizRows : []);
-        setExamAttempts(Array.isArray(examRows) ? examRows : []);
 
-        if (!quizRes?.success || !examRes?.success) {
-          setAssessmentsError(
-            quizRes?.message || examRes?.message || 'Failed to load quiz/exam history'
-          );
-        }
-      } catch (err) {
-        if (cancelled) return;
-        setAssessmentsError(err?.response?.data?.message || err?.message || 'Failed to load quiz/exam history');
-      } finally {
-        if (cancelled) return;
-        setAssessmentsLoading(false);
-      }
-    };
 
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, isViewingOtherProfile]);
 
 
 
@@ -778,11 +1154,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     setIsSignOutConfirmOpen(true);
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -794,7 +1186,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     if (onSignOut) {
+
+
+
+
 
 
 
@@ -802,7 +1202,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     }
+
+
+
+
 
 
 
@@ -810,7 +1218,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     // Optionally redirect to home page after sign out
+
+
+
+
 
 
 
@@ -818,7 +1234,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -830,11 +1258,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     setIsSignOutConfirmOpen(false);
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -846,11 +1290,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     setIsDeleteConfirmOpen(true);
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -862,7 +1322,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     try {
+
+
+
+
 
 
 
@@ -870,7 +1338,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     } catch (error) {
+
+
+
+
 
 
 
@@ -878,11 +1354,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       return;
 
 
 
+
+
+
+
     }
+
+
+
+
 
 
 
@@ -890,11 +1378,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     const username = localStorage.getItem('username');
 
 
 
+
+
+
+
     
+
+
+
+
 
 
 
@@ -902,7 +1402,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     localStorage.removeItem('username');
+
+
+
+
 
 
 
@@ -910,7 +1418,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     localStorage.removeItem('selectedCharacter');
+
+
+
+
 
 
 
@@ -918,7 +1434,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     localStorage.removeItem('hasSeenOnboarding');
+
+
+
+
 
 
 
@@ -926,7 +1450,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     localStorage.removeItem('hasTouchedCourse');
+
+
+
+
 
 
 
@@ -934,7 +1466,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     localStorage.removeItem('lastCourseRoute');
+
+
+
+
 
 
 
@@ -942,7 +1482,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     
+
+
+
+
 
 
 
@@ -950,7 +1498,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     if (username) {
+
+
+
+
 
 
 
@@ -958,7 +1514,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       localStorage.removeItem(`${username}_cpp_completed_exercises`);
+
+
+
+
 
 
 
@@ -966,7 +1530,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     }
+
+
+
+
 
 
 
@@ -974,11 +1546,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     localStorage.removeItem('javascript_completed_exercises');
 
 
 
+
+
+
+
     localStorage.removeItem('cpp_completed_exercises');
+
+
+
+
 
 
 
@@ -990,7 +1574,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
     window.dispatchEvent(new Event('authchange'));
+
+
+
+
 
 
 
@@ -998,11 +1594,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     window.location.href = '/';
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -1014,11 +1626,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     setIsDeleteConfirmOpen(false);
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -1027,14 +1655,28 @@ const Profile = ({ onSignOut }) => {
 
 
   const handleEditAccount = () => {
+
     setFullNameDraft(editFormData.userName || '');
+
     setEditError('');
-    setEditCooldownSeconds(getCooldownRemainingSeconds());
+
     setIsEditModalOpen(true);
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -1044,40 +1686,57 @@ const Profile = ({ onSignOut }) => {
 
   const handleSaveEdit = async () => {
 
-    if (isSavingEdit) return;
 
-    const remainingSeconds = getCooldownRemainingSeconds();
-    if (remainingSeconds > 0) {
-      setEditCooldownSeconds(remainingSeconds);
-      setEditError(`Please wait ${remainingSeconds}s before changing your name again.`);
-      return;
-    }
 
     const normalizedName = (fullNameDraft || '').trim();
 
+
+
     if (!normalizedName) {
+
+
 
       setEditError('Full name is required.');
 
+
+
       return;
 
+
+
     }
+
+
 
     if (normalizedName.length > FULL_NAME_MAX_LENGTH) {
 
+
+
       setEditError(`Full name must be ${FULL_NAME_MAX_LENGTH} characters or fewer.`);
+
+
 
       return;
 
+
+
     }
+
+
 
     setEditError('');
 
-    setIsSavingEdit(true);
+
+
+
 
 
 
     try {
+
+
+
+
 
 
 
@@ -1089,15 +1748,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
       if (response?.full_name) {
+
+
+
+
 
 
 
         localStorage.setItem('fullName', response.full_name);
 
-        localStorage.setItem(getEditCooldownKey(), String(Date.now()));
 
-        setEditCooldownSeconds(Math.ceil(EDIT_NAME_COOLDOWN_MS / 1000));
+
+
 
 
 
@@ -1109,7 +1780,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
       setEditFormData(prev => ({
+
+
+
+
 
 
 
@@ -1117,7 +1800,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         userName: response?.full_name || prev.userName,
+
+
+
+
 
 
 
@@ -1129,7 +1820,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
       setIsEditModalOpen(false);
+
+
+
+
 
 
 
@@ -1137,21 +1840,39 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       console.error('Edit account failed:', error);
+
+
 
       setEditError(error?.response?.data?.message || 'Failed to update profile name.');
 
 
 
-    } finally {
 
-      setIsSavingEdit(false);
+
+
 
     }
 
 
 
+
+
+
+
   };
+
+
+
+
+
+
+
+
 
 
 
@@ -1160,25 +1881,28 @@ const Profile = ({ onSignOut }) => {
 
 
   const handleEditInputChange = (e) => {
+
     const value = String(e.target.value || '').slice(0, FULL_NAME_MAX_LENGTH);
+
+
 
     setFullNameDraft(value);
 
+
+
     if (editError) setEditError('');
+
+
 
   };
 
-  useEffect(() => {
-    if (!isEditModalOpen) return;
 
-    setEditCooldownSeconds(getCooldownRemainingSeconds());
 
-    const timer = setInterval(() => {
-      setEditCooldownSeconds(getCooldownRemainingSeconds());
-    }, 1000);
 
-    return () => clearInterval(timer);
-  }, [isEditModalOpen]);
+
+
+
+
 
 
 
@@ -1190,7 +1914,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
     <div className={styles.mainWrapper}>
+
+
+
+
 
 
 
@@ -1198,7 +1930,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         <img className={styles.coverBannerImage} src={profileBanner} alt="" />
+
+
+
+
 
 
 
@@ -1206,7 +1946,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           <div className={styles.coverOverlayInner}>
+
+
+
+
 
 
 
@@ -1214,7 +1962,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <div className={styles.avatar}>
+
+
+
+
 
 
 
@@ -1222,7 +1978,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                   <img 
+
+
+
+
 
 
 
@@ -1230,7 +1994,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     alt="Character Avatar" 
+
+
+
+
 
 
 
@@ -1238,7 +2010,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                   />
+
+
+
+
 
 
 
@@ -1246,7 +2026,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                   (editFormData.userName || editFormData.username || 'U')
+
+
+
+
 
 
 
@@ -1254,7 +2042,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     .trim()
+
+
+
+
 
 
 
@@ -1262,7 +2058,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     .toUpperCase()
+
+
+
+
 
 
 
@@ -1270,11 +2074,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               </div>
 
 
 
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
 
 
 
@@ -1286,7 +2106,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <div className={styles.joinDate}>
+
+
+
+
 
 
 
@@ -1294,11 +2122,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 <span>Joined Jan 2026</span>
 
 
 
+
+
+
+
               </div>
+
+
+
+
 
 
 
@@ -1306,7 +2146,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <p className={styles.username}>{editFormData.username}</p>
+
+
+
+
 
 
 
@@ -1318,8 +2166,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
-            {!isViewingOtherProfile ? (
-              <button className={styles.coverEditProfileBtn} onClick={handleEditAccount}>
+
+
+
+
+
+
+
+
+            <button className={styles.coverEditProfileBtn} onClick={handleEditAccount}>
+
+
+
+
 
 
 
@@ -1327,23 +2186,45 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               Edit profile
 
 
 
-              </button>
-            ) : null}
+
+
+
+
+            </button>
+
+
 
             <div className={styles.mobileCoverStats}>
+
               <div className={styles.mobileCoverStatItem}>
-                <span className={styles.mobileCoverStatValue}>{displayedTotalXp || 0}</span>
+
+                <span className={styles.mobileCoverStatValue}>{totalXp || 0}</span>
+
                 <span className={styles.mobileCoverStatLabel}>XP</span>
+
               </div>
+
               <div className={styles.mobileCoverStatItem}>
-                <span className={styles.mobileCoverStatValue}>{displayedBadgeCount || badges.length || 0}</span>
+
+                <span className={styles.mobileCoverStatValue}>{badgeCount || badges.length || 0}</span>
+
                 <span className={styles.mobileCoverStatLabel}>Badges</span>
+
               </div>
+
             </div>
+
+
+
+
 
 
 
@@ -1351,13 +2232,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         </div>
+
+
+
+
 
 
 
       </div>
 
+
+
       <div className={styles.layout}>
+
+
+
+
 
 
 
@@ -1365,7 +2260,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         {/* Tabs */}
+
+
+
+
 
 
 
@@ -1373,7 +2276,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           <button
+
+
+
+
 
 
 
@@ -1381,11 +2292,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             onClick={() => setActiveTab('achievements')}
 
 
 
+
+
+
+
           >
+
+
+
+
 
 
 
@@ -1393,7 +2316,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           </button>
+
+
+
+
 
 
 
@@ -1401,7 +2332,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             className={`${styles.tab} ${activeTab === 'learningProgress' ? styles.active : ''}`}
+
+
+
+
 
 
 
@@ -1409,7 +2348,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           >
+
+
+
+
 
 
 
@@ -1417,20 +2364,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           </button>
 
-          {!isViewingOtherProfile ? (
-            <button
-              className={`${styles.tab} ${activeTab === 'assessments' ? styles.active : ''}`}
-              onClick={() => setActiveTab('assessments')}
-            >
-              QUIZZES & EXAMS
-            </button>
-          ) : null}
+
+
+
 
 
 
         </div>
+
+
+
+
+
+
+
+
 
 
 
@@ -1442,7 +2396,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         <div className={styles.tabContent}>
+
+
+
+
 
 
 
@@ -1450,15 +2412,55 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             <div className={styles.achievementsTable}>
 
 
 
-               {badges.length === 0 ? (
-                 <div className={styles.emptyState}>
-                   <p>No achievements earned yet.</p>
-                   <p className={styles.emptyStateSecondary}>Complete exercises to unlock badges!</p>
-                 </div>
+
+
+
+
+              {badges.length === 0 ? (
+
+
+
+
+
+
+
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+
+
+
+
+
+
+
+                  <p>No achievements earned yet.</p>
+
+
+
+
+
+
+
+                  <p style={{ fontSize: '14px', marginTop: '8px' }}>Complete exercises to unlock badges!</p>
+
+
+
+
+
+
+
+                </div>
+
+
+
+
 
 
 
@@ -1466,7 +2468,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 <>
+
+
+
+
 
 
 
@@ -1474,7 +2484,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     <span className={styles.badgeHeader}>Badges</span>
+
+
+
+
 
 
 
@@ -1482,11 +2500,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     <span className={styles.receivedHeader}>Received</span>
 
 
 
+
+
+
+
                   </div>
+
+
+
+
 
 
 
@@ -1494,7 +2524,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     <div key={badge.id} className={styles.tableRow}>
+
+
+
+
 
 
 
@@ -1502,7 +2540,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                         <img
+
+
+
+
 
 
 
@@ -1510,7 +2556,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                           src={badge.badgeUrl || "/default-badge.png"}
+
+
+
+
 
 
 
@@ -1518,11 +2572,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                         />
 
 
 
+
+
+
+
                       </div>
+
+
+
+
 
 
 
@@ -1530,7 +2596,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                         <div className={styles.achievementTitle}>{badge.title}</div>
+
+
+
+
 
 
 
@@ -1538,7 +2612,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                       </div>
+
+
+
+
 
 
 
@@ -1546,7 +2628,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     </div>
+
+
+
+
 
 
 
@@ -1554,7 +2644,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 </>
+
+
+
+
 
 
 
@@ -1562,11 +2660,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </div>
 
 
 
+
+
+
+
           )}
+
+
+
+
 
 
 
@@ -1574,7 +2684,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           {activeTab === 'learningProgress' && (
+
+
+
+
 
 
 
@@ -1582,7 +2700,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <h3 className={styles.progressTitle}>Your Learning Progress</h3>
+
+
+
+
 
 
 
@@ -1590,7 +2716,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                {Object.entries(learningProgress).map(([language, { progress, completed, total, icon }]) => (
+
+
+
+
+                {Object.entries(learningProgress).map(([language, { progress, total, icon }]) => (
+
+
+
+
 
 
 
@@ -1598,7 +2732,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     <div className={styles.progressHeader}>
+
+
+
+
 
 
 
@@ -1606,7 +2748,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                         <span className={styles.languageIcon}>{icon}</span>
+
+
+
+
 
 
 
@@ -1614,7 +2764,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                           {language === 'cpp' ? 'C++' : language.charAt(0).toUpperCase() + language.slice(1)}
+
+
+
+
 
 
 
@@ -1622,15 +2780,31 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                      </div>  
 
 
 
-                      <span className={styles.progressText}>{completed}/{total}</span>
+
+                      </div>
+
+
+
+
+
+
+
+                      <span className={styles.progressText}>{progress}%</span>
+
+
+
+
 
 
 
                     </div>
+
+
+
+
 
 
 
@@ -1638,7 +2812,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                       <div 
+
+
+
+
 
 
 
@@ -1646,7 +2828,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                         style={{ width: `${progress}%` }}
+
+
+
+
 
 
 
@@ -1654,11 +2844,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                     </div>
 
 
 
+
+
+
+
                   </div>
+
+
+
+
 
 
 
@@ -1666,7 +2868,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               </div>
+
+
+
+
 
 
 
@@ -1674,131 +2884,47 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           )}
 
-          {activeTab === 'assessments' && !isViewingOtherProfile && (
-            <div className={styles.assessmentsContainer}>
-              <h3 className={styles.progressTitle}>Your Quiz & Exam History</h3>
 
-              <div className={styles.assessmentsSection}>
-                <div className={styles.assessmentsSectionTitle}>Quizzes</div>
-                {quizAttempts.length === 0 ? (
-                  <div className={styles.assessmentsEmpty}>
-                    No quiz attempts yet.
-                  </div>
-                ) : (
-                  <div className={styles.historyTable}>
-                    <div className={styles.historyHeader}>
-                      <span>Type</span>
-                      <span>Score</span>
-                      <span>XP</span>
-                      <span>Date</span>
-                    </div>
-                    {quizAttempts.map((a) => (
-                      <div key={`quiz-${a.id}`} className={styles.historyRow}>
-                        <div className={styles.historyMain}>
-                          <div className={styles.historyTitle}>
-                            <span className={styles.historyType}>
-                              <img
-                                className={styles.historyLangLogo}
-                                src={LANGUAGE_LOGOS[normalizeLanguageSlug(a.language)] || LANGUAGE_LOGOS.javascript}
-                                alt={String(a.language || "language").toUpperCase()}
-                                loading="lazy"
-                              />
-                              <span className={styles.historyTypeText}>-</span>
-                            </span>
-                            {a.quizTitle || 'Quiz'}
-                          </div>
-                          <div className={styles.historyMeta}>
-                            {a.isPassed ? 'Passed' : 'Failed'}
-                            {Number.isFinite(Number(a.totalQuestions)) && Number(a.totalQuestions) > 0
-                              ? ` • ${a.totalCorrect}/${a.totalQuestions}`
-                              : ''}
-                          </div>
-                        </div>
 
-                        <div className={styles.historyStat}>
-                          {Math.round(Number(a.scorePercentage || 0))}%
-                        </div>
 
-                        <div className={styles.historyStat}>
-                          {Number(a.earnedXp || 0)}
-                        </div>
 
-                        <div className={styles.historyDate}>
-                          {a.submittedAt ? new Date(a.submittedAt).toLocaleString() : '-'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              <div className={styles.assessmentsSection}>
-                <div className={styles.assessmentsSectionTitle}>Exams</div>
-                {examAttempts.length === 0 ? (
-                  <div className={styles.assessmentsEmpty}>
-                    No exam attempts yet.
-                  </div>
-                ) : (
-                  <div className={styles.historyTable}>
-                    <div className={styles.historyHeader}>
-                      <span>Type</span>
-                      <span>Attempt</span>
-                      <span>XP</span>
-                      <span>Date</span>
-                    </div>
-                    {examAttempts.map((a) => {
-                      const title = a?.exam_problems?.problem_title || 'Exam';
-                      const lang = a?.exam_problems?.programming_languages?.slug || a?.language || '';
-                      const attemptNo = Number(a?.attempt_number || 0);
-                      const score = Math.round(Number(a?.score_percentage || 0));
-                      const passed = Boolean(a?.passed);
-                      const xp = Number(a?.earned_xp || 0);
-                      const submittedAt = a?.created_at;
 
-                      return (
-                        <div key={`exam-${a.id}`} className={styles.historyRow}>
-                          <div className={styles.historyMain}>
-                            <div className={styles.historyTitle}>
-                              <span className={styles.historyType}>
-                                <img
-                                  className={styles.historyLangLogo}
-                                  src={LANGUAGE_LOGOS[normalizeLanguageSlug(lang)] || LANGUAGE_LOGOS.javascript}
-                                  alt={String(lang || "language").toUpperCase()}
-                                  loading="lazy"
-                                />
-                                <span className={styles.historyTypeText}>-</span>
-                              </span>
-                              {title}
-                            </div>
-                            <div className={styles.historyMeta}>
-                              {passed ? 'Passed' : 'In Progress/Failed'} • {score}%
-                            </div>
-                          </div>
-
-                          <div className={styles.historyStat}>
-                            {attemptNo}/5
-                          </div>
-
-                          <div className={styles.historyStat}>
-                            {xp}
-                          </div>
-
-                          <div className={styles.historyDate}>
-                            {submittedAt ? new Date(submittedAt).toLocaleString() : '-'}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       {/* Edit Account Modal */}
+
+
+
+
 
 
 
@@ -1806,7 +2932,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         <div className={styles.modalOverlay} onClick={() => setIsEditModalOpen(false)}>
+
+
+
+
 
 
 
@@ -1814,7 +2948,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             <h2 className={styles.modalTitle}>Edit Account</h2>
+
+
+
+
 
 
 
@@ -1822,7 +2964,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <label htmlFor="userName" className={styles.formLabel}>Full Name</label>
+
+
+
+
 
 
 
@@ -1830,7 +2980,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 type="text"
+
+
+
+
 
 
 
@@ -1838,7 +2996,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 name="userName"
+
+
+
+
 
 
 
@@ -1846,9 +3012,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 onChange={handleEditInputChange}
 
+
+
                 maxLength={FULL_NAME_MAX_LENGTH}
+
+
+
+
 
 
 
@@ -1856,23 +3032,47 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               />
+
+
 
               <small style={{ display: 'block', marginTop: '8px', opacity: 0.7 }}>
 
+
+
                 {fullNameDraft.length}/{FULL_NAME_MAX_LENGTH}
+
+
 
               </small>
 
+
+
               {editError ? (
 
+
+
                 <p style={{ marginTop: '8px', color: '#f87171', fontSize: '0.9rem' }}>{editError}</p>
+
+
 
               ) : null}
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -1880,11 +3080,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <button
-                className={styles.cancelBtn}
-                onClick={() => setIsEditModalOpen(false)}
-                disabled={isSavingEdit}
-              >
+
+
+
+
+              <button className={styles.cancelBtn} onClick={() => setIsEditModalOpen(false)}>
+
+
+
+
 
 
 
@@ -1892,27 +3096,39 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              </button>
 
-
-
-              <button
-                className={styles.saveBtn}
-                onClick={handleSaveEdit}
-                disabled={isSavingEdit || editCooldownSeconds > 0}
-              >
-
-
-
-                {isSavingEdit
-                  ? 'Editing...'
-                  : editCooldownSeconds > 0
-                    ? `Wait ${editCooldownSeconds}s`
-                    : 'Save Changes'}
 
 
 
               </button>
+
+
+
+
+
+
+
+              <button className={styles.saveBtn} onClick={handleSaveEdit}>
+
+
+
+
+
+
+
+                Save Changes
+
+
+
+
+
+
+
+              </button>
+
+
+
+
 
 
 
@@ -1920,7 +3136,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           </div>
+
+
+
+
 
 
 
@@ -1928,7 +3152,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       )}
+
+
+
+
+
+
+
+
 
 
 
@@ -1940,7 +3176,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       {isDeleteConfirmOpen && (
+
+
+
+
 
 
 
@@ -1948,7 +3192,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+
+
+
+
 
 
 
@@ -1956,7 +3208,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             <p className={styles.confirmMessage}>
+
+
+
+
 
 
 
@@ -1964,7 +3224,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </p>
+
+
+
+
 
 
 
@@ -1972,7 +3240,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <button className={styles.cancelBtn} onClick={handleCancelDelete}>
+
+
+
+
 
 
 
@@ -1980,7 +3256,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               </button>
+
+
+
+
 
 
 
@@ -1988,7 +3272,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 Delete Account
+
+
+
+
 
 
 
@@ -1996,7 +3288,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -2004,11 +3304,27 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         </div>
 
 
 
+
+
+
+
       )}
+
+
+
+
+
+
+
+
 
 
 
@@ -2020,7 +3336,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       {isSignOutConfirmOpen && (
+
+
+
+
 
 
 
@@ -2028,7 +3352,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+
+
+
+
 
 
 
@@ -2036,7 +3368,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             <p className={styles.confirmMessage}>
+
+
+
+
 
 
 
@@ -2044,7 +3384,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </p>
+
+
+
+
 
 
 
@@ -2052,7 +3400,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <button className={styles.cancelBtn} onClick={handleCancelSignOut}>
+
+
+
+
 
 
 
@@ -2060,7 +3416,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               </button>
+
+
+
+
 
 
 
@@ -2068,7 +3432,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
                 Sign Out
+
+
+
+
 
 
 
@@ -2076,7 +3448,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -2084,7 +3464,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         </div>
+
+
+
+
 
 
 
@@ -2092,7 +3480,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       </div>
+
+
+
+
+
+
+
+
 
 
 
@@ -2104,7 +3504,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       <aside className={styles.sidebar}>
+
+
+
+
 
 
 
@@ -2112,7 +3520,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           <div className={styles.sidebarCardTitle} title={editFormData.userName}>{editFormData.userName}</div>
+
+
+
+
 
 
 
@@ -2120,11 +3536,23 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             <div className={styles.sidebarCardStat}>
 
 
 
-              <div className={styles.sidebarCardStatValue}>{displayedTotalXp || 0}</div>
+
+
+
+
+              <div className={styles.sidebarCardStatValue}>{totalXp || 0}</div>
+
+
+
+
 
 
 
@@ -2132,7 +3560,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -2140,7 +3576,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <div className={styles.sidebarCardStatValue}>{displayedBadgeCount || badges.length || 0}</div>
+
+
+
+
+              <div className={styles.sidebarCardStatValue}>{badgeCount || badges.length || 0}</div>
+
+
+
+
 
 
 
@@ -2148,7 +3592,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -2156,7 +3608,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         </div>
+
+
+
+
+
+
+
+
 
 
 
@@ -2168,7 +3632,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           <div className={styles.sidebarCardTitle}>Learning Program</div>
+
+
+
+
 
 
 
@@ -2176,7 +3648,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             className={styles.sidebarPrimaryBtn}
+
+
+
+
 
 
 
@@ -2184,7 +3664,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               window.location.href = '/learn';
+
+
+
+
 
 
 
@@ -2192,7 +3680,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           >
+
+
+
+
 
 
 
@@ -2200,7 +3696,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           </button>
+
+
+
+
 
 
 
@@ -2212,8 +3716,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
-        {!isViewingOtherProfile ? (
+
+
+
+
+
+
+
+
         <div className={styles.sidebarCard}>
+
+
+
+
 
 
 
@@ -2221,7 +3736,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
           <div className={styles.sidebarBottom}>
+
+
+
+
 
 
 
@@ -2229,7 +3752,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <Trash2 size={18} />
+
+
+
+
 
 
 
@@ -2237,7 +3768,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </button>
+
+
+
+
 
 
 
@@ -2245,7 +3784,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
               <LogOut size={18} />
+
+
+
+
 
 
 
@@ -2253,7 +3800,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
             </button>
+
+
+
+
 
 
 
@@ -2261,8 +3816,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
         </div>
-        ) : null}
+
+
+
+
 
 
 
@@ -2270,7 +3832,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
       </div>
+
+
+
+
 
 
 
@@ -2278,7 +3848,15 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
   );
+
+
+
+
 
 
 
@@ -2290,4 +3868,13 @@ const Profile = ({ onSignOut }) => {
 
 
 
+
+
+
+
+
+
+
+
 export default Profile;
+
