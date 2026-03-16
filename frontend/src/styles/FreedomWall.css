@@ -1365,6 +1365,26 @@ html[data-theme="light"] .comment-user-admin {
   overflow-wrap: anywhere;
 }
 
+.comment-hashtag {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(96, 165, 250, 0.95);
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.comment-hashtag:hover {
+  text-decoration: underline;
+}
+
+html[data-theme="light"] .comment-hashtag {
+  color: rgba(29, 78, 216, 0.92);
+}
+
 .comment-actions {
   margin-top: 0.85rem;
   display: flex;

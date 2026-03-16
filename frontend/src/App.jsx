@@ -4,7 +4,7 @@ import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import FreedomWall from "./pages/FreedomWall";
-import FreedomWallChannelPage from "./pages/FreedomWallChannelPage";
+import FreedomWallTagPage from "./pages/FreedomWallTagPage";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -531,7 +531,7 @@ function App() {
           />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="home" />} />
           <Route path="/freedomwall/challenges" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="challenges" />} />
-          <Route path="/freedomwall/channel/:channelId" element={<FreedomWallChannelPage onOpenModal={() => setIsModalOpen(true)} />} />
+          <Route path="/freedomwall/tags/:tag" element={<FreedomWallTagPage onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/freedomwall/challenges/past/:taskId" element={<PastChallengePage />} />
           <Route
             path="/freedomwall/challenges/task/:taskId"

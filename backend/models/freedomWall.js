@@ -3,7 +3,7 @@ import { supabase } from "../core/supabaseClient.js";
 
 class FreedomWall {
     constructor() {
-        this.fd_wall = supabase;
+        this.db = supabase;
     }
 
     normalizeHashtag(raw) {
@@ -26,7 +26,7 @@ class FreedomWall {
 
         try {
 
-            const { data: post, error } = await this.fd_wall
+            const { data: post, error } = await this.db
                 .from("freedom_wall")
                 .insert({
                     user_id,
@@ -50,10 +50,16 @@ class FreedomWall {
 
             const hashtags = Array.from(new Set([...contentTags, ...bodyTags]));
 
+            // Best-effort: do not block post creation if hashtag tables are missing.
             if (hashtags.length > 0) {
-                for (const tag of hashtags) {
-                    const hashtagId = await this.insertHashtag(tag);
-                    await this.linkHashtagToPost(postId, hashtagId);
+                try {
+                    for (const tag of hashtags) {
+                        const hashtagId = await this.insertHashtag(tag);
+                        if (!hashtagId) continue;
+                        await this.linkHashtagToPost(postId, hashtagId);
+                    }
+                } catch (tagErr) {
+                    console.error("<warn> FreedomWall.createPost hashtag linking failed", tagErr);
                 }
             }
 
@@ -70,7 +76,7 @@ class FreedomWall {
 
     async getUserProfile(user_id) {
         try {
-            const { data, error } = await this.fd_wall
+            const { data, error } = await this.db
                 .from("users")
                 .select("user_id, username, character_id")
                 .eq("user_id", user_id)
@@ -98,53 +104,100 @@ class FreedomWall {
     // INSERT HASHTAG (IF NOT EXISTS)
     async insertHashtag(hashtag) {
 
+        const tag = this.normalizeHashtag(hashtag);
+        if (!tag) return null;
+
         try {
-            const { data, error } = await this.fd_wall
-                .from("users")
-                .select("username, email")
-                .eq("user_id", user_id)
-                .maybeSingle();
+            const { data, error } = await this.db
+                .from("hashtags")
+                .upsert({ hashtag_text: tag }, { onConflict: "hashtag_text" })
+                .select("hashtag_id, hashtag_text");
 
             if (error) throw error;
-            return data;
+
+            const row = Array.isArray(data) ? data[0] : data;
+            return row?.hashtag_id ?? null;
         } catch (err) {
-            throw new Error("Failed to fetch user profile");
+            console.error("<error> insertHashtag", err);
+            throw err;
         }
     }
 
-    async getCharacterIdByUserId(user_id) {
+    async linkHashtagToPost(fd_wall_id, hashtag_id) {
+        const postId = Number(fd_wall_id);
+        const hashtagId = Number(hashtag_id);
+        if (!Number.isFinite(postId) || postId <= 0) return;
+        if (!Number.isFinite(hashtagId) || hashtagId <= 0) return;
+
         try {
-        const { data: userProfile, error } = await this.fd_wall
-            .from("users")
-            .select("character_id")
-            .eq("user_id", user_id)
-            .maybeSingle();
+            const { error } = await this.db
+                .from("post_hashtags")
+                .upsert(
+                    { fd_wall_id: postId, hashtag_id: hashtagId },
+                    { onConflict: "fd_wall_id,hashtag_id" }
+                );
 
-        if (error) throw error;
-
-        return userProfile?.character_id ?? null;
+            if (error) throw error;
         } catch (err) {
-        throw new Error("Failed to fetch character ID");
+            console.error("<error> linkHashtagToPost", err);
+            throw err;
         }
     }
 
     async getPost() {
         try{
-            const { data, error } = await this.fd_wall
+            const withTagsSelect = `
+                fd_wall_id,
+                content,
+                created_at,
+                user_id,
+                users (
+                    username,
+                    character_id
+                ),
+                post_hashtags (
+                    hashtags (
+                        hashtag_text
+                    )
+                )
+            `;
+
+            const basicSelect = `
+                fd_wall_id,
+                content,
+                created_at,
+                user_id,
+                users (
+                    username,
+                    character_id
+                )
+            `;
+
+            let data;
+            let error;
+
+            ({ data, error } = await this.db
                 .from("freedom_wall")
-                .select(`
-                        fd_wall_id,
-                        content,
-                        created_at,
-                        user_id,
-                        users (
-                            username,
-                            character_id
-                        )
-                        `)
-                .order("created_at", { ascending: false });
-            if (error) throw error;
-            return data;
+                .select(withTagsSelect)
+                .order("created_at", { ascending: false }));
+
+            if (error) {
+                // Fallback if relationships aren't available yet.
+                const fallback = await this.db
+                    .from("freedom_wall")
+                    .select(basicSelect)
+                    .order("created_at", { ascending: false });
+                if (fallback.error) throw fallback.error;
+                return fallback.data;
+            }
+
+            return (data || []).map((row) => {
+                const hashtags = (row?.post_hashtags || [])
+                    .map((l) => l?.hashtags?.hashtag_text)
+                    .filter(Boolean);
+                const { post_hashtags, ...rest } = row || {};
+                return { ...rest, hashtags };
+            });
         } catch (err) {
                 throw new Error('An error occurred while fetching posts. Please try again later.');
             }
@@ -154,15 +207,35 @@ class FreedomWall {
 
         try {
 
-            const { data, error } = await this.fd_wall
+            const withTagsSelect = `
+                fd_wall_id,
+                content,
+                created_at,
+                user_id,
+                users (
+                    username,
+                    character_id
+                ),
+                post_hashtags (
+                    hashtags (
+                        hashtag_text
+                    )
+                )
+            `;
+
+            const { data, error } = await this.db
                 .from("freedom_wall")
-                .select("*")
+                .select(withTagsSelect)
                 .eq("fd_wall_id", post_id)
                 .maybeSingle();
 
             if (error) throw error;
 
-            return data;
+            const hashtags = (data?.post_hashtags || [])
+                .map((l) => l?.hashtags?.hashtag_text)
+                .filter(Boolean);
+            const { post_hashtags, ...rest } = data || {};
+            return { ...rest, hashtags };
 
         } catch (err) {
 

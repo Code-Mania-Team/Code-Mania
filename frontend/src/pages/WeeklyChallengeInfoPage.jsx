@@ -37,6 +37,8 @@ export default function WeeklyChallengeInfoPage() {
   const [accepting, setAccepting] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [reloadNonce, setReloadNonce] = useState(0);
+  const [claiming, setClaiming] = useState(false);
+  const [claimMessage, setClaimMessage] = useState("");
 
   const cover = task?.cover_image || task?.coverImage || DEFAULT_COVER;
   const participatedCount = Number(task?.participants_count || participants.length || 0);
@@ -127,6 +129,33 @@ export default function WeeklyChallengeInfoPage() {
     navigate(`/weekly-challenge/${encodeURIComponent(String(numericId))}`, {
       state: { task },
     });
+  };
+
+  const canShowClaim = Boolean(import.meta.env.DEV) && Boolean(isAuthenticated) && Boolean(task?.reward_cosmetic);
+
+  const handleClaim = async () => {
+    if (!Number.isFinite(numericId)) return;
+    if (!isAuthenticated) {
+      requestSignIn();
+      return;
+    }
+
+    setClaiming(true);
+    setClaimMessage("");
+    try {
+      const res = await axiosPrivate.post(`/v1/weekly-tasks/${numericId}/claim`);
+      if (res.data?.success) {
+        const cosmeticName = res.data?.data?.cosmetic?.name || "reward";
+        setClaimMessage(`Claimed: ${cosmeticName}`);
+        setReloadNonce((n) => n + 1);
+      } else {
+        setClaimMessage(res.data?.message || "Failed to claim.");
+      }
+    } catch (err) {
+      setClaimMessage(err?.response?.data?.message || err?.message || "Failed to claim.");
+    } finally {
+      setClaiming(false);
+    }
   };
 
   return (
@@ -276,6 +305,24 @@ export default function WeeklyChallengeInfoPage() {
                       </div>
                     </div>
                   </div>
+
+                  {canShowClaim ? (
+                    <div style={{ marginTop: 12 }}>
+                      <button
+                        type="button"
+                        className={styles.backBtn}
+                        onClick={handleClaim}
+                        disabled={claiming}
+                        title="Dev-only: claim this prize to test cosmetics"
+                        style={{ width: "100%" }}
+                      >
+                        {claiming ? "Claiming..." : "Claim"}
+                      </button>
+                      {claimMessage ? (
+                        <div style={{ marginTop: 10, fontSize: 13, opacity: 0.85 }}>{claimMessage}</div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </aside>

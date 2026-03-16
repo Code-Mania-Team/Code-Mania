@@ -25,13 +25,17 @@ function getFileName(lang) {
 }
 
 export default function HomeDemoTerminal({
+  mode = "intro", // intro | quest
+  armed = true,
   language = "python",
   quest,
+  onIntroComplete,
   onQuestComplete,
+  onGoLearn,
 }) {
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
-  const monacoLang = useMemo(() => getMonacoLang(language), [language]);
-  const fileName = useMemo(() => getFileName(language), [language]);
+  const monacoLang = useMemo(() => (mode === "intro" ? "plaintext" : getMonacoLang(language)), [language, mode]);
+  const fileName = useMemo(() => (mode === "intro" ? "welcome.txt" : getFileName(language)), [language, mode]);
   const expected = useMemo(() => normalizeOutput(quest?.expectedOutput || quest?.expected_output || ""), [quest]);
   const mustInclude = useMemo(() => {
     const req = quest?.requirements;
@@ -42,8 +46,8 @@ export default function HomeDemoTerminal({
   const initialCode = useMemo(() => {
     const raw = quest?.startingCode || quest?.starting_code || "";
     if (typeof raw === "string" && raw.trim()) return raw;
-    return "print()";
-  }, [quest]);
+    return mode === "intro" ? "" : "print()";
+  }, [quest, mode]);
 
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState("");
@@ -74,6 +78,24 @@ export default function HomeDemoTerminal({
   };
 
   const validate = ({ finalOutput }) => {
+    if (mode === "intro") {
+      const text = String(code || "").replace(/\r\n/g, "\n");
+      const trimmed = text.trim();
+      if (!trimmed) {
+        setStatus("fail");
+        setHint("Type a message first.");
+        return;
+      }
+
+      setStatus("pass");
+      setHint("Nice. You're ready for real exercises.");
+      if (!hasCompletedRef.current) {
+        hasCompletedRef.current = true;
+        onIntroComplete?.();
+      }
+      return;
+    }
+
     const normalized = normalizeOutput(finalOutput);
 
     if (mustInclude.length) {
@@ -102,7 +124,25 @@ export default function HomeDemoTerminal({
   };
 
   const handleRun = () => {
+    if (!armed) return;
     if (status === "running") return;
+
+    if (mode === "intro") {
+      setStatus("running");
+      setHint("");
+      resetTerminal();
+
+      const text = String(code || "").replace(/\r\n/g, "\n");
+      outputRef.current = text;
+      setOutput(outputRef.current || "");
+
+      // Mimic "run" without any server/tests.
+      window.setTimeout(() => {
+        setStatus((prev) => (prev === "running" ? "idle" : prev));
+        validate({ finalOutput: text });
+      }, 120);
+      return;
+    }
 
     setStatus("running");
     setHint("");
@@ -164,7 +204,7 @@ export default function HomeDemoTerminal({
           </span>
         </div>
 
-        <button type="button" className={styles.demoRunBtn} onClick={handleRun} disabled={status === "running"}>
+        <button type="button" className={styles.demoRunBtn} onClick={handleRun} disabled={!armed || status === "running"}>
           {status === "pass" ? <CheckCircle2 size={16} /> : <Play size={16} />}
           {status === "running" ? "Running..." : "Run"}
         </button>
@@ -189,14 +229,26 @@ export default function HomeDemoTerminal({
             minimap: { enabled: false },
             fontSize: 14,
             automaticLayout: true,
+            readOnly: !armed,
           }}
         />
       </div>
 
       <div className={styles.demoOutputWrap}>
         <div className={styles.demoOutputHeader}>Terminal</div>
-        <pre className={styles.demoOutputBody}>{output || "▶ Output will appear here"}</pre>
+        <pre className={styles.demoOutputBody}>
+          {output || (armed ? "▶ Output will appear here" : "Talk to the NPC in the demo world, then come back here.")}
+        </pre>
+
         {hint ? <div className={styles.demoHint}>{hint}</div> : null}
+        {mode === "intro" && status === "pass" ? (
+          <div className={styles.demoNudgeRow}>
+            <div className={styles.demoNudgeText}>There is more waiting in Learn.</div>
+            <button type="button" className={styles.demoLearnBtn} onClick={() => onGoLearn?.()}>
+              Go to Learn
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

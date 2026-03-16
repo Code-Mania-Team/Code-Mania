@@ -1,24 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles, ArrowDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { startGame, stopGame } from "../utilities/engine/main";
 import HomeDemoTerminal from "./HomeDemoTerminal";
 import styles from "../styles/HomeDemoQuest.module.css";
-import pythonQuests from "../utilities/data/pythonExercises.json";
 
-const DEMO_QUEST_ID = 2;
+const DEMO_EXERCISE_ID = 99999;
 
 function getDemoQuest() {
-  if (!Array.isArray(pythonQuests)) return null;
-  const q = pythonQuests.find((x) => Number(x?.id) === DEMO_QUEST_ID) || null;
-  if (!q) return null;
-
-  // Normalize fields used by engine / terminal layers.
   return {
-    ...q,
-    id: Number(q.id),
-    order_index: Number(q.order_index ?? q.id),
-    expectedOutput: q.expectedOutput ?? q.expected_output ?? "Hello World!",
-    startingCode: q.startingCode ?? q.starting_code ?? "print()",
+    id: DEMO_EXERCISE_ID,
+    order_index: DEMO_EXERCISE_ID,
+    title: "Welcome",
+    description: "",
+    task: "",
+    lessonHeader: "",
+    expectedOutput: "",
+    startingCode: "",
+    map_id: "demo_map",
+    programming_languages: { slug: "python" },
   };
 }
 
@@ -27,7 +27,10 @@ export default function HomeDemoQuest() {
   const gameWrapRef = useRef(null);
   const [armed, setArmed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [introOpen, setIntroOpen] = useState(false);
+  const [introCompleted, setIntroCompleted] = useState(false);
   const quest = useMemo(() => getDemoQuest(), []);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -58,7 +61,7 @@ export default function HomeDemoQuest() {
     if (!container) return;
 
     startGame({
-      exerciseId: DEMO_QUEST_ID,
+      exerciseId: DEMO_EXERCISE_ID,
       quest,
       parent: parentId,
       completedQuests: [],
@@ -96,13 +99,21 @@ export default function HomeDemoQuest() {
     };
   }, [armed, quest]);
 
-  const handleQuestComplete = () => {
-    window.dispatchEvent(
-      new CustomEvent("code-mania:quest-complete", {
-        detail: { questId: DEMO_QUEST_ID },
-      })
-    );
-  };
+  useEffect(() => {
+    const onIntro = () => {
+      setIntroOpen(true);
+    };
+    window.addEventListener("code-mania:home-demo:intro", onIntro);
+    return () => window.removeEventListener("code-mania:home-demo:intro", onIntro);
+  }, []);
+
+  useEffect(() => {
+    if (!introCompleted) return;
+    const t = window.setTimeout(() => {
+      navigate("/learn");
+    }, 1400);
+    return () => window.clearTimeout(t);
+  }, [introCompleted, navigate]);
 
   return (
     <section id="home-demo-quest" ref={sectionRef} className={styles.demoSection}>
@@ -114,7 +125,7 @@ export default function HomeDemoQuest() {
           </div>
           <h2 className={styles.demoTitle}>One-minute quest. Instant dopamine.</h2>
           <p className={styles.demoSub}>
-            Move around, run the code, and complete your first quest. No sign-in needed.
+            Walk up to the NPC, read the intro, type your first message, and run it. No sign-in needed.
           </p>
         </div>
 
@@ -122,8 +133,8 @@ export default function HomeDemoQuest() {
           <div className={styles.demoGameCard} ref={gameWrapRef}>
             <div className={styles.demoGameTop}>
               <div className={styles.demoGameTopLeft}>
-                <span className={styles.demoPill}>Quest</span>
-                <span className={styles.demoQuestName}>{quest?.title || "Hello World"}</span>
+                <span className={styles.demoPill}>Tutorial</span>
+                <span className={styles.demoQuestName}>Meet the NPC and run your first "program"</span>
               </div>
               <div className={styles.demoGameTopRight}>
                 <span className={styles.demoHintPill}>
@@ -143,7 +154,16 @@ export default function HomeDemoQuest() {
             </div>
           </div>
 
-          <HomeDemoTerminal language="python" quest={quest} onQuestComplete={handleQuestComplete} />
+          <HomeDemoTerminal
+            mode="intro"
+            armed={introOpen}
+            quest={quest}
+            onIntroComplete={() => {
+              setIntroCompleted(true);
+              window.dispatchEvent(new CustomEvent("code-mania:close-quest-hud"));
+            }}
+            onGoLearn={() => navigate("/learn")}
+          />
         </div>
       </div>
     </section>

@@ -39,6 +39,53 @@ class WeeklyTaskService {
     this.cosmetics = new Cosmetics();
   }
 
+  async claimReward({ userId, taskId }) {
+    const task = await this.weekly.getTaskById(taskId);
+    if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
+
+    const diff = String(task?.difficulty || "").toLowerCase();
+    let rewardKey = task.reward_avatar_frame_key || task.reward_terminal_skin_id || null;
+
+    if (!rewardKey && diff === "hard") {
+      try {
+        const enabled = await this.cosmetics.listEnabledByTypes(["avatar_frame", "terminal_skin"]);
+        rewardKey = this.pickDeterministicRewardKey({ taskId, enabledCosmetics: enabled });
+      } catch {
+        rewardKey = null;
+      }
+    }
+
+    if (!rewardKey) {
+      return { ok: false, status: 400, message: "No reward configured for this task" };
+    }
+
+    const cosmetic = (await this.cosmetics.getByKeys([rewardKey]))?.[0] || null;
+
+    await this.userCosmetics.unlockOnce({
+      user_id: userId,
+      cosmetic_key: rewardKey,
+      source_type: "weekly_task_claim_test",
+      source_id: taskId,
+    });
+
+    if (cosmetic?.type === "avatar_frame") {
+      await this.userPreferences.setAvatarFrameIfEmpty({
+        user_id: userId,
+        avatar_frame_key: rewardKey,
+      });
+    }
+
+    return {
+      ok: true,
+      data: {
+        unlocked_cosmetic_key: rewardKey,
+        cosmetic: cosmetic
+          ? { key: cosmetic.key, type: cosmetic.type, name: cosmetic.name, asset_url: cosmetic.asset_url, rarity: cosmetic.rarity }
+          : null,
+      },
+    };
+  }
+
   pickDeterministicRewardKey({ taskId, enabledCosmetics }) {
     const list = Array.isArray(enabledCosmetics) ? enabledCosmetics : [];
     const frames = list.filter((c) => c?.type === "avatar_frame" && c?.key);

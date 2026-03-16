@@ -2,6 +2,28 @@ import { CHARACTERS } from "./characterConfig";
 
 export const MAPS = {
   Python: {
+    demo_map: {
+      mapKey: "demo_map",
+      mapJson: "/assets/maps/demo_map.json",
+      tilesets: [
+        {
+          name: "fantastic_modern_suburbs2_TileD",
+          key: "fantastic_modern_suburbs2_TileD",
+          image: "/assets/tilesets/Python/fantastic_modern_suburbs2_TileD.png",
+        },
+        { name: "A5_4", key: "A5_4", image: "/assets/tilesets/Python/A5_4.png" },
+        {
+          name: "fsm_Inside01_D_sofa",
+          key: "fsm_Inside01_D_sofa",
+          image: "/assets/tilesets/Python/fsm_Inside01_D_sofa.png",
+        },
+        {
+          name: "MordernOuter_Outdoor",
+          key: "MordernOuter_Outdoor",
+          image: "/assets/tilesets/Python/MordernOuter_Outdoor.png",
+        },
+      ],
+    },
     map1: {
       mapKey: "map1",
       mapJson: "/assets/maps/Python/map1.json",

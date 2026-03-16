@@ -41,15 +41,17 @@ const getLanguageMeta = (task) => {
   return LANGUAGE_CONFIG[slug] || (slug ? { label: slug, color: "#e2e8f0", bg: "rgba(226, 232, 240, 0.08)" } : null);
 };
 
-const COMMUNITY_CHANNELS = [
-  { id: "general", label: "General" },
-  { id: "introductions", label: "Introductions" },
-  { id: "python", label: "Python" },
-  { id: "javascript", label: "JavaScript" },
-  { id: "cpp", label: "C++" },
-  { id: "memes", label: "Memes" },
-  { id: "bug-reports", label: "Bug Reports" },
-];
+const stripLeadingHash = (raw) => {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  return s.startsWith("#") ? s.slice(1) : s;
+};
+
+const ensureLeadingHash = (raw) => {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  return s.startsWith("#") ? s : `#${s}`;
+};
 
 const DEFAULT_CHALLENGE_COVER =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
@@ -119,7 +121,7 @@ const MOCK_PAST_CHALLENGES = ENABLE_MOCK_CHALLENGES
     ]
   : [];
 
-const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
+const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
   const navigate = useNavigate();
   const getAllPosts = useGetAllPosts();
   const COOLDOWN_MINUTES = 1;
@@ -143,6 +145,8 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   const [participantsLoadingByTaskId, setParticipantsLoadingByTaskId] = useState({});
   const [heartsByPostId, setHeartsByPostId] = useState({});
   const lastHeartsFetchKeyRef = React.useRef("");
+  const [topHashtags, setTopHashtags] = useState([]);
+  const [topHashtagsLoading, setTopHashtagsLoading] = useState(false);
 
   const fetchHeartStats = async (postIds) => {
     const ids = (postIds || [])
@@ -191,6 +195,32 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   const usingMockPast =
     ENABLE_MOCK_CHALLENGES && !pastLoading && !pastError && safePastChallenges.length === 0 && MOCK_PAST_CHALLENGES.length > 0;
   const effectivePastChallenges = usingMockPast ? MOCK_PAST_CHALLENGES : safePastChallenges;
+
+  const tagSlug = useMemo(() => stripLeadingHash(tag).toLowerCase(), [tag]);
+  const tagDisplay = useMemo(() => ensureLeadingHash(tagSlug), [tagSlug]);
+
+  useEffect(() => {
+    let alive = true;
+    const loadTop = async () => {
+      setTopHashtagsLoading(true);
+      try {
+        const res = await axiosPublic.get("/v1/hashtags/top", { params: { limit: 12 } });
+        const rows = res.data?.data;
+        if (!alive) return;
+        setTopHashtags(Array.isArray(rows) ? rows : []);
+      } catch {
+        if (!alive) return;
+        setTopHashtags([]);
+      } finally {
+        if (alive) setTopHashtagsLoading(false);
+      }
+    };
+
+    loadTop();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const ensureParticipantsLoaded = async (task) => {
     const taskId = getTaskId(task);
@@ -296,6 +326,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
       username,
       avatar,
       text: post?.content ?? '',
+      hashtags: Array.isArray(post?.hashtags) ? post.hashtags : [],
       time: createdAtLabel,
       isAdmin: ADMIN_USERS.has(username.trim().toLowerCase()),
     };
@@ -305,8 +336,16 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     setIsFetching(true);
     setFetchError('');
     try {
-      const res = await getAllPosts();
-      const items = Array.isArray(res?.result) ? res.result : [];
+      let items = [];
+      if (view === "tag" && tagSlug) {
+        const res = await axiosPublic.get(`/v1/hashtags/${encodeURIComponent(tagSlug)}/posts`, {
+          params: { limit: 50, offset: 0 },
+        });
+        items = Array.isArray(res?.data?.data) ? res.data.data : [];
+      } else {
+        const res = await getAllPosts();
+        items = Array.isArray(res?.result) ? res.result : [];
+      }
       const mapped = items.map(mapApiPostToComment);
       setComments(mapped);
       await fetchHeartStats(mapped.map((c) => c.id));
@@ -321,7 +360,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   useEffect(() => {
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [view, tagSlug]);
 
   useEffect(() => {
     // Refresh liked state after sign-in
@@ -559,6 +598,30 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     comment.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const renderPostText = (textRaw) => {
+    const text = String(textRaw || "");
+    const parts = text.split(/(#[A-Za-z0-9_]+)/g);
+
+    return parts.map((part, idx) => {
+      if (/^#[A-Za-z0-9_]+$/.test(part)) {
+        const slug = stripLeadingHash(part).toLowerCase();
+        return (
+          <button
+            key={`tag-${idx}-${slug}`}
+            type="button"
+            className="comment-hashtag"
+            onClick={() => navigate(`/freedomwall/tags/${encodeURIComponent(slug)}`)}
+            title={`View ${ensureLeadingHash(slug)}`}
+          >
+            {part}
+          </button>
+        );
+      }
+
+      return <React.Fragment key={`txt-${idx}`}>{part}</React.Fragment>;
+    });
+  };
+
   return (
     <div className="community-shell">
     <div className={`community-page ${view === "challenges" ? "has-right" : "no-right"}`}>
@@ -590,18 +653,35 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
           <div className="community-nav-divider" />
 
           <div className="community-nav-section">
-            <div className="community-nav-section-title">Channels</div>
+            <div className="community-nav-section-title">Top hashtags</div>
             <div className="community-nav-item-group">
-              {COMMUNITY_CHANNELS.map((ch) => (
-                <NavLink
-                  key={ch.id}
-                  to={`/freedomwall/channel/${encodeURIComponent(ch.id)}`}
-                  className={({ isActive }) => `community-nav-channel ${isActive ? "is-active" : ""}`}
-                >
+              {topHashtagsLoading ? (
+                <div className="community-nav-channel" aria-label="Loading hashtags">
                   <span className="channel-hash">#</span>
-                  <span>{ch.label}</span>
-                </NavLink>
-              ))}
+                  <span>Loading...</span>
+                </div>
+              ) : topHashtags.length > 0 ? (
+                topHashtags.map((t) => {
+                  const text = ensureLeadingHash(t?.hashtag_text);
+                  const slug = stripLeadingHash(text).toLowerCase();
+                  return (
+                    <NavLink
+                      key={slug}
+                      to={`/freedomwall/tags/${encodeURIComponent(slug)}`}
+                      className={({ isActive }) => `community-nav-channel ${isActive ? "is-active" : ""}`}
+                      title={text}
+                    >
+                      <span className="channel-hash">#</span>
+                      <span>{stripLeadingHash(text)}</span>
+                    </NavLink>
+                  );
+                })
+              ) : (
+                <div className="community-nav-channel" aria-label="No hashtags">
+                  <span className="channel-hash">#</span>
+                  <span>No hashtags yet</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -884,11 +964,11 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
           </>
         ) : (
           <>
-            {view === "channel" ? (
+            {view === "tag" ? (
               <div className="challenges-hero" style={{ paddingTop: 0 }}>
                 <div className="challenges-hero-badge">
                   <Hash size={18} />
-                  #{COMMUNITY_CHANNELS.find((c) => c.id === String(channelId || ""))?.label || channelId || "channel"}
+                  {tagDisplay || "#tag"}
                 </div>
               </div>
             ) : null}
@@ -897,7 +977,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
               <Search className="search-icon" />
               <input
                 type="text"
-                placeholder={view === "channel" ? "Search channel posts..." : "Search posts..."}
+                placeholder={view === "tag" ? `Search ${tagDisplay || "#tag"} posts...` : "Search posts..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -989,7 +1069,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                         </span>
                         <span className="comment-time">{comment.time}</span>
                       </div>
-                      <p className="comment-text">{comment.text}</p>
+                      <p className="comment-text">{renderPostText(comment.text)}</p>
 
                       <div className="comment-actions">
                         {isAuthenticated && user?.role !== "admin" ? (

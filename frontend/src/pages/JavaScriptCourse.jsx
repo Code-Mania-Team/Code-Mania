@@ -382,8 +382,7 @@ const JavaScriptCourse = () => {
                                 type="button"
                                 className="retry-btn"
                                 onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
-                                aria-label="Retry quest"
-                                title="Retry"
+                                aria-label="Open completed exercise"
                               >
                                 Done
                               </button>

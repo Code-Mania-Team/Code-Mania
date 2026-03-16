@@ -166,6 +166,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   getStartObjectiveText() {
+    if (this.currentMapId === "demo_map") {
+      return "Objective: Talk to the NPC";
+    }
+
     const quest = this.quest;
 
     // Python map2: even after quest completion, the player must open the quest chest
@@ -1303,9 +1307,19 @@ export default class GameScene extends Phaser.Scene {
       return exitZone;
     }
 
+    // Demo map: point to the intro NPC.
+    if (this.currentMapId === "demo_map") {
+      const introNpc = this.npcs?.find((n) => String(n?.npcData?.id || "") === "intro_npc") || null;
+      if (introNpc) {
+        this._pointerTargetCache.target = introNpc;
+        return introNpc;
+      }
+    }
+
     // 3️⃣ Otherwise point to first incomplete NPC quest
     const npc = this.npcs?.find(n => {
-      const quest = this.questManager.getQuestById(n.npcData.questId);
+      const questId = n?.npcData?.questId;
+      const quest = questId ? this.questManager.getQuestById(questId) : null;
       return quest && !quest.completed;
     });
 
@@ -1362,21 +1376,33 @@ export default class GameScene extends Phaser.Scene {
 
 
   spawnNPCs() {
-    const layer = this.mapLoader.map.getObjectLayer("spawn");
-    if (!layer) return;
+    const getProp = (obj, key) => {
+      const props = Array.isArray(obj?.properties) ? obj.properties : [];
+      const hit = props.find((p) => p && p.name === key);
+      return hit ? hit.value : undefined;
+    };
+
+    const layers = [
+      this.mapLoader.map.getObjectLayer("spawn"),
+      this.mapLoader.map.getObjectLayer("triggers"),
+    ].filter(Boolean);
+
+    if (!layers.length) return;
 
     this.npcs = [];
 
-    layer.objects
-      .filter(o =>
-        o.properties?.some(p => p.name === "type" && p.value === "npc")
-      )
-      .forEach(obj => {
-        const npc = this.physics.add.sprite(
-          obj.x + obj.width / 2,
-          obj.y - obj.height / 2,
-          "npc-villager"
-        );
+    layers.forEach((layer) => {
+      (layer.objects || [])
+        .filter((o) => {
+          const t = getProp(o, "type");
+          return t === "npc";
+        })
+        .forEach((obj) => {
+          const npc = this.physics.add.sprite(
+            obj.x + obj.width / 2,
+            obj.y - obj.height / 2,
+            "npc-villager"
+          );
 
         npc.setOrigin(0.5, 1);
 
@@ -1386,9 +1412,15 @@ export default class GameScene extends Phaser.Scene {
         npc.body.setOffset(0, 0);
         npc.body.immovable = true;
 
-        npc.npcData = {
-          questId: this.exerciseId
-        };
+          const questIdRaw = getProp(obj, "quest_id");
+          const questIdNum = questIdRaw !== undefined && questIdRaw !== null && String(questIdRaw) !== ""
+            ? Number(questIdRaw)
+            : null;
+
+          npc.npcData = {
+            id: getProp(obj, "id") || obj.name || "npc",
+            questId: Number.isFinite(questIdNum) ? questIdNum : null,
+          };
 
 
         // ✅ THIS WAS MISSING
@@ -1400,11 +1432,12 @@ export default class GameScene extends Phaser.Scene {
           npc.setVisible(false);
         }
 
-        const quest = this.questManager.getQuestById(npc.npcData.questId);
-        if (quest && !quest.completed) {
-          npc.questIcon = this.questIconManager.createIcon(npc, true);
-        }
-      });
+          const quest = npc.npcData.questId ? this.questManager.getQuestById(npc.npcData.questId) : null;
+          if (quest && !quest.completed) {
+            npc.questIcon = this.questIconManager.createIcon(npc, true);
+          }
+        });
+    });
   }
 
 
@@ -1513,7 +1546,24 @@ export default class GameScene extends Phaser.Scene {
     this.interactionMarker?.setVisible(false);
     this.interactPrompt?.setVisible(false);
 
-    const quest = this.questManager.getQuestById(npc.npcData.questId);
+    const isIntroNpc = String(npc?.npcData?.id || "") === "intro_npc";
+    const questId = npc?.npcData?.questId;
+    const quest = questId ? this.questManager.getQuestById(questId) : null;
+
+    if (!quest && isIntroNpc) {
+      const introHud = {
+        title: "Welcome to Code Mania",
+        lessonHeader: "Your first run",
+        description:
+          "This editor is just for typing. No functions, no test cases.\n\nType a message in the editor on the right, then press Run.",
+        task: "Type:\nHello, Welcome to Codemania\n\nThen press Run.",
+      };
+
+      this.questHUD?.showQuest(introHud);
+      window.dispatchEvent(new CustomEvent("code-mania:home-demo:intro"));
+      return true;
+    }
+
     if (!quest) return false;
 
     this.playerCanMove = false;

@@ -372,8 +372,7 @@ const PythonCourse = () => {
                                 type="button"
                                 className="retry-btn"
                                 onClick={() => handleStartExercise(exercise.id, { retry: true })}
-                                aria-label="Retry quest"
-                                title="Retry"
+                                aria-label="Open completed exercise"
                               >
                                 Done
                               </button>
