@@ -5,23 +5,99 @@ class FreedomWall {
     constructor() {
         this.fd_wall = supabase;
     }
-    // create FREEDOM WALL POSTS
-    
-    async createPost(user_id, content) {
-        const { data, error } = await this.fd_wall
-            .from("freedom_wall")
-            .insert({
-                user_id,
-                content,
-                created_at: new Date().toISOString()
-            })
-            .select("*")
-            .maybeSingle();
-        if (error) throw error;
-        return data;
+
+    normalizeHashtag(raw) {
+        if (typeof raw !== "string") return null;
+        let t = raw.trim().toLowerCase();
+        if (!t) return null;
+        if (!t.startsWith("#")) t = `#${t}`;
+        if (!/^#[a-z0-9_]{1,50}$/.test(t)) return null;
+        return t;
+    }
+
+    extractHashtagsFromContent(content) {
+        if (typeof content !== "string") return [];
+        const matches = content.match(/#[A-Za-z0-9_]+/g);
+        return matches || [];
+    }
+
+    // CREATE POST + HANDLE HASHTAGS
+    async createPost(user_id, content, hashtagsInput = []) {
+
+        try {
+
+            const { data: post, error } = await this.fd_wall
+                .from("freedom_wall")
+                .insert({
+                    user_id,
+                    content,
+                    created_at: new Date().toISOString()
+                })
+                .select("*")
+                .maybeSingle();
+
+            if (error) throw error;
+
+            const postId = post.fd_wall_id;
+
+            const contentTags = this.extractHashtagsFromContent(content)
+                .map((t) => this.normalizeHashtag(t))
+                .filter(Boolean);
+
+            const bodyTags = (Array.isArray(hashtagsInput) ? hashtagsInput : [])
+                .map((t) => this.normalizeHashtag(t))
+                .filter(Boolean);
+
+            const hashtags = Array.from(new Set([...contentTags, ...bodyTags]));
+
+            if (hashtags.length > 0) {
+                for (const tag of hashtags) {
+                    const hashtagId = await this.insertHashtag(tag);
+                    await this.linkHashtagToPost(postId, hashtagId);
+                }
+            }
+
+            return { post, hashtags };
+
+        } catch (err) {
+
+            console.error("<error> FreedomWall.createPost", err);
+            throw err;
+
+        }
+
     }
 
     async getUserProfile(user_id) {
+        try {
+            const { data, error } = await this.fd_wall
+                .from("users")
+                .select("user_id, username, character_id")
+                .eq("user_id", user_id)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } catch (err) {
+            console.error("<error> getUserProfile", err);
+            throw err;
+        }
+    }
+
+    async getCharacterIdByUserId(user_id) {
+        try {
+            const profile = await this.getUserProfile(user_id);
+            return profile?.character_id ?? null;
+        } catch (err) {
+            console.error("<error> getCharacterIdByUserId", err);
+            throw err;
+        }
+    }
+
+
+    // INSERT HASHTAG (IF NOT EXISTS)
+    async insertHashtag(hashtag) {
+
         try {
             const { data, error } = await this.fd_wall
                 .from("users")

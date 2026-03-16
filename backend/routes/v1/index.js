@@ -36,6 +36,10 @@ import examRouter from "./examRoutes.js";
 
 import fd_LikesRouter from "./fd_LikeRoutes.js";
 
+import hashtagRouter from "./hashtagRoutes.js";
+
+import searchRouter from "./searchRoutes.js";
+
 const v1 = new Router();
 
 v1.use("/post", fd_LikesRouter)
@@ -53,6 +57,10 @@ v1.use("/exam", examRouter);
 v1.use("/game", userGameDataRouter);
 
 v1.use("/freedom-wall", freedomWallRouter);
+
+v1.use("/hashtags", hashtagRouter);
+
+v1.use("/search", searchRouter);
 
 v1.use("/refresh", refreshRouter);
 
