@@ -14,6 +14,13 @@ class ReactionController {
             const { fd_wall_id } = req.params;
             const user_id = res.locals.user_id;
 
+            if (String(res.locals.role || "").toLowerCase() === "admin") {
+                return res.status(403).send({
+                    success: false,
+                    message: "Admins cannot react to posts."
+                });
+            }
+
             const result = await this.like.likePost(fd_wall_id, user_id);
 
             if (result.affectedRows > 0) {
@@ -51,6 +58,13 @@ class ReactionController {
             const { fd_wall_id } = req.params;
             const user_id = res.locals.user_id;
 
+            if (String(res.locals.role || "").toLowerCase() === "admin") {
+                return res.status(403).send({
+                    success: false,
+                    message: "Admins cannot react to posts."
+                });
+            }
+
             const post = await this.post.getPostById(fd_wall_id);
 
             if (!post) {
@@ -71,9 +85,12 @@ class ReactionController {
 
             await this.like.unlikePost(fd_wall_id, user_id);
 
+            const like_count = await this.like.getLikeCount(fd_wall_id);
+
             return res.send({
                 success: true,
-                message: "Post unliked successfully."
+                message: "Post unliked successfully.",
+                like_count
             });
 
         } catch (error) {
@@ -144,6 +161,61 @@ class ReactionController {
                 message: err.toString()
             });
 
+        }
+    }
+
+    async getBatchStats(req, res) {
+        try {
+            const idsRaw = String(req.query.ids || "");
+            const ids = idsRaw
+                .split(",")
+                .map((s) => Number(String(s).trim()))
+                .filter((n) => Number.isFinite(n) && n > 0)
+                .slice(0, 200);
+
+            if (!ids.length) {
+                return res.send({
+                    success: true,
+                    data: { counts: {}, liked: {} }
+                });
+            }
+
+            const { data, error } = await this.like.like
+                .from("likes")
+                .select("fd_wall_id, user_id")
+                .in("fd_wall_id", ids);
+
+            if (error) throw error;
+
+            const counts = {};
+            const liked = {};
+            const viewerId = res.locals.user_id ? Number(res.locals.user_id) : null;
+
+            (data || []).forEach((row) => {
+                const postId = Number(row?.fd_wall_id);
+                if (!Number.isFinite(postId)) return;
+                counts[postId] = (counts[postId] || 0) + 1;
+                if (viewerId && Number(row?.user_id) === viewerId) {
+                    liked[postId] = true;
+                }
+            });
+
+            // Ensure all ids appear
+            ids.forEach((id) => {
+                if (counts[id] === undefined) counts[id] = 0;
+                if (liked[id] === undefined) liked[id] = false;
+            });
+
+            return res.send({
+                success: true,
+                data: { counts, liked }
+            });
+        } catch (err) {
+            console.error('<error> getBatchStats:', err);
+            return res.status(500).send({
+                success: false,
+                message: err?.message || err.toString()
+            });
         }
     }
 

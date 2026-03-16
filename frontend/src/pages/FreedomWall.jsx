@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { BadgeCheck, Search, Send, Clock, Star, Zap, Trophy, ChevronRight, CheckCircle2, Lock, Home, Hash, CalendarDays, Users } from "lucide-react";
+import { BadgeCheck, Search, Send, Clock, Star, Zap, Trophy, ChevronRight, CheckCircle2, Lock, Home, Hash, CalendarDays, Users, Heart } from "lucide-react";
 import { containsProfanity } from "../utils/profanityFilter";
 import "../styles/FreedomWall.css";
 
@@ -122,7 +122,7 @@ const MOCK_PAST_CHALLENGES = ENABLE_MOCK_CHALLENGES
 const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   const navigate = useNavigate();
   const getAllPosts = useGetAllPosts();
-  const COOLDOWN_MINUTES = 30;
+  const COOLDOWN_MINUTES = 1;
   const userPost = useUserPost();
   const { isAuthenticated, user } = useAuth();
   const axiosPrivate = useAxiosPrivate();
@@ -141,6 +141,41 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   const [challengeActionMsg, setChallengeActionMsg] = useState("");
   const [participantsByTaskId, setParticipantsByTaskId] = useState({});
   const [participantsLoadingByTaskId, setParticipantsLoadingByTaskId] = useState({});
+  const [heartsByPostId, setHeartsByPostId] = useState({});
+  const lastHeartsFetchKeyRef = React.useRef("");
+
+  const fetchHeartStats = async (postIds) => {
+    const ids = (postIds || [])
+      .map((id) => Number(id))
+      .filter((n) => Number.isFinite(n) && n > 0)
+      .slice(0, 200);
+    if (!ids.length) return;
+
+    const key = ids.join(",");
+    if (!key || key === lastHeartsFetchKeyRef.current) return;
+    lastHeartsFetchKeyRef.current = key;
+
+    try {
+      const http = isAuthenticated ? axiosPrivate : axiosPublic;
+      const stats = await http.get(`/v1/post/batch`, {
+        params: { ids: key },
+      });
+      const counts = stats.data?.data?.counts || {};
+      const liked = stats.data?.data?.liked || {};
+      setHeartsByPostId((prev) => {
+        const next = { ...prev };
+        ids.forEach((id) => {
+          next[id] = {
+            count: Number(counts[id] ?? counts[String(id)] ?? 0),
+            liked: Boolean(liked[id] ?? liked[String(id)] ?? false),
+          };
+        });
+        return next;
+      });
+    } catch {
+      // ignore
+    }
+  };
 
   const getTaskId = (task) => {
     const raw = task?.task_id ?? task?.id ?? task?.taskId;
@@ -272,7 +307,9 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     try {
       const res = await getAllPosts();
       const items = Array.isArray(res?.result) ? res.result : [];
-      setComments(items.map(mapApiPostToComment));
+      const mapped = items.map(mapApiPostToComment);
+      setComments(mapped);
+      await fetchHeartStats(mapped.map((c) => c.id));
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to fetch posts.';
       setFetchError(String(msg));
@@ -285,6 +322,15 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    // Refresh liked state after sign-in
+    if (!comments.length) return;
+    // Allow refetch for same ids when auth status changes
+    lastHeartsFetchKeyRef.current = "";
+    fetchHeartStats(comments.map((c) => c.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const handleAddComment = async () => {
     const content = (newComment || '').trim();
@@ -343,6 +389,13 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
 
         if (created) {
           setComments((prev) => [created, ...prev]);
+          const pid = Number(created.id);
+          if (Number.isFinite(pid) && pid > 0) {
+            setHeartsByPostId((prev) => ({
+              ...prev,
+              [pid]: prev[pid] || { count: 0, liked: false },
+            }));
+          }
         } else {
           await fetchPosts();
         }
@@ -366,6 +419,53 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
       setPostError(String(msg));
     } finally {
       setIsPosting(false);
+    }
+  };
+
+  const toggleHeart = async (postIdRaw) => {
+    const postId = Number(postIdRaw);
+    if (!Number.isFinite(postId) || postId <= 0) return;
+
+    const canReact = Boolean(isAuthenticated && user?.user_id && user?.role !== "admin");
+    if (!canReact) {
+      // Guests and admins can view counts but cannot react.
+      return;
+    }
+
+    const current = heartsByPostId[postId] || { count: 0, liked: false };
+    const nextLiked = !current.liked;
+    const optimisticCount = Math.max(0, Number(current.count || 0) + (nextLiked ? 1 : -1));
+    setHeartsByPostId((prev) => ({
+      ...prev,
+      [postId]: { count: optimisticCount, liked: nextLiked },
+    }));
+
+    try {
+      if (nextLiked) {
+        const res = await axiosPrivate.post(`/v1/post/${postId}/like`);
+        const like_count = res.data?.like_count;
+        if (like_count !== undefined) {
+          setHeartsByPostId((prev) => ({
+            ...prev,
+            [postId]: { count: Number(like_count || 0), liked: true },
+          }));
+        }
+      } else {
+        const res = await axiosPrivate.delete(`/v1/post/${postId}/unlike`);
+        const like_count = res.data?.like_count;
+        if (like_count !== undefined) {
+          setHeartsByPostId((prev) => ({
+            ...prev,
+            [postId]: { count: Number(like_count || 0), liked: false },
+          }));
+        }
+      }
+    } catch {
+      // rollback on error
+      setHeartsByPostId((prev) => ({
+        ...prev,
+        [postId]: current,
+      }));
     }
   };
 
@@ -615,9 +715,24 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                                 <Zap size={14} />
                                 +{task.reward_xp} XP
                               </span>
-                             <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
-                               {diff.label}
-                             </span>
+                              {task?.reward_cosmetic ? (
+                                <span className="challenge-meta-item challenge-meta-prize" title={task.reward_cosmetic.name || "Cosmetic"}>
+                                  <Trophy size={14} />
+                                  {task.reward_cosmetic.asset_url ? (
+                                    <img
+                                      className="challenge-meta-thumb"
+                                      src={task.reward_cosmetic.asset_url}
+                                      alt=""
+                                      loading="lazy"
+                                      aria-hidden="true"
+                                    />
+                                  ) : null}
+                                  {task.reward_cosmetic.name || "Cosmetic"}
+                                </span>
+                              ) : null}
+                              <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
+                                {diff.label}
+                              </span>
 
                               {langMeta ? (
                                 <span
@@ -631,8 +746,8 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                             </div>
                           </div>
 
-                          <div className="challenge-wide-actions">
-                            {isCompleted ? (
+                          <div className={`challenge-wide-actions ${!isAuthenticated ? "is-empty" : ""}`}>
+                            {!isAuthenticated ? null : isCompleted ? (
                               <button
                                 type="button"
                                 className="challenge-wide-btn"
@@ -659,21 +774,15 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                             ) : (
                               <button
                                 type="button"
-                                className={`challenge-wide-btn ${(!isAuthenticated || !hasWeeklyAccess) ? "is-locked" : ""}`}
+                                className={`challenge-wide-btn ${!hasWeeklyAccess ? "is-locked" : ""}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (!isAuthenticated) {
-                                    onOpenModal?.();
-                                    return;
-                                  }
                                   if (!hasWeeklyAccess) return;
                                   handleStartWeeklyChallenge(task);
                                 }}
-                                disabled={isAuthenticated && !hasWeeklyAccess}
+                                disabled={!hasWeeklyAccess}
                               >
-                                {!isAuthenticated ? (
-                                  "Sign in"
-                                ) : hasWeeklyAccess ? (
+                                {hasWeeklyAccess ? (
                                   <>
                                     Accept
                                     <ChevronRight size={14} />
@@ -686,7 +795,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                           </div>
                         </div>
                       );
-                     })}
+                    })}
                    </div>
                    )}
                 </>
@@ -881,6 +990,26 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                         <span className="comment-time">{comment.time}</span>
                       </div>
                       <p className="comment-text">{comment.text}</p>
+
+                      <div className="comment-actions">
+                        {isAuthenticated && user?.role !== "admin" ? (
+                          <button
+                            type="button"
+                            className={`heart-btn ${heartsByPostId[Number(comment.id)]?.liked ? "is-liked" : ""}`}
+                            onClick={() => toggleHeart(comment.id)}
+                            aria-label="React with a heart"
+                            title="Heart"
+                          >
+                            <Heart size={16} />
+                            <span className="heart-count">{Number(heartsByPostId[Number(comment.id)]?.count || 0)}</span>
+                          </button>
+                        ) : (
+                          <div className="heart-pill" aria-label="Hearts">
+                            <Heart size={16} />
+                            <span className="heart-count">{Number(heartsByPostId[Number(comment.id)]?.count || 0)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))

@@ -2,6 +2,7 @@ import express from 'express';
 import FreedomWallController from '../../controllers/v1/freedomWallController.js';
 import LikePost from '../../controllers/v1/fd_LikeController.js';
 import { authentication } from '../../middlewares/authentication.js';
+import { optionalAuthentication } from '../../middlewares/optionalAuthentication.js';
 import { authorization } from '../../middlewares/authorization.js';
 import { authLimiter } from '../../middlewares/rateLimiter.js';
 
@@ -31,6 +32,13 @@ fd_LikesRouter.get(
 fd_LikesRouter.get(
     "/:fd_wall_id/likes/count",
     likeController.getLikesCount.bind(likeController)
+);
+
+// Batch stats for UI (counts + viewer liked)
+fd_LikesRouter.get(
+    "/batch",
+    optionalAuthentication,
+    likeController.getBatchStats.bind(likeController)
 );
 
 export default fd_LikesRouter;

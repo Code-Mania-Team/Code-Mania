@@ -1,0 +1,91 @@
+.markdown {
+  color: inherit;
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+.markdown :global(h1),
+.markdown :global(h2),
+.markdown :global(h3),
+.markdown :global(h4) {
+  margin: 0.9rem 0 0.55rem;
+  line-height: 1.25;
+  color: inherit;
+}
+
+.markdown :global(h1) {
+  font-size: 1.5rem;
+}
+
+.markdown :global(h2) {
+  font-size: 1.25rem;
+}
+
+.markdown :global(h3) {
+  font-size: 1.08rem;
+}
+
+.markdown :global(h4) {
+  font-size: 1rem;
+}
+
+.markdown :global(p) {
+  margin: 0 0 0.75rem;
+}
+
+.markdown :global(ul),
+.markdown :global(ol) {
+  margin: 0 0 0.75rem;
+  padding-left: 1.2rem;
+}
+
+.markdown :global(li) {
+  margin: 0.2rem 0;
+}
+
+.markdown :global(a) {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown :global(code) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  /* Make inline code "highlight" slightly bigger than surrounding text */
+  font-size: 1.12em;
+  padding: 0.12em 0.38em;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.markdown :global(pre) {
+  margin: 0 0 0.85rem;
+  padding: 10px 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: auto;
+}
+
+.markdown :global(pre code) {
+  /* Keep code blocks at normal code size */
+  font-size: 0.95em;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.markdown :global(blockquote) {
+  margin: 0 0 0.85rem;
+  padding: 0.25rem 0.9rem;
+  border-left: 3px solid rgba(148, 197, 255, 0.5);
+  color: inherit;
+  opacity: 0.95;
+}
+
+.markdown :global(hr) {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 1rem 0;
+}
