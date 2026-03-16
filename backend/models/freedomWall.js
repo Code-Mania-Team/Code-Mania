@@ -6,8 +6,23 @@ class FreedomWall {
         this.fd_wall = supabase;
     }
 
+    normalizeHashtag(raw) {
+        if (typeof raw !== "string") return null;
+        let t = raw.trim().toLowerCase();
+        if (!t) return null;
+        if (!t.startsWith("#")) t = `#${t}`;
+        if (!/^#[a-z0-9_]{1,50}$/.test(t)) return null;
+        return t;
+    }
+
+    extractHashtagsFromContent(content) {
+        if (typeof content !== "string") return [];
+        const matches = content.match(/#[A-Za-z0-9_]+/g);
+        return matches || [];
+    }
+
     // CREATE POST + HANDLE HASHTAGS
-    async createPost(user_id, content) {
+    async createPost(user_id, content, hashtagsInput = []) {
 
         try {
 
@@ -25,24 +40,24 @@ class FreedomWall {
 
             const postId = post.fd_wall_id;
 
-            // extract hashtags
-            const hashtags = content.match(/#\w+/g);
+            const contentTags = this.extractHashtagsFromContent(content)
+                .map((t) => this.normalizeHashtag(t))
+                .filter(Boolean);
 
-            if (hashtags && hashtags.length > 0) {
+            const bodyTags = (Array.isArray(hashtagsInput) ? hashtagsInput : [])
+                .map((t) => this.normalizeHashtag(t))
+                .filter(Boolean);
 
-                for (let tag of hashtags) {
+            const hashtags = Array.from(new Set([...contentTags, ...bodyTags]));
 
-                    const cleanTag = tag.toLowerCase().trim();
-
-                    const hashtagId = await this.insertHashtag(cleanTag);
-
+            if (hashtags.length > 0) {
+                for (const tag of hashtags) {
+                    const hashtagId = await this.insertHashtag(tag);
                     await this.linkHashtagToPost(postId, hashtagId);
-
                 }
-
             }
 
-            return post;
+            return { post, hashtags };
 
         } catch (err) {
 
@@ -51,6 +66,32 @@ class FreedomWall {
 
         }
 
+    }
+
+    async getUserProfile(user_id) {
+        try {
+            const { data, error } = await this.fd_wall
+                .from("users")
+                .select("user_id, username, character_id")
+                .eq("user_id", user_id)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } catch (err) {
+            console.error("<error> getUserProfile", err);
+            throw err;
+        }
+    }
+
+    async getCharacterIdByUserId(user_id) {
+        try {
+            const profile = await this.getUserProfile(user_id);
+            return profile?.character_id ?? null;
+        } catch (err) {
+            console.error("<error> getCharacterIdByUserId", err);
+            throw err;
+        }
     }
 
 
