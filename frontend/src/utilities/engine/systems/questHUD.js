@@ -1,5 +1,41 @@
 import Phaser from "phaser";
 
+import { inferPrismLanguage, renderQuestRichHtml } from "../ui/questRichText";
+
+let prismReadyPromise = null;
+
+const ensurePrismReady = () => {
+  if (prismReadyPromise) return prismReadyPromise;
+
+  prismReadyPromise = (async () => {
+    // prismjs language components expect a global `Prism` variable.
+    // Use dynamic imports to guarantee initialization order.
+    const existing = globalThis.Prism;
+    if (existing?.languages && typeof existing.highlightAllUnder === "function") {
+      return existing;
+    }
+
+    const prismMod = await import("prismjs");
+    const Prism = prismMod?.default || prismMod;
+    globalThis.Prism = Prism;
+
+    // Load languages (order matters: javascript/cpp depend on clike)
+    await import("prismjs/components/prism-clike");
+    await import("prismjs/components/prism-javascript");
+    await import("prismjs/components/prism-python");
+    await import("prismjs/components/prism-cpp");
+
+    return Prism;
+  })().catch((err) => {
+    // If Prism fails to init, keep the HUD usable without highlighting.
+    prismReadyPromise = null;
+    console.warn("Prism failed to initialize:", err);
+    return null;
+  });
+
+  return prismReadyPromise;
+};
+
 export default class QuestUI {
   constructor(scene) {
     this.scene = scene;
@@ -21,11 +57,16 @@ export default class QuestUI {
     this.bodyBaseY = 130;
 
     this.scrollbarWidth = 8;
-    this.scrollbarPadding = 14;
-    this.contentLeft = this.panelLeft + 30;
-    this.contentWidth = this.panelWidth - 60 - this.scrollbarWidth - this.scrollbarPadding;
 
-    this.scrollbarX = this.contentLeft + this.contentWidth + this.scrollbarPadding;
+    // Mobile scrollbar can overlap the task block background; keep extra gutter.
+    this.scrollbarPadding = this.isMobile ? 22 : 14;
+
+    const contentInsetLeft = this.isMobile ? 22 : 30;
+    const contentInsetRight = this.isMobile ? 18 : 30;
+
+    this.contentLeft = this.panelLeft + contentInsetLeft;
+    this.scrollbarX = this.panelLeft + this.panelWidth - contentInsetRight - this.scrollbarWidth;
+    this.contentWidth = Math.max(80, this.scrollbarX - this.contentLeft - this.scrollbarPadding);
     this.scrollbarMinY = this.bodyBaseY;
 
     this.panelBottomPad = 20;
@@ -35,6 +76,10 @@ export default class QuestUI {
     this.bodyScrollMax = 0;
     this._taskBaseY = 0;
     this._GAP = 16;
+
+    // DOM-based rich quest rendering (syntax highlighting)
+    this._useRichDom = true;
+    this._richContentHeight = 0;
     this.isDraggingScroll = false;
     this.dragPointerId = null;
     this.lastDragY = 0;
@@ -89,6 +134,27 @@ export default class QuestUI {
       padding: { left: 14, right: 14, top: 12, bottom: 12 },
       wordWrap: { width: this.contentWidth }
     }).setVisible(false);
+
+    // Rich quest HTML (Prism) inside Phaser DOMElement.
+    // Note: DOMElements do not participate in Phaser Containers.
+    // We keep it aligned with the panel by syncing its position to this.container.
+    this.richWrapperEl = document.createElement("div");
+    this.richWrapperEl.style.width = `${this.contentWidth}px`;
+    this.richWrapperEl.style.height = `${this.bodyMaskHeight}px`;
+    this.richWrapperEl.style.overflow = "hidden";
+    this.richWrapperEl.style.pointerEvents = "none";
+
+    this.richContentEl = document.createElement("div");
+    this.richContentEl.style.transform = "translateY(0px)";
+    this.richContentEl.style.willChange = "transform";
+    this.richWrapperEl.appendChild(this.richContentEl);
+
+    this.bodyDom = scene.add
+      .dom(this.contentLeft, this.bodyBaseY, this.richWrapperEl)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(1001)
+      .setVisible(false);
 
     // Mask
     this.bodyMaskGraphics = scene.add.graphics();
@@ -211,6 +277,9 @@ export default class QuestUI {
       scene.input.off("pointermove", this.onPointerMove);
       scene.input.off("pointerup", this.onPointerUp);
       scene.input.off("gameout", this.onGameOut);
+
+      this.bodyDom?.destroy();
+      this.bodyDom = null;
     });
 
     this.container.add([
@@ -223,6 +292,15 @@ export default class QuestUI {
       this.scrollbarTrack,
       this.scrollbarThumb,
     ]);
+
+    this._syncDomPosition = () => {
+      if (!this.bodyDom) return;
+      // Follow the animated container Y offset.
+      this.bodyDom.x = this.contentLeft;
+      this.bodyDom.y = this.bodyBaseY + (this.container?.y || 0);
+    };
+
+    this._syncDomPosition();
   }
 
   showQuest(quest) {
@@ -234,11 +312,35 @@ export default class QuestUI {
 
     this.titleText.setText(quest.title || "");
 
-    // Description only — lesson_example is duplicate of task, skip it
-    let body = "";
-    if (quest.lessonHeader) body += quest.lessonHeader + "\n\n";
-    if (quest.description) body += quest.description;
-    this.bodyText.setText(body);
+    const lessonHeader = quest.lessonHeader || quest.lesson_header || "";
+    const description = quest.description || "";
+    const task = quest.task || "";
+
+    if (this._useRichDom && this.bodyDom && this.richContentEl) {
+      // Render into DOM with syntax highlighting.
+      const prismLanguage = inferPrismLanguage(quest);
+      const html = renderQuestRichHtml({
+        lessonHeader,
+        description,
+        task,
+        prismLanguage,
+      });
+
+      this.richContentEl.innerHTML = html;
+      this.bodyDom.setVisible(true);
+      this._syncDomPosition();
+
+      // Hide canvas texts to avoid duplicate rendering.
+      this.bodyText.setText("").setVisible(false);
+      this.taskText.setText("").setVisible(false);
+    } else {
+      // Fallback: canvas-only text (no syntax highlight)
+      let body = "";
+      if (lessonHeader) body += lessonHeader + "\n\n";
+      if (description) body += description;
+      this.bodyText.setText(body).setVisible(true);
+      this.bodyDom?.setVisible(false);
+    }
 
     // Reset
     this.bodyScroll = 0;
@@ -246,10 +348,37 @@ export default class QuestUI {
     this.taskText.setVisible(false);
     this._taskBaseY = 0;
 
-    // Frame 1: bodyText settles → position taskText right after it
-    this.scene.time.delayedCall(0, () => {
-      const bodyBottom = this.bodyText.y + this.bodyText.height;
+    this._applyScroll();
 
+    // Let DOM/canvas settle, then compute scroll.
+    this.scene.time.delayedCall(0, () => {
+      if (this._useRichDom && this.bodyDom?.visible && this.richContentEl) {
+        (async () => {
+          const Prism = await ensurePrismReady();
+          if (Prism) {
+            try {
+              Prism.highlightAllUnder(this.richContentEl);
+            } catch {
+              // Highlighting is best-effort.
+            }
+          }
+
+          // Measure after highlight (or immediately if Prism isn't available).
+          this.scene.time.delayedCall(0, () => {
+            this._richContentHeight = Math.max(0, Math.ceil(this.richContentEl.scrollHeight || 0));
+            this.bodyScrollMax = Math.max(0, this._getTotalContentHeight() - this.bodyMaskHeight);
+
+            this._drawScrollbarTrack();
+            this._updateScrollbarThumb();
+            this.scrollbarTrack.setVisible(this.bodyScrollMax > 0);
+            this.scrollbarThumb.setVisible(this.bodyScrollMax > 0);
+          });
+        })();
+        return;
+      }
+
+      // Canvas fallback path
+      const bodyBottom = this.bodyText.y + this.bodyText.height;
       if (quest.task) {
         this._taskBaseY = bodyBottom + this._GAP;
         this.taskText
@@ -258,7 +387,6 @@ export default class QuestUI {
           .setPosition(this.contentLeft, this._taskBaseY);
       }
 
-      // Frame 2: taskText settles → compute scroll
       this.scene.time.delayedCall(0, () => {
         const totalContentHeight = this._getTotalContentHeight();
         this.bodyScrollMax = Math.max(0, totalContentHeight - this.bodyMaskHeight);
@@ -277,8 +405,13 @@ export default class QuestUI {
       targets: this.container,
       y: 0,
       duration: 500,
-      ease: "Back.Out"
+      ease: "Back.Out",
+      onUpdate: () => {
+        this._syncDomPosition?.();
+      }
     });
+
+    this._syncDomPosition?.();
 
     this.visible = true;
   }
@@ -298,10 +431,15 @@ export default class QuestUI {
       y: -500,
       duration: 400,
       ease: "Back.In",
+      onUpdate: () => {
+        this._syncDomPosition?.();
+      },
       onComplete: () => {
         this.container.setVisible(false);
         this.visible = false;
         this.bodyScroll = 0;
+
+        this.bodyDom?.setVisible(false);
       }
     });
   }
@@ -347,19 +485,25 @@ export default class QuestUI {
   }
 
   _getTotalContentHeight() {
-    let bottom = this.bodyBaseY + this.bodyText.height;
-    if (this.taskText.visible) {
-      bottom = Math.max(bottom, this._taskBaseY + this.taskText.height);
+    if (this._useRichDom && this.bodyDom?.visible) {
+      return Math.max(0, Number(this._richContentHeight) || 0);
     }
+
+    let bottom = this.bodyBaseY + this.bodyText.height;
+    if (this.taskText.visible) bottom = Math.max(bottom, this._taskBaseY + this.taskText.height);
     return Math.max(0, bottom - this.bodyBaseY);
   }
 
   _applyScroll() {
     const offset = this.bodyScroll;
-    this.bodyText.y = this.bodyBaseY - offset;
-    if (this.taskText.visible && this._taskBaseY > 0) {
-      this.taskText.y = this._taskBaseY - offset;
+
+    if (this._useRichDom && this.bodyDom?.visible && this.richContentEl) {
+      this.richContentEl.style.transform = `translateY(${-offset}px)`;
+      return;
     }
+
+    this.bodyText.y = this.bodyBaseY - offset;
+    if (this.taskText.visible && this._taskBaseY > 0) this.taskText.y = this._taskBaseY - offset;
   }
 
   _drawScrollbarTrack() {

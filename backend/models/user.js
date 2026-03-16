@@ -24,7 +24,7 @@ class User {
 
       .from("users") // can be users table or temp_user (this should be temp_users with "s")
 
-      .select("user_id, email, password, provider") //
+      .select("user_id, email, password, provider, role")
 
       .eq("email", email)
 
@@ -222,6 +222,21 @@ class User {
       .single();
 
     return data;
+  }
+
+  async getPublicProfileByUsername(username) {
+    const normalized = String(username || '').trim();
+    if (!normalized) return null;
+
+    const { data, error } = await this.db
+      .from("users")
+      .select("user_id, username, full_name, character_id, created_at, role")
+      .eq("username", normalized)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    return data || null;
   }
 
   async getAllForAdmin() {

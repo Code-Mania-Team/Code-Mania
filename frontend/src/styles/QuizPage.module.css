@@ -16,7 +16,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 265px;
+  height: 200px;
 }
 
 .hero::before {

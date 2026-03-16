@@ -4,5 +4,6 @@ publish = "dist"
 command = "npm run build"
 
 [[redirects]]
+  fr
   from = "/*"
   to = "/index.html"

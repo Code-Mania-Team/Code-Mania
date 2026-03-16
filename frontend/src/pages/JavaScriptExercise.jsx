@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 
 
@@ -12,6 +12,9 @@ import ProgressBar from "../components/ProgressBar";
 
 import CodeTerminal from "../components/CodeTerminal";
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
+
+import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 
 
@@ -29,12 +32,21 @@ import useGetGameProgress from "../services/getGameProgress.js";
 
 import useGetExerciseById from "../services/getExerciseById";
 
+import useGetExercises from "../services/getExercise";
+
 import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise.js";
 
 
 const JavaScriptExercise = () => {
+
+  const location = useLocation();
+
+  const isRetryMode = useMemo(() => {
+    const params = new URLSearchParams(location.search || "");
+    return params.get("retry") === "1";
+  }, [location.search]);
 
   const stageBadgeById = {
     1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/js-stage1_pqdiia.png",
@@ -62,6 +74,8 @@ const JavaScriptExercise = () => {
 
   const getExerciseById = useGetExerciseById();
 
+  const getExercises = useGetExercises();
+
   const getNextExercise = useGetNextExercise();
 
   const startExercise = useStartExercise();
@@ -71,6 +85,8 @@ const JavaScriptExercise = () => {
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
 
   const [activeExercise, setActiveExercise] = useState(null);
+
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
 
 
@@ -88,6 +104,9 @@ const JavaScriptExercise = () => {
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
   );
+  const [isSmallPhone, setIsSmallPhone] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 380 : false
+  );
   const [mobileActivePanel, setMobileActivePanel] = useState("game");
 
 
@@ -104,13 +123,26 @@ const JavaScriptExercise = () => {
 
   const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
 
+  // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
   useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth <= 900);
+    if (!isAuthenticated && activeExerciseId > 2) {
+      setIsSignInModalOpen(true);
+      navigate("/learn/javascript/exercise/2", { replace: true });
+      setIsPageLoading(false);
+    }
+  }, [activeExerciseId, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 900);
+      setIsSmallPhone(window.innerWidth <= 380);
+    };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView) return;
 
     const html = document.documentElement;
@@ -128,15 +160,18 @@ const JavaScriptExercise = () => {
       body.style.overflow = prevBodyOverflow;
       body.style.overscrollBehavior = prevBodyOverscroll;
     };
-  }, [isMobileView]);
+  }, [isMobileView, isRetryMode]);
 
   useEffect(() => {
     const handleStart = async (e) => {
-      const questId = e.detail?.questId;
-      if (!questId) return;
+      const engineQuestId = Number(e.detail?.questId);
+      if (!Number.isFinite(engineQuestId)) return;
+
+      if (engineQuestId !== activeExerciseId) return;
+      if (!activeExercise?.id) return;
 
       try {
-        await startExercise(questId);
+        await startExercise(activeExercise.id);
       } catch (err) {
         console.error("Failed to start quest", err);
       }
@@ -146,7 +181,7 @@ const JavaScriptExercise = () => {
 
     return () =>
       window.removeEventListener("code-mania:quest-started", handleStart);
-  }, []);
+  }, [activeExerciseId, activeExercise, startExercise]);
 
 
 
@@ -158,40 +193,46 @@ const JavaScriptExercise = () => {
 
   useEffect(() => {
 
+    setIsPageLoading(true);
+    setActiveExercise(null);
+    stopGame();
+
     const fetchExercise = async () => {
 
       try {
 
-        const quest = await getExerciseById(activeExerciseId);
+        // Route param is the lesson number (order_index). Quests in DB may not have
+        // ids aligned across languages, so resolve DB quest id via language list.
+        const exercises = await getExercises(3);
+        const meta = (Array.isArray(exercises) ? exercises : []).find((q) =>
+          Number(q?.order_index ?? q?.orderIndex) === activeExerciseId
+        );
 
-        const rawSlug = String(
-          quest?.programming_languages?.slug ||
-            quest?.programming_languages?.name ||
-            ""
-        ).toLowerCase();
-        const normalizedSlug = rawSlug === "c++" ? "cpp" : rawSlug;
-
-        if (normalizedSlug && normalizedSlug !== "javascript") {
-          navigate(`/learn/${normalizedSlug}/exercise/${quest.id}`, { replace: true });
+        if (!meta?.id) {
+          navigate("/learn/javascript/exercise/1", { replace: true });
           return;
         }
 
+        const quest = await getExerciseById(meta.id);
         setActiveExercise(quest);
+
+        setTimeout(() => setIsPageLoading(false), 120);
 
       } catch (err) {
 
-        if (err.response?.status === 403) {
-
-          const redirectId = err.response.data?.redirectTo;
-
-          if (redirectId) {
-
-            navigate(`/learn/javascript/exercise/${redirectId}`);
-
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          if (!isAuthenticated && activeExerciseId > 2) {
+            setIsSignInModalOpen(true);
+            navigate("/learn/javascript/exercise/2", { replace: true });
+            setIsPageLoading(false);
             return;
-
           }
 
+          const redirectId = err.response?.data?.redirectTo;
+          if (redirectId) {
+            navigate(`/learn/javascript/exercise/${redirectId}`);
+            return;
+          }
         }
 
 
@@ -208,6 +249,9 @@ const JavaScriptExercise = () => {
 
         console.error(err);
 
+        // Ensure we don't get stuck on the loading overlay.
+        setIsPageLoading(false);
+
       }
 
     };
@@ -216,7 +260,7 @@ const JavaScriptExercise = () => {
 
     fetchExercise();
 
-  }, [activeExerciseId]);
+  }, [activeExerciseId, isAuthenticated, navigate]);
 
 
 
@@ -227,15 +271,35 @@ const JavaScriptExercise = () => {
   =============================== */
 
   useEffect(() => {
-
     const loadProgress = async () => {
+      if (!isAuthenticated) {
+        setDbCompletedQuests([]);
+        setCompletedQuizStages([]);
+        return;
+      }
 
       const result = await getGameProgress(3);
 
       if (result?.completedQuests) {
+        const completedDbIds = (Array.isArray(result.completedQuests)
+          ? result.completedQuests
+          : [])
+          .map((id) => Number(id))
+          .filter((id) => Number.isFinite(id));
 
-        setDbCompletedQuests(result.completedQuests);
+        // Engine quests use lesson/order_index ids; backend progress stores DB quest ids.
+        const exercises = await getExercises(3);
+        const dbIdToOrder = new Map(
+          (Array.isArray(exercises) ? exercises : [])
+            .map((q) => [Number(q?.id), Number(q?.order_index ?? q?.orderIndex)])
+            .filter(([id, order]) => Number.isFinite(id) && Number.isFinite(order))
+        );
 
+        const normalized = completedDbIds
+          .map((id) => dbIdToOrder.get(id) ?? id)
+          .filter((id) => Number.isFinite(id));
+
+        setDbCompletedQuests(normalized);
       }
 
       setCompletedQuizStages(Array.isArray(result?.completedQuizStages) ? result.completedQuizStages : []);
@@ -245,8 +309,7 @@ const JavaScriptExercise = () => {
 
 
     loadProgress();
-
-  }, []);
+  }, [isAuthenticated]);
 
 
 
@@ -276,10 +339,11 @@ const JavaScriptExercise = () => {
   }, [activeExerciseId, activeExercise]);
 
   useEffect(() => {
-    setMobileActivePanel("game");
-  }, [activeExerciseId]);
+    setMobileActivePanel(isRetryMode ? "editor" : "game");
+  }, [activeExerciseId, isRetryMode]);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView || mobileActivePanel === "game") return;
 
     window.dispatchEvent(new Event("code-mania:force-close-help"));
@@ -294,7 +358,7 @@ const JavaScriptExercise = () => {
     if (sceneManager.isPaused?.("GameScene")) {
       sceneManager.resume("GameScene");
     }
-  }, [isMobileView, mobileActivePanel]);
+  }, [isMobileView, isRetryMode, mobileActivePanel]);
 
 
 
@@ -308,25 +372,29 @@ const JavaScriptExercise = () => {
 
     const onRequestNext = async (e) => {
 
-      const currentId = e.detail?.exerciseId;
+      const currentId = Number(e.detail?.exerciseId);
+      if (!Number.isFinite(currentId)) return;
 
-      if (!currentId) return;
-
-
-
-      const next = await getNextExercise(currentId);
-
-
-
-      if (!next) {
-
+      // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in.
+      if (!isAuthenticated) {
+        if (currentId >= 2) {
+          setIsSignInModalOpen(true);
+          return;
+        }
+        navigate(`/learn/javascript/exercise/${currentId + 1}`);
         return;
-
       }
 
+      const currentDbId = Number(activeExercise?.id);
+      if (!Number.isFinite(currentDbId)) return;
 
+      const next = await getNextExercise(currentDbId);
+      if (!next) return;
 
-      navigate(`/learn/javascript/exercise/${next.id}`);
+      const nextOrder = Number(next?.order_index ?? next?.orderIndex);
+      if (!Number.isFinite(nextOrder)) return;
+
+      navigate(`/learn/javascript/exercise/${nextOrder}`);
 
     };
 
@@ -354,7 +422,7 @@ const JavaScriptExercise = () => {
 
     };
 
-  }, []);
+  }, [getNextExercise, isAuthenticated, navigate, activeExercise]);
 
 
 
@@ -366,21 +434,45 @@ const JavaScriptExercise = () => {
 
   useEffect(() => {
 
+    if (isRetryMode) {
+      stopGame();
+      setTerminalEnabled(true);
+      return;
+    }
+
     if (!activeExercise) return;
 
+    // Prevent starting Phaser with stale quest while the route param changes.
+    // For JS/C++ routes, the URL param is the lesson number (order_index).
+    const activeOrder = Number(activeExercise?.order_index ?? activeExercise?.orderIndex);
+    if (Number.isFinite(activeOrder) && activeOrder !== activeExerciseId) {
+      return;
+    }
 
+
+
+    const engineQuestId = Number(activeExercise?.order_index ?? activeExerciseId);
+    const engineQuest = {
+      ...activeExercise,
+      // Engine quest ids must match map NPC quest ids (1-16), not DB ids.
+      id: Number.isFinite(engineQuestId) ? engineQuestId : activeExerciseId,
+      dbId: activeExercise?.id,
+    };
 
     startGame({
 
-      exerciseId: activeExerciseId,
+      exerciseId: engineQuest.id,
 
-      quest: activeExercise,
+      quest: engineQuest,
 
       completedQuests: dbCompletedQuests,
 
       parent: "phaser-container"
 
     });
+
+    // Fail-safe: if Phaser has been started, remove the loading overlay.
+    setIsPageLoading(false);
 
 
 
@@ -432,7 +524,11 @@ const JavaScriptExercise = () => {
           setShowStageQuizPrompt(true);
         }
 
-        getNextExercise(activeExerciseId).then((next) => {
+        if (!isAuthenticated) return;
+        const currentDbId = Number(activeExercise?.id);
+        if (!Number.isFinite(currentDbId)) return;
+
+        getNextExercise(currentDbId).then((next) => {
           if (!next) {
             setShowCourseCompletePrompt(true);
           }
@@ -457,7 +553,7 @@ const JavaScriptExercise = () => {
 
     };
 
-  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests, isRetryMode, isAuthenticated]);
 
   useEffect(() => {
     return () => {
@@ -511,13 +607,11 @@ const JavaScriptExercise = () => {
 
 
 
-  if (!activeExercise) return null;
-
-
-
   return (
 
     <div className={styles["javascript-exercise-page"]}>
+
+      {isPageLoading && <AuthLoadingOverlay />}
 
       <Header
 
@@ -552,38 +646,96 @@ const JavaScriptExercise = () => {
           title={activeExercise?.lesson_header || activeExercise?.title || "JavaScript"}
         />
 
-        {isMobileView && (
-          <div className={styles["mobile-panel-switcher-top"]}>
+        {isMobileView && !isRetryMode && (
+          <div
+            className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
+          >
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "game" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("game")}
+              aria-label="Game Scene"
+              title="Game Scene"
             >
-              Game Scene
+              {isSmallPhone ? "Game" : "Game Scene"}
             </button>
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("editor")}
+              aria-label="Code Editor"
+              title="Code Editor"
             >
-              Code Editor
+              {isSmallPhone ? "Code" : "Code Editor"}
             </button>
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("terminal")}
+              aria-label="Terminal"
+              title="Terminal"
             >
-              Terminal
+              {isSmallPhone ? "Term" : "Terminal"}
             </button>
           </div>
         )}
 
-        <div className={styles["main-layout"]}>
-          <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
-            <div id="phaser-container" className={styles["game-scene"]} />
+        {isMobileView && isRetryMode && (
+          <div
+            className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
+          >
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("editor")}
+              aria-label="Code Editor"
+              title="Code Editor"
+            >
+              {isSmallPhone ? "Code" : "Code Editor"}
+            </button>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("terminal")}
+              aria-label="Terminal"
+              title="Terminal"
+            >
+              {isSmallPhone ? "Term" : "Terminal"}
+            </button>
           </div>
+        )}
 
-          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
+        <div className={`${styles["main-layout"]} ${isRetryMode ? styles["practice-layout"] : ""}`}>
+          {!isRetryMode && (
+            <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
+              <div id="phaser-container" className={styles["game-scene"]} />
+            </div>
+          )}
+
+          {isRetryMode && (
+            <div className={styles["practice-info-pane"]}>
+              <div className={styles["practice-info"]}>
+                <div className={styles["practice-title"]}>
+                  {activeExercise?.title || "Quest"}
+                </div>
+                {activeExercise?.description ? (
+                  <MarkdownRenderer className={styles["practice-desc"]}>
+                    {activeExercise.description}
+                  </MarkdownRenderer>
+                ) : null}
+                {activeExercise?.task ? (
+                  <div className={styles["practice-task"]}>
+                    <div className={styles["practice-task-label"]}>Task</div>
+                    <MarkdownRenderer className={styles["practice-task-body"]}>
+                      {activeExercise.task}
+                    </MarkdownRenderer>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          <div className={`${styles["terminal-pane"]} ${isRetryMode ? styles["practice-terminal-pane"] : ""} ${!isRetryMode && isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               language="javascript"
@@ -597,6 +749,7 @@ const JavaScriptExercise = () => {
               enableMobileSplit={isMobileView}
               mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
+              practiceMode={isRetryMode}
             />
           </div>
         </div>
@@ -633,6 +786,9 @@ const JavaScriptExercise = () => {
         badgeAlt="JavaScript Stage 4 badge"
         badgeLabel="Stage 4 badge earned"
         onTakeExam={() => navigate("/exam/javascript")}
+        showTerminalCta
+        terminalCtaLabel="Try Out Our Terminal!"
+        onTerminalCta={() => navigate("/terminal")}
         onSecondary={() => navigate("/learn/javascript")}
         onClose={() => setShowCourseCompletePrompt(false)}
       />

@@ -5,9 +5,12 @@ import { useQuiz } from "../hooks/useQuiz";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAxios";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+import ExamCodeTerminal from "../components/ExamCodeTerminal";
 import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import styles from "../styles/QuizPage.module.css";
+import examStyles from "../styles/ExamPage.module.css";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const QuizPage = () => {
   const navigate = useNavigate();
@@ -28,6 +31,24 @@ const QuizPage = () => {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [accessLoading, setAccessLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [codeResult, setCodeResult] = useState(null);
+
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
+  const [mobileTab, setMobileTab] = useState("learn");
+
+  useEffect(() => {
+    const onResize = () => setIsMobileView(window.innerWidth <= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileView) {
+      setMobileTab("learn");
+    }
+  }, [isMobileView]);
 
   const languageToId = {
     python: 1,
@@ -46,6 +67,35 @@ const QuizPage = () => {
 
   const heroBackground =
     languageBackgrounds[language] || languageBackgrounds.python;
+
+  const sanitizeColor = (value) => {
+    const s = String(value || "").trim();
+    if (!s) return null;
+
+    // Allow hex (#rgb, #rrggbb, #rrggbbaa)
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(s)) return s;
+
+    // Allow rgb/rgba()
+    if (/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/.test(s)) return s;
+
+    // Allow a small set of named colors
+    const allowed = new Set([
+      "white",
+      "black",
+      "red",
+      "green",
+      "blue",
+      "yellow",
+      "orange",
+      "gray",
+      "grey",
+      "cyan",
+      "magenta",
+    ]);
+    if (allowed.has(s.toLowerCase())) return s;
+
+    return null;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -184,6 +234,16 @@ const QuizPage = () => {
      Calculate Score
   ----------------------------------- */
   const calculateScore = () => {
+    if (quizData?.quiz_type === "code" && codeResult) {
+      return {
+        correct: codeResult.passed_tests || 0,
+        total: codeResult.total_tests || 0,
+        percentage: codeResult.score_percentage || 0,
+        totalExp: codeResult.earned_xp || 0,
+        maxExp: quizData.exp_total || 0,
+      };
+    }
+
     const percentage = Math.round(
       (correctAnswers / quizData.questions.length) * 100
     );
@@ -195,14 +255,35 @@ const QuizPage = () => {
       total: quizData.questions.length,
       percentage,
       totalExp,
+      maxExp: quizData.questions.reduce((sum, q) => sum + (q.exp || 100), 0)
     };
+  };
+
+  const handleCodeSubmit = async (code, lang) => {
+    try {
+      const { data } = await axiosPrivate.post(
+        `/v1/quizzes/${language}/${quizId}/complete`,
+        { code }
+      );
+      return data;
+    } catch (err) {
+      console.error("Quiz submission failed:", err);
+      throw err;
+    }
+  };
+
+  const handleCodeResult = (result) => {
+    setCodeResult(result);
+    if (result.passed || result.score_percentage >= 70) {
+      setQuizCompleted(true);
+    }
   };
 
   /* ---------------------------------
      Submit Quiz + Store XP
   ----------------------------------- */
   useEffect(() => {
-    if (!quizCompleted || !quizData) return;
+    if (!quizCompleted || !quizData || quizData.quiz_type === "code") return;
 
     if (isAdmin) return;
 
@@ -235,7 +316,7 @@ const QuizPage = () => {
 
   if (!hasAccess) return null;
 
-  if (!Array.isArray(quizData?.questions) || quizData.questions.length === 0) {
+  if (quizData?.quiz_type !== "code" && (!Array.isArray(quizData?.questions) || quizData.questions.length === 0)) {
     return (
       <div className={styles.page}>
         <div
@@ -261,6 +342,168 @@ const QuizPage = () => {
           >
             Back to Course
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (quizData?.quiz_type === "code" && !quizCompleted) {
+    return (
+      <div className={examStyles.page}>
+        {isMobileView && (
+          <div className={examStyles.sideBookmarks} role="tablist" aria-label="Exam panels">
+            <button
+              type="button"
+              className={`${examStyles.bookmarkBtn} ${mobileTab === "learn" ? examStyles.bookmarkBtnActive : ""}`}
+              onClick={() => setMobileTab("learn")}
+              aria-selected={mobileTab === "learn"}
+            >
+              Learn
+            </button>
+            <button
+              type="button"
+              className={`${examStyles.bookmarkBtn} ${mobileTab === "code" ? examStyles.bookmarkBtnActive : ""}`}
+              onClick={() => setMobileTab("code")}
+              aria-selected={mobileTab === "code"}
+            >
+              Code
+            </button>
+            <button
+              type="button"
+              className={`${examStyles.bookmarkBtn} ${mobileTab === "output" ? examStyles.bookmarkBtnActive : ""}`}
+              onClick={() => setMobileTab("output")}
+              aria-selected={mobileTab === "output"}
+            >
+              Output
+            </button>
+          </div>
+        )}
+
+        <section
+          className={examStyles.hero}
+          style={{
+            backgroundImage: `url('${heroBackground}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center 62%",
+            height: "200px"
+          }}
+        >
+          <div className={examStyles.heroContent}>
+            <h1 className={examStyles.heroTitle}>{quizData.quiz_title}</h1>
+          </div>
+        </section>
+
+        <div className={examStyles.section}>
+          <div className={examStyles.questionContainer}>
+            <div className={examStyles.questionHeader}>
+              <h2 className={examStyles.questionTitle}>Coding Exercise</h2>
+              <span className={examStyles.questionPoints}>
+                {quizData.exp_total || 500} XP
+              </span>
+            </div>
+
+            <div className={examStyles.examLayout}>
+              <div
+                className={`${examStyles.examInfoColumn} ${isMobileView && mobileTab !== "learn" ? examStyles.mobilePanelHidden : ""}`}
+              >
+                <div className={examStyles.questionText}>
+                  {typeof quizData.code_prompt === "object" && quizData.code_prompt !== null && quizData.code_prompt.sections ? (
+                    quizData.code_prompt.sections.map((section, index) => {
+                      const sectionColor = sanitizeColor(section?.color);
+
+                      if (section.type === "heading") {
+                        const Tag = `h${section.level || 2}`;
+                        return (
+                          <Tag
+                            key={index}
+                            style={{
+                              marginTop: index === 0 ? "0" : "1.5rem",
+                              marginBottom: "0.75rem",
+                              color: sectionColor || "#f1f5f9",
+                              fontWeight: "700"
+                            }}
+                          >
+                            {section.content}
+                          </Tag>
+                        );
+                      }
+
+                      if (section.type === "paragraph") {
+                        return (
+                          <p
+                            key={index}
+                            style={{
+                              marginBottom: "0.75rem",
+                              color: sectionColor || "#cbd5e1",
+                              lineHeight: "1.6"
+                            }}
+                          >
+                            {section.content}
+                          </p>
+                        );
+                      }
+
+                      if (section.type === "list") {
+                        const ListTag = section.style === "number" ? "ol" : "ul";
+
+                        return (
+                          <div
+                            key={index}
+                            style={{
+                              background: "rgba(255,255,255,0.03)",
+                              border: "1px solid rgba(255,255,255,0.06)",
+                              borderRadius: "8px",
+                              padding: "0.75rem 1rem",
+                              marginBottom: "1rem"
+                            }}
+                          >
+                            <ListTag
+                              style={{
+                                paddingLeft: "1.2rem",
+                                lineHeight: "1.7",
+                                color: sectionColor || "#cbd5e1",
+                              }}
+                            >
+                              {section.items.map((item, i) => (
+                                <li key={i} style={{ marginBottom: "0.4rem" }}>
+                                  {item}
+                                </li>
+                              ))}
+                            </ListTag>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })
+                  ) : (
+                    <MarkdownRenderer className={examStyles.lcDescription}>
+                      {typeof quizData.code_prompt === "string"
+                        ? quizData.code_prompt
+                        : JSON.stringify(quizData.code_prompt)}
+                    </MarkdownRenderer>
+                  )}
+                </div>
+              </div>
+
+              <div
+                className={`${examStyles.examCodeColumn} ${isMobileView && mobileTab === "learn" ? examStyles.mobilePanelHidden : ""}`}
+              >
+                <ExamCodeTerminal 
+                  language={language}
+                  initialCode={quizData.starting_code}
+                  testCases={quizData.test_cases}
+                  attemptId={`quiz_${language}_${quizId}`}
+                  submitAttempt={handleCodeSubmit}
+                  onResult={handleCodeResult}
+                  attemptNumber={1} 
+                  isAdmin={isAdmin}
+                  isMobileView={isMobileView}
+                  mobilePanel={mobileTab}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -301,10 +544,7 @@ const QuizPage = () => {
                 </p>
                 <p>
                   Score: {score.totalExp}/
-                  {quizData.questions.reduce(
-                    (sum, q) => sum + (q.exp || 100),
-                    0
-                  )}{" "}
+                  {score.maxExp}{" "}
                   EXP
                 </p>
               </div>

@@ -67,6 +67,19 @@
   align-items: stretch;
 }
 
+.practice-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  min-height: auto;
+  gap: 1rem;
+}
+
+.practice-info-pane {
+  min-width: 0;
+  height: 100%;
+}
+
 .btn-disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -84,6 +97,62 @@
 .terminal-pane {
   flex: 0 0 min(40%, 620px);
   min-width: 420px;
+}
+
+.practice-terminal-pane {
+  min-width: 0;
+  height: 100%;
+}
+
+.practice-info {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.practice-title {
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: #93c5fd;
+  margin: 0 0 0.75rem 0;
+}
+
+.practice-desc {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.practice-task {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed rgba(148, 163, 184, 0.25);
+}
+
+.practice-task-label {
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.72rem;
+  color: #38bdf8;
+  margin-bottom: 0.55rem;
+}
+
+.practice-task-body {
+  color: #e2e8f0;
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 1024px) {
+  .practice-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .game-preview {
@@ -146,12 +215,22 @@
   margin: 0;
   max-width: 320px;
   padding: 0.9rem 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid rgba(148, 163, 184, 0.55);
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.92) 100%);
   color: #e2e8f0;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.66rem;
+  line-height: 1.65;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  box-shadow: 0 6px 0 rgba(2, 6, 23, 0.85);
+}
+
+.terminal-lock-text-done {
+  border-color: rgba(34, 197, 94, 0.95);
+  box-shadow: 0 6px 0 rgba(2, 6, 23, 0.85), 0 0 18px rgba(34, 197, 94, 0.18);
+  color: rgba(220, 252, 231, 0.98);
 }
 
 .code-editor,
@@ -752,6 +831,549 @@
   word-break: break-word;
 }
 
+/* Terminal + Test Sidebar (Desktop) */
+.terminal-with-tests {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  /* Keep test panel exactly the terminal height */
+  height: clamp(280px, 34vh, 420px);
+}
+
+.bottom-panel {
+  height: clamp(280px, 34vh, 420px);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.42);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-panel-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.55);
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+}
+
+.bottom-panel-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bottom-panel-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.bottom-panel-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.bottom-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+}
+
+@media (max-width: 900px) {
+  .bottom-panel {
+    height: 46vh;
+    min-height: 260px;
+    max-height: 420px;
+  }
+}
+
+.result-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+  padding: 12px;
+}
+
+.result-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 6px 2px 10px;
+}
+
+.result-status {
+  font-family: "Press Start 2P", cursive;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+.result-status-accepted {
+  color: rgba(34, 197, 94, 0.95);
+}
+
+.result-status-wrong {
+  color: rgba(239, 68, 68, 0.95);
+}
+
+.result-meta {
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.result-top-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 12px;
+}
+
+.result-top-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.result-top-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.result-top-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.result-empty {
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 12px;
+  padding: 10px 10px;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.25);
+  margin-top: 10px;
+}
+
+.result-panel {
+  margin-top: 10px;
+}
+
+.result-section-title {
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.95);
+  margin: 14px 0 8px;
+}
+
+.result-block {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.45);
+  padding: 10px 10px;
+}
+
+.result-block-pre {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.95);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-with-tests > * {
+  min-height: 0;
+}
+
+.terminal-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+}
+
+.terminal-with-tests .terminal {
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+.bottom-panel-body .terminal {
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+.dom-preview {
+  width: 100%;
+  height: 400px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.test-sidebar {
+  flex: 0 0 340px;
+  max-width: 360px;
+  min-width: 300px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  height: 100%;
+}
+
+.test-sidebar-full {
+  flex: 1 1 auto;
+  max-width: none;
+  min-width: 0;
+  height: 100%;
+}
+
+.test-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 12px;
+  background: rgba(2, 6, 23, 0.75);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.test-sidebar-title {
+  font-family: "Press Start 2P", cursive;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.test-sidebar-pill {
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  line-height: 1;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.8);
+  color: rgba(226, 232, 240, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.35);
+}
+
+.test-sidebar-pill-pass {
+  border-color: rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.12);
+  color: rgba(220, 252, 231, 0.95);
+}
+
+.test-sidebar-pill-warn {
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.12);
+  color: rgba(254, 243, 199, 0.95);
+}
+
+.test-sidebar-pill-idle {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(148, 163, 184, 0.08);
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.test-sidebar-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  min-height: 0;
+}
+
+.test-sidebar-empty {
+  color: rgba(226, 232, 240, 0.75);
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 10px 10px;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.test-sidebar-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.test-sidebar-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.9);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.test-sidebar-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.test-sidebar-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.test-sidebar-section {
+  margin-top: 12px;
+}
+
+.test-sidebar-section:first-child {
+  margin-top: 0;
+}
+
+.test-sidebar-section-title {
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.82);
+  margin: 0 0 10px;
+}
+
+.testcase-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(15, 23, 42, 0.4);
+  margin-bottom: 8px;
+}
+
+.testcase-row-pending {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.testcase-pass {
+  border-color: rgba(34, 197, 94, 0.22);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.testcase-fail {
+  border-color: rgba(239, 68, 68, 0.22);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.testcase-mark {
+  flex: 0 0 auto;
+  font-family: "Press Start 2P", cursive;
+  font-size: 12px;
+  padding: 5px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(2, 6, 23, 0.6);
+  color: rgba(226, 232, 240, 0.92);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+}
+
+.testcase-text {
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.testcase-card {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.45);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.testcase-card-pass {
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.testcase-card-fail {
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.testcase-card-pending {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.38);
+}
+
+.testcase-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px;
+  background: rgba(2, 6, 23, 0.55);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.testcase-card-title {
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.testcase-status {
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.testcase-grid {
+  padding: 10px 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.testcase-cell {
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.45);
+  padding: 8px 8px;
+}
+
+.testcase-label {
+  font-size: 11px;
+  color: rgba(148, 163, 184, 0.95);
+  margin-bottom: 6px;
+}
+
+.testcase-value {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.95);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.runtime-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px;
+  margin-bottom: 10px;
+  scrollbar-gutter: stable;
+}
+
+.runtime-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.9);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.runtime-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.runtime-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.runtime-tab-mark {
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  line-height: 1;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  padding: 4px 6px;
+  background: rgba(2, 6, 23, 0.55);
+  min-width: 26px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.runtime-tab-label {
+  white-space: nowrap;
+}
+
+.runtime-panel {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.45);
+  overflow: hidden;
+}
+
+.runtime-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px;
+  background: rgba(2, 6, 23, 0.55);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.runtime-panel-body {
+  padding: 10px 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.test-sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.72);
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.test-sidebar-footer-left {
+  font-weight: 600;
+}
+
+.test-sidebar-footer-right {
+  opacity: 0.85;
+}
+
+@media (max-width: 1200px) {
+  .test-sidebar {
+    flex-basis: 320px;
+    min-width: 280px;
+  }
+}
+
 .terminal-input-row {
   display: flex;
   gap: 0.5rem;
@@ -1023,8 +1645,8 @@
   bottom: 16px;
   width: min(250px, calc(100vw - 32px));
   max-height: 48vh;
-  overflow-y: auto;
-  padding: 12px;
+  overflow: hidden;
+  padding: 0;
   background: rgba(18, 22, 30, 0.96);
   border-radius: 10px;
   border: 1px solid #2d2d2d;
@@ -1032,6 +1654,14 @@
   z-index: 1400;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
   animation: validationToastIn 180ms ease-out;
+}
+
+.validation-box-collapsed .validation-body {
+  transform: translateX(-110%);
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 @keyframes validationToastIn {
@@ -1046,8 +1676,69 @@
 }
 
 .validation-summary {
-  margin-bottom: 10px;
+  margin: 0;
   color: #e0e0e0;
+}
+
+.validation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px;
+  background: rgba(2, 6, 23, 0.65);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.validation-title {
+  font-family: "Press Start 2P", cursive;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.validation-toggle {
+  flex: 0 0 auto;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  background: rgba(2, 6, 23, 0.6);
+  color: rgba(226, 232, 240, 0.95);
+  border-radius: 0;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  line-height: 1;
+  box-shadow: 0 3px 0 rgba(2, 6, 23, 0.85);
+}
+
+.validation-body {
+  padding: 12px;
+  overflow-y: auto;
+  max-height: calc(48vh - 48px);
+  transform: translateX(0);
+  opacity: 1;
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease,
+    max-height 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, max-height;
+}
+
+.validation-toggle:hover {
+  filter: brightness(1.08);
+}
+
+.validation-toggle:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 rgba(2, 6, 23, 0.85);
+}
+
+.validation-subtitle {
+  margin: 10px 0 8px;
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 12px;
 }
 
 /* ✅ PASS STYLE */
@@ -1365,9 +2056,20 @@
 
   .mobile-panel-switcher-top .mobile-switch-btn {
     flex: 1;
+    min-width: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  .mobile-panel-switcher-top-compact {
+    width: calc(100% - 16px);
+    gap: 0.35rem;
+  }
+
+  .mobile-panel-switcher-top-compact .mobile-switch-btn {
+    padding: 0.34rem 0.55rem;
+    font-size: 0.58rem;
   }
 
   .code-container {

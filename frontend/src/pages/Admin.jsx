@@ -6,7 +6,7 @@ import { BarChart3, Database } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
 
-function Admin() {
+function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsStatus = 'disconnected' }) {
   const ATTEMPTS_PER_PAGE = 10;
   const EXPORT_RANGE_OPTIONS = [
     { value: '1week', label: '1 week', days: 7 },
@@ -60,6 +60,8 @@ function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [datasets, setDatasets] = useState([]);
   const [datasetsLoading, setDatasetsLoading] = useState(false);
+  const [examDatasets, setExamDatasets] = useState([]);
+  const [examDatasetsLoading, setExamDatasetsLoading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
@@ -97,6 +99,7 @@ function Admin() {
   const [gaTraffic, setGaTraffic] = useState(null);
   const [gaLoading, setGaLoading] = useState(false);
   const [gaError, setGaError] = useState('');
+  const [gaTrafficMetric, setGaTrafficMetric] = useState('screenPageViews');
 
   const quizAttempts = quizMetrics?.attempts || [];
   const examAttempts = examMetrics?.attempts || [];
@@ -243,7 +246,6 @@ function Admin() {
       setDatasets(formattedDatasets);
     } catch (error) {
       console.error("Error fetching datasets:", error);
-      // Fallback to demo data on error
       setDatasets([
         { name: "Python Quests", course: "python", total: 0, published: 0, draft: 0, status: "draft", updatedAt: "Today" },
         { name: "C++ Quests", course: "cpp", total: 0, published: 0, draft: 0, status: "published", updatedAt: "Yesterday" },
@@ -251,6 +253,53 @@ function Admin() {
       ]);
     } finally {
       setDatasetsLoading(false);
+    }
+  };
+
+  const fetchExamDatasets = async () => {
+    setExamDatasetsLoading(true);
+    try {
+      const courses = [
+        { course: 'python', slug: 'python', name: 'Python Exams' },
+        { course: 'cpp', slug: 'cpp', name: 'C++ Exams' },
+        { course: 'javascript', slug: 'javascript', name: 'JavaScript Exams' },
+      ];
+
+      const responses = await Promise.all(
+        courses.map((item) =>
+          axiosPublic.get(`/v1/exam/problems?language=${item.slug}`, { withCredentials: true })
+        )
+      );
+
+      const formatted = courses.map((item, index) => {
+        const rows = responses[index]?.data?.data || [];
+        const total = rows.length;
+
+        const latestTimestamp = rows.reduce((latest, row) => {
+          const candidate = row?.updated_at || row?.created_at;
+          if (!candidate) return latest;
+          if (!latest) return candidate;
+          return new Date(candidate) > new Date(latest) ? candidate : latest;
+        }, null);
+
+        return {
+          name: item.name,
+          course: item.course,
+          total,
+          updatedAt: latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : '-',
+        };
+      });
+
+      setExamDatasets(formatted);
+    } catch (error) {
+      console.error('Error fetching exam datasets:', error);
+      setExamDatasets([
+        { name: 'Python Exams', course: 'python', total: 0, updatedAt: '-' },
+        { name: 'C++ Exams', course: 'cpp', total: 0, updatedAt: '-' },
+        { name: 'JavaScript Exams', course: 'javascript', total: 0, updatedAt: '-' },
+      ]);
+    } finally {
+      setExamDatasetsLoading(false);
     }
   };
 
@@ -459,10 +508,8 @@ function Admin() {
         throw new Error('Failed to fetch GA data: Invalid format');
       }
     } catch (error) {
-      console.error('Error fetching GA data:', error);
-      setGaError('Error fetching GA data. Backend package might be missing.');
       // Fallback demo data if error
-      setGaActiveUsers(42);
+      setGaActiveUsers(1);
       setGaTraffic([
         { date: '20260227', activeUsers: 15, newusers: 15, sessions: 23, screenPageViews: 154 },
         { date: '20260228', activeUsers: 4, newusers: 3, sessions: 5, screenPageViews: 29 },
@@ -522,6 +569,7 @@ function Admin() {
           // Fetch datasets and analytics when admin is authenticated
           if (allowed && !cancelled) {
             fetchDatasets();
+            fetchExamDatasets();
             fetchMetrics();
             fetchQuizMetrics();
             fetchUserQuizSummary();
@@ -543,6 +591,7 @@ function Admin() {
       cancelled = true;
     };
   }, []);
+
 
   useEffect(() => {
     setQuizAttemptsPage(1);
@@ -597,6 +646,127 @@ function Admin() {
     </div>
   );
 
+  const TRAFFIC_SERIES = [
+    { key: 'activeUsers', label: 'Active Users', color: '#38bdf8' },
+    { key: 'newusers', label: 'New Users', color: '#a78bfa' },
+    { key: 'sessions', label: 'Sessions', color: '#fbbf24' },
+    { key: 'screenPageViews', label: 'Page Views', color: '#34d399' },
+  ];
+
+  const formatGaDate = (raw) => {
+    if (!raw) return '-';
+    const s = String(raw);
+    if (s.length === 8) return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+    return s;
+  };
+
+  const TrafficChart = ({ traffic, seriesKey }) => {
+    const series = TRAFFIC_SERIES.find((s) => s.key === seriesKey) || TRAFFIC_SERIES[0];
+
+    const rows = (traffic || [])
+      .map((log) => ({
+        dateRaw: log?.date,
+        date: formatGaDate(log?.date),
+        activeUsers: Number(log?.activeUsers || 0),
+        newusers: Number(log?.newusers || 0),
+        sessions: Number(log?.sessions || 0),
+        screenPageViews: Number(log?.screenPageViews || 0),
+      }))
+      .sort((a, b) => String(a.dateRaw || a.date).localeCompare(String(b.dateRaw || b.date)));
+
+    const values = rows.map((r) => Number(r[series.key] || 0));
+    const maxValue = Math.max(1, ...values);
+
+    const W = 720;
+    const H = 240;
+    const padL = 44;
+    const padR = 16;
+    const padT = 18;
+    const padB = 42;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+    const n = Math.max(1, rows.length);
+    const gap = n > 7 ? 6 : 10;
+    const barW = Math.max(10, Math.floor((innerW - gap * (n - 1)) / n));
+
+    const xForIndex = (i) => padL + i * (barW + gap);
+    const yForValue = (v) => padT + (1 - v / maxValue) * innerH;
+    const hForValue = (v) => (v / maxValue) * innerH;
+
+    const ticks = 4;
+    const tickValues = Array.from({ length: ticks + 1 }, (_, i) => (maxValue * i) / ticks);
+
+    return (
+      <div className={styles.trafficChartWrap}>
+        <div className={styles.trafficChartMeta}>
+          <div className={styles.trafficChartMetric}>
+            <span className={styles.trafficChartMetricLabel}>{series.label}</span>
+            <span className={styles.trafficChartMetricValue}>{values.reduce((a, b) => a + b, 0)}</span>
+            <span className={styles.trafficChartMetricHint}>total (7d)</span>
+          </div>
+          <div className={styles.trafficChartMetric}>
+            <span className={styles.trafficChartMetricLabel}>Max</span>
+            <span className={styles.trafficChartMetricValue}>{values.length ? Math.max(...values) : 0}</span>
+            <span className={styles.trafficChartMetricHint}>single day</span>
+          </div>
+          <div className={styles.trafficChartMetric}>
+            <span className={styles.trafficChartMetricLabel}>Avg</span>
+            <span className={styles.trafficChartMetricValue}>{Math.round(values.reduce((a, b) => a + b, 0) / n)}</span>
+            <span className={styles.trafficChartMetricHint}>per day</span>
+          </div>
+        </div>
+
+        <div className={styles.trafficChartCanvas} role="img" aria-label={`Traffic chart for ${series.label} (last 7 days)`}>
+          <svg className={styles.trafficChartSvg} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+            {/* Grid */}
+            {tickValues.map((t, idx) => {
+              const y = yForValue(t);
+              return (
+                <g key={idx}>
+                  <line x1={padL} x2={W - padR} y1={y} y2={y} className={styles.trafficChartGridLine} />
+                  <text x={padL - 10} y={y + 4} textAnchor="end" className={styles.trafficChartTick}>
+                    {Math.round(t)}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Bars */}
+            {rows.map((r, i) => {
+              const v = Number(r[series.key] || 0);
+              const x = xForIndex(i);
+              const h = hForValue(v);
+              const y = padT + (innerH - h);
+              const label = r.date.slice(5);
+              return (
+                <g key={r.dateRaw || r.date}>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={barW}
+                    height={h}
+                    rx={3}
+                    fill={series.color}
+                    fillOpacity={0.78}
+                    className={styles.trafficChartBar}
+                  >
+                    <title>{`${r.date}: ${v}`}</title>
+                  </rect>
+                  <text x={x + barW / 2} y={H - 16} textAnchor="middle" className={styles.trafficChartXLabel}>
+                    {label}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Border */}
+            <rect x={padL} y={padT} width={innerW} height={innerH} className={styles.trafficChartFrame} />
+          </svg>
+        </div>
+      </div>
+    );
+  };
+
   const RangeSelector = ({ value, onChange }) => (
     <div className={styles.rangePicker} role="group" aria-label="Export range">
       {EXPORT_RANGE_OPTIONS.map((option) => (
@@ -634,7 +804,20 @@ function Admin() {
           </div>
         </div>
 
-        <div className={styles.grid}>
+        <div className={`${styles.grid} ${styles.grid5}`}>
+          <StatCard
+            title={(
+              <span className={styles.onlineTitle}>
+                <span
+                  className={`${styles.onlineDot} ${presenceWsStatus === 'connected' ? styles.onlineDotOn : styles.onlineDotOff}`}
+                  aria-hidden="true"
+                />
+                Online Users
+              </span>
+            )}
+            value={presenceWsStatus === 'connected' ? (presenceStats.uniqueUsers ?? 0) : '…'}
+            subtitle={null}
+          />
           <StatCard title="Total Users" value={metricsLoading ? '…' : (metrics?.totalUsers ?? demo.totalUsers)} />
           <StatCard title="New Users (7 days)" value={metricsLoading ? '…' : (metrics?.newUsers7d ?? demo.newUsers7d)} />
           <StatCard title="New Users (30 days)" value={metricsLoading ? '…' : (metrics?.newUsers30d ?? 0)} />
@@ -693,47 +876,62 @@ function Admin() {
         {gaError ? <p className={styles.errorText} style={{ marginTop: 12 }}>{gaError}</p> : null}
 
         <div className={styles.panel} style={{ marginTop: 12, marginBottom: 24 }}>
-          <h3 className={styles.panelTitle}>Traffic Logs (Last 7 Days)</h3>
-          <div className={styles.quizTableWrap}>
-            <table className={styles.quizTable}>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Active Users</th>
-                  <th>New Users</th>
-                  <th>Sessions</th>
-                  <th>Page Views</th>
-                </tr>
-              </thead>
-              <tbody>
-                {gaLoading ? (
-                  <tr>
-                    <td colSpan={5} className={styles.quizEmpty}>Loading traffic data...</td>
-                  </tr>
-                ) : !gaTraffic || gaTraffic.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className={styles.quizEmpty}>No traffic data available.</td>
-                  </tr>
-                ) : (
-                  gaTraffic.map((log) => {
-                    const formattedDate = log.date && log.date.length === 8
-                      ? `${log.date.slice(0, 4)}-${log.date.slice(4, 6)}-${log.date.slice(6, 8)}`
-                      : log.date;
+          <div className={styles.trafficHeaderRow}>
+            <div>
+              <h3 className={styles.panelTitle} style={{ marginBottom: 4 }}>Traffic Logs (Last 7 Days)</h3>
+              <p className={styles.panelSubtitle}>Switch metrics to compare trends</p>
+            </div>
 
-                    return (
-                      <tr key={log.date}>
-                        <td>{formattedDate}</td>
-                        <td>{log.activeUsers}</td>
-                        <td>{log.newusers}</td>
-                        <td>{log.sessions}</td>
-                        <td>{log.screenPageViews}</td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+            <div className={styles.trafficSeriesPicker} role="tablist" aria-label="Traffic metric selector">
+              {TRAFFIC_SERIES.map((series) => (
+                <button
+                  key={series.key}
+                  type="button"
+                  className={`${styles.trafficSeriesButton} ${gaTrafficMetric === series.key ? styles.trafficSeriesButtonActive : ''}`}
+                  onClick={() => setGaTrafficMetric(series.key)}
+                  aria-selected={gaTrafficMetric === series.key}
+                >
+                  {series.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {gaLoading ? (
+            <div className={styles.trafficEmpty}>Loading traffic data...</div>
+          ) : !gaTraffic || gaTraffic.length === 0 ? (
+            <div className={styles.trafficEmpty}>No traffic data available.</div>
+          ) : (
+            <TrafficChart traffic={gaTraffic} seriesKey={gaTrafficMetric} />
+          )}
+
+          <details className={styles.trafficDetails}>
+            <summary className={styles.trafficDetailsSummary}>Raw table</summary>
+            <div className={styles.quizTableWrap}>
+              <table className={styles.quizTable}>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Active Users</th>
+                    <th>New Users</th>
+                    <th>Sessions</th>
+                    <th>Page Views</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(gaTraffic || []).map((log) => (
+                    <tr key={log.date}>
+                      <td>{formatGaDate(log.date)}</td>
+                      <td>{log.activeUsers}</td>
+                      <td>{log.newusers}</td>
+                      <td>{log.sessions}</td>
+                      <td>{log.screenPageViews}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </div>
 
         {/* Analytics Section */}
@@ -1191,19 +1389,20 @@ function Admin() {
         <div className={styles.header} style={{ marginTop: 18 }}>
           <div className={styles.headerLeft}>
             <Database className={styles.icon} />
-            <h2 className={styles.title}>Quests Database</h2>
+            <h2 className={styles.title}>Content Management</h2>
           </div>
         </div>
 
+        <h3 className={styles.panelTitle} style={{ marginTop: 12, marginBottom: 8 }}>Exercises</h3>
         {datasetsLoading ? (
           <div className={styles.panel}>
-            <p>Loading datasets...</p>
+            <p>Loading exercises...</p>
           </div>
         ) : (
           <div className={styles.panel}>
             <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
               {datasets.length === 0 ? (
-                <p>No quest collections found.</p>
+                <p>No exercise collections found.</p>
               ) : (
                 datasets.map((d) => (
                   <div key={d.course || d.name} className={styles.datasetRow}>
@@ -1220,7 +1419,7 @@ function Admin() {
                         onClick={() => navigate(`/admin/exercises/${d.course}`)}
                         disabled={!d.course}
                       >
-                        Edit Quests
+                        Edit Exercises
                       </button>
                     </div>
                   </div>
@@ -1229,6 +1428,69 @@ function Admin() {
             </div>
           </div>
         )}
+
+        <h3 className={styles.panelTitle} style={{ marginTop: 16, marginBottom: 8 }}>Exams</h3>
+        {examDatasetsLoading ? (
+          <div className={styles.panel}>
+            <p>Loading exams...</p>
+          </div>
+        ) : (
+          <div className={styles.panel}>
+            <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
+              {examDatasets.length === 0 ? (
+                <p>No exam collections found.</p>
+              ) : (
+                examDatasets.map((d) => (
+                  <div key={d.course || d.name} className={styles.datasetRow}>
+                    <div className={styles.datasetLeft}>
+                      <div className={styles.datasetName}>{d.name}</div>
+                      <div className={styles.datasetMeta}>
+                        {d.total} problem{d.total !== 1 ? 's' : ''} · Updated: {d.updatedAt}
+                      </div>
+                    </div>
+                    <div className={styles.datasetActions}>
+                      <button
+                        className={styles.button}
+                        type="button"
+                        onClick={() => navigate(`/admin/exams/${d.course}`)}
+                        disabled={!d.course}
+                      >
+                        Edit Exams
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        <h3 className={styles.panelTitle} style={{ marginTop: 16, marginBottom: 8 }}>Quizzes</h3>
+        <div className={styles.panel}>
+          <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
+            {[
+              { name: "Python Quizzes", course: "python" },
+              { name: "C++ Quizzes", course: "cpp" },
+              { name: "JavaScript Quizzes", course: "javascript" },
+            ].map((d) => (
+              <div key={d.course} className={styles.datasetRow}>
+                <div className={styles.datasetLeft}>
+                  <div className={styles.datasetName}>{d.name}</div>
+                  <div className={styles.datasetMeta}>Edit quiz metadata + code quiz content.</div>
+                </div>
+                <div className={styles.datasetActions}>
+                  <button
+                    className={styles.button}
+                    type="button"
+                    onClick={() => navigate(`/admin/quizzes/${d.course}`)}
+                  >
+                    Edit Quizzes
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
     </div>
   );

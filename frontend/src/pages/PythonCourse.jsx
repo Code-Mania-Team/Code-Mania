@@ -197,10 +197,14 @@ const PythonCourse = () => {
     return allStagesCompleted ? "available" : "locked";
   };
 
-  const handleStartExercise = (exerciseId) => {
-    const route = `/learn/python/exercise/${exerciseId}`;
+  const handleStartExercise = (exerciseId, options = {}) => {
+    const retry = options?.retry === true;
+    const route = `/learn/python/exercise/${exerciseId}${retry ? "?retry=1" : ""}`;
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -214,12 +218,18 @@ const PythonCourse = () => {
 
   };
 
-  const handleTutorialClose = async () => {
-    // Capture the pending route NOW before any async state changes happen
-    const nextRoute = pendingRoute;
+  const handleTutorialClose = async (routeFromTutorial = null) => {
+    const nextRoute = routeFromTutorial || pendingRoute;
 
     setShowTutorial(false);
     setPendingRoute(null);
+
+    // Always set a local fallback so tutorial doesn't loop.
+    try {
+      localStorage.setItem("hasSeenTutorial", "true");
+    } catch {
+      // ignore
+    }
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {
@@ -231,6 +241,9 @@ const PythonCourse = () => {
     }
 
     if (nextRoute) {
+      localStorage.setItem("hasTouchedCourse", "true");
+      localStorage.setItem("lastCourseTitle", "Python");
+      localStorage.setItem("lastCourseRoute", "/learn/python");
       navigate(nextRoute);
     }
   };
@@ -238,7 +251,10 @@ const PythonCourse = () => {
   const handleStartExam = () => {
     const route = "/exam/python";
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -350,6 +366,16 @@ const PythonCourse = () => {
                                 onClick={() => handleStartExercise(exercise.id)}
                               >
                                 Start
+                              </button>
+                            ) : status === "completed" ? (
+                              <button
+                                type="button"
+                                className="retry-btn"
+                                onClick={() => handleStartExercise(exercise.id, { retry: true })}
+                                aria-label="Retry quest"
+                                title="Retry"
+                              >
+                                Done
                               </button>
                             ) : (
                               <span className="status-icon-wrap">{getStatusIcon(status)}</span>
@@ -468,7 +494,11 @@ const PythonCourse = () => {
         onSignInSuccess={onCloseModal}
       />
 
-      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
+      <TutorialOverlay
+        open={showTutorial}
+        onClose={handleTutorialClose}
+        nextRoute={pendingRoute}
+      />
     </div>
   );
 };

@@ -204,10 +204,14 @@ const JavaScriptCourse = () => {
     totalQuiz: 4,
   };
 
-  const handleStartExercise = (exerciseId) => {
-    const route = `/learn/javascript/exercise/${exerciseId}`;
+  const handleStartExercise = (orderIndex, options = {}) => {
+    const retry = options?.retry === true;
+    const route = `/learn/javascript/exercise/${orderIndex}${retry ? "?retry=1" : ""}`;
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -223,7 +227,10 @@ const JavaScriptCourse = () => {
   const handleStartExam = () => {
     const route = "/exam/javascript";
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -236,12 +243,18 @@ const JavaScriptCourse = () => {
     navigate(route);
   };
 
-  const handleTutorialClose = async () => {
-    // Capture the pending route NOW before any async state changes happen
-    const nextRoute = pendingRoute;
+  const handleTutorialClose = async (routeFromTutorial = null) => {
+    const nextRoute = routeFromTutorial || pendingRoute;
 
     setShowTutorial(false);
     setPendingRoute(null);
+
+    // Always set a local fallback so tutorial doesn't loop.
+    try {
+      localStorage.setItem("hasSeenTutorial", "true");
+    } catch {
+      // ignore
+    }
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {
@@ -253,6 +266,9 @@ const JavaScriptCourse = () => {
     }
 
     if (nextRoute) {
+      localStorage.setItem("hasTouchedCourse", "true");
+      localStorage.setItem("lastCourseTitle", "JavaScript");
+      localStorage.setItem("lastCourseRoute", "/learn/javascript");
       navigate(nextRoute);
     }
   };
@@ -355,11 +371,21 @@ const JavaScriptCourse = () => {
                                 onClick={() =>
                                   module.id === 5
                                     ? handleStartExam()
-                                    : handleStartExercise(exercise.id)
+                                    : handleStartExercise(exercise.order_index)
                                 }
                                 disabled={status === "locked"}
                               >
                                 Start
+                              </button>
+                            ) : status === "completed" && module.id !== 5 ? (
+                              <button
+                                type="button"
+                                className="retry-btn"
+                                onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
+                                aria-label="Retry quest"
+                                title="Retry"
+                              >
+                                Done
                               </button>
                             ) : (
                               <span className="status-icon-wrap">{getStatusIcon(status)}</span>
@@ -460,7 +486,11 @@ const JavaScriptCourse = () => {
         onSignInSuccess={onCloseModal}
       />
 
-      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
+      <TutorialOverlay
+        open={showTutorial}
+        onClose={handleTutorialClose}
+        nextRoute={pendingRoute}
+      />
     </div>
   );
 };

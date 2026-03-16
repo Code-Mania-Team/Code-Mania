@@ -3,6 +3,7 @@ import AccountService from "../../services/accountService.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/token.js";
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
+import Achievements from "../../models/achievements.js";
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
@@ -22,7 +23,100 @@ class AccountController {
         this.user = new User();
         this.accountService = new AccountService();
         this.userToken = new UserToken();
+        this.achievements = new Achievements();
         this.refreshInProgress = false; // Prevent race conditions
+    }
+
+    async publicProfile(req, res) {
+        try {
+            const username = String(req.params?.username || '').trim();
+            if (!username) {
+                return res.status(400).json({ success: false, message: 'Username is required' });
+            }
+
+            const profile = await this.user.getPublicProfileByUsername(username);
+            if (!profile || profile?.role === 'admin') {
+                return res.status(404).json({ success: false, message: 'Profile not found' });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Public profile retrieved successfully',
+                data: {
+                    user_id: profile.user_id,
+                    username: profile.username,
+                    full_name: profile.full_name,
+                    character_id: profile.character_id,
+                    created_at: profile.created_at,
+                },
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+        }
+    }
+
+    async publicProfileSummary(req, res) {
+        try {
+            const username = String(req.params?.username || '').trim();
+            if (!username) {
+                return res.status(400).json({ success: false, message: 'Username is required' });
+            }
+
+            const profile = await this.user.getPublicProfileByUsername(username);
+            if (!profile || profile?.role === 'admin') {
+                return res.status(404).json({ success: false, message: 'Profile not found' });
+            }
+
+            const summary = await this.accountService.getProfileSummary(profile.user_id);
+            return res.status(200).json({
+                success: true,
+                ...summary,
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+        }
+    }
+
+    async publicLearningProgress(req, res) {
+        try {
+            const username = String(req.params?.username || '').trim();
+            if (!username) {
+                return res.status(400).json({ success: false, message: 'Username is required' });
+            }
+
+            const profile = await this.user.getPublicProfileByUsername(username);
+            if (!profile || profile?.role === 'admin') {
+                return res.status(404).json({ success: false, message: 'Profile not found' });
+            }
+
+            const progress = await this.accountService.getLearningProgress(profile.user_id);
+            return res.status(200).json({ success: true, progress });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+        }
+    }
+
+    async publicAchievements(req, res) {
+        try {
+            const username = String(req.params?.username || '').trim();
+            if (!username) {
+                return res.status(400).json({ success: false, message: 'Username is required' });
+            }
+
+            const profile = await this.user.getPublicProfileByUsername(username);
+            if (!profile || profile?.role === 'admin') {
+                return res.status(404).json({ success: false, message: 'Profile not found' });
+            }
+
+            const achievements = await this.achievements.getUserAchievements(profile.user_id);
+            return res.status(200).json({
+                success: true,
+                message: 'Achievements retrieved successfully',
+                data: achievements,
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+        }
     }
 
     
@@ -44,10 +138,17 @@ class AccountController {
             });
         } catch (err) {
 
+            if (err.message === "email_google") {
+                return res.status(409).json({
+                    success: false,
+                    message: "This email is registered with Google sign-in. Please use 'Continue with Google' instead."
+                });
+            }
+
             if (err.message === "email") {
                 return res.status(409).json({
                     success: false,
-                    message: "Email already exists"
+                    message: "Email already exists. Please sign in instead."
                 });
             }
 
@@ -162,7 +263,18 @@ class AccountController {
                     message: "Email and password required" });
             }
 
-            const authUser = await this.accountService.loginWithPassword(email, password);
+            let authUser;
+            try {
+                authUser = await this.accountService.loginWithPassword(email, password);
+            } catch (err) {
+                if (err?.message === "use_google") {
+                    return res.status(409).json({
+                        success: false,
+                        message: "This email is registered with Google sign-in. Please use 'Continue with Google'."
+                    });
+                }
+                throw err;
+            }
 
             if (!authUser) {
                 return res.status(400).json({ 
@@ -218,9 +330,9 @@ class AccountController {
     // GOOGLE LOGIN/SIGNUP
     async googleLogin(req, res) {
         const { id, emails, provider } = req.user;
-        const data = await this.accountService.googleLogin(id, emails[0].value, provider);
-        
+
         try {
+            const data = await this.accountService.googleLogin(id, emails[0].value, provider);
             if (data) {
                 const accessToken = generateAccessToken({
                     user_id: data.id,
@@ -246,6 +358,12 @@ class AccountController {
                 return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
             }
         } catch (err) {
+            if (err?.message === "use_password") {
+                return res.redirect(`${FRONTEND_URL}/?error=use_password`);
+            }
+            if (err?.message === "auth_failed") {
+                return res.redirect(`${FRONTEND_URL}/?error=auth_failed`);
+            }
             return res.redirect(`${FRONTEND_URL}/?error=server_error`);
         }
     }
@@ -403,7 +521,7 @@ class AccountController {
 
     async updateProfile(req, res) {
 
-        const { full_name } = req.body || {};
+        const { username, full_name, hasSeen_tutorial } = req.body || {};
 
         const userId = res.locals.user_id;
 
@@ -454,6 +572,7 @@ class AccountController {
                 success: true,
                 message: "Profile updated successfully",
                 full_name: updated?.full_name,
+                hasSeen_tutorial: updated?.hasSeen_tutorial,
             });
 
         } catch (err) {

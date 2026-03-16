@@ -1,4 +1,5 @@
 import ExamModel from "../models/exam.js";
+import sectionsToMarkdown from "../utilities/sectionsToMarkdown.js";
 
 function coerceTestCases(value) {
   if (value === undefined) return undefined;
@@ -26,12 +27,30 @@ class AdminExamService {
     this.exam = new ExamModel();
   }
 
+  async getProblem(problemId) {
+    const problem = await this.exam.getProblemById(problemId);
+    if (!problem) {
+      return { ok: false, status: 404, message: "Problem not found" };
+    }
+
+    return {
+      ok: true,
+      data: {
+        ...problem,
+        problem_description: sectionsToMarkdown(problem.problem_description),
+      },
+    };
+  }
+
   async updateProblem(problemId, body) {
     const update = {};
 
     if (body.problem_title !== undefined) update.problem_title = body.problem_title;
-    if (body.problem_description !== undefined)
-      update.problem_description = body.problem_description;
+    if (body.problem_description !== undefined) {
+      // Store descriptions as Markdown text.
+      // Accept: markdown string (preferred) or legacy JSON `{sections:[...]}`.
+      update.problem_description = sectionsToMarkdown(body.problem_description);
+    }
     if (body.starting_code !== undefined) update.starting_code = body.starting_code;
     if (body.solution !== undefined) update.solution = body.solution;
     if (body.exp !== undefined) update.exp = Number(body.exp);

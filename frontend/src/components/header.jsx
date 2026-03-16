@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import useAuth from "../hooks/useAxios";
 import useLearningProgress from "../services/useLearningProgress";
+import { useTheme } from "../context/ThemeProvider.jsx";
+import useNotifications from "../services/useNotifications";
+
+const notificationIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1773418099/notification_scq4kg.png';
 
 // Character icons from Cloudinary
 const characterIcon0 = 'https://res.cloudinary.com/daegpuoss/image/upload/v1770438516/character_kwtv10.png';
@@ -13,12 +17,141 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 const crown = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/crown_rgkcpl.png';
 const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/burger_fhgxqr.png';
 
+// ── Notification Bell Component ──────────────────────────────
+const NotificationBell = () => {
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Close panel on escape
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (!isOpen) return;
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isOpen]);
+
+  const formatNotifTime = (dateStr) => {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
+  return (
+    <div className="notification-bell-wrap" ref={dropdownRef}>
+      <button
+        className="notification-bell-btn"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label="Notifications"
+        title="Notifications"
+      >
+        <img src={notificationIcon} alt="Notifications" className="notification-bell-icon" />
+        {unreadCount > 0 && (
+          <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+        )}
+      </button>
+
+      {isOpen && (
+        <>
+          <button
+            type="button"
+            className="notification-drawer-overlay"
+            aria-label="Close notifications"
+            onClick={() => setIsOpen(false)}
+          />
+
+          <aside className="notification-drawer" aria-label="Notifications panel">
+            <div className="notification-drawer-header">
+              <div className="notification-drawer-title">
+                <span className="notification-dropdown-title">Notifications</span>
+                <span className="notification-unread-pill">{unreadCount || 0} unread</span>
+              </div>
+
+              <div className="notification-drawer-actions">
+                <button
+                  type="button"
+                  className="notification-mark-all-btn"
+                  onClick={markAllAsRead}
+                  disabled={unreadCount <= 0}
+                >
+                  Mark all read
+                </button>
+                <button
+                  type="button"
+                  className="notification-drawer-close"
+                  aria-label="Close"
+                  onClick={() => setIsOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className="notification-list">
+              {notifications.length > 0 ? (
+                notifications.map((notif) => (
+                  <div
+                    key={notif.notification_id}
+                    className={`notification-item ${!notif.is_read ? 'notification-item-unread' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (!notif.is_read) markAsRead(notif.notification_id);
+                      const href = notif?.metadata?.href;
+                      if (href && typeof href === "string") {
+                        setIsOpen(false);
+                        navigate(href);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        if (!notif.is_read) markAsRead(notif.notification_id);
+                        const href = notif?.metadata?.href;
+                        if (href && typeof href === "string") {
+                          setIsOpen(false);
+                          navigate(href);
+                        }
+                      }
+                    }}
+                  >
+                    {!notif.is_read && <span className="notification-item-dot" />}
+                    <div className="notification-item-content">
+                      <p className="notification-item-title">{notif.title}</p>
+                      <p className="notification-item-message">{notif.message}</p>
+                      <span className="notification-item-time">{formatNotifTime(notif.created_at)}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="notification-empty">No notifications yet.</div>
+              )}
+            </div>
+          </aside>
+        </>
+      )}
+    </div>
+  );
+};
+
 const Header = ({ onOpenModal, onSignOut }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLearnOpen, setIsLearnOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileDropdownRef = useRef(null);
   const [characterIcon, setCharacterIcon] = useState(() => localStorage.getItem('selectedCharacterIcon') || null);
   const { isAuthenticated, isLoading, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { progress } = useLearningProgress();
 
@@ -139,7 +272,32 @@ const Header = ({ onOpenModal, onSignOut }) => {
     setIsMenuOpen(false);
     setIsLearnOpen(false);
     setIsAccountOpen(false);
+    setIsProfileOpen(false);
   };
+
+  // Close profile dropdown on outside click / escape
+  useEffect(() => {
+    const onDocMouseDown = (e) => {
+      if (!isProfileOpen) return;
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    const onDocKeyDown = (e) => {
+      if (!isProfileOpen) return;
+      if (e.key === "Escape") {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onDocKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      document.removeEventListener("keydown", onDocKeyDown);
+    };
+  }, [isProfileOpen]);
 
   const handleLearnClick = (e) => {
     if (window.innerWidth <= 1000) {
@@ -168,6 +326,16 @@ const Header = ({ onOpenModal, onSignOut }) => {
   const handleSignOutClick = async () => {
     closeMobileMenu();
     if (onSignOut) await onSignOut();
+  };
+
+  const closeProfileDropdown = () => {
+    setIsProfileOpen(false);
+    // Prevent focus-within from holding the menu open.
+    try {
+      document.activeElement?.blur?.();
+    } catch {
+      // ignore
+    }
   };
 
   return (
@@ -207,23 +375,45 @@ const Header = ({ onOpenModal, onSignOut }) => {
           </div>
         </div>
 
-        <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>FREEDOM WALL</NavLink>
+        <NavLink to="/freedomwall" className="nav-link" onClick={closeMobileMenu}>COMMUNITY</NavLink>
         <NavLink to="/leaderboard" className="nav-link" onClick={closeMobileMenu}>LEADERBOARD</NavLink>
 
         {/* Terminal link — locked until 1 course is completed (admins always have access) */}
         {isAuthenticated && (
-          (isAdmin || hasTerminalAccess) ? (
-            <NavLink to="/terminal" className="nav-link" onClick={closeMobileMenu}>TERMINAL</NavLink>
-          ) : (
-            <div className="nav-link-locked-wrapper">
-              <span className="nav-link nav-link-locked">TERMINAL</span>
-              <div className="nav-locked-tooltip">
-                <span className="locked-icon">🔒</span>
-                Complete 16 exercises in one course
-              </div>
-            </div>
-          )
+          <NavLink
+            to="/terminal"
+            className={({ isActive }) =>
+              `nav-link ${isActive ? 'active' : ''} ${isAdmin || hasTerminalAccess ? '' : 'nav-link-locked'}`
+            }
+            onClick={closeMobileMenu}
+          >
+            TERMINAL
+          </NavLink>
         )}
+
+        <NavLink
+          to="/rewards"
+          className="nav-link nav-icon-link"
+          onClick={closeMobileMenu}
+          aria-label="Rewards"
+          title="Rewards"
+        >
+          <span className="nav-extra-icon" aria-hidden="true" />
+          <span className="nav-icon-text">REWARDS</span>
+        </NavLink>
+
+        <button
+          type="button"
+          className="nav-link theme-toggle"
+          onClick={() => {
+            toggleTheme();
+            closeMobileMenu();
+          }}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={theme === "dark" ? "Light mode" : "Dark mode"}
+        >
+          <span className="theme-toggle-icon" aria-hidden="true" />
+        </button>
 
         {isLoading ? null : isAuthenticated ? (
           <>
@@ -240,13 +430,31 @@ const Header = ({ onOpenModal, onSignOut }) => {
                 <span className="learn-arrow">&gt;</span>
               </a>
               <div className={`dropdown-menu ${isAccountOpen ? "is-open" : ""}`}>
-                <Link to="/profile" className="dropdown-item" onClick={closeMobileMenu}>Profile</Link>
+                {isAdmin ? (
+                  <Link to="/admin" className="dropdown-item" onClick={closeMobileMenu}>Admin Dashboard</Link>
+                ) : (
+                  <Link to="/profile" className="dropdown-item" onClick={closeMobileMenu}>Profile</Link>
+                )}
                 <button type="button" className="dropdown-item dropdown-item-button" onClick={handleSignOutClick}>Sign Out</button>
               </div>
             </div>
 
-            <div className="profile-icon-container" onClick={handleProfileClick}>
-              <div className="profile-icon">
+            <NotificationBell />
+
+            <div
+              className="profile-icon-container"
+              ref={profileDropdownRef}
+              onMouseEnter={() => setIsProfileOpen(true)}
+              onMouseLeave={() => setIsProfileOpen(false)}
+            >
+              <button
+                type="button"
+                className="profile-icon"
+                aria-label="Account menu"
+                aria-haspopup="menu"
+                aria-expanded={isProfileOpen ? "true" : "false"}
+                onClick={() => setIsProfileOpen((prev) => !prev)}
+              >
                 {characterIcon ? (
                   <img
                     src={characterIcon}
@@ -256,6 +464,42 @@ const Header = ({ onOpenModal, onSignOut }) => {
                 ) : (
                   <span role="img" aria-label="Profile">👤</span>
                 )}
+              </button>
+
+              <div className={`profile-dropdown ${isProfileOpen ? "is-open" : ""}`} role="menu" aria-label="Account">
+                {isAdmin ? (
+                  <Link
+                    to="/admin"
+                    className="dropdown-item"
+                    onClick={() => {
+                      closeProfileDropdown();
+                      closeMobileMenu();
+                    }}
+                  >
+                    Admin Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    to="/profile"
+                    className="dropdown-item"
+                    onClick={() => {
+                      closeProfileDropdown();
+                      closeMobileMenu();
+                    }}
+                  >
+                    Profile
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  className="dropdown-item dropdown-item-button"
+                  onClick={async () => {
+                    closeProfileDropdown();
+                    await handleSignOutClick();
+                  }}
+                >
+                  Sign Out
+                </button>
               </div>
             </div>
           </>

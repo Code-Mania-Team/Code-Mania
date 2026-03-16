@@ -17,6 +17,9 @@ class AccountService {
     const existingUser = await this.user.findByEmail(email);
 
     if (existingUser) {
+      if (String(existingUser.provider || "").toLowerCase() === "google") {
+        throw new Error("email_google");
+      }
       throw new Error("email");
     }
 
@@ -73,6 +76,11 @@ class AccountService {
   }
 
   async loginWithPassword(email, password) {
+    const existingUser = await this.user.findByEmail(email);
+    if (existingUser && String(existingUser.provider || "").toLowerCase() === "google") {
+      throw new Error("use_google");
+    }
+
     const hashedPassword = encryptPassword(password);
 
     const authUser = await this.user.findByEmailAndPasswordHash(
@@ -198,21 +206,38 @@ class AccountService {
         id: newUser.user_id,
 
         email: newUser.email,
+
+        role: newUser.role,
       };
     }
 
-    if (
-      emailExist &&
-      emailExist.password == hashedPassword &&
-      emailExist.provider == provider
-    ) {
-      //Login. Provider must check if it has a value of google (optional)
+    if (emailExist) {
+      const storedProvider = String(emailExist.provider || "").toLowerCase();
+      const incomingProvider = String(provider || "").toLowerCase();
 
-      return {
-        id: emailExist.user_id,
+      // Existing local/password account trying to use Google
+      if (!storedProvider) {
+        throw new Error("use_password");
+      }
 
-        message: "Logged in.",
-      };
+      // Provider mismatch (future-proof)
+      if (storedProvider !== incomingProvider) {
+        throw new Error("use_password");
+      }
+
+      // Login for Google accounts
+      if (emailExist.password == hashedPassword) {
+        return {
+          id: emailExist.user_id,
+
+          email: emailExist.email,
+
+          role: emailExist.role,
+          message: "Logged in.",
+        };
+      }
+
+      throw new Error("auth_failed");
     }
   }
 

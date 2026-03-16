@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "../styles/CourseCompletionPromptModal.module.css";
 
 const CourseCompletionPromptModal = ({
@@ -15,16 +15,50 @@ const CourseCompletionPromptModal = ({
   onSecondary,
   feedbackLabel,
   onFeedback,
+  showTerminalCta = false,
+  terminalCtaLabel = "Try Out Our Terminal!",
+  onTerminalCta,
   showClose = true,
   closeLabel = "Later",
-  onClose,  
+  onClose,
 }) => {
+  const [terminalUnlocked, setTerminalUnlocked] = useState(false);
+  const [shouldShowTerminalCta, setShouldShowTerminalCta] = useState(false);
+
+  useEffect(() => {
+    if (!show) return;
+
+    setTerminalUnlocked(false);
+
+    const canUseStorage = typeof window !== "undefined" && !!window.localStorage;
+    const alreadyAcknowledged = canUseStorage
+      ? window.localStorage.getItem("terminalUnlockCtaSeen") === "true"
+      : false;
+
+    setShouldShowTerminalCta(Boolean(showTerminalCta && onTerminalCta && !alreadyAcknowledged));
+  }, [show, showTerminalCta, onTerminalCta]);
+
   if (!show) return null;
 
-  const resolvedTitle = title || "Course completed!";
+  const resolvedTitle = title || "Story completed!";
   const resolvedSubtitle =
     subtitle ||
     `You finished the ${languageLabel} exercises. What do you want to do next?`;
+
+  const handleTerminalClick = () => {
+    if (!terminalUnlocked) {
+      setTerminalUnlocked(true);
+
+      try {
+        window.localStorage.setItem("terminalUnlockCtaSeen", "true");
+      } catch {
+        // ignore
+      }
+      return;
+    }
+
+    onTerminalCta?.();
+  };
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
@@ -71,15 +105,17 @@ const CourseCompletionPromptModal = ({
               {feedbackLabel}
             </button>
           )}
-          {showClose && (
+          {shouldShowTerminalCta && (
             <button
               type="button"
-              className={styles.closeBtn}
-              onClick={onClose}
+              className={`${styles.terminalBtn} ${terminalUnlocked ? styles.terminalBtnUnlocked : ""}`}
+              onClick={handleTerminalClick}
+              aria-label={terminalUnlocked ? terminalCtaLabel : "Unlock Terminal Access"}
             >
-              {closeLabel}
+              {terminalUnlocked ? terminalCtaLabel : "Locked Terminal - Tap to Unlock"}
             </button>
           )}
+          {/* Intentionally no "Later" action for story completion */}
         </div>
       </div>
     </div>

@@ -79,6 +79,71 @@
   gap: 16px;
 }
 
+.formWithPreview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .formWithPreview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.previewPanel {
+  position: sticky;
+  top: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+}
+
+@media (max-width: 980px) {
+  .previewPanel {
+    position: static;
+    max-height: none;
+  }
+}
+
+.previewTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e7eefc;
+}
+
+.previewHint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0 0 12px 0;
+}
+
+.previewError {
+  font-size: 12px;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.previewCard {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 12px;
+}
+
 .formGroup {
   display: flex;
   flex-direction: column;
@@ -110,6 +175,63 @@
   transition: border-color 0.2s;
 }
 
+.titleInput {
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(148, 197, 255, 0.22);
+}
+
+.jsonEditorWrap {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  overflow: hidden;
+}
+
+.jsonEditorWrap:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.helpDetails {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.helpSummary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.helpText {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.55;
+}
+
+.helpCode {
+  margin: 10px 0 0;
+  padding: 10px 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e7eefc;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  white-space: pre;
+}
+
 .formGroup input:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
@@ -132,7 +254,7 @@
     linear-gradient(180deg, rgba(5, 9, 19, 0.55) 100%),
     url("https://res.cloudinary.com/daegpuoss/image/upload/v1771179248/admin_n6bbed.webp");
   background-size: cover;
-  background-position: 0px -200px;
+  background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,6 +270,7 @@
 .heroSubtitle {
   font-size: 14px;
   opacity: 0.85;
+  color: rgba(231, 238, 252, 0.92);
   letter-spacing: 0.02em;
   margin: 0 0 8px;
 }
@@ -155,6 +278,7 @@
 .heroTitle {
   font-size: clamp(34px, 5vw, 56px);
   margin: 0;
+  color: #ffffff;
   text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   font-family: 'Jersey 25', sans-serif;
 }
@@ -163,6 +287,7 @@
   margin: 10px 0 0;
   font-size: 20px;
   opacity: 0.88;
+  color: rgba(231, 238, 252, 0.92);
   line-height: 1.6;
 }
 
@@ -228,14 +353,33 @@
   margin-top: 14px;
 }
 
+/* 5-up card grid (Analytics top cards) */
+.grid5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .grid5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 980px) {
   .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid5 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid5 {
     grid-template-columns: 1fr;
   }
 }
@@ -253,6 +397,29 @@
   opacity: 0.8;
   margin: 0 0 8px;
   text-align: left;
+}
+
+.onlineTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onlineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.onlineDotOn {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18), 0 0 14px rgba(34, 197, 94, 0.45);
+}
+
+.onlineDotOff {
+  background: rgba(148, 163, 184, 0.55);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
 }
 
 .cardValue {
@@ -508,4 +675,312 @@
 .failed {
   color: #fca5a5;
   font-weight: 600;
+}
+
+/* Traffic Chart */
+.trafficHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trafficSeriesPicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 197, 255, 0.22);
+  background: rgba(3, 8, 20, 0.65);
+}
+
+.trafficSeriesButton {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #cbd5e1;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 10px;
+  line-height: 1.2;
+  cursor: pointer;
+  font-family: 'Press Start 2P', cursive;
+  letter-spacing: 0.2px;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.trafficSeriesButton:hover {
+  color: #e7eefc;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.trafficSeriesButtonActive {
+  background: rgba(59, 130, 246, 0.28);
+  border-color: rgba(148, 197, 255, 0.55);
+  color: #eff6ff;
+}
+
+@media (max-width: 640px) {
+  .trafficSeriesPicker {
+    width: 100%;
+    overflow-x: auto;
+  }
+}
+
+.trafficEmpty {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.02);
+  opacity: 0.86;
+}
+
+.trafficChartWrap {
+  margin-top: 12px;
+}
+
+.trafficChartMeta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 560px) {
+  .trafficChartMeta {
+    grid-template-columns: 1fr;
+  }
+}
+
+.trafficChartMetric {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.trafficChartMetricLabel {
+  font-size: 11px;
+  opacity: 0.78;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.trafficChartMetricValue {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.trafficChartMetricHint {
+  margin-left: auto;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.trafficChartCanvas {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(900px 260px at 50% 0%, rgba(56, 189, 248, 0.10) 0%, rgba(56, 189, 248, 0) 60%),
+    rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  overflow: hidden;
+}
+
+.trafficChartSvg {
+  width: 100%;
+  height: 220px;
+  display: block;
+}
+
+.trafficChartGridLine {
+  stroke: rgba(148, 163, 184, 0.22);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.trafficChartTick {
+  fill: rgba(226, 232, 240, 0.75);
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.trafficChartXLabel {
+  fill: rgba(226, 232, 240, 0.72);
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.trafficChartFrame {
+  fill: none;
+  stroke: rgba(148, 197, 255, 0.28);
+  stroke-width: 2;
+  shape-rendering: crispEdges;
+}
+
+.trafficChartBar {
+  transition: fill-opacity 120ms ease;
+}
+
+.trafficChartBar:hover {
+  fill-opacity: 0.95;
+}
+
+.trafficDetails {
+  margin-top: 12px;
+}
+
+.trafficDetailsSummary {
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* Light mode overrides */
+html[data-theme="light"] .page {
+  background: var(--app-bg);
+  color: var(--text);
+}
+
+html[data-theme="light"] .hero {
+  border-bottom: 1px solid var(--border);
+  background-image:
+    url("https://res.cloudinary.com/daegpuoss/image/upload/v1771179248/admin_n6bbed.webp");
+  background-position: center;
+}
+
+html[data-theme="light"] .subtitle {
+  opacity: 1;
+  color: var(--muted);
+}
+
+html[data-theme="light"] .card,
+html[data-theme="light"] .panel,
+html[data-theme="light"] .trafficChartMetric,
+html[data-theme="light"] .exerciseEditor {
+  background: var(--page-bg);
+  border: 1px solid var(--border);
+}
+
+html[data-theme="light"] .divider,
+html[data-theme="light"] .datasetRow,
+html[data-theme="light"] .quizTable th,
+html[data-theme="light"] .quizTable td,
+html[data-theme="light"] .exerciseRow {
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .track {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="light"] .day,
+html[data-theme="light"] .count,
+html[data-theme="light"] .cardTitle,
+html[data-theme="light"] .cardSubtitle,
+html[data-theme="light"] .panelSubtitle,
+html[data-theme="light"] .datasetMeta,
+html[data-theme="light"] .paginationInfo {
+  opacity: 1;
+  color: var(--muted);
+}
+
+html[data-theme="light"] .exerciseMeta,
+html[data-theme="light"] .exerciseDescription {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .exerciseTitle,
+html[data-theme="light"] .panelTitle,
+html[data-theme="light"] .datasetName,
+html[data-theme="light"] .courseName,
+html[data-theme="light"] .title {
+  color: var(--text-strong);
+}
+
+html[data-theme="light"] .button {
+  border: 1px solid var(--border);
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+html[data-theme="light"] .button:hover {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .formGroup label {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .formGroup input,
+html[data-theme="light"] .formGroup select,
+html[data-theme="light"] .formGroup textarea {
+  background: var(--page-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+html[data-theme="light"] .titleInput {
+  background: var(--page-bg);
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .rangePicker,
+html[data-theme="light"] .trafficSeriesPicker {
+  border: 1px solid var(--border);
+  background: var(--page-bg);
+}
+
+html[data-theme="light"] .rangeButton,
+html[data-theme="light"] .trafficSeriesButton {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .rangeButton:hover,
+html[data-theme="light"] .trafficSeriesButton:hover {
+  color: var(--text);
+  background: rgba(15, 23, 42, 0.04);
+}
+
+html[data-theme="light"] .rangeButtonActive,
+html[data-theme="light"] .trafficSeriesButtonActive {
+  background: rgba(29, 78, 216, 0.12);
+  border-color: rgba(29, 78, 216, 0.22);
+  color: var(--text-strong);
+}
+
+html[data-theme="light"] .trafficEmpty {
+  border-color: var(--border);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+html[data-theme="light"] .trafficChartCanvas {
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(900px 260px at 50% 0%, rgba(37, 99, 235, 0.10) 0%, rgba(37, 99, 235, 0) 60%),
+    rgba(15, 23, 42, 0.02);
+}
+
+html[data-theme="light"] .trafficChartGridLine {
+  stroke: rgba(15, 23, 42, 0.18);
+}
+
+html[data-theme="light"] .trafficChartTick,
+html[data-theme="light"] .trafficChartXLabel {
+  fill: rgba(15, 23, 42, 0.72);
+}
+
+html[data-theme="light"] .trafficChartFrame {
+  stroke: rgba(29, 78, 216, 0.25);
+}
+
+html[data-theme="light"] .errorText {
+  color: #b91c1c;
 }

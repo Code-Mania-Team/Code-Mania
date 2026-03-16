@@ -18,6 +18,12 @@ accountRouter.post('/signup/request-otp', authLimiter(), account.requestOtp.bind
 // Verify OTP after user clicks or enters it
 accountRouter.post('/signup/verify-otp', authLimiter(), account.verifyOtp.bind(account));
 
+// Public profile views (safe fields only)
+accountRouter.get('/public/:username', account.publicProfile.bind(account));
+accountRouter.get('/public/:username/summary', account.publicProfileSummary.bind(account));
+accountRouter.get('/public/:username/learning-progress', account.publicLearningProgress.bind(account));
+accountRouter.get('/public/:username/achievements', account.publicAchievements.bind(account));
+
 // Set username (requires authentication)
 accountRouter.post('/setOnboarding', authentication, account.setUsernameAndCharacter.bind(account));
 

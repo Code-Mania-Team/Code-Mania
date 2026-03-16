@@ -18,6 +18,8 @@ import HelpManager from "../systems/helpManager";
 import HelpButton from "../ui/helpButton";
 import QuestCompleteToast from "../ui/questCompleteToast";
 import BadgeUnlockPopup from "../ui/badgeUnlockPopup";
+import LessonExampleSplash from "../ui/lessonExampleSplash";
+import NextObjectiveHint from "../ui/nextObjectiveHint";
 import CinematicBars from "../systems/cinematicBars";
 import OrientationManager from "../systems/orientationManager";
 import MobileControls from "../systems/mobileControls";
@@ -31,18 +33,56 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.exerciseId = data.exerciseId;
     this.quest = data.quest || null;
-    this.completedQuestIds = new Set(data.completedQuests || []);
+    const normalizedCompleted = (Array.isArray(data.completedQuests)
+      ? data.completedQuests
+      : Array.from(data.completedQuests ?? []))
+      .map((id) => Number(id))
+      .filter((id) => Number.isFinite(id));
 
-    const storedLanguage =
-      localStorage.getItem("lastCourseTitle") || "Python";
+    this.completedQuestIds = new Set(normalizedCompleted);
 
-    this.language = storedLanguage === "C++" ? "Cpp" : storedLanguage;
+    // Keep the current quest object in sync with completion state.
+    const currentQuestId = Number(this.quest?.id);
+    if (Number.isFinite(currentQuestId) && this.completedQuestIds.has(currentQuestId)) {
+      this.quest.completed = true;
+    }
 
-    if (!this.quest || !this.quest.map_id) {
-      console.error("❌ Quest missing or invalid. Using fallback map1.");
-      this.currentMapId = "map9";
+    this._lessonExampleSplashShownForQuestId = null;
+    this.lessonExampleSplash = null;
+
+    const normalizeLanguage = (value) => {
+      const normalized = String(value || "").toLowerCase();
+      if (normalized === "c++" || normalized === "cpp") return "Cpp";
+      if (normalized === "javascript" || normalized === "js") return "JavaScript";
+      if (normalized === "python" || normalized === "py") return "Python";
+      return null;
+    };
+
+    const languageFromQuest =
+      normalizeLanguage(this.quest?.programming_languages?.slug) ||
+      normalizeLanguage(this.quest?.programming_languages?.name);
+
+    const storedLanguage = normalizeLanguage(localStorage.getItem("lastCourseTitle"));
+
+    this.language = languageFromQuest || storedLanguage || "Python";
+
+    const questMapId =
+      this.quest?.map_id ??
+      this.quest?.mapId ??
+      this.quest?.mapKey ??
+      this.quest?.map_key ??
+      this.quest?.mapkey ??
+      null;
+
+    if (!this.quest || !questMapId) {
+      const fallbackIndex = Number(this.quest?.order_index ?? this.exerciseId);
+      const safeIndex = Number.isFinite(fallbackIndex)
+        ? Math.min(Math.max(fallbackIndex, 1), 16)
+        : 1;
+      this.currentMapId = `map${safeIndex}`;
+      console.error("❌ Quest missing map id. Using fallback:", this.currentMapId);
     } else {
-      this.currentMapId = this.quest.map_id; // ✅ CORRECT FIELD
+      this.currentMapId = String(questMapId);
     }
 
     this.mapData = MAPS[this.language]?.[this.currentMapId];
@@ -71,6 +111,28 @@ export default class GameScene extends Phaser.Scene {
     this._mobileControlsEnabled = null;
     this._pointerTargetCache = { target: null, nextAt: 0 };
     this._arrowVisible = false;
+
+    this._bgmUnlockHandler = null;
+  }
+
+  getQuestLessonSplashContent(quest) {
+    if (!quest) return { title: "", body: "" };
+    const title = String(quest.title || "").trim();
+    const body = String(quest.lesson_example || "").trim();
+    return { title, body };
+  }
+
+  maybeShowLessonExampleSplash() {
+    const questId = Number(this.quest?.id ?? this.exerciseId);
+    if (Number.isFinite(questId) && this._lessonExampleSplashShownForQuestId === questId) return;
+
+    const { title, body } = this.getQuestLessonSplashContent(this.quest);
+    if (!title && !body) return;
+
+    if (Number.isFinite(questId)) {
+      this._lessonExampleSplashShownForQuestId = questId;
+    }
+    this.lessonExampleSplash?.show({ title, body });
   }
 
   loadSpritesheetIfMissing(key, path, options) {
@@ -81,6 +143,180 @@ export default class GameScene extends Phaser.Scene {
   loadAudioIfMissing(key, path) {
     if (this.cache.audio.exists(key)) return;
     this.load.audio(key, path);
+  }
+
+  isGameplayLocked() {
+    const questActive = Boolean(
+      this.questManager?.activeQuest && !this.questManager.activeQuest.completed
+    );
+
+    const cutsceneRunning = Boolean(
+      this.cutsceneManager?.running && !this.cutsceneManager.stopRequested
+    );
+
+    return (
+      !this.playerCanMove ||
+      questActive ||
+      cutsceneRunning ||
+      this.dialogueManager?.active ||
+      this.questHUD?.visible ||
+      this.gamePausedByTerminal ||
+      this.isTypingInUI()
+    );
+  }
+
+  getStartObjectiveText() {
+    const quest = this.quest;
+
+    // Python map2: even after quest completion, the player must open the quest chest
+    // to receive the item before heading to the exit.
+    if (quest?.completed && this.isPythonMap2()) {
+      const questId = Number(quest?.id ?? this.exerciseId);
+      const chestInfo = Number.isFinite(questId)
+        ? this.findUnopenedQuestChestTile(questId)
+        : null;
+      if (chestInfo) return "Objective: Open the chest and take the item";
+    }
+
+    if (quest?.completed) return "Objective: Go to the exit";
+
+    const hasChestMarkers = Boolean(this.chestQuestManager?.icons?.size);
+    if (hasChestMarkers) return "Objective: Interact with the chest marked (!)";
+
+    const hasNpcMarkers = Boolean(this.questIconManager?.icons?.size);
+    if (hasNpcMarkers) {
+      return this.language === "JavaScript"
+        ? "Objective: Interact with the object marked (?)"
+        : "Objective: Talk to the NPC marked (?)";
+    }
+
+    return "Objective: Explore the area";
+  }
+
+  isPythonMap2() {
+    return this.language === "Python" && this.currentMapId === "map2";
+  }
+
+  findUnopenedQuestChestTile(questId) {
+    const chestLayer = this.mapLoader?.map?.getLayer("chest")?.tilemapLayer || this.chestLayer;
+    if (!chestLayer) return null;
+
+    let found = null;
+    chestLayer.forEachTile((tile) => {
+      if (found) return;
+      if (!tile?.properties) return;
+      if (tile.properties.type !== "chest") return;
+      if (Number(tile.properties.quest_id) !== Number(questId)) return;
+
+      const chestKey = `${this.currentMapId}_${tile.x}_${tile.y}`;
+      if (this.openedChests?.has?.(chestKey)) return;
+
+      found = { tile, chestLayer, chestKey };
+    });
+
+    return found;
+  }
+
+  getRockRequiredAbility() {
+    const layer = this.interactableRockLayer;
+    const requiredProp =
+      layer?.layer?.properties?.find?.((p) => p?.name === "requires") || null;
+    return String(requiredProp?.value || "").trim();
+  }
+
+  hasBlockingRocks() {
+    return Boolean(this.interactableRockLayer && this.interactableRockLayer.visible);
+  }
+
+  getGateRequiredAbility() {
+    const layer = this.gateCloseLayer;
+    const requiredProp =
+      layer?.layer?.properties?.find?.((p) => p?.name === "requires") || null;
+    return String(requiredProp?.value || "").trim();
+  }
+
+  hasClosedGate() {
+    return Boolean(this.gateCloseLayer && this.gateCloseLayer.visible);
+  }
+
+  autoOpenGateIfPossible() {
+    if (!this.hasClosedGate()) return false;
+
+    const required = this.getGateRequiredAbility();
+    if (!required) return false;
+
+    const hasKey = this.worldState?.abilities?.has?.(required);
+    if (!hasKey) return false;
+
+    // Remove blockage immediately (no extra interaction step).
+    this.gateCloseLayer.setVisible(false);
+    this.gateCloseLayer.forEachTile((t) => t.setCollision(false));
+    if (this.gateOpenLayer) this.gateOpenLayer.setVisible(true);
+    return true;
+  }
+
+  showPostQuestObjective(questId) {
+    if (!this.nextObjectiveHint) return;
+
+    // Python map2: after completing quest, you must open chest to get item.
+    if (this.isPythonMap2()) {
+      const chestInfo = this.findUnopenedQuestChestTile(questId);
+      if (chestInfo) {
+        const { tile, chestLayer } = chestInfo;
+        const worldX = chestLayer.tileToWorldX(tile.x) + tile.width / 2;
+        const worldY = chestLayer.tileToWorldY(tile.y);
+
+        // Re-show chest marker for post-quest reward pickup.
+        this.chestQuestManager?.createIcon(worldX, worldY, Number(questId));
+
+        this.nextObjectiveHint.show("Objective: Open the chest and take the item");
+        return;
+      }
+
+      // After getting the item, the rocks block progression.
+      if (this.hasBlockingRocks()) {
+        const required = this.getRockRequiredAbility();
+        const hasTool = required ? this.worldState?.abilities?.has?.(required) : true;
+        if (hasTool) {
+          this.nextObjectiveHint.show("Objective: Break the rocks blocking the path");
+          return;
+        }
+      }
+    }
+
+    // If player has the key, remove the gate immediately.
+    this.autoOpenGateIfPossible();
+
+    // If a closed gate blocks progression, guide the player to open it first.
+    if (this.hasClosedGate()) {
+      const required = this.getGateRequiredAbility();
+      // Only show a gate objective when it's explicitly lockable (has a `requires` key).
+      if (required) {
+        const hasKey = this.worldState?.abilities?.has?.(required);
+        this.nextObjectiveHint.show(hasKey
+          ? "Objective: Go through the gate"
+          : "Objective: Find the key to unlock the gate"
+        );
+        return;
+      }
+    }
+
+    const hasExit = Boolean(this.mapExits?.getChildren?.()?.length);
+    if (hasExit) {
+      this.nextObjectiveHint.show("Objective: Go to the exit");
+    }
+  }
+
+  showStartObjectiveHint() {
+    if (!this.nextObjectiveHint) return;
+
+    // Don't override the post-quest objective.
+    const questActive = Boolean(
+      this.questManager?.activeQuest && !this.questManager.activeQuest.completed
+    );
+    if (questActive) return;
+
+    this.nextObjectiveHint.show(this.getStartObjectiveText());
   }
 
   createCutsceneSkipButton(onSkip) {
@@ -98,8 +334,19 @@ export default class GameScene extends Phaser.Scene {
       .setDepth(30010)
       .setInteractive({ useHandCursor: true });
 
-    this.cutsceneSkipButton.on("pointerdown", (pointer) => {
+    this.cutsceneSkipButton.on("pointerdown", () => {
       onSkip?.();
+
+      // Immediately restore gameplay camera view when skipping.
+      if (this.player && this.cameras?.main) {
+        this.cameras.main.panEffect?.reset?.();
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.centerOn(this.player.x, this.player.y);
+      }
+      this.cinematicBars?.hide?.(250);
+      this.playerCanMove = true;
+
+      this.destroyCutsceneSkipButton();
     });
 
     this.handleCutsceneSkipResize = () => {
@@ -137,6 +384,23 @@ export default class GameScene extends Phaser.Scene {
     if (this.thingsLayer) this.thingsLayer.setVisible(true);
     if (this.groundInvisibleLayer) this.groundInvisibleLayer.setVisible(false);
     if (this.thingsInvisibleLayer) this.thingsInvisibleLayer.setVisible(false);
+
+  }
+
+  openGates() {
+    // Get gate layers
+    const gateCloseLayer = this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
+    const gateOpenLayer = this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
+
+    if (!gateCloseLayer || !gateOpenLayer) {
+      console.warn("⚠️ Gate layers not found in map");
+      return;
+    }
+
+    // Open gates (show open layer, hide closed layer)
+    gateCloseLayer.setVisible(false);
+    gateCloseLayer.forEachTile(t => t.setCollision(false));
+    gateOpenLayer.setVisible(true);
 
   }
 
@@ -225,7 +489,12 @@ export default class GameScene extends Phaser.Scene {
     this.questCompleteToast.show({
       title: quest.title,
       badgeKey: quest.achievements?.badge_key || null, // toast can ignore if null
-      exp: gainedExp
+      exp: gainedExp,
+      onHidden: () => {
+        // 👉 Next step hint (avoid overlap with toast)
+        this.autoOpenGateIfPossible();
+        this.showPostQuestObjective(quest.id);
+      }
     });
 
     // ✅ SECOND left-side toast for quest completion
@@ -274,20 +543,26 @@ export default class GameScene extends Phaser.Scene {
     const idleFrame = characterIdleFrames[selectedId] || 0;
 
     ["down", "up", "left", "right"].forEach(dir => {
-      this.anims.create({
-        key: `walk-${dir}`,
-        frames: this.anims.generateFrameNumbers(`player-${dir}`, {
-          start: 0,
-          end: 2
-        }),
-        frameRate: 10,
-        repeat: -1
-      });
+      const walkKey = `walk-${dir}`;
+      if (!this.anims.exists(walkKey)) {
+        this.anims.create({
+          key: walkKey,
+          frames: this.anims.generateFrameNumbers(`player-${dir}`, {
+            start: 0,
+            end: 2
+          }),
+          frameRate: 10,
+          repeat: -1
+        });
+      }
 
-      this.anims.create({
-        key: `idle-${dir}`,
-        frames: [{ key: `player-${dir}`, frame: idleFrame }]
-      });
+      const idleKey = `idle-${dir}`;
+      if (!this.anims.exists(idleKey)) {
+        this.anims.create({
+          key: idleKey,
+          frames: [{ key: `player-${dir}`, frame: idleFrame }]
+        });
+      }
     });
 
     ["up", "down", "left", "right"].forEach((dir) => {
@@ -318,15 +593,17 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
-    this.anims.create({
-      key: "exclamation",
-      frames: this.anims.generateFrameNumbers("exclamation", {
-        start: 0,
-        end: 2
-      }),
-      frameRate: 4,
-      repeat: -1
-    });
+    if (!this.anims.exists("exclamation")) {
+      this.anims.create({
+        key: "exclamation",
+        frames: this.anims.generateFrameNumbers("exclamation", {
+          start: 0,
+          end: 2
+        }),
+        frameRate: 4,
+        repeat: -1
+      });
+    }
 
     // 🧍 PLAYER
     const spawn = this.getPlayerSpawnPoint();
@@ -355,7 +632,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ✅ LETTER KEYS — EVENT BASED (DO NOT BLOCK TERMINAL)
     this.input.keyboard.on("keydown-E", () => {
-      if (this.isTypingInUI()) return;
+      if (this.isGameplayLocked()) return;
       this.handleInteract();
     });
 
@@ -367,12 +644,11 @@ export default class GameScene extends Phaser.Scene {
     // });
 
     this.input.keyboard.on("keydown-Q", () => {
-      if (this.isTypingInUI()) return;
-      if (this.gamePausedByTerminal) return;
+      if (this.isGameplayLocked()) return;
       this.questHUD.toggle(this.questManager.activeQuest);
     });
 
-    // 🎵 Background music per language
+    // 🎵 Background music per language (start after user gesture)
     const BGM_BY_LANGUAGE = {
       Python: "bgm-python",
       JavaScript: "bgm-javascript",
@@ -382,17 +658,61 @@ export default class GameScene extends Phaser.Scene {
     const bgmKey = BGM_BY_LANGUAGE[this.language];
 
     if (bgmKey) {
-      this.bgm = this.sound.add(bgmKey, {
-        loop: true,
-        volume: 0.5
-      });
+      this.bgm = this.sound.add(bgmKey, { loop: true, volume: 0.5 });
 
-      this.bgm.play();
+      const startBgmOnce = async () => {
+        if (!this.bgm || this.bgm.isPlaying) return;
+
+        // Try to resume audio context (Chrome autoplay policy).
+        try {
+          const ctx = this.sound?.context;
+          if (ctx && ctx.state === "suspended") {
+            await ctx.resume();
+          }
+        } catch {
+          // ignore
+        }
+
+        try {
+          this.sound?.unlock?.();
+        } catch {
+          // ignore
+        }
+
+        try {
+          this.bgm.play();
+        } catch {
+          // ignore
+        }
+
+        // Remove listeners after first attempt.
+        this.input?.off?.("pointerdown", startBgmOnce);
+        this.input?.keyboard?.off?.("keydown", startBgmOnce);
+        this._bgmUnlockHandler = null;
+      };
+
+      this._bgmUnlockHandler = startBgmOnce;
+
+      // If audio is already unlocked, start immediately.
+      const ctx = this.sound?.context;
+      const ctxRunning = !ctx || ctx.state === "running";
+      if (!this.sound?.locked && ctxRunning) {
+        startBgmOnce();
+      } else {
+        this.input?.on?.("pointerdown", startBgmOnce);
+        this.input?.keyboard?.on?.("keydown", startBgmOnce);
+      }
     }
 
     this.events.once("shutdown", () => {
       if (this.bgm) {
         this.bgm.stop();
+      }
+
+      if (this._bgmUnlockHandler) {
+        this.input?.off?.("pointerdown", this._bgmUnlockHandler);
+        this.input?.keyboard?.off?.("keydown", this._bgmUnlockHandler);
+        this._bgmUnlockHandler = null;
       }
     });
 
@@ -470,6 +790,11 @@ export default class GameScene extends Phaser.Scene {
     this.gateCloseLayer =
       this.mapLoader.map.getLayer("gate_close")?.tilemapLayer;
 
+    // Some maps use a single blocking "gate" layer instead of "gate_close".
+    if (!this.gateCloseLayer) {
+      this.gateCloseLayer = this.mapLoader.map.getLayer("gate")?.tilemapLayer;
+    }
+
     this.gateOpenLayer =
       this.mapLoader.map.getLayer("gate_open")?.tilemapLayer;
 
@@ -530,6 +855,8 @@ export default class GameScene extends Phaser.Scene {
     this.badgeUnlockPopup = new BadgeUnlockPopup(this);
     this.badgeUnlockPopup.container?.setDepth(30000);
     this.cinematicBars = new CinematicBars(this);
+    this.lessonExampleSplash = new LessonExampleSplash(this);
+    this.nextObjectiveHint = new NextObjectiveHint(this);
 
     const computeMobileMode = () => {
       const isMobileOs =
@@ -556,7 +883,7 @@ export default class GameScene extends Phaser.Scene {
       if (this.isMobile) {
         this.mobileControls = new MobileControls(this, {
           onInteract: () => {
-            if (this.gamePausedByTerminal || this.isTypingInUI()) return;
+            if (this.isGameplayLocked()) return;
             this.handleInteract();
           }
         });
@@ -600,6 +927,8 @@ export default class GameScene extends Phaser.Scene {
 
     this.handleQuestStartedForMobile = () => {
       this.syncMobileControlsVisibility();
+      this.maybeShowLessonExampleSplash();
+      this.nextObjectiveHint?.hide();
     };
 
     this.handleQuestCompletedForMobile = () => {
@@ -641,8 +970,31 @@ export default class GameScene extends Phaser.Scene {
 
     // 🎬 INTRO
     this.playIntroCutscene();
+
+    const key = `${this.language}_${this.currentMapId}_intro`;
+    const hasIntro = Boolean(CUTSCENES[key]);
+    if (!hasIntro) {
+      this.time.delayedCall(450, () => this.maybeShowLessonExampleSplash());
+      this.time.delayedCall(900, () => this.showStartObjectiveHint());
+    }
+
     this.spawnChestQuestIcons();
+
+    // Python map2: if quest is already completed on load, guide player to the reward chest.
+    if (this.isPythonMap2() && this.quest?.completed) {
+      const questId = Number(this.quest?.id ?? this.exerciseId);
+      const delay = hasIntro ? 1600 : 900;
+      this.time.delayedCall(delay, () => this.showPostQuestObjective(questId));
+    }
     this.scheduleNextMapPrefetch();
+
+    this.events.once("shutdown", () => {
+      this.lessonExampleSplash?.destroy();
+      this.lessonExampleSplash = null;
+
+      this.nextObjectiveHint?.destroy();
+      this.nextObjectiveHint = null;
+    });
 
   }
 
@@ -751,12 +1103,21 @@ export default class GameScene extends Phaser.Scene {
   shouldDisableMobileControls() {
     const dialogueActive = Boolean(this.dialogueManager?.active);
     const questHudVisible = Boolean(this.questHUD?.visible);
+    const cutsceneRunning = Boolean(
+      this.cutsceneManager?.running && !this.cutsceneManager.stopRequested
+    );
+    const questActive = Boolean(
+      this.questManager?.activeQuest && !this.questManager.activeQuest.completed
+    );
 
     return (
       this.gamePausedByTerminal ||
       this.isTypingInUI() ||
       dialogueActive ||
-      questHudVisible
+      questHudVisible ||
+      cutsceneRunning ||
+      !this.playerCanMove ||
+      questActive
     );
   }
 
@@ -771,9 +1132,11 @@ export default class GameScene extends Phaser.Scene {
   update() {
     this.syncMobileControlsVisibility();
 
-    if (this.gamePausedByTerminal || this.isTypingInUI()) {
-      this.player.setVelocity(0);
-      this.player.anims.stop();
+    if (this.isGameplayLocked()) {
+      if (this.player?.body) {
+        this.player.setVelocity(0);
+        this.player.anims.stop();
+      }
       return;
     }
 
@@ -919,9 +1282,9 @@ export default class GameScene extends Phaser.Scene {
         }
       }
 
-      for (const [questId, icon] of icons.entries()) {
-        const quest = this.questManager?.getQuestById(questId);
-        if (quest && !quest.completed && icon?.active) {
+      // Fallback: if any chest marker is active (including post-quest reward markers), point to it.
+      for (const icon of icons.values()) {
+        if (icon?.active) {
           this._pointerTargetCache.target = icon;
           return icon;
         }
@@ -1016,8 +1379,11 @@ export default class GameScene extends Phaser.Scene {
         );
 
         npc.setOrigin(0.5, 1);
-        npc.body.setSize(48, 48);
-        npc.body.setOffset(8, 32);
+
+        // NPC sprite is 48x48
+        npc.setDisplaySize(48, 48);
+        npc.body.setSize(48, 48, true);
+        npc.body.setOffset(0, 0);
         npc.body.immovable = true;
 
         npc.npcData = {
@@ -1090,7 +1456,7 @@ export default class GameScene extends Phaser.Scene {
       nearestNpc.y
     );
 
-    const inRange = d <= 50;
+    const inRange = d <= 70;
 
     if (this.interactionMarker) {
       this.interactionMarker.setPosition(nearestNpc.x, nearestNpc.y - 52);
@@ -1139,7 +1505,7 @@ export default class GameScene extends Phaser.Scene {
         this.player.y,
         n.x,
         n.y
-      ) <= 50
+      ) <= 70
     );
 
     if (!npc) return false; // 👈 IMPORTANT
@@ -1165,6 +1531,11 @@ export default class GameScene extends Phaser.Scene {
       // DOOR OPENING FOR JS_MAP8
       if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
         this.openDoors();
+      }
+
+      // GATE OPENING FOR JS_MAP15 (when quest starts)
+      if (this.currentMapId === 'map15' && this.language === 'JavaScript') {
+        this.openGates();
       }
 
       // LAYER SWITCHING FOR JS_MAP10 (whenever quest starts)
@@ -1196,12 +1567,27 @@ export default class GameScene extends Phaser.Scene {
       return true;
     }
 
-    // 3️⃣ QUEST COMPLETED → GIVE KEY
+    // 3 QUEST COMPLETED → GIVE KEY
     if (quest.completed && quest.grants) {
       if (!this.worldState.abilities.has(quest.grants)) {
         this.worldState.abilities.add(quest.grants);
 
-        // 🔄 LAYER SWITCHING FOR JS_MAP10
+        // DOOR OPENING FOR JS_MAP7
+        if (this.currentMapId === 'map7' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        // DOOR OPENING FOR JS_MAP8
+        if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        // GATE OPENING FOR JS_MAP15 (when quest completes)
+        if (this.currentMapId === 'map15' && this.language === 'JavaScript') {
+          this.openGates();
+        }
+
+        // LAYER SWITCHING FOR JS_MAP10
         if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
           this.toggleLayers();
         }
@@ -1209,18 +1595,31 @@ export default class GameScene extends Phaser.Scene {
         this.dialogueManager.startDialogue(
           [
             "Excellent work.",
-            "Take this key — it opens the gate."
+            "Take this key — it opens gate."
           ],
           () => (this.playerCanMove = true)
         );
       } else {
-        // 🔄 TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
+        // TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
+        if (this.currentMapId === 'map7' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        if (this.currentMapId === 'map8' && this.language === 'JavaScript') {
+          this.openDoors();
+        }
+
+        if (this.currentMapId === 'map15' && this.language === 'JavaScript') {
+          this.openGates();
+        }
+
+        // TOGGLE LAYERS AGAIN IF ALREADY HAVE KEY
         if (this.currentMapId === 'map10' && this.language === 'JavaScript') {
           this.toggleLayers();
         }
 
         this.dialogueManager.startDialogue(
-          ["You already have the key."],
+          ["You already have key."],
           () => (this.playerCanMove = true)
         );
       }
@@ -1232,7 +1631,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   handleInteract() {
-    if (this.gamePausedByTerminal) return;
+    if (this.isGameplayLocked()) return;
 
     if (this.tryInteractWithNPC()) return;
     if (this.tryInteractWithChest()) return;
@@ -1278,6 +1677,12 @@ export default class GameScene extends Phaser.Scene {
 
     if (this.smallRockLayer) {
       this.smallRockLayer.setVisible(true);
+    }
+
+    // Python map2: after clearing rocks, objective becomes the exit.
+    if (this.isPythonMap2()) {
+      const questId = Number(this.quest?.id ?? this.exerciseId);
+      this.showPostQuestObjective(questId);
     }
 
   }
@@ -1337,6 +1742,9 @@ export default class GameScene extends Phaser.Scene {
       // 3️⃣ Quest completed → OPEN CHEST
       this.playerCanMove = false;
 
+      // Post-quest reward marker no longer needed.
+      this.chestQuestManager?.hideIconForQuest?.(questId);
+
       // 🔁 Toggle layers
       this.chestLayer.setVisible(false);
       this.chestLayer.forEachTile(t => t.setCollision(false));
@@ -1363,6 +1771,10 @@ export default class GameScene extends Phaser.Scene {
           //   "openedChests",
           //   JSON.stringify([...this.openedChests])
           // );
+
+          // After collecting the reward, point to the exit.
+          this.autoOpenGateIfPossible();
+          this.showPostQuestObjective(questId);
 
           this.playerCanMove = true;
         }
@@ -1398,6 +1810,12 @@ export default class GameScene extends Phaser.Scene {
       // 🎬 Restore gameplay view
       this.cinematicBars.hide(500);
       this.playerCanMove = true;
+
+      // Quest 1: show lesson header splash after intro
+      this.time.delayedCall(300, () => this.maybeShowLessonExampleSplash());
+
+      // Initial objective hint after intro
+      this.time.delayedCall(900, () => this.showStartObjectiveHint());
     });
   }
 
@@ -1433,6 +1851,10 @@ export default class GameScene extends Phaser.Scene {
       ["You unlock the gate.", "The path is now open."],
       () => { }
     );
+
+    // Update objective after gate opens.
+    const questId = Number(this.quest?.id ?? this.exerciseId);
+    this.showPostQuestObjective(questId);
 
   }
 
@@ -1528,6 +1950,8 @@ export default class GameScene extends Phaser.Scene {
     // Prevent multiple triggers
     this.physics.world.disable(zone);
     this.playerCanMove = false;
+
+    this.nextObjectiveHint?.hide();
 
     // Fade out
     this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade to black

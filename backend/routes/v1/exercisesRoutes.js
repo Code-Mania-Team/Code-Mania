@@ -1,10 +1,13 @@
 import express from "express";
 import ExerciseController from "../../controllers/v1/exerciseController.js";
 import { authentication } from "../../middlewares/authentication.js";
+import { attachUserIfValid } from "../../middlewares/OptionalAuth.js";
+
 
 const publicExerciseRouter = express.Router(); // public router
 
 const exerciseController = new ExerciseController();
+
 
 
 // ---------------- PUBLIC ROUTES ----------------
@@ -16,7 +19,7 @@ publicExerciseRouter.get(
 
 publicExerciseRouter.get(
   "/exercises/:id",
-  authentication,
+  attachUserIfValid,
   exerciseController.getExerciseById.bind(exerciseController)
 );
 
@@ -27,13 +30,19 @@ publicExerciseRouter.get(
 
 publicExerciseRouter.post(
   "/exercises/validate",
-  authentication,
+  attachUserIfValid,
   exerciseController.validateExercise.bind(exerciseController)
 );
 
 publicExerciseRouter.post(
+  "/exercises/validate-preview",
+  attachUserIfValid,
+  exerciseController.validateExercisePreview.bind(exerciseController)
+);
+
+publicExerciseRouter.post(
   "/exercises/start",
-  authentication,
+  attachUserIfValid,
   exerciseController.startExercise.bind(exerciseController)
 );
 

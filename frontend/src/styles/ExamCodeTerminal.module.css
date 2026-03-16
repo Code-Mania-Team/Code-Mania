@@ -62,12 +62,514 @@
   cursor: not-allowed;
 }
 
+.examBottomSection {
+  display: flex;
+  gap: 1rem;
+  min-height: 320px;
+  align-items: stretch;
+}
+
+/* Keep bottom panel height stable across tabs (desktop) */
+@media (min-width: 769px) {
+  .examBottomSection {
+    height: 360px;
+    flex: 0 0 360px;
+  }
+
+  .examTerminal {
+    height: 100%;
+  }
+}
+
 .examTerminal {
+  flex: 1;
   background: #0f172a;
   border: 1px solid #334155;
   border-radius: 8px;
-  min-height: 320px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.examTerminalHeader {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.examTerminalTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px;
+}
+
+.examTerminalTab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(148, 163, 184, 0.06);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  user-select: none;
+}
+
+.examTerminalTab:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.examTerminalTab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.examTerminalTabActive {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.32);
+}
+
+.examTerminalTabCount {
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.examTerminalStatus {
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  white-space: nowrap;
+}
+
+.examTerminalBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.examTerminalScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background: #050b17;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.examTabPanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #050b17;
+  overflow: auto;
+  padding: 0.85rem;
+}
+
+.examEmptyPanel {
+  padding: 1rem;
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.resultWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.resultTop {
+  display: grid;
+  gap: 10px;
+}
+
+.resultVerdictRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.resultVerdict {
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  font-size: 1.1rem;
+}
+
+.resultVerdictOk {
+  color: #22c55e;
+}
+
+.resultVerdictBad {
+  color: #ef4444;
+}
+
+.resultRuntime {
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 0.9rem;
+}
+
+.resultCaseTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px;
+}
+
+.resultCaseTab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(148, 163, 184, 0.06);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.resultCaseTab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.resultCaseTabActive {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.32);
+}
+
+.resultCaseIcon {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.7);
+}
+
+.resultCaseIconOk {
+  border-color: rgba(34, 197, 94, 0.95);
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.resultCaseIconBad {
+  border-color: rgba(239, 68, 68, 0.95);
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.resultSection {
+  display: grid;
+  gap: 8px;
+}
+
+.resultLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.95);
+  letter-spacing: 0.05em;
+}
+
+.resultBox {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.86rem;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  padding: 0.75rem 0.8rem;
+  border-radius: 12px;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.resultVarsWrap {
+  border-radius: 12px;
+}
+
+.examResultsPanel {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  overflow: auto;
+  min-height: 0;
+}
+
+.examResultsHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.examResultsTitle {
+  font-weight: 800;
+  color: #e7eefc;
+  letter-spacing: 0.01em;
+}
+
+.examResultsMeta {
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 0.9rem;
+}
+
+.examResultsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.examResultCard {
+  border-radius: 12px;
+  padding: 0.85rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.examResultCardPass {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.examResultCardFail {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.examResultCardTitle {
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  color: #e7eefc;
+  margin-bottom: 6px;
+}
+
+.examResultCardLine {
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.88rem;
+}
+
+.examTestCases {
+  width: 300px;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.88) 0%, rgba(2, 6, 23, 0.72) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
+  max-height: 360px;
+  min-height: 0;
+}
+
+.examTestCaseHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #e7eefc;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.examTestCaseHeaderMeta {
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.examTestCaseBody {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.examTestCaseItem {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.examTestCaseTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.examTestCaseBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.examTestCaseLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.examTestCaseValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.82rem;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  padding: 0.55rem 0.6rem;
+  border-radius: 10px;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.caseVars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.caseVar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.caseVarLabel {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 0.8rem;
+}
+
+.caseVarName {
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  letter-spacing: 0.2px;
+}
+
+.caseVarEq {
+  opacity: 0.7;
+}
+
+.caseVarValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.88rem;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  padding: 0.6rem 0.7rem;
+  border-radius: 12px;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.examTestTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px;
+}
+
+.examTestTab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(148, 163, 184, 0.06);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.examTestTab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.examTestTabActive {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.32);
+}
+
+.examTestTabDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.9);
+  opacity: 0.75;
+}
+
+.examTestPanel {
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.examTestPanelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.examTestPanelTitle {
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  color: #e7eefc;
 }
 
 /* Monaco Editor Customization for Exam */
@@ -99,8 +601,22 @@
     min-height: 300px;
   }
 
+  .examBottomSection {
+    flex-direction: column;
+  }
+
+  .examTestCases {
+    width: 100%;
+    min-height: 200px;
+    max-height: 320px;
+  }
+
   .examTerminal {
     min-height: 250px;
+  }
+
+  .examTerminalHeader {
+    padding: 0.55rem 0.75rem;
   }
   
   .examEditorHeader {

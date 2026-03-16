@@ -17,6 +17,9 @@ import MobileControls from "../components/MobileControls";
 
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
+import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+import MarkdownRenderer from "../components/MarkdownRenderer";
+
 
 
 import styles from "../styles/PythonExercise.module.css";
@@ -52,6 +55,11 @@ const PythonExercise = ({ isAuthenticated }) => {
   };
 
   const location = useLocation();
+
+  const isRetryMode = useMemo(() => {
+    const params = new URLSearchParams(location.search || "");
+    return params.get("retry") === "1";
+  }, [location.search]);
 
   const [dbCompletedQuests, setDbCompletedQuests] = useState([]);
 
@@ -101,6 +109,20 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const [activeExercise, setActiveExercise] = useState(null);
 
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+
+  // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
+  useEffect(() => {
+    if (!isAuthenticated && activeExerciseId > 2) {
+      setIsSignInModalOpen(true);
+      // Keep user on the last guest-allowed exercise.
+      navigate("/learn/python/exercise/2", { replace: true });
+      setIsPageLoading(false);
+    }
+  }, [activeExerciseId, isAuthenticated, navigate]);
+
 
   useEffect(() => {
     const handleStart = async (e) => {
@@ -123,11 +145,22 @@ const PythonExercise = ({ isAuthenticated }) => {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
+        if (!isAuthenticated) {
+          setDbCompletedQuests([]);
+          setCompletedQuizStages([]);
+          return;
+        }
 
         const data = await getGameProgress(1);
 
         if (data?.completedQuests) {
-          setDbCompletedQuests(data.completedQuests);
+          const normalized = (Array.isArray(data.completedQuests)
+            ? data.completedQuests
+            : [])
+            .map((id) => Number(id))
+            .filter((id) => Number.isFinite(id));
+
+          setDbCompletedQuests(normalized);
         }
         setCompletedQuizStages(Array.isArray(data?.completedQuizStages) ? data.completedQuizStages : []);
       } catch (err) {
@@ -136,9 +169,13 @@ const PythonExercise = ({ isAuthenticated }) => {
     };
 
     fetchProgress();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
+
+    setIsPageLoading(true);
+    setActiveExercise(null);
+    stopGame();
 
     const fetchExercise = async () => {
 
@@ -160,27 +197,30 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         setActiveExercise(quest);
 
+        // keep overlay until phaser re-inits
+        setTimeout(() => setIsPageLoading(false), 120);
+
 
 
       } catch (err) {
 
 
 
-        // 🔒 Locked → redirect
-
-        if (err.response?.status === 403) {
-
-          const redirectId = err.response.data?.redirectTo;
-
-
-          if (redirectId) {
-
-            navigate(`/learn/python/exercise/${redirectId}`);
-
+        // 🔒 Locked
+        if (err.response?.status === 403 || err.response?.status === 401) {
+          // Guest trying to access exercise 3+
+          if (!isAuthenticated && activeExerciseId > 2) {
+            setIsSignInModalOpen(true);
+            navigate("/learn/python/exercise/2", { replace: true });
+            setIsPageLoading(false);
             return;
-
           }
 
+          const redirectId = err.response?.data?.redirectTo;
+          if (redirectId) {
+            navigate(`/learn/python/exercise/${redirectId}`);
+            return;
+          }
         }
 
 
@@ -217,7 +257,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     fetchExercise();
 
-  }, [activeExerciseId]);
+  }, [activeExerciseId, isAuthenticated, navigate]);
 
 
 
@@ -263,15 +303,22 @@ const PythonExercise = ({ isAuthenticated }) => {
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
   );
+  const [isSmallPhone, setIsSmallPhone] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 380 : false
+  );
   const [mobileActivePanel, setMobileActivePanel] = useState("game");
 
   useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth <= 900);
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 900);
+      setIsSmallPhone(window.innerWidth <= 380);
+    };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView) return;
 
     const html = document.documentElement;
@@ -289,13 +336,14 @@ const PythonExercise = ({ isAuthenticated }) => {
       body.style.overflow = prevBodyOverflow;
       body.style.overscrollBehavior = prevBodyOverscroll;
     };
-  }, [isMobileView]);
+  }, [isMobileView, isRetryMode]);
 
   useEffect(() => {
-    setMobileActivePanel("game");
-  }, [activeExerciseId]);
+    setMobileActivePanel(isRetryMode ? "editor" : "game");
+  }, [activeExerciseId, isRetryMode]);
 
   useEffect(() => {
+    if (isRetryMode) return;
     if (!isMobileView || mobileActivePanel === "game") return;
 
     window.dispatchEvent(new Event("code-mania:force-close-help"));
@@ -310,37 +358,38 @@ const PythonExercise = ({ isAuthenticated }) => {
     if (sceneManager.isPaused?.("GameScene")) {
       sceneManager.resume("GameScene");
     }
-  }, [isMobileView, mobileActivePanel]);
+  }, [isMobileView, isRetryMode, mobileActivePanel]);
 
 
 
   useEffect(() => {
+    if (isRetryMode) {
+      stopGame();
+      setTerminalEnabled(true);
+      return;
+    }
 
     const onRequestNext = async (e) => {
+      const currentId = Number(e.detail?.exerciseId);
+      if (!Number.isFinite(currentId)) return;
 
-      const currentId = e.detail?.exerciseId;
-
-      if (!currentId) return;
-
-
-
-      const next = await getNextExercise(currentId);
-
-
-
-      if (!next) {
-
-
-        navigate("/learn/python/completed");
-
+      // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in.
+      if (!isAuthenticated) {
+        if (currentId >= 2) {
+          setIsSignInModalOpen(true);
+          return;
+        }
+        navigate(`/learn/python/exercise/${currentId + 1}`);
         return;
-
       }
 
-
+      const next = await getNextExercise(currentId);
+      if (!next) {
+        navigate("/learn/python/completed");
+        return;
+      }
 
       navigate(`/learn/python/exercise/${next.id}`);
-
     };
 
 
@@ -355,7 +404,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, []);
+  }, [getNextExercise, isAuthenticated, isRetryMode, navigate]);
 
 
 
@@ -435,6 +484,14 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
     if (!activeExercise) return;
+
+    // Prevent starting Phaser with stale quest while the route param changes.
+    // When navigating between exercises, React can render with the previous quest
+    // before the new quest fetch completes.
+    const activeQuestId = Number(activeExercise?.id);
+    if (!Number.isFinite(activeQuestId) || activeQuestId !== activeExerciseId) {
+      return;
+    }
 
 
 
@@ -531,7 +588,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests]);
+  }, [activeExercise, activeExerciseId, completedQuizStages, dbCompletedQuests, isRetryMode]);
 
   useEffect(() => {
     return () => {
@@ -609,10 +666,6 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   =============================== */
 
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-
-
-
   const handleSignInSuccess = () => {
 
     localStorage.setItem("isAuthenticated", "true");
@@ -628,6 +681,8 @@ const PythonExercise = ({ isAuthenticated }) => {
   return (
 
     <div className={styles["python-exercise-page"]}>
+
+      {isPageLoading && <AuthLoadingOverlay />}
 
       <Header
 
@@ -664,50 +719,108 @@ const PythonExercise = ({ isAuthenticated }) => {
 
         />
 
-        {isMobileView && (
-          <div className={styles["mobile-panel-switcher-top"]}>
+        {isMobileView && !isRetryMode && (
+          <div
+            className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
+          >
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "game" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("game")}
+              aria-label="Game Scene"
+              title="Game Scene"
             >
-              Game Scene
+              {isSmallPhone ? "Game" : "Game Scene"}
             </button>
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("editor")}
+              aria-label="Code Editor"
+              title="Code Editor"
             >
-              Code Editor
+              {isSmallPhone ? "Code" : "Code Editor"}
             </button>
             <button
               type="button"
               className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
               onClick={() => setMobileActivePanel("terminal")}
+              aria-label="Terminal"
+              title="Terminal"
             >
-              Terminal
+              {isSmallPhone ? "Term" : "Terminal"}
+            </button>
+          </div>
+        )}
+
+        {isMobileView && isRetryMode && (
+          <div
+            className={`${styles["mobile-panel-switcher-top"]} ${isSmallPhone ? styles["mobile-panel-switcher-top-compact"] : ""}`}
+          >
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "editor" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("editor")}
+              aria-label="Code Editor"
+              title="Code Editor"
+            >
+              {isSmallPhone ? "Code" : "Code Editor"}
+            </button>
+            <button
+              type="button"
+              className={`${styles["mobile-switch-btn"]} ${mobileActivePanel === "terminal" ? styles["mobile-switch-btn-active"] : ""}`}
+              onClick={() => setMobileActivePanel("terminal")}
+              aria-label="Terminal"
+              title="Terminal"
+            >
+              {isSmallPhone ? "Term" : "Terminal"}
             </button>
           </div>
         )}
 
 
 
-        <div className={styles["main-layout"]}>
+        <div className={`${styles["main-layout"]} ${isRetryMode ? styles["practice-layout"] : ""}`}>
+           
+           {/* ===== GAME ===== */}
 
-          {/* ===== GAME ===== */}
-
-          <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
-            <div
-              id="phaser-container"
-              className={styles["game-scene"]}
-            />
-          </div>
+          {!isRetryMode && (
+            <div className={`${styles["game-container"]} ${isMobileView && mobileActivePanel !== "game" ? styles["mobile-panel-hidden"] : ""}`}>
+              <div
+                id="phaser-container"
+                className={styles["game-scene"]}
+              />
+            </div>
+          )}
 
 
 
           {/* ===== TERMINAL ===== */}
 
-          <div className={`${styles["terminal-pane"]} ${isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
+          {isRetryMode && (
+            <div className={styles["practice-info-pane"]}>
+              <div className={styles["practice-info"]}>
+                <div className={styles["practice-title"]}>
+                  {activeExercise?.title || "Quest"}
+                </div>
+                {activeExercise?.description ? (
+                  <MarkdownRenderer className={styles["practice-desc"]}>
+                    {activeExercise.description}
+                  </MarkdownRenderer>
+                ) : null}
+                {activeExercise?.task ? (
+                  <div className={styles["practice-task"]}>
+                    <div className={styles["practice-task-label"]}>Task</div>
+                    <MarkdownRenderer className={styles["practice-task-body"]}>
+                      {activeExercise.task}
+                    </MarkdownRenderer>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          <div className={`${styles["terminal-pane"]} ${isRetryMode ? styles["practice-terminal-pane"] : ""} ${!isRetryMode && isMobileView && mobileActivePanel === "game" ? styles["mobile-panel-hidden"] : ""}`}>
             <CodeTerminal
               questId={activeExerciseId}
               code={code}
@@ -720,6 +833,7 @@ const PythonExercise = ({ isAuthenticated }) => {
               enableMobileSplit={isMobileView}
               mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
+              practiceMode={isRetryMode}
             />
           </div>
 
@@ -785,6 +899,12 @@ const PythonExercise = ({ isAuthenticated }) => {
         badgeLabel="Stage 4 badge earned"
 
         onTakeExam={() => navigate("/exam/python")}
+
+        showTerminalCta
+
+        terminalCtaLabel="Try Out Our Terminal!"
+
+        onTerminalCta={() => navigate("/terminal")}
 
         onSecondary={() => navigate("/learn/python")}
 

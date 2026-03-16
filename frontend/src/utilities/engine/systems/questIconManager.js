@@ -11,14 +11,18 @@ export default class QuestIconManager {
       pooled ||
       this.scene.add.sprite(
         npc.x,
-        npc.y - (npc.displayHeight || 32),
+        npc.y - (npc.displayHeight || 48) - 2,
         "quest_icon"
       );
 
-    icon.setPosition(npc.x, npc.y - (npc.displayHeight || 32));
+    // NPC y is feet (origin 0.5, 1). Place icon just above the head.
+    icon
+      .setOrigin(0.5, 1)
+      .setDisplaySize(48, 48)
+      .setPosition(npc.x, npc.y - (npc.displayHeight || 48) + 6);
     icon.setActive(true);
 
-    icon.setDepth(100);
+    icon.setDepth(1000);
     icon.setVisible(visible);
     icon.play("quest-icon");
 

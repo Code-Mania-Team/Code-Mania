@@ -139,6 +139,9 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
   const [resetPasswordError, setResetPasswordError] = useState('');
 
+  // OTP resend cooldown state
+  const [otpResendCooldown, setOtpResendCooldown] = useState(0);
+
 
 
   const validatePassword = (pass) => {
@@ -237,6 +240,50 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
 
 
+  // OTP resend cooldown timer
+  React.useEffect(() => {
+    if (otpResendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setOtpResendCooldown(otpResendCooldown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpResendCooldown]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (!error) return;
+
+    // Ensure we're on the sign-in view for auth messages.
+    setIsForgotPasswordMode(false);
+    setShowForgotPasswordOtp(false);
+    setShowResetPassword(false);
+    setIsSignUpMode(false);
+    setShowOtpField(false);
+
+    if (error === 'use_password') {
+      setLoginError("This email is registered with email/password. Please sign in with your password (not Google).");
+      return;
+    }
+
+    if (error === 'use_google') {
+      setLoginError("This email is registered with Google sign-in. Please use 'Continue with Google'.");
+      return;
+    }
+
+    if (error === 'auth_failed') {
+      setLoginError("Google sign-in failed. If you created your account with email/password, use that method instead.");
+      return;
+    }
+
+    if (error === 'server_error') {
+      setLoginError('Sign in is temporarily unavailable. Please try again.');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
 
@@ -286,17 +333,21 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
           const user = await signUp(email, password);
 
-
           setShowOtpField(true);
+          setOtpResendCooldown(60); // Start 60-second cooldown
 
         } else {
 
           const result = await verifyOtp(email, otp);
 
           if (!result?.success) {
+
             setLoginError(result?.message || 'Invalid OTP');
+
             setIsLoading(false);
+
             return;
+
           }
 
           localStorage.setItem('needsUsername', 'true');
@@ -463,6 +514,25 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
 
     setOtp('');
 
+  };
+
+
+
+  const handleResendOtp = async () => {
+    if (otpResendCooldown > 0) return;
+    
+    try {
+      setIsLoading(true);
+      setLoginError('');
+      
+      const user = await signUp(email, password);
+      setOtpResendCooldown(60); // Reset cooldown
+      setLoginError('OTP resent! Check your email.');
+    } catch (error) {
+      setLoginError('Failed to resend OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 
@@ -1519,6 +1589,18 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
                   />
 
                   <p className={styles.otpNote}>We've sent a 6-digit OTP to your email</p>
+
+                  <button
+                    type="button"
+                    className={styles.resendButton}
+                    onClick={handleResendOtp}
+                    disabled={isLoading || otpResendCooldown > 0}
+                  >
+                    {otpResendCooldown > 0 
+                      ? `Resend OTP (${otpResendCooldown}s)` 
+                      : 'Resend OTP'
+                    }
+                  </button>
 
                 </div>
 

@@ -5,6 +5,24 @@ class AdminExamController {
     this.adminExamService = new AdminExamService();
   }
 
+  async getProblem(req, res) {
+    try {
+      const problemId = Number(req.params.problemId);
+      if (!Number.isFinite(problemId)) {
+        return res.status(400).json({ success: false, message: "Invalid problemId" });
+      }
+
+      const result = await this.adminExamService.getProblem(problemId);
+      if (!result.ok) {
+        return res.status(result.status || 500).json({ success: false, message: result.message });
+      }
+
+      return res.status(200).json({ success: true, data: result.data });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: "Failed to fetch exam problem" });
+    }
+  }
+
   async updateProblem(req, res) {
     try {
       const problemId = Number(req.params.problemId);

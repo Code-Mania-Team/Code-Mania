@@ -42,7 +42,7 @@ const About = () => {
               </div>
               <div className="dev-links dev-links-below">
                 <a href="#" className="dev-link" aria-label="Padilla, Jet LinkedIn"><img src="/assets/linkedin.png" alt="LinkedIn" className="dev-link-icon" /></a>
-                <a href="#" className="dev-link" aria-label="Padilla, Jet GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
+                <a href="https://github.com/Nahiwagaan" className="dev-link" aria-label="Padilla, Jet GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
                 <a href="#" className="dev-link" aria-label="Padilla, Jet Gmail"><img src="/assets/gmail.jpg" alt="Gmail" className="dev-link-icon" /></a>
               </div>
             </div>
@@ -57,7 +57,7 @@ const About = () => {
               </div>
               <div className="dev-links dev-links-below">
                 <a href="#" className="dev-link" aria-label="Pano, Diether LinkedIn"><img src="/assets/linkedin.png" alt="LinkedIn" className="dev-link-icon" /></a>
-                <a href="#" className="dev-link" aria-label="Pano, Diether GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
+                <a href="https://github.com/DietherPano" className="dev-link" aria-label="Pano, Diether GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
                 <a href="#" className="dev-link" aria-label="Pano, Diether Gmail"><img src="/assets/gmail.jpg" alt="Gmail" className="dev-link-icon" /></a>
               </div>
             </div>
@@ -72,7 +72,7 @@ const About = () => {
               </div>
               <div className="dev-links dev-links-below">
                 <a href="#" className="dev-link" aria-label="Bodino, John Paul LinkedIn"><img src="/assets/linkedin.png" alt="LinkedIn" className="dev-link-icon" /></a>
-                <a href="#" className="dev-link" aria-label="Bodino, John Paul GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
+                <a href="https://github.com/johnpaul-bodino" className="dev-link" aria-label="Bodino, John Paul GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
                 <a href="#" className="dev-link" aria-label="Bodino, John Paul Gmail"><img src="/assets/gmail.jpg" alt="Gmail" className="dev-link-icon" /></a>
               </div>
             </div>
@@ -87,7 +87,7 @@ const About = () => {
               </div>
               <div className="dev-links dev-links-below">
                 <a href="#" className="dev-link" aria-label="Dela Cruz, Wilster LinkedIn"><img src="/assets/linkedin.png" alt="LinkedIn" className="dev-link-icon" /></a>
-                <a href="#" className="dev-link" aria-label="Dela Cruz, Wilster GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
+                <a href="https://github.com/wilsterdc" className="dev-link" aria-label="Dela Cruz, Wilster GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
                 <a href="#" className="dev-link" aria-label="Dela Cruz, Wilster Gmail"><img src="/assets/gmail.jpg" alt="Gmail" className="dev-link-icon" /></a>
               </div>
             </div>
@@ -103,7 +103,7 @@ const About = () => {
               <div className="dev-links dev-links-below">
                 <a href="#" className="dev-link" aria-label="Bracia, Genniesys LinkedIn"><img src="/assets/linkedin.png" alt="LinkedIn" className="dev-link-icon" /></a>
                 <a href="#" className="dev-link" aria-label="Bracia, Genniesys Gmail"><img src="/assets/gmail.jpg" alt="Gmail" className="dev-link-icon" /></a>
-                <a href="#" className="dev-link" aria-label="Bracia, Genniesys GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
+                <a href="https://github.com/Genniesysbracia" className="dev-link" aria-label="Bracia, Genniesys GitHub"><img src="/assets/github.jpg" alt="GitHub" className="dev-link-icon" /></a>
               </div>
             </div>
 

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
-import { ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
+import JsonEditor from "../components/JsonEditor";
+import MarkdownRenderer from "../components/MarkdownRenderer";
+import Editor from "@monaco-editor/react";
 
 const ExerciseManager = () => {
   const { course } = useParams();
@@ -46,12 +49,33 @@ const ExerciseManager = () => {
     }
   };
 
+  const toPrettyJsonString = (value, fallback = "{}") => {
+    if (value === null || value === undefined) return fallback;
+
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) return fallback;
+      try {
+        return JSON.stringify(JSON.parse(trimmed), null, 2);
+      } catch {
+        // If it's already a plain string, keep it as-is.
+        return value;
+      }
+    }
+
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return fallback;
+    }
+  };
+
   const handleEdit = (exercise) => {
     setEditingExercise(exercise.id);
     setFormData({
       ...exercise,
       dialogue: JSON.stringify(exercise.dialogue || [], null, 2),
-      requirements: JSON.stringify(exercise.requirements || {}, null, 2)
+      requirements: toPrettyJsonString(exercise.requirements, "{}"),
     });
   };
 
@@ -91,19 +115,6 @@ const ExerciseManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this exercise?")) {
-      try {
-        await axiosPublic.delete(`/v1/admin/exercises/${id}`, {
-          withCredentials: true
-        });
-        await fetchExercises();
-      } catch (error) {
-        console.error("Error deleting exercise:", error);
-        alert("Error deleting exercise");
-      }
-    }
-  };
 
   const handleCancel = () => {
     setEditingExercise(null);
@@ -147,7 +158,7 @@ const ExerciseManager = () => {
               style={{ marginRight: 16 }}
             >
               <ArrowLeft size={16} style={{ marginRight: 4 }} />
-              Back
+              Back to Admin
             </button>
             <h2 className={styles.title}>{course.charAt(0).toUpperCase() + course.slice(1)} Exercises</h2>
           </div>
@@ -168,6 +179,7 @@ const ExerciseManager = () => {
                     setFormData={setFormData} 
                     onSave={handleSave} 
                     onCancel={handleCancel} 
+                    course={course}
                   />
                 </div>
               ) : (
@@ -198,14 +210,6 @@ const ExerciseManager = () => {
                     >
                       <Edit size={16} />
                     </button>
-                    <button 
-                      className={styles.button} 
-                      type="button" 
-                      onClick={() => handleDelete(exercise.id)}
-                      style={{ backgroundColor: '#ef4444' }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   </div>
                 </>
               )}
@@ -217,19 +221,60 @@ const ExerciseManager = () => {
   );
 };
 
-const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
+const ExerciseForm = ({ formData, setFormData, onSave, onCancel, course }) => {
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const codeLanguage = (() => {
+    const slug = String(course || "").toLowerCase();
+    if (slug.includes("python")) return "python";
+    if (slug.includes("javascript") || slug === "js") return "javascript";
+    if (slug.includes("cpp") || slug.includes("c++")) return "cpp";
+    return "plaintext";
+  })();
+
+  const baseEditorOptions = {
+    contextmenu: false,
+    minimap: { enabled: false },
+    fontSize: 13,
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+    wordWrap: "on",
+  };
+
+  const codeEditorOptions = {
+    ...baseEditorOptions,
+    lineNumbers: "on",
+    padding: { top: 10, bottom: 10 },
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+  };
+
+  const formatValidationMode = (mode) => {
+    const value = String(mode || "").toLowerCase();
+    if (value === "fundamentals") return "Fundamentals";
+    if (value === "hybrid") return "Hybrid";
+    if (value === "output") return "Output";
+    return mode || "";
+  };
+
+  const formatStatus = (status) => {
+    const value = String(status || "").toLowerCase();
+    if (value === "draft") return "Draft";
+    if (value === "published") return "Published";
+    return status || "";
+  };
+
   return (
-    <div className={styles.formGrid}>
+    <div className={styles.formWithPreview}>
+      <div className={styles.formGrid}>
       <div className={styles.formGroup}>
         <label>Exercise ID</label>
         <input
           type="number"
           value={formData.exercise_id || ''}
-          onChange={(e) => handleChange('exercise_id', parseInt(e.target.value))}
+          disabled
         />
       </div>
 
@@ -238,20 +283,18 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
         <input
           type="text"
           value={formData.title || ''}
-          onChange={(e) => handleChange('title', e.target.value)}
+          disabled
         />
       </div>
 
       <div className={styles.formGroup}>
         <label>Validation Mode</label>
-        <select
-          value={formData.validation_mode || 'HYBRID'}
-          onChange={(e) => handleChange('validation_mode', e.target.value)}
-        >
-          <option value="FUNDAMENTALS">Fundamentals</option>
-          <option value="HYBRID">Hybrid</option>
-          <option value="OUTPUT">Output</option>
-        </select>
+        <input
+          type="text"
+          value={formatValidationMode(formData.validation_mode || 'HYBRID')}
+          disabled
+          readOnly
+        />
       </div>
 
       <div className={styles.formGroup}>
@@ -259,19 +302,18 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
         <input
           type="number"
           value={formData.experience || 100}
-          onChange={(e) => handleChange('experience', parseInt(e.target.value))}
+          disabled
         />
       </div>
 
       <div className={styles.formGroup}>
         <label>Status</label>
-        <select
-          value={formData.status || 'draft'}
-          onChange={(e) => handleChange('status', e.target.value)}
-        >
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-        </select>
+        <input
+          type="text"
+          value={formatStatus(formData.status || 'draft')}
+          disabled
+          readOnly
+        />
       </div>
 
       <div className={styles.formGroup}>
@@ -279,7 +321,7 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
         <input
           type="number"
           value={formData.order_index || 1}
-          onChange={(e) => handleChange('order_index', parseInt(e.target.value))}
+          disabled
         />
       </div>
 
@@ -294,38 +336,58 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
 
       <div className={styles.formGroupFull}>
         <label>Description</label>
-        <textarea
-          value={formData.description || ''}
-          onChange={(e) => handleChange('description', e.target.value)}
-          rows={3}
-        />
+        <div className={styles.jsonEditorWrap}>
+          <Editor
+            height="220px"
+            language="markdown"
+            theme="vs-dark"
+            value={String(formData.description || "")}
+            onChange={(v) => handleChange("description", v ?? "")}
+            options={baseEditorOptions}
+          />
+        </div>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Task</label>
-        <textarea
-          value={formData.task || ''}
-          onChange={(e) => handleChange('task', e.target.value)}
-          rows={2}
-        />
+        <div className={styles.jsonEditorWrap}>
+          <Editor
+            height="150px"
+            language="markdown"
+            theme="vs-dark"
+            value={String(formData.task || "")}
+            onChange={(v) => handleChange("task", v ?? "")}
+            options={baseEditorOptions}
+          />
+        </div>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Lesson Example</label>
-        <textarea
-          value={formData.lesson_example || ''}
-          onChange={(e) => handleChange('lesson_example', e.target.value)}
-          rows={3}
-        />
+        <div className={styles.jsonEditorWrap}>
+          <Editor
+            height="180px"
+            language="markdown"
+            theme="vs-dark"
+            value={String(formData.lesson_example || "")}
+            onChange={(v) => handleChange("lesson_example", v ?? "")}
+            options={baseEditorOptions}
+          />
+        </div>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Starting Code</label>
-        <textarea
-          value={formData.starting_code || ''}
-          onChange={(e) => handleChange('starting_code', e.target.value)}
-          rows={3}
-        />
+        <div className={styles.jsonEditorWrap}>
+          <Editor
+            height="200px"
+            language={codeLanguage}
+            theme="vs-dark"
+            value={String(formData.starting_code || "")}
+            onChange={(v) => handleChange("starting_code", v ?? "")}
+            options={codeEditorOptions}
+          />
+        </div>
       </div>
 
       <div className={styles.formGroupFull}>
@@ -348,22 +410,30 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
 
       <div className={styles.formGroupFull}>
         <label>Dialogue (JSON)</label>
-        <textarea
-          value={formData.dialogue || '[]'}
-          onChange={(e) => handleChange('dialogue', e.target.value)}
-          rows={5}
-          style={{ fontFamily: 'monospace' }}
-        />
+        <details className={styles.helpDetails} open>
+          <summary className={styles.helpSummary}>Edit Dialogue JSON</summary>
+          <div className={styles.jsonEditorWrap}>
+            <JsonEditor
+              height="220px"
+              value={formData.dialogue || "[]"}
+              onChange={(v) => handleChange("dialogue", v)}
+            />
+          </div>
+        </details>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Requirements (JSON)</label>
-        <textarea
-          value={formData.requirements || '{}'}
-          onChange={(e) => handleChange('requirements', e.target.value)}
-          rows={3}
-          style={{ fontFamily: 'monospace' }}
-        />
+        <details className={styles.helpDetails}>
+          <summary className={styles.helpSummary}>Edit Requirements JSON</summary>
+          <div className={styles.jsonEditorWrap}>
+            <JsonEditor
+              height="180px"
+              value={formData.requirements || "{}"}
+              onChange={(v) => handleChange("requirements", v)}
+            />
+          </div>
+        </details>
       </div>
 
       <div className={styles.formActions}>
@@ -381,6 +451,70 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel }) => {
           Cancel
         </button>
       </div>
+      </div>
+
+      <aside className={styles.previewPanel}>
+        <div className={styles.previewTitle}>
+          <span>Preview</span>
+          <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>Live</span>
+        </div>
+        <p className={styles.previewHint}>This matches how the quest UI renders your content.</p>
+
+        <div className={styles.previewCard}>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 900, color: "#f1f5f9" }}>{formData.title || "(Untitled)"}</div>
+            <div style={{ fontSize: 12, color: "#94a3b8" }}>
+              Lesson Header: {formData.lesson_header || "-"}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Description</div>
+              <MarkdownRenderer>{String(formData.description || "")}</MarkdownRenderer>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Task</div>
+              <MarkdownRenderer>{String(formData.task || "")}</MarkdownRenderer>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Lesson Example</div>
+              <MarkdownRenderer>{String(formData.lesson_example || "")}</MarkdownRenderer>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Starting Code</div>
+              <pre
+                style={{
+                  margin: 0,
+                  padding: "10px 10px",
+                  borderRadius: 10,
+                  background: "rgba(2,6,23,0.6)",
+                  border: "1px solid rgba(148,163,184,0.12)",
+                  color: "#e7eefc",
+                  overflow: "auto",
+                  fontSize: 12,
+                  lineHeight: 1.6,
+                }}
+              >
+                <code>{String(formData.starting_code || "") || "(empty)"}</code>
+              </pre>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Expected Output</div>
+              <div style={{ fontSize: 13, color: "#e7eefc" }}>{formData.expected_output || "(empty)"}</div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Grants</div>
+              <div style={{ fontSize: 13, color: "#e7eefc" }}>{formData.grants || "(empty)"}</div>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 };

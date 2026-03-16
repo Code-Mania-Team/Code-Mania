@@ -80,7 +80,6 @@ const Learn = () => {
                     localStorage.setItem('lastCourseRoute', course.route);
                     navigate(course.route);
                   }}
-                  disabled={!course.route}
                 >
                   Start Learning
                 </button>

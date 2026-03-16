@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import styles from "../styles/ExamPage.module.css";
 import { getCodingExamData } from "../data/codingExamData";
 import ExamCodeTerminal from "../components/ExamCodeTerminal";
+import Header from "../components/header";
 import useGetExamProblem from "../services/useGetExamProblem";
 import useExamAttempt from "../services/useExamAttempt";
 import useGetExercises from "../services/getExercise";
@@ -10,6 +11,7 @@ import useGetGameProgress from "../services/getGameProgress";
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
 import useAuth from "../hooks/useAxios";
 import { postAchievement } from "../services/postAchievement";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 // Badge IDs for exam completion
 const EXAM_BADGE_MAP = {
@@ -52,6 +54,35 @@ const resolveExamXpDisplay = ({ serverXp, attemptNumber, baseXp }) => {
   const penaltyPerFailedSubmit = Math.round(numericBaseXp * 0.05);
 
   return Math.max(0, numericBaseXp - (attemptsUsed * penaltyPerFailedSubmit));
+};
+
+const renderInlineCode = (text, keyPrefix = "t") => {
+  const raw = String(text ?? "");
+  if (!raw.includes("`")) return raw;
+
+  const parts = raw.split("`");
+  return parts.map((part, idx) => {
+    const isCode = idx % 2 === 1;
+    if (!isCode) return part;
+    return (
+      <code key={`${keyPrefix}-${idx}`} className={styles.lcInlineCode}>
+        {part}
+      </code>
+    );
+  });
+};
+
+const isBacktickWrapped = (value) => {
+  const s = String(value ?? "").trim();
+  return s.length >= 2 && s.startsWith("`") && s.endsWith("`") && s.slice(1, -1).trim().length > 0;
+};
+
+const stripBackticks = (value) => String(value ?? "").trim().replace(/^`/, "").replace(/`$/, "");
+
+const looksLikeExampleBlock = (value) => {
+  const s = String(value ?? "");
+  if (!s.includes("\n")) return false;
+  return /(\bInput:|\bOutput:|\bExplanation:)/.test(s);
 };
 
 const CodingExamPage = () => {
@@ -212,6 +243,7 @@ const CodingExamPage = () => {
               title: problem.problem_title,
               description: problem.problem_description,
               starterCode: problem.starting_code,
+              testCases: problem.test_cases,
               points: Number(problem.exp || 1000)
             }
           ]
@@ -245,6 +277,25 @@ const CodingExamPage = () => {
   if (!examData) return <AuthLoadingOverlay />;
 
   const challenge = examData.challenges[currentChallenge];
+
+  const normalizedTestCases = Array.isArray(challenge?.testCases)
+    ? challenge.testCases.map((tc) => ({
+        input: tc?.input ?? tc?.stdin ?? "",
+        expected: tc?.expected ?? tc?.expectedOutput ?? tc?.expected_output ?? "",
+        is_hidden: Boolean(tc?.is_hidden ?? tc?.isHidden),
+      }))
+    : [];
+
+  const formatCaseValue = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  };
 
   const handleRetake = async () => {
     try {
@@ -281,35 +332,35 @@ const CodingExamPage = () => {
 
   return (
     <div className={styles.page}>
+      <Header onOpenModal={() => navigate('/')} />
+
       {isMobileView && (
-        <>
-          <div className={styles.mobileTaskTabsWrap}>
-            <div className={styles.mobileTaskTabs}>
-              <button
-                type="button"
-                className={`${styles.mobileTaskTab} ${mobileTab === "learn" ? styles.mobileTaskTabActive : ""}`}
-                onClick={() => setMobileTab("learn")}
-              >
-                Learn
-              </button>
-              <button
-                type="button"
-                className={`${styles.mobileTaskTab} ${mobileTab === "code" ? styles.mobileTaskTabActive : ""}`}
-                onClick={() => setMobileTab("code")}
-              >
-                Code
-              </button>
-              <button
-                type="button"
-                className={`${styles.mobileTaskTab} ${mobileTab === "output" ? styles.mobileTaskTabActive : ""}`}
-                onClick={() => setMobileTab("output")}
-              >
-                Output
-              </button>
-            </div>
-          </div>
-          <div className={styles.mobileTaskTabsOffset} />
-        </>
+        <div className={styles.sideBookmarks} role="tablist" aria-label="Exam panels">
+          <button
+            type="button"
+            className={`${styles.bookmarkBtn} ${mobileTab === "learn" ? styles.bookmarkBtnActive : ""}`}
+            onClick={() => setMobileTab("learn")}
+            aria-selected={mobileTab === "learn"}
+          >
+            Learn
+          </button>
+          <button
+            type="button"
+            className={`${styles.bookmarkBtn} ${mobileTab === "code" ? styles.bookmarkBtnActive : ""}`}
+            onClick={() => setMobileTab("code")}
+            aria-selected={mobileTab === "code"}
+          >
+            Code
+          </button>
+          <button
+            type="button"
+            className={`${styles.bookmarkBtn} ${mobileTab === "output" ? styles.bookmarkBtnActive : ""}`}
+            onClick={() => setMobileTab("output")}
+            aria-selected={mobileTab === "output"}
+          >
+            Output
+          </button>
+        </div>
       )}
 
       <section
@@ -494,69 +545,83 @@ const CodingExamPage = () => {
                   <li>Exam starts at {Number(challenge.points || 1000)} XP.</li>
                 </ul>
               </div>
-              <div className={styles.questionText}>
-                {challenge.description?.sections?.map((section, index) => {
+              <div className={`${styles.questionText} ${styles.lcDescription}`}>
+                {typeof challenge.description === "string" ? (
+                  <MarkdownRenderer>{challenge.description}</MarkdownRenderer>
+                ) : (
+                  challenge.description?.sections?.map((section, index) => {
+                    if (section?.type === "heading") {
+                      const level = Math.min(4, Math.max(2, Number(section.level || 2)));
+                      const Tag = `h${level}`;
+                      const headingClass =
+                        level === 2 ? styles.lcH2 : level === 3 ? styles.lcH3 : styles.lcH4;
 
-                  if (section.type === "heading") {
-                    const Tag = `h${section.level}`;
-                    return (
-                      <Tag
-                        key={index}
-                        style={{
-                          marginTop: index === 0 ? "0" : "1.5rem",
-                          marginBottom: "0.75rem",
-                          color: "#f1f5f9",
-                          fontWeight: "700"
-                        }}
-                      >
-                        {section.content}
-                      </Tag>
-                    );
-                  }
+                      return (
+                        <Tag
+                          key={index}
+                          className={headingClass}
+                          style={{ marginTop: index === 0 ? 0 : undefined }}
+                        >
+                          {renderInlineCode(section.content, `h-${index}`)}
+                        </Tag>
+                      );
+                    }
 
-                  if (section.type === "paragraph") {
-                    return (
-                      <p
-                        key={index}
-                        style={{
-                          marginBottom: "0.75rem",
-                          color: "#cbd5e1",
-                          lineHeight: "1.6"
-                        }}
-                      >
-                        {section.content}
-                      </p>
-                    );
-                  }
+                    if (section?.type === "paragraph") {
+                      if (looksLikeExampleBlock(section.content)) {
+                        return (
+                          <pre key={index} className={styles.lcPre}>
+                            <code>{String(section.content ?? "")}</code>
+                          </pre>
+                        );
+                      }
 
-                  if (section.type === "list") {
-                    const ListTag = section.style === "number" ? "ol" : "ul";
+                      return (
+                        <p key={index} className={styles.lcParagraph}>
+                          {renderInlineCode(section.content, `p-${index}`)}
+                        </p>
+                      );
+                    }
 
-                    return (
-                      <div
-                        key={index}
-                        style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(255,255,255,0.06)",
-                          borderRadius: "8px",
-                          padding: "0.75rem 1rem",
-                          marginBottom: "1rem"
-                        }}
-                      >
-                        <ListTag style={{ paddingLeft: "1.2rem", lineHeight: "1.7" }}>
-                          {section.items.map((item, i) => (
-                            <li key={i} style={{ marginBottom: "0.4rem" }}>
-                              {item}
-                            </li>
-                          ))}
-                        </ListTag>
-                      </div>
-                    );
-                  }
+                    if (section?.type === "list") {
+                      const ListTag = section.style === "number" ? "ol" : "ul";
+                      if (!Array.isArray(section.items) || section.items.length === 0) return null;
 
-                  return null;
-                })}
+                      const allCodeOnly = section.items.every(isBacktickWrapped);
+                      if (allCodeOnly) {
+                        return (
+                          <div key={index} className={styles.lcListWrap}>
+                            <div className={styles.lcChipRow}>
+                              {section.items.map((item, i) => (
+                                <span key={i} className={styles.lcChip}>
+                                  {stripBackticks(item)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div key={index} className={styles.lcListWrap}>
+                          <ListTag className={styles.lcList}>
+                            {section.items.map((item, i) => (
+                              <li key={i} className={styles.lcListItem}>
+                                {renderInlineCode(item, `li-${index}-${i}`)}
+                              </li>
+                            ))}
+                          </ListTag>
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })
+                )}
               </div>
+
+              {/* Test cases now live in the terminal tab strip */}
+
               {showHints && (
                 <div style={{ marginTop: "1rem" }}>
                   <h4>Hints:</h4>
@@ -576,6 +641,7 @@ const CodingExamPage = () => {
                 <ExamCodeTerminal
                   language={language}
                   initialCode={challenge.starterCode}
+                  testCases={challenge.testCases}
                   isMobileView={isMobileView}
                   mobilePanel={mobileTab}
                   attemptId={attemptId}

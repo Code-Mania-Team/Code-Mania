@@ -213,10 +213,14 @@ const CppCourse = () => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
 
-  const handleStartExercise = (moduleId, exerciseId) => {
-    const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}`;
+  const handleStartExercise = (orderIndex, options = {}) => {
+    const retry = options?.retry === true;
+    const route = `/learn/cpp/exercise/${orderIndex}${retry ? "?retry=1" : ""}`;
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -232,7 +236,10 @@ const CppCourse = () => {
   const handleStartExam = () => {
     const route = "/exam/cpp";
 
-    if (isAuthenticated && !user?.hasSeen_tutorial) {
+    const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
+    const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
+
+    if (isAuthenticated && !tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -245,12 +252,18 @@ const CppCourse = () => {
     navigate(route);
   };
 
-  const handleTutorialClose = async () => {
-    // Capture the pending route NOW before any async state changes happen
-    const nextRoute = pendingRoute;
+  const handleTutorialClose = async (routeFromTutorial = null) => {
+    const nextRoute = routeFromTutorial || pendingRoute;
 
     setShowTutorial(false);
     setPendingRoute(null);
+
+    // Always set a local fallback so tutorial doesn't loop.
+    try {
+      localStorage.setItem("hasSeenTutorial", "true");
+    } catch {
+      // ignore
+    }
 
     if (isAuthenticated && !user?.hasSeen_tutorial) {
       try {
@@ -262,6 +275,9 @@ const CppCourse = () => {
     }
 
     if (nextRoute) {
+      localStorage.setItem("hasTouchedCourse", "true");
+      localStorage.setItem("lastCourseTitle", "C++");
+      localStorage.setItem("lastCourseRoute", "/learn/cpp");
       navigate(nextRoute);
     }
   };
@@ -377,11 +393,21 @@ const CppCourse = () => {
                                 onClick={() =>
                                   module.id === 5
                                     ? handleStartExam()
-                                    : handleStartExercise(module.id, exercise.id)
+                                    : handleStartExercise(exercise.order_index)
                                 }
                                 disabled={status === "locked"}
                               >
                                 Start
+                              </button>
+                            ) : status === "completed" && module.id !== 5 ? (
+                              <button
+                                type="button"
+                                className="retry-btn"
+                                onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
+                                aria-label="Retry quest"
+                                title="Retry"
+                              >
+                                Done
                               </button>
                             ) : (
                               getStatusIcon(status)
@@ -429,8 +455,7 @@ const CppCourse = () => {
                 <span>Exercises</span>
               </div>
               <span className="progress-value">
-                {userProgress.exercisesCompleted} /
-                {userProgress.totalExercises}
+                {userProgress.exercisesCompleted} / {userProgress.totalExercises}
               </span>
             </div>
 
@@ -480,7 +505,11 @@ const CppCourse = () => {
         onClose={() => setIsModalOpen(false)}
       />
 
-      <TutorialOverlay open={showTutorial} onClose={handleTutorialClose} />
+      <TutorialOverlay
+        open={showTutorial}
+        onClose={handleTutorialClose}
+        nextRoute={pendingRoute}
+      />
     </div>
   );
 

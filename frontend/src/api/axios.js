@@ -1,6 +1,15 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+// Normalize to backend root. Some deployments set VITE_API_BASE_URL to ".../v1".
+const BASE_URL = String(RAW_BASE_URL)
+  .replace(/\/+$/, "")
+  .replace(/\/v1$/, "");
+
+// const DEFAULT_HEADERS = {
+//   apikey: import.meta.env.VITE_API_KEY,
+//   'Content-Type': 'application/json',
+// };
 
 // const DEFAULT_HEADERS = {
 //   apikey: import.meta.env.VITE_API_KEY,

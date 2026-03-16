@@ -68,32 +68,188 @@
 .feedbackBtn,
 .closeBtn {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 0;
   padding: 12px 14px;
-  font-weight: 700;
-  border: 1px solid transparent;
+  font-family: "Press Start 2P", cursive;
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  border: 2px solid #0f172a;
+  box-shadow: 0 4px 0 #020617;
   cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.primaryBtn:hover,
+.secondaryBtn:hover,
+.feedbackBtn:hover,
+.closeBtn:hover {
+  filter: brightness(1.06);
+}
+
+.primaryBtn:active,
+.secondaryBtn:active,
+.feedbackBtn:active,
+.closeBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #020617;
 }
 
 .primaryBtn {
-  background: #3b82f6;
-  color: #0b1220;
+  background: linear-gradient(180deg, #6aa9ff 0%, #397de7 100%);
+  border-color: #90bfff;
+  color: #04132f;
 }
 
 .secondaryBtn {
-  background: rgba(16, 185, 129, 0.14);
-  border-color: rgba(16, 185, 129, 0.35);
-  color: #e2e8f0;
+  background: linear-gradient(180deg, #0f8a8a 0%, #0b6767 100%);
+  border-color: #3ac7c7;
+  color: #d9ffff;
 }
 
 .closeBtn {
-  background: rgba(148, 163, 184, 0.12);
-  border-color: rgba(148, 163, 184, 0.22);
-  color: rgba(226, 232, 240, 0.9);
+  background: linear-gradient(180deg, #25334c 0%, #1a2740 100%);
+  border-color: #5f759d;
+  color: #d7e8ff;
 }
 
 .feedbackBtn {
-  background: rgba(59, 130, 246, 0.14);
-  border-color: rgba(59, 130, 246, 0.35);
-  color: #dbeafe;
+  background: linear-gradient(180deg, #334f88 0%, #2a3f6a 100%);
+  border-color: #7a9fe4;
+  color: #e2edff;
+}
+
+.terminalBtn {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 0;
+  padding: 12px 14px;
+  font-family: "Press Start 2P", cursive;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 2px solid #6b5f00;
+  background: linear-gradient(180deg, #6f6300 0%, #524900 100%);
+  color: #fef3a8;
+  box-shadow: 0 4px 0 #1f1a00;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.terminalBtn::before,
+.terminalBtn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.terminalBtn::before {
+  background: linear-gradient(
+    115deg,
+    transparent 22%,
+    rgba(255, 250, 210, 0.04) 38%,
+    rgba(255, 255, 255, 0.42) 50%,
+    rgba(255, 248, 200, 0.1) 62%,
+    transparent 78%
+  );
+  transform: translateX(-140%);
+  animation: terminalStarSweep 2.2s linear infinite;
+  z-index: 0;
+}
+
+.terminalBtn::after {
+  background:
+    radial-gradient(circle at 16% 42%, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 31% 68%, rgba(255, 244, 169, 0.9) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 53% 34%, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 69% 62%, rgba(255, 239, 140, 0.9) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 84% 28%, rgba(255, 255, 255, 0.9) 0 0.9px, transparent 1.5px);
+  opacity: 0.72;
+  animation: terminalStarsTwinkle 1.5s steps(2, end) infinite;
+  z-index: 0;
+}
+
+.terminalBtn:hover {
+  filter: brightness(1.06);
+}
+
+.terminalBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #1f1a00;
+}
+
+.terminalBtnUnlocked {
+  border-color: #f9d423;
+  background: linear-gradient(180deg, #ffe766 0%, #f7c600 54%, #d69500 100%);
+  color: #3a2400;
+  box-shadow: 0 4px 0 #6d4d00, 0 0 16px rgba(255, 220, 84, 0.45);
+  animation: terminalUnlockShine 1.4s linear infinite;
+}
+
+.terminalBtnUnlocked::after {
+  opacity: 0.42;
+}
+
+@keyframes terminalLockedPulse {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.14);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@keyframes terminalUnlockShine {
+  0% {
+    background-position: 0% 50%;
+    filter: brightness(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: brightness(1.08);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: brightness(1);
+  }
+}
+
+@keyframes terminalStarSweep {
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+@keyframes terminalStarsTwinkle {
+  0% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+@media (max-width: 640px) {
+  .primaryBtn,
+  .secondaryBtn,
+  .feedbackBtn,
+  .closeBtn,
+  .terminalBtn {
+    font-size: 10px;
+    padding: 11px 12px;
+  }
 }

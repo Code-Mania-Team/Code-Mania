@@ -5,6 +5,20 @@
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/daegpuoss/image/upload/v1767930117/COMPUTER_cejwzd.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Code Mania</title>
+    <script>
+      (function () {
+        try {
+          var key = 'cm_theme';
+          var stored = window.localStorage.getItem(key);
+          var theme = (stored === 'light' || stored === 'dark')
+            ? stored
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          // ignore
+        }
+      })();
+    </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_MEASUREMENT_ID%"></script>
     <script>
       window.dataLayer = window.dataLayer || [];

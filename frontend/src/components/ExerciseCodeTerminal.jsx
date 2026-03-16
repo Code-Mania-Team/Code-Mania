@@ -58,6 +58,7 @@ const ExerciseCodeTerminal = ({
               onClick={onRun}
               disabled={isRunning || disabled}
               type="button"
+              title="Test your code and see the output"
             >
               <Play size={16} />
               {isRunning ? "Running..." : "Run"}

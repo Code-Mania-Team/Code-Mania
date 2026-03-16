@@ -17,7 +17,7 @@ export default class QuestCompleteToast {
 
     // Background
     this.bg = scene.add
-      .rectangle(0, 0, 260, 48, 0x000000, 0.85)
+      .rectangle(0, 0, 260, 58, 0x000000, 0.85)
       .setOrigin(0, 0)
       .setStrokeStyle(2, 0x00ff88);
 
@@ -28,17 +28,16 @@ export default class QuestCompleteToast {
       color: "#00ff88"
     });
 
-    // Subtitle (quest title) - Hidden now
+    // Subtitle (quest title)
     this.subtitle = scene.add.text(10, 24, "", {
       fontSize: "12px",
       color: "#ffffff",
       wordWrap: { width: 150 },
-      visible: false
     });
 
     // ⭐ EXP text
     this.expText = scene.add
-      .text(230, 24, "", {
+      .text(230, 30, "", {
         fontSize: "12px",
         fontStyle: "bold",
         color: "#ffd700",
@@ -54,7 +53,7 @@ export default class QuestCompleteToast {
      * Use a guaranteed loaded texture (quest_icon is already preloaded).
      */
     this.badgeIcon = scene.add
-      .image(235, 24, "quest_icon") // Safe placeholder texture
+      .image(235, 30, "quest_icon") // Safe placeholder texture
       .setDisplaySize(24, 24)
       .setOrigin(0.5)
       .setVisible(false);
@@ -75,14 +74,15 @@ export default class QuestCompleteToast {
    * @param {string} data.title
    * @param {string|null} data.badgeKey
    * @param {number} data.exp
+   * @param {Function} [data.onHidden]
    */
-  show({ title = "", badgeKey = null, exp = 0 }) {
+  show({ title = "", badgeKey = null, exp = 0, onHidden = null }) {
     if (!this.scene || !this.scene.sys || !this.container || !this.container.scene) return;
     if (this.isShowing) return;
     this.isShowing = true;
 
-    // Don't show quest title anymore - subtitle is hidden
-    // this.subtitle.setText(title);
+    this.subtitle.setText(String(title || "").trim());
+    this.subtitle.setVisible(this.subtitle.text.length > 0);
 
     if (badgeKey && this.scene.textures.exists(badgeKey)) {
       const texture = this.scene.textures.get(badgeKey);
@@ -128,6 +128,7 @@ export default class QuestCompleteToast {
         ease: "Sine.easeIn",
         onComplete: () => {
           this.isShowing = false;
+          onHidden?.();
         }
       });
     });

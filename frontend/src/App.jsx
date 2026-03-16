@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Link, Navigate } from "react-router-dom";
 import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import FreedomWall from "./pages/FreedomWall";
+import FreedomWallChannelPage from "./pages/FreedomWallChannelPage";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -19,16 +20,24 @@ import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
 import Credits from "./pages/credits";
 import PageNotFound from "./pages/PageNotFound";
+import Rewards from "./pages/Rewards";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
+import ExamManager from "./pages/ExamManager";
+import QuizManager from "./pages/QuizManager";
 import CodingExamPage from "./pages/CodingExamPage";
 import QuizPage from "./pages/QuizPage";
 import TerminalPage from "./pages/TerminalPage";
+import WeeklyChallengePage from "./pages/WeeklyChallengePage";
+import PastChallengePage from "./pages/PastChallengePage";
+import WeeklyChallengeInfoPage from "./pages/WeeklyChallengeInfoPage";
+import HomeDemoQuest from "./components/HomeDemoQuest";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
 import AuthLoadingOverlay from "./components/AuthLoadingOverlay";
 import ProtectedRoute from "./components/protectedRoutes";
+import migrateGuestProgress from "./services/migrateGuestProgress";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -38,6 +47,16 @@ const ScrollToTop = () => {
   }, [pathname]);
   return null;
 };
+
+function toWebSocketUrl(input) {
+  const url = String(input || "").trim();
+  if (!url) return "";
+
+  // Only accept explicit WebSocket URLs.
+  // Do not auto-convert http/https -> ws/wss.
+  if (url.startsWith("ws://") || url.startsWith("wss://")) return url;
+  return "";
+}
 
 // Home page
 const Home = () => (
@@ -49,9 +68,23 @@ const Home = () => (
           Learn programming fundamentals through interactive story-based adventures.
           Build logic step by step while exploring new worlds.
         </p>
-        <Link to="/learn" className="get-started-btn">Get Started</Link>
+        <div className="hero-cta-row">
+          <Link to="/learn" className="get-started-btn">Get Started</Link>
+          <button
+            type="button"
+            className="hero-demo-btn"
+            onClick={() => {
+              const el = document.getElementById("home-demo-quest");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            Try Demo
+          </button>
+        </div>
       </div>
     </section>
+
+    <HomeDemoQuest />
 
     <section className="featured-languages">
       <h2 className="section-title">Featured Languages</h2>
@@ -172,11 +205,165 @@ function App() {
   const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
   const [isNewUser, setIsNewUser] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [presenceStats, setPresenceStats] = useState({ connections: 0, uniqueUsers: 0 });
+  const [presenceWsStatus, setPresenceWsStatus] = useState('disconnected');
   const location = useLocation();
   const navigate = useNavigate();
 
 
   const SessionOut = useSessionOut();
+
+  // Presence (online users) tracking via WebSocket
+  const presenceSocketRef = useRef(null);
+  const presenceReconnectRef = useRef(null);
+  const presenceBackoffRef = useRef(500);
+  const presenceWsUrl = toWebSocketUrl(
+    import.meta.env.VITE_PRESENCE_WS_URL || import.meta.env.VITE_TERMINAL_WS_URL
+  );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setPresenceWsStatus('disconnected');
+      setPresenceStats({ connections: 0, uniqueUsers: 0 });
+      if (presenceReconnectRef.current) {
+        clearTimeout(presenceReconnectRef.current);
+        presenceReconnectRef.current = null;
+      }
+      if (presenceSocketRef.current) {
+        try {
+          presenceSocketRef.current.close();
+        } catch {
+          // ignore
+        }
+        presenceSocketRef.current = null;
+      }
+      return;
+    }
+
+    if (!presenceWsUrl) return;
+
+    let cancelled = false;
+
+    const scheduleReconnect = () => {
+      if (cancelled) return;
+      if (presenceReconnectRef.current) return;
+
+      const wait = Math.min(30000, Math.max(250, presenceBackoffRef.current));
+      presenceBackoffRef.current = Math.min(30000, presenceBackoffRef.current * 2);
+
+      presenceReconnectRef.current = setTimeout(() => {
+        presenceReconnectRef.current = null;
+        connect();
+      }, wait);
+    };
+
+    const connect = () => {
+      if (cancelled) return;
+
+      setPresenceWsStatus('connecting');
+
+      let ws;
+      try {
+        ws = new WebSocket(presenceWsUrl);
+      } catch {
+        setPresenceWsStatus('error');
+        scheduleReconnect();
+        return;
+      }
+
+      presenceSocketRef.current = ws;
+
+      ws.onopen = () => {
+        presenceBackoffRef.current = 500;
+        setPresenceWsStatus('connected');
+        try {
+          ws.send(JSON.stringify({ type: "presence:subscribe" }));
+          if (user?.user_id) {
+            ws.send(
+              JSON.stringify({
+                type: "presence:identify",
+                userId: user.user_id,
+                username: user.username || null,
+              })
+            );
+          }
+        } catch {
+          // ignore
+        }
+      };
+
+      ws.onmessage = (e) => {
+        let payload;
+        try {
+          payload = JSON.parse(String(e.data || ''));
+        } catch {
+          return;
+        }
+
+        if (payload?.type === 'presence:update') {
+          setPresenceStats({
+            connections: Number(payload.connections || 0),
+            uniqueUsers: Number(payload.uniqueUsers || 0),
+          });
+        }
+      };
+
+      ws.onclose = () => {
+        if (presenceSocketRef.current === ws) {
+          presenceSocketRef.current = null;
+        }
+        setPresenceWsStatus('disconnected');
+        scheduleReconnect();
+      };
+
+      ws.onerror = () => {
+        setPresenceWsStatus('error');
+        try {
+          ws.close();
+        } catch {
+          // ignore
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (presenceReconnectRef.current) {
+        clearTimeout(presenceReconnectRef.current);
+        presenceReconnectRef.current = null;
+      }
+      if (presenceSocketRef.current) {
+        try {
+          presenceSocketRef.current.close();
+        } catch {
+          // ignore
+        }
+        presenceSocketRef.current = null;
+      }
+    };
+  }, [isAuthenticated, presenceWsUrl]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (!user?.user_id) return;
+
+    const ws = presenceSocketRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+    try {
+      ws.send(
+        JSON.stringify({
+          type: "presence:identify",
+          userId: user.user_id,
+          username: user.username || null,
+        })
+      );
+    } catch {
+      // ignore
+    }
+  }, [isAuthenticated, user?.user_id, user?.username]);
 
   useEffect(() => {
     if (location.state?.openSignIn) {
@@ -222,6 +409,24 @@ function App() {
           const profile = res?.data?.data || null;
           setUser(profile);
 
+          // Migrate guest progress only for brand-new accounts (no username yet).
+          if (!profile?.username) {
+            try {
+              await migrateGuestProgress();
+            } catch {
+              // ignore; keep guest progress for later retry
+            }
+          }
+
+          try {
+            localStorage.setItem(
+              "hasSeenTutorial",
+              profile?.hasSeen_tutorial ? "true" : "false"
+            );
+          } catch {
+            // ignore
+          }
+
           if (!profile?.username) {
             navigate('/welcome', { replace: true });
             return;
@@ -249,7 +454,7 @@ function App() {
   const authenticatedHomeRedirect = user?.role === "admin" ? "/admin" : "/dashboard";
 
   // hide only footer on freedom wall and PageNotFound
-  const hideFooterOnly = location.pathname === "/freedomwall" ||
+  const hideFooterOnly = location.pathname.startsWith("/freedomwall") ||
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
 
   return (
@@ -285,55 +490,70 @@ function App() {
           <Route
             path="/learn/python/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <PythonExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
-
+              <PythonExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
           <Route
             path="/learn/cpp/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <CppExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-            <CppExercise
-              isAuthenticated={isAuthenticated}
-              onOpenModal={() => setIsModalOpen(true)}
-              onSignOut={handleSignOut}
-            />
-          </ProtectedRoute>} />
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
+          <Route
+            path="/learn/cpp/exercise/:moduleId/:exerciseId"
+            element={
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route
             path="/learn/javascript/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <JavaScriptExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
+              <JavaScriptExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
-          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} />} />
+          <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="home" />} />
+          <Route path="/freedomwall/challenges" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="challenges" />} />
+          <Route path="/freedomwall/channel/:channelId" element={<FreedomWallChannelPage onOpenModal={() => setIsModalOpen(true)} />} />
+          <Route path="/freedomwall/challenges/past/:taskId" element={<PastChallengePage />} />
+          <Route
+            path="/freedomwall/challenges/task/:taskId"
+            element={<WeeklyChallengeInfoPage />}
+          />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route
+            path="/profile"
+            element={
+              user?.role === "admin"
+                ? <Navigate to="/admin" replace />
+                : <Profile onSignOut={handleSignOut} />
+            }
+          />
+          <Route path="/profile/:username" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
             {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
           </ProtectedRoute>} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<Admin presenceStats={presenceStats} presenceWsStatus={presenceWsStatus} />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
+          <Route path="/admin/exams/:course" element={<ExamManager />} />
+          <Route path="/admin/quizzes/:course" element={<QuizManager />} />
           <Route path="/exam/:language" element={<ProtectedRoute>
             <CodingExamPage />
           </ProtectedRoute>} />
@@ -346,6 +566,15 @@ function App() {
               <TerminalPage />
             </ProtectedRoute>
           } />
+          <Route
+            path="/weekly-challenge/:taskId"
+            element={
+              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
+                <WeeklyChallengePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/rewards" element={<Rewards />} />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="*" element={<PageNotFound />} />
@@ -368,6 +597,24 @@ function App() {
             const res = await axiosPublic.get("/v1/account");
             profile = res?.data?.data || null;
             setUser(profile);
+
+            try {
+              localStorage.setItem(
+                "hasSeenTutorial",
+                profile?.hasSeen_tutorial ? "true" : "false"
+              );
+            } catch {
+              // ignore
+            }
+
+            // Migrate guest progress only when creating a new account.
+            if (isNew) {
+              try {
+                await migrateGuestProgress();
+              } catch {
+                // ignore; keep guest progress for later retry
+              }
+            }
           } catch {
             setUser(null);
           }

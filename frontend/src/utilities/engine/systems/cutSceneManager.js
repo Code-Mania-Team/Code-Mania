@@ -9,6 +9,11 @@ export default class CutsceneManager {
 
   requestSkip() {
     this.stopRequested = true;
+
+    // Stop camera pan immediately.
+    const cam = this.scene?.cameras?.main;
+    cam?.panEffect?.reset?.();
+
     if (typeof this._activeActionCleanup === "function") {
       this._activeActionCleanup();
     }
@@ -94,6 +99,10 @@ export default class CutsceneManager {
           this._setActionCleanup(() => {
             cam.off("camerapancomplete", onPanComplete);
             if (fallback?.remove) fallback.remove(false);
+
+            // Ensure camera pan stops when skipping.
+            cam?.panEffect?.reset?.();
+
             resolveOnce();
           });
           break;
