@@ -7,9 +7,9 @@ import useLearningProgress from "../services/useLearningProgress";
 import useAuth from "../hooks/useAxios";
 
 const LANGUAGES = [
-    { id: "python", label: "Python", ext: "script.py", icon: "🐍" },
+    { id: "python", label: "Python", ext: "main.py", icon: "🐍" },
     { id: "cpp", label: "C++", ext: "main.cpp", icon: "⚙️" },
-    { id: "javascript", label: "JavaScript", ext: "script.js", icon: "🟨" },
+    { id: "javascript", label: "JavaScript", ext: "main.js", icon: "🟨" },
 ];
 
 const TERMINAL_SKINS = [

@@ -14,6 +14,14 @@ router.get(
 );
 
 router.get('/:language/:quizId', quizController.getQuizById.bind(quizController));
+
+// Authenticated: run visible test cases (no attempt recorded)
+router.post(
+  '/:language/:quizId/run',
+  authentication,
+  quizController.runQuiz.bind(quizController)
+);
+
 router.post(
   '/:language/:quizId/complete',
   authentication,

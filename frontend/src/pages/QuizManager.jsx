@@ -6,6 +6,7 @@ import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import TestCasesEditor from "../components/TestCasesEditor";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import examStyles from "../styles/ExamPage.module.css";
 
 const LANG_SLUG_BY_COURSE = {
   python: "python",
@@ -79,17 +80,9 @@ const QuizManager = () => {
 
   const handleEdit = async (quiz) => {
     setEditingQuiz(quiz.id);
-    const initialPromptFormat =
-      typeof quiz.code_prompt === "object" && quiz.code_prompt !== null
-        ? "json"
-        : String(quiz.code_prompt ?? "").trim().startsWith("{") ||
-          String(quiz.code_prompt ?? "").trim().startsWith("[")
-          ? "json"
-          : "markdown";
+
     setFormData({
       ...quiz,
-      code_prompt: toPrettyJsonString(quiz.code_prompt, quiz.code_prompt || ""),
-      code_prompt_format: initialPromptFormat,
       test_cases: toPrettyJsonString(quiz.test_cases, "[]"),
     });
 
@@ -99,17 +92,8 @@ const QuizManager = () => {
       });
       if (res.data?.success && res.data?.data) {
         const full = res.data.data;
-        const fullPromptFormat =
-          typeof full.code_prompt === "object" && full.code_prompt !== null
-            ? "json"
-            : String(full.code_prompt ?? "").trim().startsWith("{") ||
-              String(full.code_prompt ?? "").trim().startsWith("[")
-              ? "json"
-              : "markdown";
         setFormData({
           ...full,
-          code_prompt: toPrettyJsonString(full.code_prompt, full.code_prompt || ""),
-          code_prompt_format: fullPromptFormat,
           test_cases: toPrettyJsonString(full.test_cases, "[]"),
         });
       }
@@ -146,33 +130,6 @@ const QuizManager = () => {
         }
       }
 
-      const promptFormat = String(formData.code_prompt_format || "markdown").toLowerCase();
-      let normalizedPrompt = formData.code_prompt;
-      if (promptFormat === "json") {
-        if (typeof normalizedPrompt === "string") {
-          const raw = normalizedPrompt.trim();
-          if (!raw) {
-            normalizedPrompt = { sections: [] };
-          } else {
-            try {
-              normalizedPrompt = JSON.parse(raw);
-            } catch {
-              alert("Code prompt must be valid JSON when format is JSON.");
-              setSaving(false);
-              return;
-            }
-          }
-        }
-      } else {
-        if (typeof normalizedPrompt !== "string") {
-          try {
-            normalizedPrompt = JSON.stringify(normalizedPrompt, null, 2);
-          } catch {
-            normalizedPrompt = String(normalizedPrompt ?? "");
-          }
-        }
-      }
-
       const payload = {
         quiz_title: formData.quiz_title,
         quiz_description: formData.quiz_description,
@@ -181,7 +138,8 @@ const QuizManager = () => {
       };
 
       if (isCode) {
-        payload.code_prompt = normalizedPrompt;
+        // We no longer use code_prompt; keep it cleared to avoid legacy text showing.
+        payload.code_prompt = null;
         payload.starting_code = formData.starting_code;
         payload.test_cases = parsedTestCases;
       }
@@ -278,6 +236,7 @@ const QuizManager = () => {
                       onSave={handleSave}
                       onCancel={handleCancel}
                       saving={saving}
+                      languageSlug={languageSlug}
                     />
                   </div>
                 ) : (
@@ -313,12 +272,10 @@ const QuizManager = () => {
   );
 };
 
-const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
+const QuizForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlug }) => {
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
-  const promptFormat = String(formData.code_prompt_format || "markdown").toLowerCase();
 
   const baseEditorOptions = {
     contextmenu: false,
@@ -329,10 +286,75 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
     wordWrap: "on",
   };
 
+  const codeLanguage = (() => {
+    const slug = String(languageSlug || "").toLowerCase();
+    if (slug.includes("python")) return "python";
+    if (slug.includes("javascript") || slug === "js") return "javascript";
+    if (slug.includes("cpp") || slug.includes("c++")) return "cpp";
+    return "plaintext";
+  })();
+
+  const codeEditorOptions = {
+    ...baseEditorOptions,
+    lineNumbers: "on",
+    padding: { top: 10, bottom: 10 },
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+  };
+
   const isCode = String(formData.quiz_type || "mcq").toLowerCase() === "code";
 
+  const coerceBool = (value) => {
+    if (value === true) return true;
+    if (value === false) return false;
+    if (value === 1) return true;
+    if (value === 0) return false;
+    if (typeof value === "string") {
+      const s = value.trim().toLowerCase();
+      if (s === "true" || s === "1" || s === "yes") return true;
+      if (s === "false" || s === "0" || s === "no" || s === "") return false;
+    }
+    return Boolean(value);
+  };
+
+  const toPrettyText = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value;
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  };
+
+  const parseTestCases = () => {
+    const raw = String(formData.test_cases ?? "[]").trim();
+    if (!raw) return { cases: [], error: "" };
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return { cases: [], error: "Test cases JSON must be an array." };
+      return { cases: parsed, error: "" };
+    } catch {
+      return { cases: [], error: "Invalid JSON in Test Cases." };
+    }
+  };
+
+  const normalizeTestCase = (tc) => {
+    const input = tc?.input ?? tc?.stdin ?? "";
+    const expected = tc?.expected ?? tc?.expectedOutput ?? tc?.expected_output ?? "";
+    const hidden = coerceBool(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+    return {
+      hidden,
+      input: hidden ? "Hidden test case" : toPrettyText(input),
+      expected: hidden ? "Hidden" : toPrettyText(expected),
+    };
+  };
+
+  const { cases: previewTestCases, error: previewTestCasesError } = parseTestCases();
+
   return (
-    <div className={styles.formGrid}>
+    <div className={styles.formWithPreview}>
+      <div className={styles.formGrid}>
       <div className={styles.formGroup}>
         <label>Quiz ID</label>
         <input type="number" value={formData.id || ""} disabled />
@@ -362,6 +384,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
         <label>Quiz Title</label>
         <input
           type="text"
+          className={styles.titleInput}
           value={formData.quiz_title || ""}
           onChange={(e) => handleChange("quiz_title", e.target.value)}
         />
@@ -369,61 +392,29 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
 
       <div className={styles.formGroupFull}>
         <label>Description</label>
-        <textarea
-          value={formData.quiz_description || ""}
-          onChange={(e) => handleChange("quiz_description", e.target.value)}
-          rows={3}
-        />
+        <div className={styles.jsonEditorWrap}>
+          <Editor
+            height="140px"
+            language="markdown"
+            theme="vs-dark"
+            value={String(formData.quiz_description || "")}
+            onChange={(v) => handleChange("quiz_description", v ?? "")}
+            options={baseEditorOptions}
+          />
+        </div>
       </div>
 
       {isCode ? (
         <>
-          <div className={styles.formGroup}>
-            <label>Code Prompt Format</label>
-            <select
-              value={promptFormat}
-              onChange={(e) => handleChange("code_prompt_format", e.target.value)}
-            >
-              <option value="markdown">markdown</option>
-              <option value="json">json</option>
-            </select>
-          </div>
-
-           <div className={styles.formGroupFull}>
-            <label>Code Prompt ({promptFormat})</label>
-           <Editor
-              height="220px"
-              language={promptFormat === "json" ? "json" : "markdown"}
-              theme="vs-dark"
-              value={formData.code_prompt || ""}
-              onChange={(v) => handleChange("code_prompt", v ?? "")}
-              options={baseEditorOptions}
-            />
-
-            {promptFormat === "markdown" ? (
-              <details className={styles.helpDetails}>
-                <summary className={styles.helpSummary}>Preview (Markdown)</summary>
-                <MarkdownRenderer>{formData.code_prompt || ""}</MarkdownRenderer>
-              </details>
-            ) : null}
-            <details className={styles.helpDetails}>
-              <summary className={styles.helpSummary}>Prompt format notes</summary>
-              <p className={styles.helpText}>
-                Use <code>markdown</code> for normal prompts. Use <code>json</code> only for legacy prompts like{" "}
-                <code>{"{"} "sections": [...] {"}"}</code>.
-              </p>
-            </details>
-          </div>
-
           <div className={styles.formGroupFull}>
             <label>Starting Code</label>
             <Editor
               height="240px"
-              language="plaintext"
+              language={codeLanguage}
               theme="vs-dark"
               value={formData.starting_code || ""}
               onChange={(v) => handleChange("starting_code", v ?? "")}
-              options={baseEditorOptions}
+              options={codeEditorOptions}
             />
           </div>
 
@@ -477,6 +468,128 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
           Cancel
         </button>
       </div>
+      </div>
+
+      <aside className={styles.previewPanel}>
+        <div className={styles.previewTitle}>
+          <span>Preview</span>
+          <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>Live</span>
+        </div>
+        <p className={styles.previewHint}>Matches exam preview styling.</p>
+
+        <div className={styles.previewCard}>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 900, color: "#f1f5f9" }}>
+              {formData.quiz_title || "(Untitled Quiz)"}
+            </div>
+            <div style={{ fontSize: 12, color: "#94a3b8" }}>
+              Type: {String(formData.quiz_type || "mcq")} · XP: {formData.exp_total ?? "-"}
+            </div>
+          </div>
+
+          <div className={examStyles.lcDescription}>
+            <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Description</div>
+            <MarkdownRenderer>{String(formData.quiz_description || "")}</MarkdownRenderer>
+          </div>
+
+          {isCode ? (
+            <>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 800, marginBottom: 6 }}>Starting Code</div>
+                <pre
+                  style={{
+                    margin: 0,
+                    padding: "10px 10px",
+                    borderRadius: 10,
+                    background: "rgba(15,23,42,0.7)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#e7eefc",
+                    overflow: "auto",
+                    fontSize: 12,
+                    lineHeight: 1.6,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  <code>{String(formData.starting_code || "") || "(empty)"}</code>
+                </pre>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6, fontWeight: 700 }}>
+                  Test Cases ({previewTestCases.length})
+                </div>
+
+                {previewTestCasesError ? (
+                  <div className={styles.previewError}>{previewTestCasesError}</div>
+                ) : previewTestCases.length === 0 ? (
+                  <div style={{ fontSize: 13, color: "#94a3b8" }}>(No test cases)</div>
+                ) : (
+                  <div className={examStyles.lcTestCasesScroll} style={{ display: "grid", gap: 10 }}>
+                    {previewTestCases.slice(0, 8).map((tc, idx) => {
+                      const normalized = normalizeTestCase(tc);
+
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            borderRadius: 10,
+                            background: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            padding: 10,
+                          }}
+                        >
+                          <div style={{ fontSize: 12, color: "#e7eefc", fontWeight: 800, marginBottom: 8 }}>
+                            Test {idx + 1} {normalized.hidden ? "(Hidden)" : ""}
+                          </div>
+
+                          <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>Input</div>
+                          <pre
+                            style={{
+                              margin: "6px 0 10px 0",
+                              padding: "8px 8px",
+                              borderRadius: 8,
+                              background: "rgba(15,23,42,0.7)",
+                              border: "1px solid rgba(255,255,255,0.08)",
+                              color: "#e7eefc",
+                              overflow: "auto",
+                              fontSize: 12,
+                              lineHeight: 1.6,
+                              whiteSpace: "pre-wrap",
+                            }}
+                          >
+                            <code>{normalized.input || "(empty)"}</code>
+                          </pre>
+
+                          <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>Expected Output</div>
+                          <pre
+                            style={{
+                              margin: "6px 0 0 0",
+                              padding: "8px 8px",
+                              borderRadius: 8,
+                              background: "rgba(15,23,42,0.7)",
+                              border: "1px solid rgba(255,255,255,0.08)",
+                              color: "#e7eefc",
+                              overflow: "auto",
+                              fontSize: 12,
+                              lineHeight: 1.6,
+                              whiteSpace: "pre-wrap",
+                            }}
+                          >
+                            <code>{normalized.expected || "(empty)"}</code>
+                          </pre>
+                        </div>
+                      );
+                    })}
+                    {previewTestCases.length > 8 ? (
+                      <div style={{ fontSize: 12, color: "#94a3b8" }}>Showing first 8 test cases.</div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : null}
+        </div>
+      </aside>
     </div>
   );
 };

@@ -52,6 +52,30 @@ class QuizController {
     }
   }
 
+  async runQuiz(req, res) {
+    const { language, quizId } = req.params;
+    const userId = res.locals.user_id;
+    const tokenRole = res.locals.role;
+
+    try {
+      const result = await this.service.runQuiz({
+        userId,
+        tokenRole,
+        language,
+        quizId,
+        payload: req.body || {},
+      });
+
+      if (!result.ok) {
+        return res.status(result.status || 500).json({ message: result.message || "Failed to run quiz" });
+      }
+
+      return res.json(result.data);
+    } catch (err) {
+      return res.status(500).json({ message: "Failed to run quiz" });
+    }
+  }
+
   async listAttempts(req, res) {
     const userId = res.locals.user_id;
 

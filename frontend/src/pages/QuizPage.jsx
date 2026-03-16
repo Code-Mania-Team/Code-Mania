@@ -272,11 +272,22 @@ const QuizPage = () => {
     }
   };
 
+  const handleCodeRun = async (code, lang) => {
+    try {
+      const { data } = await axiosPrivate.post(
+        `/v1/quizzes/${language}/${quizId}/run`,
+        { code }
+      );
+      return data;
+    } catch (err) {
+      console.error("Quiz run failed:", err);
+      throw err;
+    }
+  };
+
   const handleCodeResult = (result) => {
     setCodeResult(result);
-    if (result.passed || result.score_percentage >= 70) {
-      setQuizCompleted(true);
-    }
+    if (result?.success) setQuizCompleted(true);
   };
 
   /* ---------------------------------
@@ -407,82 +418,9 @@ const QuizPage = () => {
                 className={`${examStyles.examInfoColumn} ${isMobileView && mobileTab !== "learn" ? examStyles.mobilePanelHidden : ""}`}
               >
                 <div className={examStyles.questionText}>
-                  {typeof quizData.code_prompt === "object" && quizData.code_prompt !== null && quizData.code_prompt.sections ? (
-                    quizData.code_prompt.sections.map((section, index) => {
-                      const sectionColor = sanitizeColor(section?.color);
-
-                      if (section.type === "heading") {
-                        const Tag = `h${section.level || 2}`;
-                        return (
-                          <Tag
-                            key={index}
-                            style={{
-                              marginTop: index === 0 ? "0" : "1.5rem",
-                              marginBottom: "0.75rem",
-                              color: sectionColor || "#f1f5f9",
-                              fontWeight: "700"
-                            }}
-                          >
-                            {section.content}
-                          </Tag>
-                        );
-                      }
-
-                      if (section.type === "paragraph") {
-                        return (
-                          <p
-                            key={index}
-                            style={{
-                              marginBottom: "0.75rem",
-                              color: sectionColor || "#cbd5e1",
-                              lineHeight: "1.6"
-                            }}
-                          >
-                            {section.content}
-                          </p>
-                        );
-                      }
-
-                      if (section.type === "list") {
-                        const ListTag = section.style === "number" ? "ol" : "ul";
-
-                        return (
-                          <div
-                            key={index}
-                            style={{
-                              background: "rgba(255,255,255,0.03)",
-                              border: "1px solid rgba(255,255,255,0.06)",
-                              borderRadius: "8px",
-                              padding: "0.75rem 1rem",
-                              marginBottom: "1rem"
-                            }}
-                          >
-                            <ListTag
-                              style={{
-                                paddingLeft: "1.2rem",
-                                lineHeight: "1.7",
-                                color: sectionColor || "#cbd5e1",
-                              }}
-                            >
-                              {section.items.map((item, i) => (
-                                <li key={i} style={{ marginBottom: "0.4rem" }}>
-                                  {item}
-                                </li>
-                              ))}
-                            </ListTag>
-                          </div>
-                        );
-                      }
-
-                      return null;
-                    })
-                  ) : (
-                    <MarkdownRenderer className={examStyles.lcDescription}>
-                      {typeof quizData.code_prompt === "string"
-                        ? quizData.code_prompt
-                        : JSON.stringify(quizData.code_prompt)}
-                    </MarkdownRenderer>
-                  )}
+                  <MarkdownRenderer className={examStyles.lcDescription}>
+                    {String(quizData.quiz_description || "")}
+                  </MarkdownRenderer>
                 </div>
               </div>
 
@@ -494,6 +432,7 @@ const QuizPage = () => {
                   initialCode={quizData.starting_code}
                   testCases={quizData.test_cases}
                   attemptId={`quiz_${language}_${quizId}`}
+                  runAttempt={handleCodeRun}
                   submitAttempt={handleCodeSubmit}
                   onResult={handleCodeResult}
                   attemptNumber={1} 

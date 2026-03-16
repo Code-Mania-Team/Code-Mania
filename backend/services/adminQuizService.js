@@ -1,4 +1,5 @@
 import QuizModel from "../models/quiz.js";
+import sectionsToMarkdown from "../utilities/sectionsToMarkdown.js";
 
 function coerceJson(value) {
   if (value === undefined) return undefined;
@@ -41,7 +42,14 @@ class AdminQuizService {
     try {
       const quiz = await this.quiz.getQuizById(quizId);
       if (!quiz) return { ok: false, status: 404, message: "Quiz not found" };
-      return { ok: true, data: quiz };
+
+      return {
+        ok: true,
+        data: {
+          ...quiz,
+          code_prompt: sectionsToMarkdown(quiz.code_prompt),
+        },
+      };
     } catch (err) {
       return {
         ok: false,
@@ -80,17 +88,11 @@ class AdminQuizService {
     }
 
     if (body.code_prompt !== undefined) {
-      if (typeof body.code_prompt === "string") {
-        update.code_prompt = body.code_prompt;
-      } else if (body.code_prompt === null) {
+      if (body.code_prompt === null) {
         update.code_prompt = null;
       } else {
-        // store JSON-ish prompts as string; quiz API can parse it back
-        try {
-          update.code_prompt = JSON.stringify(body.code_prompt);
-        } catch {
-          return { ok: false, status: 400, message: "code_prompt must be a string or JSON-serializable" };
-        }
+        // Store prompts as Markdown text.
+        update.code_prompt = sectionsToMarkdown(body.code_prompt);
       }
     }
 

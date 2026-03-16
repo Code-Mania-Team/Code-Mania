@@ -22,7 +22,7 @@ function coerceBool(value) {
   return Boolean(value);
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, runAttempt, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
@@ -35,6 +35,8 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   const [activeResultCaseIndex, setActiveResultCaseIndex] = useState(0);
   const [activeBottomTab, setActiveBottomTab] = useState("terminal");
   const [lastSubmitResult, setLastSubmitResult] = useState(null);
+  const [lastRunResult, setLastRunResult] = useState(null);
+  const [resultKind, setResultKind] = useState(null);
 
   const formatCaseValue = (value) => {
     if (value === null || value === undefined) return "";
@@ -282,9 +284,45 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   /* ===============================
      RUN (WS CONNECT)
   =============================== */
-  const handleRun = () => {
+  const handleRun = async () => {
     if (isRunning) return;
 
+    // If a runAttempt is provided (quiz mode), run visible tests.
+    if (typeof runAttempt === "function") {
+      resetTerminal();
+      write("\n⏳ Running visible tests...\n");
+      setIsRunning(true);
+
+      try {
+        const result = await runAttempt(code, language);
+        if (!result) {
+          write("\n❌ Run failed\n");
+          return;
+        }
+
+        setResultKind("run");
+        setLastRunResult(result);
+        setLastSubmitResult(null);
+        setTestResults(Array.isArray(result?.results) ? result.results : []);
+        setActiveResultCaseIndex(0);
+        setActiveBottomTab("result");
+
+        write("\n=== RUN RESULT ===\n");
+        write(`Score: ${result.score_percentage}%\n`);
+        write(`Passed: ${result.passed ? "YES" : "NO"}\n`);
+        write("==================\n\n");
+      } catch (err) {
+        console.error("Run error:", err);
+        write("\n❌ Error while running visible tests\n");
+      } finally {
+        write("\n▶ Ready for Execution\n");
+        setIsRunning(false);
+      }
+
+      return;
+    }
+
+    // Default: interactive terminal run
     resetTerminal();
     setIsRunning(true);
 
@@ -304,8 +342,6 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
       const text = e.data;
       write(text);
 
-      // If output doesn't end with newline,
-      // assume program is waiting for input
       if (!text.endsWith("\n")) {
         setWaitingForInput(true);
       }
@@ -341,7 +377,9 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         localStorage.removeItem(storageKey);
       }
 
+      setResultKind("submit");
       setLastSubmitResult(result);
+      setLastRunResult(null);
       setTestResults(Array.isArray(result?.results) ? result.results : []);
       setActiveResultCaseIndex((prev) => {
         if (visibleResultCaseIndices.length) return visibleResultCaseIndices[0];
@@ -474,7 +512,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
               disabled={isRunning}
             >
               <Play size={16} />
-              Run
+              {typeof runAttempt === "function" ? "Run Tests" : "Run"}
             </button>
 
             <button
@@ -562,8 +600,8 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                   aria-selected={activeBottomTab === "result"}
                   className={`${styles.examTerminalTab} ${activeBottomTab === "result" ? styles.examTerminalTabActive : ""}`}
                   onClick={() => setActiveBottomTab("result")}
-                  disabled={!lastSubmitResult}
-                  title={!lastSubmitResult ? "Submit to see results" : undefined}
+                  disabled={!lastSubmitResult && !lastRunResult}
+                  title={!lastSubmitResult && !lastRunResult ? "Run or Submit to see results" : undefined}
                 >
                   Test Result
                 </button>
@@ -677,10 +715,16 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
               {activeBottomTab === "result" && (
                 <div className={styles.examTabPanel} role="tabpanel">
-                  {!lastSubmitResult ? (
-                    <div className={styles.examEmptyPanel}>No submission yet.</div>
+                  {!lastSubmitResult && !lastRunResult ? (
+                    <div className={styles.examEmptyPanel}>No run/submission yet.</div>
                   ) : (
                     (() => {
+                      const shown =
+                        (resultKind === "submit" ? lastSubmitResult : null) ||
+                        (resultKind === "run" ? lastRunResult : null) ||
+                        lastSubmitResult ||
+                        lastRunResult;
+
                       const total = Array.isArray(testCases) ? testCases.length : 0;
                       const activeTc = (testCases || [])[activeResultCaseIndex] || {};
                       const activeTestIndex = activeResultCaseIndex + 1;
@@ -701,7 +745,26 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                           "actual" in row
                         );
                       })();
-                      const accepted = Boolean(lastSubmitResult?.passed) || Number(lastSubmitResult?.score_percentage || 0) === 100;
+
+                      const activeRow = resultsByIndex.get(activeTestIndex);
+                      const activeCasePassed = Boolean(activeRow?.passed);
+                      const passedTestsCount = Number(shown?.passed_tests ?? shown?.passedTests ?? 0);
+                      const totalTestsCount = Number(shown?.total_tests ?? shown?.totalTests ?? 0);
+
+                      const accepted = (() => {
+                        if (Number.isFinite(totalTestsCount) && totalTestsCount > 0) {
+                          return passedTestsCount >= totalTestsCount;
+                        }
+                        const score = Number(shown?.score_percentage ?? shown?.scorePercentage ?? 0);
+                        return score >= 100;
+                      })();
+
+                      const headline = (() => {
+                        if (accepted) return { text: "Accepted", ok: true };
+                        return activeCasePassed
+                          ? { text: "Passed", ok: true }
+                          : { text: "Failed", ok: false };
+                      })();
 
                       const runtimeMs = (() => {
                         const all = (testResults || [])
@@ -719,13 +782,20 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                         <div className={styles.resultWrap}>
                           <div className={styles.resultTop}>
                             <div className={styles.resultVerdictRow}>
-                              <div className={`${styles.resultVerdict} ${accepted ? styles.resultVerdictOk : styles.resultVerdictBad}`}
-                              >
-                                {accepted ? "Accepted" : "Not Accepted"}
+                              <div className={`${styles.resultVerdict} ${headline.ok ? styles.resultVerdictOk : styles.resultVerdictBad}`}>
+                                {headline.text}
                               </div>
                               <div className={styles.resultRuntime}>
                                 Runtime: {typeof runtimeMs === "number" ? `${runtimeMs} ms` : "-"}
                               </div>
+                            </div>
+
+                            <div style={{ fontSize: 12, color: "rgba(148, 163, 184, 0.95)" }}>
+                              Passed: {Number(shown?.passed_tests ?? 0)}/{Number(shown?.total_tests ?? 0)}
+                            </div>
+
+                            <div style={{ fontSize: 12, color: "rgba(148, 163, 184, 0.95)" }}>
+                              Mode: {shown?.mode || resultKind || "submit"}
                             </div>
 
                             <div className={styles.resultCaseTabs} role="tablist" aria-label="Result test cases">
@@ -751,6 +821,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                                 );
                               })}
                             </div>
+
                           </div>
 
                           <div className={styles.resultSection}>

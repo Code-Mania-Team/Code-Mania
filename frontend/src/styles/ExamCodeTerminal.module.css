@@ -225,6 +225,7 @@
   color: #ef4444;
 }
 
+
 .resultRuntime {
   color: rgba(148, 163, 184, 0.95);
   font-size: 0.9rem;
@@ -237,6 +238,7 @@
   overflow-x: auto;
   padding: 2px 2px;
 }
+
 
 .resultCaseTab {
   appearance: none;
