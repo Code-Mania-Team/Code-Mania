@@ -7,6 +7,7 @@ import useAuth from "../hooks/useAxios";
 import useProfileSummary from "../services/useProfileSummary";
 import styles from "../styles/PastChallengePage.module.css";
 import AdminWeeklyTaskModal from "../components/AdminWeeklyTaskModal";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const DEFAULT_COVER =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
@@ -66,11 +67,9 @@ export default function WeeklyChallengeInfoPage() {
       setLoading(true);
       setError("");
       try {
-        const taskPromise = task && String(task?.task_id || task?.id || "") === String(numericId)
-          ? Promise.resolve({ data: { success: true, data: task } })
-          : (isAuthenticated
-              ? axiosPrivate.get(`/v1/weekly-tasks/task/${numericId}`)
-              : axiosPublic.get(`/v1/weekly-tasks/task/${numericId}`));
+        // Always refetch from API (avoid stale task data when editing).
+        const http = isAuthenticated ? axiosPrivate : axiosPublic;
+        const taskPromise = http.get(`/v1/weekly-tasks/task/${numericId}`);
 
         const [taskRes, partRes] = await Promise.all([
           taskPromise,
@@ -213,7 +212,9 @@ export default function WeeklyChallengeInfoPage() {
 
               {tab === "overview" ? (
                 <div className={styles.copy}>
-                  <p className={styles.lede}>{task?.description || "(No description provided.)"}</p>
+                  <div className={styles.lede}>
+                    <MarkdownRenderer>{task?.description || "(No description provided.)"}</MarkdownRenderer>
+                  </div>
                 </div>
               ) : null}
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import useWeeklyTasksAdmin from "../hooks/useWeeklyTasksAdmin";
+import MarkdownRenderer from "./MarkdownRenderer";
 import '../styles/AdminWeeklyTaskModal.css';
 
 const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null }) => {
@@ -20,6 +21,7 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
   const [starterCode, setStarterCode] = useState('');
   const [solutionCode, setSolutionCode] = useState('');
   const [minXpRequired, setMinXpRequired] = useState(5000);
+  const [showDescriptionPreview, setShowDescriptionPreview] = useState(false);
   
   // Test cases state
   const [testCases, setTestCases] = useState([{ input: '', output: '' }]);
@@ -143,6 +145,7 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
     setCoverUploading(false);
     setCoverError('');
     setError('');
+    setShowDescriptionPreview(false);
   };
 
   const handleCoverFile = async (file) => {
@@ -203,14 +206,31 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
           </div>
 
           <div className="form-group">
-            <label>Description (Markdown supported) <span className="required">*</span></label>
-            <textarea 
-              value={description} 
-              onChange={e => setDescription(e.target.value)} 
-              rows={3} 
-              placeholder="Write the problem statement here..." 
-              required 
+            <div className="admin-md-row">
+              <label>Description (Markdown supported) <span className="required">*</span></label>
+              <button
+                type="button"
+                className={`admin-md-toggle ${showDescriptionPreview ? "is-on" : ""}`}
+                onClick={() => setShowDescriptionPreview((v) => !v)}
+                title={showDescriptionPreview ? "Hide preview" : "Show preview"}
+              >
+                {showDescriptionPreview ? "Hide preview" : "Preview"}
+              </button>
+            </div>
+
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={3}
+              placeholder="Write the problem statement here..."
+              required
             />
+
+            {showDescriptionPreview ? (
+              <div className="admin-md-preview" aria-label="Description preview">
+                <MarkdownRenderer>{description || "(empty)"}</MarkdownRenderer>
+              </div>
+            ) : null}
           </div>
 
           <div className="form-row">
