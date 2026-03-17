@@ -40,6 +40,8 @@ import hashtagRouter from "./hashtagRoutes.js";
 
 import searchRouter from "./searchRoutes.js";
 
+import cosmeticsRouter from "./cosmeticsRoutes.js";
+
 const v1 = new Router();
 
 v1.use("/post", fd_LikesRouter)
@@ -77,6 +79,8 @@ v1.use("/quizzes", quizRouter);
 v1.use("/weekly-tasks", weeklyTaskRouter);
 
 v1.use("/notifications", notificationRouter);
+
+v1.use("/cosmetics", cosmeticsRouter);
 
 v1.use("/", publicExerciseRouter);
 

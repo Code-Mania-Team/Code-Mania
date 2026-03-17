@@ -54,6 +54,42 @@ class UserPreferences {
     if (error) throw error;
     return data;
   }
+
+  async setAvatarFrame({ user_id, avatar_frame_key }) {
+    if (!user_id) return null;
+    await this.ensureRow(user_id);
+
+    const { data, error } = await this.db
+      .from("user_preferences")
+      .update({
+        avatar_frame_key: avatar_frame_key || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user_id)
+      .select("*")
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async setTerminalSkin({ user_id, terminal_skin_id }) {
+    if (!user_id) return null;
+    await this.ensureRow(user_id);
+
+    const { data, error } = await this.db
+      .from("user_preferences")
+      .update({
+        terminal_skin_id: terminal_skin_id || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user_id)
+      .select("*")
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
 }
 
 export default UserPreferences;

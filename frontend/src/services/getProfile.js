@@ -1,13 +1,10 @@
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { useCallback, useContext } from 'react';
-import { AuthContext } from '../context/AuthProvider';
+import { useCallback } from 'react';
 
 const useGetProfile = () => {
   const axiosPrivate = useAxiosPrivate();
-  const { isAuthenticated } = useContext(AuthContext) || { isAuthenticated: false };
 
   const getProfile = useCallback(async () => {
-    if (!isAuthenticated) return null;
     try {
       const response = await axiosPrivate.get("/v1/account");
       return response.data;
@@ -18,7 +15,7 @@ const useGetProfile = () => {
       console.error("Error fetching profile:", error);
       throw error;
     }
-  }, [axiosPrivate, isAuthenticated]);
+  }, [axiosPrivate]);
 
   return getProfile;
 };

@@ -48,6 +48,9 @@ import useLearningProgress from '../services/useLearningProgress';
 
 import useGetAchievements from '../services/getUserAchievements';
 
+import useCosmeticsMe from "../services/useCosmeticsMe";
+import useUpdateCosmeticsPreferences from "../services/useUpdateCosmeticsPreferences";
+
 
 
 // Character icons from Cloudinary
@@ -120,6 +123,11 @@ const Profile = ({ onSignOut }) => {
 
   const [editError, setEditError] = useState('');
 
+  const [ownedFrames, setOwnedFrames] = useState([]);
+  const [preferences, setPreferences] = useState(null);
+  const [avatarFrameDraft, setAvatarFrameDraft] = useState('');
+  const [cosmeticsError, setCosmeticsError] = useState('');
+
 
 
 
@@ -143,6 +151,9 @@ const Profile = ({ onSignOut }) => {
 
 
   const getProfile = useGetProfile();
+
+  const getCosmeticsMe = useCosmeticsMe();
+  const updateCosmeticsPreferences = useUpdateCosmeticsPreferences();
 
 
 
@@ -583,6 +594,18 @@ const Profile = ({ onSignOut }) => {
 
 
       });
+
+      // Cosmetics (best-effort)
+      try {
+        const cosmeticsRes = await getCosmeticsMe();
+        const owned = cosmeticsRes?.data?.owned_cosmetics;
+        const prefs = cosmeticsRes?.data?.preferences;
+        const frames = (Array.isArray(owned) ? owned : []).filter((c) => c?.type === "avatar_frame");
+        setOwnedFrames(frames);
+        setPreferences(prefs || null);
+      } catch (e) {
+        setCosmeticsError(e?.response?.data?.message || e?.message || "");
+      }
 
 
 
@@ -1658,6 +1681,8 @@ const Profile = ({ onSignOut }) => {
 
     setFullNameDraft(editFormData.userName || '');
 
+    setAvatarFrameDraft(preferences?.avatar_frame_key || '');
+
     setEditError('');
 
     setIsEditModalOpen(true);
@@ -1741,6 +1766,20 @@ const Profile = ({ onSignOut }) => {
 
 
       const response = await editAccount(normalizedName);
+
+      // Update cosmetics preferences (best-effort)
+      try {
+        const nextFrame = avatarFrameDraft ? String(avatarFrameDraft) : null;
+        const currentFrame = preferences?.avatar_frame_key ? String(preferences.avatar_frame_key) : null;
+        if (nextFrame !== currentFrame) {
+          const prefRes = await updateCosmeticsPreferences({ avatar_frame_key: nextFrame, terminal_skin_id: undefined });
+          if (prefRes?.success) {
+            setPreferences(prefRes.data);
+          }
+        }
+      } catch {
+        // ignore - still allow name update
+      }
 
 
 
@@ -1910,6 +1949,13 @@ const Profile = ({ onSignOut }) => {
 
 
 
+  const equippedFrameUrl = (() => {
+    const key = preferences?.avatar_frame_key ? String(preferences.avatar_frame_key) : "";
+    if (!key) return "";
+    const hit = (ownedFrames || []).find((c) => String(c?.key) === key);
+    return hit?.asset_url ? String(hit.asset_url) : "";
+  })();
+
   return (
 
 
@@ -1966,13 +2012,24 @@ const Profile = ({ onSignOut }) => {
 
 
 
-              <div className={styles.avatar}>
+              <div className={`${styles.avatar} ${equippedFrameUrl ? styles.avatarHasFrame : ""}`}>
+
+                {equippedFrameUrl ? (
+                  <img
+                    src={equippedFrameUrl}
+                    alt=""
+                    className={styles.avatarFrameImage}
+                    loading="lazy"
+                  />
+                ) : null}
 
 
 
 
 
 
+
+                <div className={styles.avatarInner}>
 
                 {editFormData.characterIcon ? (
 
@@ -2071,6 +2128,8 @@ const Profile = ({ onSignOut }) => {
 
 
                 )}
+
+                </div>
 
 
 
@@ -3068,6 +3127,53 @@ const Profile = ({ onSignOut }) => {
 
 
 
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="avatarFrame" className={styles.formLabel}>Avatar Frame</label>
+              <select
+                id="avatarFrame"
+                name="avatarFrame"
+                value={avatarFrameDraft}
+                onChange={(e) => setAvatarFrameDraft(e.target.value)}
+                className={styles.formInput}
+              >
+                <option value="">None</option>
+                {ownedFrames.map((f) => (
+                  <option key={f.key} value={f.key}>
+                    {f.name || f.key}
+                  </option>
+                ))}
+              </select>
+
+              {avatarFrameDraft ? (
+                <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 64, height: 64, position: "relative" }}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        borderRadius: "50%",
+                        background: "rgba(15, 23, 42, 0.65)",
+                        border: "1px solid rgba(255,255,255,0.14)",
+                      }}
+                    />
+                    <img
+                      src={(ownedFrames.find((x) => String(x?.key) === String(avatarFrameDraft))?.asset_url) || ""}
+                      alt=""
+                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }}
+                      loading="lazy"
+                    />
+                  </div>
+                  <div style={{ opacity: 0.85, fontSize: "0.9rem" }}>
+                    This will appear around your profile avatar.
+                  </div>
+                </div>
+              ) : null}
+
+              {cosmeticsError ? (
+                <p style={{ marginTop: '8px', color: '#fbbf24', fontSize: '0.9rem' }}>{cosmeticsError}</p>
+              ) : null}
             </div>
 
 
