@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles, ArrowDown } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { startGame, stopGame } from "../utilities/engine/main";
 import HomeDemoTerminal from "./HomeDemoTerminal";
@@ -107,25 +107,13 @@ export default function HomeDemoQuest() {
     return () => window.removeEventListener("code-mania:home-demo:intro", onIntro);
   }, []);
 
-  useEffect(() => {
-    if (!introCompleted) return;
-    const t = window.setTimeout(() => {
-      navigate("/learn");
-    }, 1400);
-    return () => window.clearTimeout(t);
-  }, [introCompleted, navigate]);
-
   return (
     <section id="home-demo-quest" ref={sectionRef} className={styles.demoSection}>
-      <div className={styles.demoWrap}>
-        <div className={styles.demoHeader}>
-          <div className={styles.demoKicker}>
-            <Sparkles size={16} />
-            Play the demo
-          </div>
-          <h2 className={styles.demoTitle}>One-minute quest. Instant dopamine.</h2>
+        <div className={styles.demoWrap}>
+          <div className={styles.demoHeader}>
+          <h2 className={styles.demoTitle}>A quick quest to welcome you in.</h2>
           <p className={styles.demoSub}>
-            Walk up to the NPC, read the intro, type your first message, and run it. No sign-in needed.
+            Talk to the NPC, follow the prompt, type your first message, then hit Run. No sign-in needed.
           </p>
         </div>
 

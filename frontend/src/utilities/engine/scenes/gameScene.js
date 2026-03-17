@@ -653,58 +653,61 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // 🎵 Background music per language (start after user gesture)
-    const BGM_BY_LANGUAGE = {
-      Python: "bgm-python",
-      JavaScript: "bgm-javascript",
-      Cpp: "bgm-cpp"
-    };
-
-    const bgmKey = BGM_BY_LANGUAGE[this.language];
-
-    if (bgmKey) {
-      this.bgm = this.sound.add(bgmKey, { loop: true, volume: 0.5 });
-
-      const startBgmOnce = async () => {
-        if (!this.bgm || this.bgm.isPlaying) return;
-
-        // Try to resume audio context (Chrome autoplay policy).
-        try {
-          const ctx = this.sound?.context;
-          if (ctx && ctx.state === "suspended") {
-            await ctx.resume();
-          }
-        } catch {
-          // ignore
-        }
-
-        try {
-          this.sound?.unlock?.();
-        } catch {
-          // ignore
-        }
-
-        try {
-          this.bgm.play();
-        } catch {
-          // ignore
-        }
-
-        // Remove listeners after first attempt.
-        this.input?.off?.("pointerdown", startBgmOnce);
-        this.input?.keyboard?.off?.("keydown", startBgmOnce);
-        this._bgmUnlockHandler = null;
+    // Demo map should be silent.
+    if (this.currentMapId !== "demo_map") {
+      const BGM_BY_LANGUAGE = {
+        Python: "bgm-python",
+        JavaScript: "bgm-javascript",
+        Cpp: "bgm-cpp"
       };
 
-      this._bgmUnlockHandler = startBgmOnce;
+      const bgmKey = BGM_BY_LANGUAGE[this.language];
 
-      // If audio is already unlocked, start immediately.
-      const ctx = this.sound?.context;
-      const ctxRunning = !ctx || ctx.state === "running";
-      if (!this.sound?.locked && ctxRunning) {
-        startBgmOnce();
-      } else {
-        this.input?.on?.("pointerdown", startBgmOnce);
-        this.input?.keyboard?.on?.("keydown", startBgmOnce);
+      if (bgmKey) {
+        this.bgm = this.sound.add(bgmKey, { loop: true, volume: 0.5 });
+
+        const startBgmOnce = async () => {
+          if (!this.bgm || this.bgm.isPlaying) return;
+
+          // Try to resume audio context (Chrome autoplay policy).
+          try {
+            const ctx = this.sound?.context;
+            if (ctx && ctx.state === "suspended") {
+              await ctx.resume();
+            }
+          } catch {
+            // ignore
+          }
+
+          try {
+            this.sound?.unlock?.();
+          } catch {
+            // ignore
+          }
+
+          try {
+            this.bgm.play();
+          } catch {
+            // ignore
+          }
+
+          // Remove listeners after first attempt.
+          this.input?.off?.("pointerdown", startBgmOnce);
+          this.input?.keyboard?.off?.("keydown", startBgmOnce);
+          this._bgmUnlockHandler = null;
+        };
+
+        this._bgmUnlockHandler = startBgmOnce;
+
+        // If audio is already unlocked, start immediately.
+        const ctx = this.sound?.context;
+        const ctxRunning = !ctx || ctx.state === "running";
+        if (!this.sound?.locked && ctxRunning) {
+          startBgmOnce();
+        } else {
+          this.input?.on?.("pointerdown", startBgmOnce);
+          this.input?.keyboard?.on?.("keydown", startBgmOnce);
+        }
       }
     }
 

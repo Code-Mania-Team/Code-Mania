@@ -5,6 +5,9 @@ export const MAPS = {
     demo_map: {
       mapKey: "demo_map",
       mapJson: "/assets/maps/demo_map.json",
+      assetManifest: {
+        includeBgm: false,
+      },
       tilesets: [
         {
           name: "fantastic_modern_suburbs2_TileD",

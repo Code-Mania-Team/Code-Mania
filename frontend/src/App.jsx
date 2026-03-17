@@ -70,16 +70,6 @@ const Home = () => (
         </p>
         <div className="hero-cta-row">
           <Link to="/learn" className="get-started-btn">Get Started</Link>
-          <button
-            type="button"
-            className="hero-demo-btn"
-            onClick={() => {
-              const el = document.getElementById("home-demo-quest");
-              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-          >
-            Try Demo
-          </button>
         </div>
       </div>
     </section>
