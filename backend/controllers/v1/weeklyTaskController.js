@@ -582,9 +582,20 @@ class WeeklyTaskController {
     try {
       const user_id = res.locals.user_id;
       const { task_id } = req.params;
-      const { xp_awarded } = req.body || {};
+      const taskId = Number(task_id);
+      if (!Number.isFinite(taskId)) {
+        return res.status(400).json({ success: false, message: "Invalid task_id" });
+      }
 
-      const result = await this.model.completeTask(user_id, Number(task_id), xp_awarded);
+      const rawXp = Number(req.body?.xp_awarded ?? 0);
+      const task = await this.model.getTaskById(taskId);
+      const maxXp = Number(task?.reward_xp ?? 0);
+
+      const safeXp = Number.isFinite(rawXp)
+        ? Math.max(0, Math.min(rawXp, Number.isFinite(maxXp) ? maxXp : 0))
+        : 0;
+
+      const result = await this.model.completeTask(user_id, taskId, safeXp);
       res.json({ success: true, message: "Task completed!", data: result });
     } catch (err) {
       console.error("Error completing task:", err);
