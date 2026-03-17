@@ -666,7 +666,9 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
                           <div>
                             <div className={styles.examTestCaseLabel}>Expected Output</div>
-                            <div className={styles.examTestCaseValue}>{formatOrEmpty(tc.expected)}</div>
+                            <div className={styles.examTestCaseValue}>
+                              {formatOrEmpty(tc?.expected ?? tc?.output ?? tc?.expected_output ?? tc?.expectedOutput)}
+                            </div>
                           </div>
                         </div>
                       );
@@ -713,7 +715,9 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                       })();
 
                       const safeInputHidden = coerceBool(activeTc?.is_hidden ?? activeTc?.isHidden ?? r.isHidden);
-                      const safeExpected = safeInputHidden ? "Hidden" : formatOrEmpty(activeTc?.expected);
+                      const safeExpected = safeInputHidden
+                        ? "Hidden"
+                        : formatOrEmpty(activeTc?.expected ?? activeTc?.output ?? activeTc?.expected_output ?? activeTc?.expectedOutput);
 
                       return (
                         <div className={styles.resultWrap}>

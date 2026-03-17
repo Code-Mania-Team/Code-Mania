@@ -332,35 +332,43 @@ class WeeklyTask {
 
   // ── Accept / start a weekly task ────────────────────────────
   async acceptTask(user_id, task_id) {
-    const { data, error } = await this.db
+    // Only create the row if it doesn't exist.
+    // Avoid updating existing rows (e.g. don't overwrite a completed row back to in_progress).
+    const { error } = await this.db
       .from("user_weekly_tasks")
       .upsert(
         {
           user_id,
           task_id,
           status: "in_progress",
-          created_at: new Date().toISOString(),
         },
-        { onConflict: "user_id,task_id" }
-      )
-      .select("*")
-      .maybeSingle();
+        { onConflict: "user_id,task_id", ignoreDuplicates: true }
+      );
 
     if (error) throw error;
-    return data;
+    return this.getUserWeeklyTaskProgress({ userId: user_id, taskId: task_id });
   }
 
   // ── Complete a weekly task ──────────────────────────────────
   async completeTask(user_id, task_id, xp_awarded) {
+    const existing = await this.getUserWeeklyTaskProgress({ userId: user_id, taskId: task_id });
+    if (existing?.status === "completed") return existing;
+
+    const now = new Date().toISOString();
+    const numericXp = Number(xp_awarded || 0);
+
     const { data, error } = await this.db
       .from("user_weekly_tasks")
-      .update({
-        status: "completed",
-        completed_at: new Date().toISOString(),
-        xp_awarded: xp_awarded || 0,
-      })
-      .eq("user_id", user_id)
-      .eq("task_id", task_id)
+      .upsert(
+        {
+          user_id,
+          task_id,
+          status: "completed",
+          completed_at: now,
+          xp_awarded: Number.isFinite(numericXp) ? numericXp : 0,
+        },
+        { onConflict: "user_id,task_id" }
+      )
       .select("*")
       .maybeSingle();
 

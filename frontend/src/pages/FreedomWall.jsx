@@ -56,71 +56,6 @@ const ensureLeadingHash = (raw) => {
 const DEFAULT_CHALLENGE_COVER =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
 
-const ENABLE_MOCK_CHALLENGES = String(import.meta.env.VITE_ENABLE_MOCK_CHALLENGES || "").toLowerCase() === "true";
-
-// Mock tasks can be enabled locally via VITE_ENABLE_MOCK_CHALLENGES=true
-const MOCK_WEEKLY_TASKS = ENABLE_MOCK_CHALLENGES
-  ? [
-      {
-        task_id: 1,
-        title: "Debug the Loop",
-        description: "Find and fix the bug in the provided Python while-loop snippet.",
-        reward_xp: 200,
-        difficulty: "easy",
-        min_xp_required: 5000,
-        userStatus: "not_started",
-        expires_at: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        task_id: 2,
-        title: "Refactor Challenge",
-        description: "Refactor the given JavaScript function to use async/await instead of callbacks.",
-        reward_xp: 350,
-        difficulty: "medium",
-        min_xp_required: 5000,
-        userStatus: "not_started",
-        expires_at: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        task_id: 3,
-        title: "Algorithm Sprint",
-        description: "Implement a binary search algorithm in C++ from scratch.",
-        reward_xp: 500,
-        difficulty: "hard",
-        min_xp_required: 5000,
-        userStatus: "in_progress",
-        expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ]
-  : [];
-
-const MOCK_PAST_CHALLENGES = ENABLE_MOCK_CHALLENGES
-  ? [
-      {
-        task_id: 9001,
-        title: "Array Flip Frenzy",
-        description: "Write a function that reverses an array. Keep it clean: no extra prints.",
-        difficulty: "easy",
-        language: "javascript",
-        reward_xp: 250,
-        expires_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-        participants_count: 12,
-        winners: [
-          { user_id: 101, rank: 1, note: "Fast + clean output", username: "vader", character_id: 1 },
-          { user_id: 102, rank: 2, note: "Great edge cases", username: "philo", character_id: 2 },
-          { user_id: 103, rank: 3, note: "Nice explanation", username: "coders", character_id: 0 },
-        ],
-        mock_participants: [
-          { user_id: 101, username: "vader", status: "completed" },
-          { user_id: 102, username: "philo", status: "completed" },
-          { user_id: 103, username: "coders", status: "completed" },
-          { user_id: 104, username: "alice", status: "in_progress" },
-          { user_id: 105, username: "bob", status: "in_progress" },
-        ],
-      },
-    ]
-  : [];
-
 const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
   const navigate = useNavigate();
   const getAllPosts = useGetAllPosts();
@@ -141,8 +76,6 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [challengeActionMsg, setChallengeActionMsg] = useState("");
-  const [participantsByTaskId, setParticipantsByTaskId] = useState({});
-  const [participantsLoadingByTaskId, setParticipantsLoadingByTaskId] = useState({});
   const [heartsByPostId, setHeartsByPostId] = useState({});
   const lastHeartsFetchKeyRef = React.useRef("");
   const [topHashtags, setTopHashtags] = useState([]);
@@ -187,14 +120,11 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
     return Number.isFinite(n) ? n : null;
   };
 
-  const usingMockTasks = ENABLE_MOCK_CHALLENGES && apiTasks.length === 0 && MOCK_WEEKLY_TASKS.length > 0;
-  const weeklyTasks = usingMockTasks ? MOCK_WEEKLY_TASKS : apiTasks;
+  const weeklyTasks = apiTasks;
   const hasWeeklyAccess = totalXp >= WEEKLY_XP_THRESHOLD;
 
   const safePastChallenges = Array.isArray(pastChallenges) ? pastChallenges : [];
-  const usingMockPast =
-    ENABLE_MOCK_CHALLENGES && !pastLoading && !pastError && safePastChallenges.length === 0 && MOCK_PAST_CHALLENGES.length > 0;
-  const effectivePastChallenges = usingMockPast ? MOCK_PAST_CHALLENGES : safePastChallenges;
+  const effectivePastChallenges = safePastChallenges;
 
   const tagSlug = useMemo(() => stripLeadingHash(tag).toLowerCase(), [tag]);
   const tagDisplay = useMemo(() => ensureLeadingHash(tagSlug), [tagSlug]);
@@ -221,29 +151,6 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
       alive = false;
     };
   }, []);
-
-  const ensureParticipantsLoaded = async (task) => {
-    const taskId = getTaskId(task);
-    if (!taskId) return;
-    if (participantsByTaskId[taskId]) return;
-    if (participantsLoadingByTaskId[taskId]) return;
-
-    if (Array.isArray(task?.mock_participants)) {
-      setParticipantsByTaskId((prev) => ({ ...prev, [taskId]: task.mock_participants }));
-      return;
-    }
-
-    setParticipantsLoadingByTaskId((prev) => ({ ...prev, [taskId]: true }));
-    try {
-      const res = await axiosPublic.get(`/v1/weekly-tasks/${taskId}/participants`, { params: { limit: 200 } });
-      const rows = res.data?.success ? (res.data?.data || []) : [];
-      setParticipantsByTaskId((prev) => ({ ...prev, [taskId]: Array.isArray(rows) ? rows : [] }));
-    } catch {
-      setParticipantsByTaskId((prev) => ({ ...prev, [taskId]: [] }));
-    } finally {
-      setParticipantsLoadingByTaskId((prev) => ({ ...prev, [taskId]: false }));
-    }
-  };
 
   const cooldownKey = useMemo(() => {
     if (!user?.user_id) return null;
@@ -533,16 +440,6 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
 
     if (!taskId) {
       setChallengeActionMsg("Missing challenge id. Please refresh and try again.");
-      return;
-    }
-
-    if (usingMockTasks) {
-      setChallengeActionMsg(
-        "No weekly challenges found in the database yet. Create one in admin first (this is a preview card)."
-      );
-      navigate(`/weekly-challenge/${encodeURIComponent(String(taskId))}`, {
-        state: { task },
-      });
       return;
     }
 

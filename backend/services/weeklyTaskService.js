@@ -15,20 +15,78 @@ function normalizeText(value) {
     .trim();
 }
 
-function normalizeTestCases(raw) {
+function tryParseJson(value) {
+  if (value === null || value === undefined) return { ok: true, value: null };
+  if (typeof value !== "string") return { ok: true, value };
+  const s = value.trim();
+  if (!s) return { ok: true, value: "" };
+
+  // Only attempt JSON parsing when it looks like JSON.
+  const looksJson =
+    s.startsWith("[") ||
+    s.startsWith("{") ||
+    s === "true" ||
+    s === "false" ||
+    s === "null" ||
+    /^-?\d+(?:\.\d+)?$/.test(s);
+
+  if (!looksJson) return { ok: true, value: s };
+
+  try {
+    return { ok: true, value: JSON.parse(s) };
+  } catch {
+    return { ok: false, value: s };
+  }
+}
+
+function normalizeTestCases(raw, { language } = {}) {
   const list = Array.isArray(raw) ? raw : [];
+  const lang = String(language || "").toLowerCase();
+
   return list
     .map((tc) => {
-      const input = tc?.input ?? "";
-      const expected = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? tc?.output ?? "";
+      const explicitMode = String(tc?.mode || "").trim().toLowerCase();
+      const explicitFunctionName = tc?.functionName || tc?.function_name || tc?.fn || null;
+
+      const inputRaw = tc?.input ?? "";
+      const expectedRaw = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? tc?.output ?? "";
       const is_hidden = Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+
+      // If a task explicitly sets function mode, pass it through (any language).
+      if (explicitMode === "function") {
+        return {
+          mode: "function",
+          functionName: explicitFunctionName ? String(explicitFunctionName) : "solution",
+          input: inputRaw,
+          expected: expectedRaw,
+          is_hidden,
+        };
+      }
+
+      // JavaScript weekly tasks run in function mode to avoid needing stdin/fs/process access.
+      if (lang === "javascript") {
+        const inputParsed = tryParseJson(inputRaw).value;
+        const expectedParsed = tryParseJson(expectedRaw).value;
+        return {
+          mode: "function",
+          functionName: "solution",
+          input: inputParsed,
+          expected: expectedParsed,
+          is_hidden,
+        };
+      }
+
       return {
-        input: String(input ?? ""),
-        expected: String(expected ?? ""),
+        input: String(inputRaw ?? ""),
+        expected: String(expectedRaw ?? ""),
         is_hidden,
       };
     })
-    .filter((tc) => normalizeText(tc.input) || normalizeText(tc.expected));
+    .filter((tc) => {
+      const input = typeof tc.input === "string" ? tc.input : JSON.stringify(tc.input ?? "");
+      const expected = typeof tc.expected === "string" ? tc.expected : JSON.stringify(tc.expected ?? "");
+      return normalizeText(input) || normalizeText(expected);
+    });
 }
 
 class WeeklyTaskService {
@@ -121,7 +179,7 @@ class WeeklyTaskService {
     if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
 
     const language = String(task.language || task?.programming_languages?.slug || "javascript").toLowerCase();
-    const testCases = normalizeTestCases(task.test_cases);
+    const testCases = normalizeTestCases(task.test_cases, { language });
 
     const { data: execution } = await axios.post(
       `${TERMINAL_API_BASE_URL}/exam/run`,
