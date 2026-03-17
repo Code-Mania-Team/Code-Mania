@@ -5,6 +5,7 @@ import ExamCodeTerminal from "../components/ExamCodeTerminal";
 import useWeeklyChallengeAttempt from "../services/useWeeklyChallengeAttempt";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAxios";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const DEFAULT_HOW_IT_WORKS = [
   "Your program is tested automatically using hidden test cases.",
@@ -94,12 +95,7 @@ export default function WeeklyChallengePage() {
       points,
       starterCode,
       testCases,
-      description: {
-        sections: [
-          { type: "heading", level: 3, content: "Problem" },
-          { type: "paragraph", content: description || "(No description provided yet.)" },
-        ],
-      },
+      description,
     };
   }, [task, taskId]);
 
@@ -239,41 +235,19 @@ export default function WeeklyChallengePage() {
                 </div>
 
                 <div className={styles.questionText}>
-                  {challenge.description?.sections?.map((section, index) => {
-                    if (section.type === "heading") {
-                      const Tag = `h${section.level}`;
-                      return (
-                        <Tag
-                          key={index}
-                          style={{
-                            marginTop: index === 0 ? "0" : "1.5rem",
-                            marginBottom: "0.75rem",
-                            color: "#f1f5f9",
-                            fontWeight: "700",
-                          }}
-                        >
-                          {section.content}
-                        </Tag>
-                      );
-                    }
-
-                    if (section.type === "paragraph") {
-                      return (
-                        <p
-                          key={index}
-                          style={{
-                            marginBottom: "0.75rem",
-                            color: "#cbd5e1",
-                            lineHeight: "1.6",
-                          }}
-                        >
-                          {section.content}
-                        </p>
-                      );
-                    }
-
-                    return null;
-                  })}
+                  <h3
+                    style={{
+                      marginTop: 0,
+                      marginBottom: "0.75rem",
+                      color: "#f1f5f9",
+                      fontWeight: "700",
+                    }}
+                  >
+                    Problem
+                  </h3>
+                  <div style={{ color: "#cbd5e1", lineHeight: 1.6 }}>
+                    <MarkdownRenderer>{challenge.description || "(No description provided yet.)"}</MarkdownRenderer>
+                  </div>
                 </div>
               </div>
 
