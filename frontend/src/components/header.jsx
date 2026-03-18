@@ -5,6 +5,7 @@ import useAuth from "../hooks/useAxios";
 import useLearningProgress from "../services/useLearningProgress";
 import { useTheme } from "../context/ThemeProvider.jsx";
 import useNotifications from "../services/useNotifications";
+import useCosmeticsMe from "../services/useCosmeticsMe";
 
 const notificationIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v1773418099/notification_scq4kg.png';
 
@@ -174,10 +175,12 @@ const Header = ({ onOpenModal, onSignOut }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   const [characterIcon, setCharacterIcon] = useState(() => localStorage.getItem('selectedCharacterIcon') || null);
+  const [equippedFrameUrl, setEquippedFrameUrl] = useState(() => localStorage.getItem('equippedAvatarFrameUrl') || "");
   const { isAuthenticated, isLoading, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { progress } = useLearningProgress();
+  const getCosmeticsMe = useCosmeticsMe();
 
   // Unlock terminal when user completes at least 16 exercises in any one course
   const hasTerminalAccess = progress.some(
@@ -267,14 +270,79 @@ const Header = ({ onOpenModal, onSignOut }) => {
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('characterUpdated', handleCharacterUpdate);
+    window.addEventListener('cosmeticsUpdated', handleCharacterUpdate);
     window.addEventListener('authchange', handleAuthChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('characterUpdated', handleCharacterUpdate);
+      window.removeEventListener('cosmeticsUpdated', handleCharacterUpdate);
       window.removeEventListener('authchange', handleAuthChange);
     };
   }, [isAuthenticated, isLoading, user?.user_id, user?.character_id]);
+
+  // Load equipped avatar frame (best-effort)
+  useEffect(() => {
+    const fromStorage = () => {
+      const url = localStorage.getItem('equippedAvatarFrameUrl') || "";
+      setEquippedFrameUrl(url);
+    };
+
+    if (!isAuthenticated) {
+      setEquippedFrameUrl("");
+      try {
+        localStorage.removeItem('equippedAvatarFrameUrl');
+        localStorage.removeItem('equippedAvatarFrameKey');
+      } catch {
+        // ignore
+      }
+      return;
+    }
+
+    let alive = true;
+    const load = async () => {
+      fromStorage();
+      try {
+        const res = await getCosmeticsMe();
+        const owned = res?.data?.owned_cosmetics;
+        const prefs = res?.data?.preferences;
+        const frameKey = prefs?.avatar_frame_key ? String(prefs.avatar_frame_key) : "";
+        const url = frameKey && Array.isArray(owned)
+          ? (owned.find((c) => String(c?.key) === frameKey)?.asset_url || "")
+          : "";
+        const nextUrl = url ? String(url) : "";
+
+        if (!alive) return;
+        setEquippedFrameUrl(nextUrl);
+
+        try {
+          if (nextUrl) localStorage.setItem('equippedAvatarFrameUrl', nextUrl);
+          else localStorage.removeItem('equippedAvatarFrameUrl');
+          if (frameKey) localStorage.setItem('equippedAvatarFrameKey', frameKey);
+          else localStorage.removeItem('equippedAvatarFrameKey');
+
+          // Same-tab sync for pages that read localStorage.
+          window.dispatchEvent(new Event('cosmeticsUpdated'));
+        } catch {
+          // ignore
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    load();
+
+    const onCosmeticsUpdate = () => fromStorage();
+    window.addEventListener('storage', onCosmeticsUpdate);
+    window.addEventListener('cosmeticsUpdated', onCosmeticsUpdate);
+
+    return () => {
+      alive = false;
+      window.removeEventListener('storage', onCosmeticsUpdate);
+      window.removeEventListener('cosmeticsUpdated', onCosmeticsUpdate);
+    };
+  }, [isAuthenticated, getCosmeticsMe, user?.user_id]);
 
   const isAdmin = isAuthenticated && user?.role === "admin";
   const homePath = isAdmin ? '/admin' : isAuthenticated ? '/dashboard' : '/';
@@ -462,21 +530,31 @@ const Header = ({ onOpenModal, onSignOut }) => {
             >
               <button
                 type="button"
-                className="profile-icon"
+                className={`profile-icon ${equippedFrameUrl ? 'has-frame' : ''}`}
                 aria-label="Account menu"
                 aria-haspopup="menu"
                 aria-expanded={isProfileOpen ? "true" : "false"}
                 onClick={() => setIsProfileOpen((prev) => !prev)}
               >
-                {characterIcon ? (
-                  <img
-                    src={characterIcon}
-                    alt="Profile"
-                    className="profile-character-icon"
-                  />
-                ) : (
-                  <span role="img" aria-label="Profile">👤</span>
-                )}
+                <span className="profile-avatar-wrap" aria-hidden="true">
+                  {equippedFrameUrl ? (
+                    <img
+                      src={equippedFrameUrl}
+                      alt=""
+                      className="profile-avatar-frame"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  {characterIcon ? (
+                    <img
+                      src={characterIcon}
+                      alt="Profile"
+                      className="profile-character-icon"
+                    />
+                  ) : (
+                    <span role="img" aria-label="Profile">👤</span>
+                  )}
+                </span>
               </button>
 
               <div className={`profile-dropdown ${isProfileOpen ? "is-open" : ""}`} role="menu" aria-label="Account">

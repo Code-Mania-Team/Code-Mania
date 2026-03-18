@@ -2074,6 +2074,28 @@ const languageIconBySlug = {
     return hit?.asset_url ? String(hit.asset_url) : "";
   })();
 
+  useEffect(() => {
+    if (isPublicView) return;
+
+    const nextUrl = equippedFrameUrl ? String(equippedFrameUrl) : "";
+    const nextKey = preferences?.avatar_frame_key ? String(preferences.avatar_frame_key) : "";
+
+    const prevUrl = localStorage.getItem('equippedAvatarFrameUrl') || "";
+    const prevKey = localStorage.getItem('equippedAvatarFrameKey') || "";
+
+    const urlChanged = prevUrl !== nextUrl;
+    const keyChanged = prevKey !== nextKey;
+    if (!urlChanged && !keyChanged) return;
+
+    if (nextUrl) localStorage.setItem('equippedAvatarFrameUrl', nextUrl);
+    else localStorage.removeItem('equippedAvatarFrameUrl');
+
+    if (nextKey) localStorage.setItem('equippedAvatarFrameKey', nextKey);
+    else localStorage.removeItem('equippedAvatarFrameKey');
+
+    window.dispatchEvent(new Event('cosmeticsUpdated'));
+  }, [equippedFrameUrl, preferences?.avatar_frame_key, isPublicView]);
+
   return (
 
 

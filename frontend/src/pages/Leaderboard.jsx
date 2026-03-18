@@ -56,6 +56,7 @@ const Leaderboard = () => {
           name: user.full_name || user.username || 'Unknown',
           score: user.selectedXP,
           avatar: characterIcons[user.character_id] || characterIcon0,
+          avatarFrameUrl: user.avatar_frame_url || "",
         }));
 
         setLeaderboardData(formatted);
@@ -143,11 +144,21 @@ const Leaderboard = () => {
                     {player.rank}
                   </span>
                 </div>
-                <img
-                  src={player.avatar}
-                  alt={player.name}
-                  className="player-avatar"
-                />
+                <span className="player-avatar-wrap" aria-hidden="true">
+                  {player.avatarFrameUrl ? (
+                    <img
+                      src={player.avatarFrameUrl}
+                      alt=""
+                      className="player-avatar-frame"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <img
+                    src={player.avatar}
+                    alt={player.name}
+                    className="player-avatar"
+                  />
+                </span>
                 <div className="player-info">
                   <span className="player-name">{player.name}</span>
                   <span className="player-score">
