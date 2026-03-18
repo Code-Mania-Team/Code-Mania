@@ -73,6 +73,9 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
   const [postError, setPostError] = useState('');
 
   const [newComment, setNewComment] = useState("");
+  const [selfAvatarFrameUrl, setSelfAvatarFrameUrl] = useState(
+    () => localStorage.getItem('equippedAvatarFrameUrl') || ""
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [challengeActionMsg, setChallengeActionMsg] = useState("");
@@ -170,6 +173,21 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const sync = () => {
+      const url = localStorage.getItem('equippedAvatarFrameUrl') || "";
+      setSelfAvatarFrameUrl(url);
+    };
+
+    sync();
+    window.addEventListener('storage', sync);
+    window.addEventListener('cosmeticsUpdated', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('cosmeticsUpdated', sync);
+    };
+  }, []);
+
   const formatTimeAgo = (dateInput) => {
     const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
     if (!date || Number.isNaN(date.getTime())) return '';
@@ -221,9 +239,25 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
   const mapApiPostToComment = (post) => {
     const rawUsername = post?.users?.username ?? post?.username;
     const username = rawUsername ? String(rawUsername) : 'Anonymous';
+    const userIdRaw = post?.users?.user_id ?? post?.user_id;
+    const postUserId = userIdRaw === null || userIdRaw === undefined ? null : Number(userIdRaw);
     const characterIdRaw = post?.users?.character_id ?? post?.character_id;
     const characterId = characterIdRaw === null || characterIdRaw === undefined ? null : Number(characterIdRaw);
     const avatar = characterId !== null && !Number.isNaN(characterId) ? (iconByCharacterId[characterId] || null) : null;
+
+    let avatarFrameUrl = post?.users?.avatar_frame_url || post?.avatar_frame_url || "";
+    if (!avatarFrameUrl) {
+      const currentUserId = user?.user_id === null || user?.user_id === undefined ? null : Number(user.user_id);
+      if (
+        currentUserId !== null &&
+        Number.isFinite(currentUserId) &&
+        postUserId !== null &&
+        Number.isFinite(postUserId) &&
+        currentUserId === postUserId
+      ) {
+        avatarFrameUrl = localStorage.getItem('equippedAvatarFrameUrl') || "";
+      }
+    }
 
     const createdAtLabel = post?.created_at ? formatTimeAgo(post.created_at) : '';
 
@@ -232,6 +266,7 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
       user: username,
       username,
       avatar,
+      avatarFrameUrl,
       text: post?.content ?? '',
       hashtags: Array.isArray(post?.hashtags) ? post.hashtags : [],
       time: createdAtLabel,
@@ -883,11 +918,21 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
             {/* Comment Input */}
             <div className="comment-input-section">
               <div className="comment-input-wrapper">
-                <img
-                  src={localStorage.getItem('selectedCharacterIcon') || "https://api.dicebear.com/7.x/pixel-art/svg?seed=you"}
-                  alt="Your avatar"
-                  className="avatar"
-                />
+                <span className="comment-avatar-wrap" aria-hidden="true">
+                  {selfAvatarFrameUrl ? (
+                    <img
+                      src={selfAvatarFrameUrl}
+                      alt=""
+                      className="comment-avatar-frame"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <img
+                    src={localStorage.getItem('selectedCharacterIcon') || "https://api.dicebear.com/7.x/pixel-art/svg?seed=you"}
+                    alt="Your avatar"
+                    className="comment-avatar"
+                  />
+                </span>
                 <div className="comment-input">
                   <textarea
                     placeholder={
@@ -934,18 +979,38 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
                         onClick={() => navigate(`/profile/${encodeURIComponent(comment.username)}`)}
                         aria-label={`View ${comment.username}'s profile`}
                       >
+                        <span className="comment-avatar-wrap" aria-hidden="true">
+                          {comment.avatarFrameUrl ? (
+                            <img
+                              src={comment.avatarFrameUrl}
+                              alt=""
+                              className="comment-avatar-frame"
+                              loading="lazy"
+                            />
+                          ) : null}
+                          <img
+                            src={comment.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(comment.user)}`}
+                            alt={`${comment.user}'s avatar`}
+                            className="comment-avatar"
+                          />
+                        </span>
+                      </button>
+                    ) : (
+                      <span className="comment-avatar-wrap" aria-hidden="true">
+                        {comment.avatarFrameUrl ? (
+                          <img
+                            src={comment.avatarFrameUrl}
+                            alt=""
+                            className="comment-avatar-frame"
+                            loading="lazy"
+                          />
+                        ) : null}
                         <img
                           src={comment.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(comment.user)}`}
                           alt={`${comment.user}'s avatar`}
                           className="comment-avatar"
                         />
-                      </button>
-                    ) : (
-                      <img
-                        src={comment.avatar || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(comment.user)}`}
-                        alt={`${comment.user}'s avatar`}
-                        className="comment-avatar"
-                      />
+                      </span>
                     )}
                     <div className="comment-content">
                       <div className="comment-header">

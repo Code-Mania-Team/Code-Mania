@@ -5,6 +5,26 @@ class UserPreferences {
     this.db = supabase;
   }
 
+  async getByUserIds(userIds) {
+    const ids = Array.isArray(userIds) ? userIds : [];
+    const cleaned = Array.from(
+      new Set(
+        ids
+          .map((id) => (id === null || id === undefined ? null : Number(id)))
+          .filter((n) => Number.isFinite(n) && n > 0)
+      )
+    );
+    if (!cleaned.length) return [];
+
+    const { data, error } = await this.db
+      .from("user_preferences")
+      .select("*")
+      .in("user_id", cleaned);
+
+    if (error) throw error;
+    return data || [];
+  }
+
   async getByUserId(user_id) {
     if (!user_id) return null;
     const { data, error } = await this.db
