@@ -22,7 +22,6 @@ import Credits from "./pages/credits";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import PageNotFound from "./pages/PageNotFound";
-import Rewards from "./pages/Rewards";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
 import ExamManager from "./pages/ExamManager";
@@ -599,7 +598,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/rewards" element={<Rewards />} />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="/terms" element={<Terms />} />

@@ -415,17 +415,6 @@ const Header = ({ onOpenModal, onSignOut }) => {
           </NavLink>
         )}
 
-        <NavLink
-          to="/rewards"
-          className="nav-link nav-icon-link"
-          onClick={closeMobileMenu}
-          aria-label="Rewards"
-          title="Rewards"
-        >
-          <span className="nav-extra-icon" aria-hidden="true" />
-          <span className="nav-icon-text">REWARDS</span>
-        </NavLink>
-
         <button
           type="button"
           className="nav-link theme-toggle"

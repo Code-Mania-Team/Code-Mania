@@ -454,47 +454,7 @@ button.nav-link {
 
 
 
-.nav-icon-link {
 
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 0.55rem;
-
-}
-
-
-
-.nav-extra-icon {
-
-  width: 20px;
-
-  height: 20px;
-
-  border: 0;
-
-  background: transparent;
-
-  background-image: url("https://res.cloudinary.com/daegpuoss/image/upload/v1773395251/gift_bt526r.png");
-
-  background-position: center;
-
-  background-repeat: no-repeat;
-
-  background-size: contain;
-
-  image-rendering: pixelated;
-
-}
-
-
-
-.nav-icon-text {
-
-  display: none;
-
-}
 
 
 
@@ -2772,11 +2732,7 @@ html[data-theme="light"] .learn-content::before {
 
 
 
-  .nav-icon-text {
 
-    display: inline;
-
-  }
 
 
 
