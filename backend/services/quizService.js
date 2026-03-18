@@ -13,6 +13,16 @@ function needsRunner(language, code) {
   return true;
 }
 
+function toJsonIfNeeded(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 function appendQuizRunner({ language, stageNumber, startingCode }) {
   const base = String(startingCode || "").trimEnd();
   if (!needsRunner(language, base)) return base;
@@ -330,19 +340,18 @@ class QuizService {
         return { ok: false, status: 400, message: "code is required" };
       }
 
-       const executionCode = appendQuizRunner({
-        language,
-        stageNumber,
-        startingCode: code
-      });
-
       const normalizeTestCase = (tc) => {
-        const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden);
-        const input = tc?.input ?? tc?.stdin ?? "";
-        const expected = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+        const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+        const modeRaw = tc?.mode ?? "stdin";
+        const mode = String(modeRaw || "stdin").trim().toLowerCase() === "function" ? "function" : "stdin";
+        const inputRaw = tc?.input ?? tc?.stdin ?? "";
+        const expectedRaw = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+        const functionName = tc?.functionName ?? tc?.function_name ?? null;
         return {
-          input: input === null || input === undefined ? "" : String(input),
-          expected: expected === null || expected === undefined ? "" : String(expected),
+          mode,
+          functionName: functionName ? String(functionName) : null,
+          input: mode === "function" ? toJsonIfNeeded(inputRaw) : (inputRaw === null || inputRaw === undefined ? "" : String(inputRaw)),
+          expected: mode === "function" ? toJsonIfNeeded(expectedRaw) : (expectedRaw === null || expectedRaw === undefined ? "" : String(expectedRaw)),
           is_hidden: isHidden,
         };
       };
@@ -354,6 +363,15 @@ class QuizService {
             { input: "-1 1", expected: "0", is_hidden: true },
             { input: "10 20", expected: "30", is_hidden: true },
           ];
+
+      const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
+
+      // JavaScript stdin requires process/fs, which are blocked by sanitizer.
+      // For JS quizzes, prefer function mode and do not append a runner.
+      const executionCode =
+        language === "javascript" || hasFunctionMode
+          ? code
+          : appendQuizRunner({ language, stageNumber, startingCode: code });
 
       try {
         const { data: execution } = await axios.post(
@@ -471,19 +489,18 @@ class QuizService {
       return { ok: false, status: 400, message: "code is required" };
     }
 
-    const executionCode = appendQuizRunner({
-      language,
-      stageNumber,
-      startingCode: code
-    });
-
     const normalizeTestCase = (tc) => {
-      const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden);
-      const input = tc?.input ?? tc?.stdin ?? "";
-      const expected = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+      const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+      const modeRaw = tc?.mode ?? "stdin";
+      const mode = String(modeRaw || "stdin").trim().toLowerCase() === "function" ? "function" : "stdin";
+      const inputRaw = tc?.input ?? tc?.stdin ?? "";
+      const expectedRaw = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+      const functionName = tc?.functionName ?? tc?.function_name ?? null;
       return {
-        input: input === null || input === undefined ? "" : String(input),
-        expected: expected === null || expected === undefined ? "" : String(expected),
+        mode,
+        functionName: functionName ? String(functionName) : null,
+        input: mode === "function" ? toJsonIfNeeded(inputRaw) : (inputRaw === null || inputRaw === undefined ? "" : String(inputRaw)),
+        expected: mode === "function" ? toJsonIfNeeded(expectedRaw) : (expectedRaw === null || expectedRaw === undefined ? "" : String(expectedRaw)),
         is_hidden: isHidden,
       };
     };
@@ -495,6 +512,12 @@ class QuizService {
           { input: "-1 1", expected: "0", is_hidden: true },
           { input: "10 20", expected: "30", is_hidden: true },
         ];
+
+    const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
+    const executionCode =
+      language === "javascript" || hasFunctionMode
+        ? code
+        : appendQuizRunner({ language, stageNumber, startingCode: code });
 
     try {
       const { data: execution } = await axios.post(

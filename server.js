@@ -582,28 +582,26 @@ if (typeof __rawInput === "string") {
 }
 
   const __fnName = ${JSON.stringify(String(functionName))};
-  let __fn = null;
-  try {
-    // functionName is server-controlled (from test case metadata)
-    __fn = eval(__fnName);
-  } catch {
-    __fn = null;
-  }
+  // Avoid eval() so this wrapper stays sanitizer-friendly.
+  const __root = (typeof globalThis !== "undefined" && globalThis)
+    ? globalThis
+    : (typeof self !== "undefined" && self ? self : null);
+  const __fn = __root ? __root[__fnName] : null;
   if (typeof __fn !== "function") {
     console.log(
       "FUNCTION_NOT_FOUND: " + __fnName + " (define it in your code or switch the test case mode to stdin)"
     );
-    process.exit(0);
-  }
+  } else {
   // Accept either {"args": [...]} OR a raw JSON array [...] as the argument list.
   const __args =
     (__arg && typeof __arg === "object" && !Array.isArray(__arg) && Array.isArray(__arg.args))
       ? __arg.args
       : (Array.isArray(__arg) ? __arg : null);
-  const result = __args ? __fn(...__args) : __fn(__arg);
-  console.log("OUTPUT:", JSON.stringify(result));
-  `;
-           } else if (language === "python") {
+    const result = __args ? __fn(...__args) : __fn(__arg);
+    console.log("OUTPUT:", JSON.stringify(result));
+  }
+   `;
+            } else if (language === "python") {
              const inputJsonText = typeof input === "string" ? input : JSON.stringify(input);
              // Embed as a Python string and parse via json.loads.
              const inputJsonLiteral = JSON.stringify(String(inputJsonText));
