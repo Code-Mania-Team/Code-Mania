@@ -1,6 +1,30 @@
 import DomSessionService from "../../services/domSessionServices.js";
 import ExerciseModel from "../../models/exercises.js";
 
+function splitUserSubmission(raw) {
+  const text = String(raw ?? "");
+  const hasScriptTag = /<\s*script\b/i.test(text);
+  const looksLikeHtml = /<\s*\/?\s*[a-zA-Z][\s>]/.test(text);
+
+  // Back-compat: plain JS only.
+  if (!hasScriptTag && !looksLikeHtml) {
+    return { userHtml: "", userJs: text };
+  }
+
+  const scripts = [];
+  const scriptRe = /<\s*script\b[^>]*>([\s\S]*?)<\s*\/\s*script\s*>/gi;
+  const withoutScripts = text.replace(scriptRe, (_m, code) => {
+    scripts.push(String(code ?? ""));
+    return "";
+  });
+
+  const bodyMatch = /<\s*body\b[^>]*>([\s\S]*?)<\s*\/\s*body\s*>/i.exec(withoutScripts);
+  const userHtml = (bodyMatch ? bodyMatch[1] : withoutScripts).trim();
+  const userJs = scripts.join("\n").trim();
+
+  return { userHtml, userJs };
+}
+
 class DomController {
   constructor() {
     this.domService = new DomSessionService();
@@ -154,6 +178,10 @@ class DomController {
 
       const session = result.data;
 
+      const { userHtml, userJs } = splitUserSubmission(session.userCode);
+      const mergedBase = typeof session.userCode === "string" && session.userCode.includes("CODEMANIA_BASE_INCLUDED");
+      const baseHtml = mergedBase ? "" : session.baseHtml;
+
       const html = `
       <!DOCTYPE html>
       <html>
@@ -166,11 +194,12 @@ class DomController {
         </style>
       </head>
       <body>
-        ${session.baseHtml}
+        ${baseHtml}
+        ${userHtml}
 
         <script>
           try {
-            ${session.userCode}
+            ${userJs}
           } catch (err) {
             const pre = document.createElement("pre");
             pre.style.color = "red";

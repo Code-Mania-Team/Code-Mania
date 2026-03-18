@@ -1727,6 +1727,33 @@
   animation: validationToastIn 180ms ease-out;
 }
 
+.run-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(18, 22, 30, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  z-index: 1500;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  animation: validationToastIn 180ms ease-out;
+}
+
+.run-toast-success {
+  color: rgba(134, 239, 172, 0.95);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.run-toast-error {
+  color: rgba(252, 165, 165, 0.95);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
 .validation-box-collapsed .validation-body {
   transform: translateX(-110%);
   opacity: 0;

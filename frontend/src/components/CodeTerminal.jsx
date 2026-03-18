@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
+import React, { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import Editor from "@monaco-editor/react";
 import { Play, Check } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
@@ -33,6 +33,66 @@ function getMonacoLang(lang) {
   if (lang === "cpp") return "cpp";
   if (lang === "javascript") return "javascript";
   return "python";
+}
+
+function getDomStarterHtml() {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOM Challenge</title>
+  </head>
+  <body>
+    <!-- Your HTML goes here. Base HTML is provided by the challenge. -->
+
+    <script>
+      // Your JavaScript goes here.
+      // Tip: use document.querySelector(...) to target elements from the page.
+    </script>
+  </body>
+</html>`;
+}
+
+function mergeBaseIntoDomHtml(userHtml, baseHtml) {
+  const base = typeof baseHtml === "string" ? baseHtml.trim() : "";
+  if (!base) return String(userHtml ?? "");
+
+  const html = String(userHtml ?? "");
+  if (html.includes("CODEMANIA_BASE_INCLUDED")) return html;
+
+  const insert = `\n<!-- CODEMANIA_BASE_INCLUDED -->\n${base}\n`;
+  const bodyRe = /<\s*body\b[^>]*>/i;
+  const m = bodyRe.exec(html);
+  if (!m) return `${insert}${html}`;
+  const idx = m.index + m[0].length;
+  return html.slice(0, idx) + insert + html.slice(idx);
+}
+
+function coerceDomStartingCode(raw) {
+  const text = String(raw ?? "");
+  if (!text.trim()) return getDomStarterHtml();
+
+  // If DB already stores HTML (recommended), keep it.
+  const looksHtml = /<\s*script\b/i.test(text) || /<\s*!doctype\b/i.test(text) || /<\s*html\b/i.test(text);
+  if (looksHtml) return text;
+
+  // Back-compat: DB stored plain JS; wrap it in the HTML template.
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOM Challenge</title>
+  </head>
+  <body>
+    <!-- Your HTML goes here. Base HTML is provided by the challenge. -->
+
+    <script>
+${text.trim()}
+    </script>
+  </body>
+</html>`;
 }
 
 function getStarterCode(lang) {
@@ -242,9 +302,14 @@ const InteractiveTerminal = ({
     return fromQuest || getLanguageFromLocalStorage();
   }, [quest]);
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
-  const monacoLang = getMonacoLang(language);
+  const isDomQuest = quest?.quest_type === "dom";
+  const monacoLang = isDomQuest ? "html" : getMonacoLang(language);
   const resolveInitialCode = () => {
     const dbStartingCode = typeof quest?.starting_code === "string" ? quest.starting_code : "";
+    if (isDomQuest) {
+      const userHtml = coerceDomStartingCode(dbStartingCode);
+      return mergeBaseIntoDomHtml(userHtml, quest?.base_html);
+    }
     if (dbStartingCode.trim()) return dbStartingCode;
     return getStarterCode(language);
   };
@@ -276,6 +341,7 @@ const InteractiveTerminal = ({
   const [bottomPanelTab, setBottomPanelTab] = useState("terminal");
   const [resultView, setResultView] = useState("runtime");
   const [activeResultCaseIndex, setActiveResultCaseIndex] = useState(0);
+  const [runToast, setRunToast] = useState(null);
 
   const validateExercise = useValidateExercise();
   const validateExercisePreview = useValidateExercisePreview();
@@ -287,7 +353,31 @@ const InteractiveTerminal = ({
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
   const iframeRef = useRef(null);
+  const runIdRef = useRef(0);
+  const toastTimerRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
+
+  const showRunToast = useCallback((next) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+
+    setRunToast(next);
+
+    if (next) {
+      toastTimerRef.current = setTimeout(() => {
+        setRunToast(null);
+        toastTimerRef.current = null;
+      }, 2000);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const canInteract = practiceMode || (isQuestActive && !isQuestCompleted);
   
@@ -551,10 +641,16 @@ const InteractiveTerminal = ({
 
 
   const runViaDocker = () => {
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
+
+    showRunToast(null);
+
     if (socketRef.current) {
       socketRef.current.close();
     }
     let finalOutput = ""; // prevent stale state issue
+    let hadError = false;
 
     const socket = new WebSocket(terminalWsUrl);
     socketRef.current = socket;
@@ -587,16 +683,36 @@ const InteractiveTerminal = ({
     };
 
     socket.onclose = async () => {
+      if (runId !== runIdRef.current) return;
+
       setWaitingForInput(false);
       setIsRunning(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+
+      if (!hadError) {
+        const sep = finalOutput && !finalOutput.endsWith("\n") ? "\n" : "";
+        const ok = !hasExecutionError(finalOutput, language);
+        setProgramOutput((prev) =>
+          prev + `${sep}\n=== ${ok ? "Code Execution Successful" : "Code Execution Finished (with errors)"} ===\n`
+        );
+        showRunToast({ type: "success", message: "Code executed" });
+      }
     };
 
     socket.onerror = () => {
+      if (runId !== runIdRef.current) return;
+
+      hadError = true;
       setProgramOutput(prev => prev + "\nConnection error. Please try again.\n");
       setIsRunning(false);
       setWaitingForInput(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+      showRunToast({ type: "error", message: "Execution failed" });
+      try {
+        socket.close();
+      } catch {
+        // ignore
+      }
     };
   };
 
@@ -721,6 +837,10 @@ const InteractiveTerminal = ({
   // Need Validation for DOM
   const runDOM = async () => {
     if (!domSessionId) return;
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
+
+    showRunToast(null);
     setIsRunning(true);
     try {
       await updateDomSession(domSessionId, code);
@@ -733,6 +853,9 @@ const InteractiveTerminal = ({
     }
 
     setIsRunning(false);
+    if (runId === runIdRef.current) {
+      showRunToast({ type: "success", message: "Code executed" });
+    }
   };
 
   const handleSubmitDom = async () => {
@@ -1193,6 +1316,18 @@ const InteractiveTerminal = ({
 
   return (
     <div className={`${styles["code-container"]} ${!canInteract ? styles["code-container-locked"] : ""}`}>
+      {runToast ? (
+        <div
+          className={`${styles["run-toast"]} ${
+            runToast.type === "error" ? styles["run-toast-error"] : styles["run-toast-success"]
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          {runToast.message}
+        </div>
+      ) : null}
+
       {useMobileSplit && showMobilePanelSwitcher && (
         <div className={styles["mobile-panel-switcher"]}>
           <button
@@ -1218,9 +1353,11 @@ const InteractiveTerminal = ({
           <span>
             {language === "cpp"
               ? "main.cpp"
-              : language === "javascript"
-              ? "script.js"
-              : "script.py"}
+              : isDomQuest
+                ? "index.html"
+                : language === "javascript"
+                  ? "script.js"
+                  : "script.py"}
           </span>
 
           <div style={{ display: 'flex', gap: '8px' }}>

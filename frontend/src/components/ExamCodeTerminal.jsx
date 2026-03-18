@@ -9,6 +9,25 @@ function getMonacoLang(lang) {
   return "python";
 }
 
+function hasExecutionError(output, language) {
+  const out = String(output || "");
+  const patterns = [
+    "Traceback",
+    "SyntaxError",
+    "NameError",
+    "TypeError",
+    "IndentationError",
+    "ReferenceError",
+    "fatal error",
+    "undefined reference",
+    "Segmentation fault",
+    "error:",
+  ];
+
+  const lowered = out.toLowerCase();
+  return patterns.some((p) => lowered.includes(String(p).toLowerCase()));
+}
+
 function coerceBool(value) {
   if (value === true) return true;
   if (value === false) return false;
@@ -288,6 +307,8 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     resetTerminal();
     setIsRunning(true);
 
+    let hadSocketError = false;
+
     const socket = new WebSocket(terminalWsUrl);
     socketRef.current = socket;
 
@@ -314,9 +335,16 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     socket.onclose = () => {
       setWaitingForInput(false);
       setIsRunning(false);
+
+      if (hadSocketError) return;
+
+      const sep = outputRef.current && !outputRef.current.endsWith("\n") ? "\n" : "";
+      const ok = !hasExecutionError(outputRef.current, language);
+      write(`${sep}\n=== ${ok ? "Code Execution Successful" : "Code Execution Finished (with errors)"} ===\n`);
     };
 
     socket.onerror = () => {
+      hadSocketError = true;
       write("\n❌ Connection error\n");
       setIsRunning(false);
     };
