@@ -154,7 +154,7 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
     setCoverError('');
     try {
       const res = await uploadCoverImage(file);
-      const url = res?.url;
+      const url = res?.data?.url || res?.url;
       if (!url) {
         throw new Error(res?.message || 'Upload succeeded but no URL returned');
       }

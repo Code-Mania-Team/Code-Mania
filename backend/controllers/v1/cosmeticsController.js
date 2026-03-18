@@ -16,10 +16,28 @@ class CosmeticsController {
         return res.status(401).json({ success: false, message: "Unauthorized" });
       }
 
-      const [prefs, owned] = await Promise.all([
+      const [prefs, ownedRows] = await Promise.all([
         this.userPreferences.getByUserId(user_id).catch(() => null),
-        this.userCosmetics.listOwnedCosmetics(user_id).catch(() => []),
+        this.userCosmetics.listOwnedRowsByUserId(user_id).catch(() => []),
       ]);
+
+      const keys = (ownedRows || []).map((r) => r?.cosmetic_key).filter(Boolean);
+      const cosmetics = keys.length ? await this.cosmetics.getByKeys(keys) : [];
+      const byKey = new Map((cosmetics || []).map((c) => [String(c.key), c]));
+
+      const owned = (ownedRows || []).map((r) => {
+        const key = String(r?.cosmetic_key || "");
+        if (!key) return null;
+        const c = byKey.get(key) || null;
+        return {
+          key,
+          type: c?.type || null,
+          name: c?.name || key,
+          asset_url: c?.asset_url || null,
+          rarity: c?.rarity || null,
+          unlocked_at: r?.unlocked_at || null,
+        };
+      }).filter(Boolean);
 
       return res.json({
         success: true,

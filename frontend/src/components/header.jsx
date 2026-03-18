@@ -99,9 +99,17 @@ const NotificationBell = () => {
             <div className="notification-list">
               {notifications.length > 0 ? (
                 notifications.map((notif) => (
+                  (() => {
+                    const kind = notif?.metadata?.kind;
+                    const prize = notif?.metadata?.unlocked_cosmetic || null;
+                    const hasPrize =
+                      kind === "weekly_challenge_complete" &&
+                      (Boolean(prize?.key) || Boolean(notif?.metadata?.unlocked_cosmetic_key));
+
+                    return (
                   <div
                     key={notif.notification_id}
-                    className={`notification-item ${!notif.is_read ? 'notification-item-unread' : ''}`}
+                    className={`notification-item ${!notif.is_read ? 'notification-item-unread' : ''} ${hasPrize ? 'notification-item-prize' : ''}`}
                     role="button"
                     tabIndex={0}
                     onClick={() => {
@@ -128,9 +136,25 @@ const NotificationBell = () => {
                     <div className="notification-item-content">
                       <p className="notification-item-title">{notif.title}</p>
                       <p className="notification-item-message">{notif.message}</p>
+
+                      {hasPrize ? (
+                        <div className="notification-prize-row" aria-label="Prize unlocked">
+                          {prize?.asset_url ? (
+                            <img className="notification-prize-thumb" src={prize.asset_url} alt="" loading="lazy" />
+                          ) : (
+                            <span className="notification-prize-badge">PRIZE</span>
+                          )}
+                          <span className="notification-prize-text">
+                            {prize?.name ? `Unlocked: ${prize.name}` : "Prize unlocked"}
+                          </span>
+                        </div>
+                      ) : null}
+
                       <span className="notification-item-time">{formatNotifTime(notif.created_at)}</span>
                     </div>
                   </div>
+                    );
+                  })()
                 ))
               ) : (
                 <div className="notification-empty">No notifications yet.</div>

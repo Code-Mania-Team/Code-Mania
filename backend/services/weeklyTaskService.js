@@ -3,6 +3,7 @@ import WeeklyTask from "../models/weeklyTask.js";
 import UserCosmetics from "../models/userCosmetics.js";
 import UserPreferences from "../models/userPreferences.js";
 import Cosmetics from "../models/cosmetics.js";
+import Notification from "../models/notification.js";
 
 const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
 
@@ -95,53 +96,7 @@ class WeeklyTaskService {
     this.userCosmetics = new UserCosmetics();
     this.userPreferences = new UserPreferences();
     this.cosmetics = new Cosmetics();
-  }
-
-  async claimReward({ userId, taskId }) {
-    const task = await this.weekly.getTaskById(taskId);
-    if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
-
-    const diff = String(task?.difficulty || "").toLowerCase();
-    let rewardKey = task.reward_avatar_frame_key || task.reward_terminal_skin_id || null;
-
-    if (!rewardKey && diff === "hard") {
-      try {
-        const enabled = await this.cosmetics.listEnabledByTypes(["avatar_frame", "terminal_skin"]);
-        rewardKey = this.pickDeterministicRewardKey({ taskId, enabledCosmetics: enabled });
-      } catch {
-        rewardKey = null;
-      }
-    }
-
-    if (!rewardKey) {
-      return { ok: false, status: 400, message: "No reward configured for this task" };
-    }
-
-    const cosmetic = (await this.cosmetics.getByKeys([rewardKey]))?.[0] || null;
-
-    await this.userCosmetics.unlockOnce({
-      user_id: userId,
-      cosmetic_key: rewardKey,
-      source_type: "weekly_task_claim_test",
-      source_id: taskId,
-    });
-
-    if (cosmetic?.type === "avatar_frame") {
-      await this.userPreferences.setAvatarFrameIfEmpty({
-        user_id: userId,
-        avatar_frame_key: rewardKey,
-      });
-    }
-
-    return {
-      ok: true,
-      data: {
-        unlocked_cosmetic_key: rewardKey,
-        cosmetic: cosmetic
-          ? { key: cosmetic.key, type: cosmetic.type, name: cosmetic.name, asset_url: cosmetic.asset_url, rarity: cosmetic.rarity }
-          : null,
-      },
-    };
+    this.notifications = new Notification();
   }
 
   pickDeterministicRewardKey({ taskId, enabledCosmetics }) {
@@ -178,6 +133,9 @@ class WeeklyTaskService {
     const task = await this.weekly.getTaskById(taskId);
     if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
 
+    const existingProgress = await this.weekly.getUserWeeklyTaskProgress({ userId, taskId }).catch(() => null);
+    const alreadyCompleted = String(existingProgress?.status || "") === "completed";
+
     const language = String(task.language || task?.programming_languages?.slug || "javascript").toLowerCase();
     const testCases = normalizeTestCases(task.test_cases, { language });
 
@@ -205,7 +163,8 @@ class WeeklyTaskService {
 
     let xpAdded = 0;
     let unlockedCosmeticKey = null;
-    if (passed) {
+    let unlockedCosmetic = null;
+    if (passed && !alreadyCompleted) {
       xpAdded = Number(task.reward_xp || 0);
       if (xpAdded) {
         await this.weekly.addXp(userId, xpAdded);
@@ -228,6 +187,11 @@ class WeeklyTaskService {
 
       if (finalRewardKey) {
         try {
+          const cosmeticRow = (await this.cosmetics.getByKeys([finalRewardKey]))?.[0] || null;
+          unlockedCosmetic = cosmeticRow
+            ? { key: cosmeticRow.key, type: cosmeticRow.type, name: cosmeticRow.name, asset_url: cosmeticRow.asset_url, rarity: cosmeticRow.rarity }
+            : null;
+
           await this.userCosmetics.unlockOnce({
             user_id: userId,
             cosmetic_key: finalRewardKey,
@@ -247,6 +211,33 @@ class WeeklyTaskService {
           // Best-effort only
         }
       }
+
+      // Congratulate + tell rewards (deduped per task)
+      try {
+        const parts = [];
+        if (xpAdded) parts.push(`+${xpAdded} XP`);
+        if (unlockedCosmetic?.name) parts.push(`Unlocked: ${unlockedCosmetic.name}`);
+        const message = parts.length
+          ? `Congrats! ${parts.join(". ")}.`
+          : "Congrats! Weekly challenge completed.";
+
+        await this.notifications.createOnce({
+          user_id: userId,
+          type: "system",
+          title: "Weekly Challenge Complete",
+          message,
+          metadata: {
+            kind: "weekly_challenge_complete",
+            task_id: taskId,
+            earned_xp: xpAdded,
+            unlocked_cosmetic_key: unlockedCosmeticKey,
+            unlocked_cosmetic: unlockedCosmetic,
+          },
+          dedupe_key: `weekly_task_complete:${taskId}`,
+        });
+      } catch {
+        // Best-effort
+      }
     }
 
     return {
@@ -254,9 +245,11 @@ class WeeklyTaskService {
       data: {
         score_percentage: scorePercentage,
         passed,
-        earned_xp: passed ? xpAdded : 0,
-        xp_added: passed ? xpAdded : 0,
-        unlocked_cosmetic_key: passed ? unlockedCosmeticKey : null,
+        already_completed: alreadyCompleted,
+        earned_xp: passed && !alreadyCompleted ? xpAdded : 0,
+        xp_added: passed && !alreadyCompleted ? xpAdded : 0,
+        unlocked_cosmetic_key: passed && !alreadyCompleted ? unlockedCosmeticKey : null,
+        unlocked_cosmetic: passed && !alreadyCompleted ? unlockedCosmetic : null,
         attempt_number: 1,
         passed_tests: passedTests,
         total_tests: totalTests,

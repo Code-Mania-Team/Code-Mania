@@ -733,7 +733,7 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
                                   handleStartWeeklyChallenge(task);
                                 }}
                               >
-                                View
+                                Completed
                                 <ChevronRight size={14} />
                               </button>
                             ) : isInProgress ? (

@@ -23,10 +23,8 @@ function normalizeLanguage(raw) {
   return "javascript";
 }
 
-function getHeroBackground(language) {
-  // Weekly challenge uses a single shared banner (rewards vibe)
-  return "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
-}
+const DEFAULT_HERO_BG =
+  "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
 
 export default function WeeklyChallengePage() {
   const { taskId: taskIdParam } = useParams();
@@ -42,11 +40,21 @@ export default function WeeklyChallengePage() {
   const [taskError, setTaskError] = useState("");
   const [score, setScore] = useState(0);
   const [earnedXp, setEarnedXp] = useState(0);
+  const [rewardModal, setRewardModal] = useState({
+    open: false,
+    xp: 0,
+    prizeName: "",
+    prizeType: "",
+    prizeAssetUrl: "",
+  });
 
   const { submit } = useWeeklyChallengeAttempt();
 
   const language = useMemo(() => normalizeLanguage(task?.language), [task]);
-  const heroBackground = useMemo(() => getHeroBackground(language), [language]);
+  const heroBackground = useMemo(() => {
+    const cover = task?.cover_image || task?.coverImage || "";
+    return String(cover || "").trim() || DEFAULT_HERO_BG;
+  }, [task?.cover_image, task?.coverImage]);
 
   useEffect(() => {
     document.body.classList.add("exam-page");
@@ -81,6 +89,34 @@ export default function WeeklyChallengePage() {
       cancelled = true;
     };
   }, [taskId]);
+
+  useEffect(() => {
+    // If the user already completed this task (e.g. completed earlier), show the congrats modal once.
+    const status = String(task?.userStatus || task?.user_status || "").toLowerCase();
+    if (status !== "completed") return;
+    if (!Number.isFinite(taskId)) return;
+    if (rewardModal.open) return;
+
+    const key = `weekly_complete_modal_shown:${taskId}`;
+    try {
+      if (localStorage.getItem(key) === "true") return;
+    } catch {
+      // ignore
+    }
+
+    const xp = Number(task?.xpAwarded || task?.xp_awarded || task?.reward_xp || 0);
+    const prizeName = task?.reward_cosmetic?.name || "";
+    const prizeType = task?.reward_cosmetic?.type || "";
+    const prizeAssetUrl = task?.reward_cosmetic?.asset_url || "";
+    if (xp <= 0 && !prizeName) return;
+
+    setRewardModal({ open: true, xp, prizeName, prizeType, prizeAssetUrl });
+    try {
+      localStorage.setItem(key, "true");
+    } catch {
+      // ignore
+    }
+  }, [task, taskId, rewardModal.open]);
 
   const challenge = useMemo(() => {
     const title = task?.title || `Weekly Challenge #${Number.isFinite(taskId) ? taskId : ""}`;
@@ -264,6 +300,19 @@ export default function WeeklyChallengePage() {
                     if (!result) return null;
                     setScore(Number(result.score_percentage || 0));
                     setEarnedXp(Number(result.earned_xp || 0));
+
+                    if (result?.passed) {
+                      window.dispatchEvent(new Event("code-mania:notifications:refresh"));
+
+                      const xp = Number(result?.xp_added || result?.earned_xp || 0);
+                      const prize = result?.unlocked_cosmetic || null;
+                      const prizeName = prize?.name || "";
+                      const prizeType = prize?.type || "";
+                      const prizeAssetUrl = prize?.asset_url || "";
+                      if ((xp > 0 || prizeName) && !result?.already_completed) {
+                        setRewardModal({ open: true, xp, prizeName, prizeType, prizeAssetUrl });
+                      }
+                    }
                     return result;
                   }}
                   attemptNumber={1}
@@ -275,6 +324,70 @@ export default function WeeklyChallengePage() {
           )}
         </div>
       </div>
+
+      {rewardModal.open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Weekly rewards"
+          className={styles.congratsOverlay}
+          onClick={() => setRewardModal((p) => ({ ...p, open: false }))}
+        >
+          <div className={styles.congratsModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.congratsIcon}>🏆</div>
+            <div className={styles.congratsTitle}>Congratulations!</div>
+            <div className={styles.congratsSubtitle}>You completed the Weekly Challenge.</div>
+
+            {rewardModal.prizeName ? (
+              <div className={styles.congratsBadge} style={{ borderColor: "rgba(251, 191, 36, 0.35)" }}>
+                {rewardModal.prizeAssetUrl ? (
+                  <img className={styles.congratsBadgeImage} src={rewardModal.prizeAssetUrl} alt="" />
+                ) : (
+                  <div className={styles.congratsBadgeIcon}>🎁</div>
+                )}
+                <div>
+                  <div className={styles.congratsBadgeTitle}>{rewardModal.prizeName}</div>
+                  <div className={styles.congratsBadgeDesc}>
+                    {rewardModal.prizeType === "avatar_frame"
+                      ? "Avatar frame unlocked"
+                      : rewardModal.prizeType === "terminal_skin"
+                        ? "Terminal theme unlocked"
+                        : "Reward unlocked"}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {rewardModal.xp ? (
+              <div className={styles.congratsXp}>
+                <div className={styles.congratsXpIcon}>⚡</div>
+                <div className={styles.congratsXpAmount}>{`+${rewardModal.xp}`}</div>
+                <div className={styles.congratsXpLabel}>XP earned</div>
+              </div>
+            ) : null}
+
+            <div className={styles.congratsActions}>
+              <button
+                type="button"
+                className={styles.congratsBtnSecondary}
+                onClick={() => setRewardModal((p) => ({ ...p, open: false }))}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className={styles.congratsBtnPrimary}
+                onClick={() => {
+                  setRewardModal((p) => ({ ...p, open: false }));
+                  navigate("/profile");
+                }}
+              >
+                View Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

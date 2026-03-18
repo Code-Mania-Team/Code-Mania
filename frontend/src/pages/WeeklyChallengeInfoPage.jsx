@@ -38,14 +38,16 @@ export default function WeeklyChallengeInfoPage() {
   const [accepting, setAccepting] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [reloadNonce, setReloadNonce] = useState(0);
-  const [claiming, setClaiming] = useState(false);
-  const [claimMessage, setClaimMessage] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState("");
 
   const cover = task?.cover_image || task?.coverImage || DEFAULT_COVER;
   const participatedCount = Number(task?.participants_count || participants.length || 0);
   const title = task?.title || "Weekly Challenge";
   const submitBy = task?.expires_at ? fmtDate(task.expires_at) : "-";
   const hasWeeklyAccess = Number(totalXp || 0) >= WEEKLY_XP_THRESHOLD;
+  const userStatus = String(task?.userStatus || task?.user_status || "").toLowerCase();
+  const isCompleted = userStatus === "completed";
 
   const requestSignIn = () => {
     navigate(location.pathname, {
@@ -130,30 +132,28 @@ export default function WeeklyChallengeInfoPage() {
     });
   };
 
-  const canShowClaim = Boolean(import.meta.env.DEV) && Boolean(isAuthenticated) && Boolean(task?.reward_cosmetic);
-
-  const handleClaim = async () => {
+  const handleDeleteTask = async () => {
     if (!Number.isFinite(numericId)) return;
-    if (!isAuthenticated) {
-      requestSignIn();
-      return;
-    }
+    if (!isAdmin) return;
 
-    setClaiming(true);
-    setClaimMessage("");
+    const ok = window.confirm(
+      "Delete this weekly challenge? This cannot be undone."
+    );
+    if (!ok) return;
+
+    setDeleting(true);
+    setDeleteMessage("");
     try {
-      const res = await axiosPrivate.post(`/v1/weekly-tasks/${numericId}/claim`);
+      const res = await axiosPrivate.delete(`/v1/weekly-tasks/${numericId}`);
       if (res.data?.success) {
-        const cosmeticName = res.data?.data?.cosmetic?.name || "reward";
-        setClaimMessage(`Claimed: ${cosmeticName}`);
-        setReloadNonce((n) => n + 1);
-      } else {
-        setClaimMessage(res.data?.message || "Failed to claim.");
+        navigate("/freedomwall/challenges", { replace: true });
+        return;
       }
+      setDeleteMessage(res.data?.message || "Failed to delete.");
     } catch (err) {
-      setClaimMessage(err?.response?.data?.message || err?.message || "Failed to claim.");
+      setDeleteMessage(err?.response?.data?.message || err?.message || "Failed to delete.");
     } finally {
-      setClaiming(false);
+      setDeleting(false);
     }
   };
 
@@ -166,16 +166,34 @@ export default function WeeklyChallengeInfoPage() {
           <h1 className={styles.title}>{title}</h1>
           <div style={{ display: "inline-flex", gap: "10px", alignItems: "center" }}>
             {isAdmin ? (
-              <button type="button" className={styles.backBtn} onClick={() => setEditOpen(true)}>
-                <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                  <Pencil size={16} />
-                  Edit
-                </span>
-              </button>
+              <>
+                <button type="button" className={styles.backBtn} onClick={() => setEditOpen(true)}>
+                  <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                    <Pencil size={16} />
+                    Edit
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={handleDeleteTask}
+                  disabled={deleting}
+                  title="Delete this weekly challenge"
+                  style={{ borderColor: "rgba(248, 113, 113, 0.55)", color: "rgba(248, 113, 113, 0.95)" }}
+                >
+                  {deleting ? "Deleting..." : "Delete"}
+                </button>
+              </>
             ) : null}
             <button type="button" className={styles.backBtn} onClick={() => navigate("/freedomwall/challenges")}>Back</button>
           </div>
         </div>
+
+        {deleteMessage ? (
+          <div className={styles.state} style={{ color: "rgba(248, 113, 113, 0.95)" }}>
+            {deleteMessage}
+          </div>
+        ) : null}
 
         <div className={styles.tabs} role="tablist" aria-label="Weekly challenge tabs">
           <button
@@ -254,7 +272,9 @@ export default function WeeklyChallengeInfoPage() {
                   {!isAuthenticated
                     ? "Sign in to start"
                     : hasWeeklyAccess
-                      ? "Ready to code?"
+                      ? isCompleted
+                        ? "Completed"
+                        : "Ready to code?"
                       : `Locked until ${WEEKLY_XP_THRESHOLD.toLocaleString()} XP`}
                 </div>
                 <button
@@ -267,9 +287,11 @@ export default function WeeklyChallengeInfoPage() {
                     ? "Sign In"
                     : !hasWeeklyAccess
                       ? "Locked"
-                      : accepting
-                        ? "Accepting..."
-                        : "Accept & Start"}
+                    : accepting
+                      ? "Accepting..."
+                        : isCompleted
+                          ? "Completed"
+                          : "Accept & Start"}
                 </button>
               </div>
 
@@ -307,23 +329,6 @@ export default function WeeklyChallengeInfoPage() {
                     </div>
                   </div>
 
-                  {canShowClaim ? (
-                    <div style={{ marginTop: 12 }}>
-                      <button
-                        type="button"
-                        className={styles.backBtn}
-                        onClick={handleClaim}
-                        disabled={claiming}
-                        title="Dev-only: claim this prize to test cosmetics"
-                        style={{ width: "100%" }}
-                      >
-                        {claiming ? "Claiming..." : "Claim"}
-                      </button>
-                      {claimMessage ? (
-                        <div style={{ marginTop: 10, fontSize: 13, opacity: 0.85 }}>{claimMessage}</div>
-                      ) : null}
-                    </div>
-                  ) : null}
                 </div>
               ) : null}
             </aside>

@@ -1,9 +1,13 @@
 import Notification from "../../models/notification.js";
 import { getTotalXpEarned } from "../../services/xpService.js";
+import WeeklyTask from "../../models/weeklyTask.js";
+import Cosmetics from "../../models/cosmetics.js";
 
 class NotificationController {
   constructor() {
     this.model = new Notification();
+    this.weekly = new WeeklyTask();
+    this.cosmetics = new Cosmetics();
   }
 
   async ensureMilestones(user_id) {
@@ -29,6 +33,80 @@ class NotificationController {
     }
   }
 
+  async ensureWeeklyCompletions(user_id) {
+    if (!user_id) return;
+
+    // Backfill latest completed weekly tasks with a single deduped notification per task.
+    const { data, error } = await this.weekly.db
+      .from("user_weekly_tasks")
+      .select(
+        `
+        task_id,
+        status,
+        completed_at,
+        xp_awarded,
+        weekly_tasks (
+          task_id,
+          title,
+          difficulty,
+          reward_xp,
+          reward_avatar_frame_key,
+          reward_terminal_skin_id
+        )
+      `
+      )
+      .eq("user_id", user_id)
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+
+    const rows = Array.isArray(data) ? data : [];
+    const keys = Array.from(
+      new Set(
+        rows
+          .map((r) => r?.weekly_tasks?.reward_avatar_frame_key || r?.weekly_tasks?.reward_terminal_skin_id)
+          .filter(Boolean)
+          .map((k) => String(k))
+      )
+    );
+
+    const cosmetics = keys.length ? await this.cosmetics.getByKeys(keys) : [];
+    const byKey = new Map((cosmetics || []).map((c) => [String(c.key), c]));
+
+    for (const r of rows) {
+      const taskId = Number(r?.task_id);
+      if (!Number.isFinite(taskId) || taskId <= 0) continue;
+
+      const xp = Number(r?.xp_awarded || r?.weekly_tasks?.reward_xp || 0);
+      const rewardKey = r?.weekly_tasks?.reward_avatar_frame_key || r?.weekly_tasks?.reward_terminal_skin_id || null;
+      const cosmetic = rewardKey ? byKey.get(String(rewardKey)) : null;
+
+      const parts = [];
+      if (xp) parts.push(`+${xp} XP`);
+      if (cosmetic?.name) parts.push(`Unlocked: ${cosmetic.name}`);
+      const message = parts.length ? `Congrats! ${parts.join(". ")}.` : "Congrats! Weekly challenge completed.";
+
+      await this.model.createOnce({
+        user_id,
+        type: "system",
+        title: "Weekly Challenge Complete",
+        message,
+        metadata: {
+          kind: "weekly_challenge_complete",
+          task_id: taskId,
+          earned_xp: xp,
+          unlocked_cosmetic_key: rewardKey,
+          unlocked_cosmetic: cosmetic
+            ? { key: cosmetic.key, type: cosmetic.type, name: cosmetic.name, asset_url: cosmetic.asset_url, rarity: cosmetic.rarity }
+            : null,
+        },
+        dedupe_key: `weekly_task_complete:${taskId}`,
+      });
+    }
+  }
+
   // ── Get all notifications for the logged-in user ─────────────
   async getNotifications(req, res) {
     try {
@@ -39,6 +117,13 @@ class NotificationController {
         await this.ensureMilestones(user_id);
       } catch (err) {
         console.error("Milestone backfill failed:", err);
+      }
+
+      // Backfill weekly completion notifications for existing users.
+      try {
+        await this.ensureWeeklyCompletions(user_id);
+      } catch (err) {
+        console.error("Weekly completion backfill failed:", err);
       }
 
       const notifications = await this.model.getByUser(user_id);

@@ -48,6 +48,18 @@ class UserCosmetics {
     return keys.map((k) => ({ key: k }));
   }
 
+  async listOwnedRowsByUserId(user_id) {
+    if (!user_id) return [];
+    const { data, error } = await this.db
+      .from("user_cosmetics")
+      .select("cosmetic_key, unlocked_at")
+      .eq("user_id", user_id)
+      .order("unlocked_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
   async unlockOnce({ user_id, cosmetic_key, source_type = "weekly_task", source_id = null }) {
     if (!user_id || !cosmetic_key) return null;
 

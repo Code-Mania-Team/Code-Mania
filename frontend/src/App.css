@@ -1973,6 +1973,60 @@ html[data-theme="light"] .notification-bell-icon {
   display: block;
 }
 
+.notification-item-prize {
+  border-color: rgba(234, 179, 8, 0.32);
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.08), rgba(0, 0, 0, 0.0));
+}
+
+.notification-item-unread.notification-item-prize {
+  box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.16), 0 14px 40px rgba(234, 179, 8, 0.10);
+  animation: notifPrizePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes notifPrizePulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+.notification-prize-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.notification-prize-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.notification-prize-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.18);
+  border: 1px solid rgba(234, 179, 8, 0.30);
+  color: rgba(253, 230, 138, 0.98);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+}
+
+.notification-prize-text {
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
 .notification-empty {
   text-align: center;
   padding: 2rem 1rem;

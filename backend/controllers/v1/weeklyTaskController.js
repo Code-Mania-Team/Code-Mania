@@ -367,35 +367,6 @@ class WeeklyTaskController {
     }
   }
 
-  // ── User: claim reward (TEST ONLY) ───────────────────────────
-  async claimReward(req, res) {
-    try {
-      const enabled =
-        String(process.env.ALLOW_TEST_CLAIM || "").toLowerCase() === "true" ||
-        String(process.env.NODE_ENV || "").toLowerCase() !== "production";
-
-      if (!enabled) {
-        return res.status(404).json({ success: false, message: "Not found" });
-      }
-
-      const user_id = res.locals.user_id;
-      const taskId = Number(req.params.task_id);
-      if (!Number.isFinite(taskId)) {
-        return res.status(400).json({ success: false, message: "Invalid task_id" });
-      }
-
-      const result = await this.service.claimReward({ userId: user_id, taskId });
-      if (!result.ok) {
-        return res.status(result.status || 500).json({ success: false, message: result.message });
-      }
-
-      return res.status(200).json({ success: true, data: result.data });
-    } catch (err) {
-      console.error("Error claiming weekly reward:", err);
-      return res.status(500).json({ success: false, message: err.message || "Failed to claim reward." });
-    }
-  }
-
   // ── Public: list past challenges w/ participants + winners ───
   async listPast(req, res) {
     try {
