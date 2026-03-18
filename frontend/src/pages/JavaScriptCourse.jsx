@@ -377,12 +377,16 @@ const JavaScriptCourse = () => {
                               >
                                 Start
                               </button>
-                            ) : status === "completed" && module.id !== 5 ? (
+                            ) : status === "completed" ? (
                               <button
                                 type="button"
                                 className="retry-btn"
-                                onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
-                                aria-label="Open completed exercise"
+                                onClick={() =>
+                                  module.id === 5
+                                    ? handleStartExam()
+                                    : handleStartExercise(exercise.order_index, { retry: true })
+                                }
+                                aria-label={module.id === 5 ? "Retake completed exam" : "Open completed exercise"}
                               >
                                 Review
                               </button>
@@ -408,6 +412,15 @@ const JavaScriptCourse = () => {
                               onClick={() => navigate(`/quiz/javascript/${module.id}`)}
                             >
                               Start
+                            </button>
+                          ) : getQuizStatus(module.id) === 'completed' ? (
+                            <button
+                              type="button"
+                              className="retry-btn"
+                              onClick={() => navigate(`/quiz/javascript/${module.id}`)}
+                              aria-label="Retake completed quiz"
+                            >
+                              Review
                             </button>
                           ) : (
                             <span className="status-icon-wrap">{getStatusIcon(getQuizStatus(module.id))}</span>

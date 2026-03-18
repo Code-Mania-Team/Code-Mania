@@ -247,6 +247,31 @@ class QuizService {
         return { ok: true, data: { success: true, preview: true } };
       }
 
+      const scorePercentage = Number(payload.score_percentage || 0);
+      const passed = scorePercentage >= 70;
+      const attemptedEarnedXp = Number(payload.earned_xp || 0);
+
+      let alreadyCompleted = false;
+      try {
+        alreadyCompleted = await this.model.hasUserAttempt({ userId, quizId: quizData.id });
+      } catch {
+        alreadyCompleted = false;
+      }
+
+      if (alreadyCompleted) {
+        return {
+          ok: true,
+          data: {
+            success: true,
+            already_completed: true,
+            passed,
+            score_percentage: scorePercentage,
+            earned_xp: 0,
+            practice_earned_xp: passed ? attemptedEarnedXp : 0,
+          },
+        };
+      }
+
       try {
         await this.model.createAttempt({
           userId,
@@ -256,15 +281,35 @@ class QuizService {
           totalQuestions: payload.total_questions,
           earnedXp: payload.earned_xp,
         });
-        return { ok: true, data: { success: true } };
+        return { ok: true, data: { success: true, already_completed: false } };
       } catch {
-        return { ok: false, status: 400, message: "Quiz already completed" };
+        // Treat races/uniques as idempotent completion.
+        return {
+          ok: true,
+          data: {
+            success: true,
+            already_completed: true,
+            passed,
+            score_percentage: scorePercentage,
+            earned_xp: 0,
+            practice_earned_xp: passed ? attemptedEarnedXp : 0,
+          },
+        };
       }
     } else {
       // CODE QUIZ
       const code = payload.code;
       if (typeof code !== "string" || !code.trim()) {
         return { ok: false, status: 400, message: "code is required" };
+      }
+
+      let alreadyCompleted = false;
+      if (!isAdmin) {
+        try {
+          alreadyCompleted = await this.model.hasUserAttempt({ userId, quizId: quizData.id });
+        } catch {
+          alreadyCompleted = false;
+        }
       }
 
       const normalizeTestCase = (tc) => {
@@ -327,6 +372,18 @@ class QuizService {
           return { ok: true, data: responsePayload };
         }
 
+        if (alreadyCompleted) {
+          return {
+            ok: true,
+            data: {
+              ...responsePayload,
+              already_completed: true,
+              earned_xp: 0,
+              practice_earned_xp: passed ? earnedXp : 0,
+            },
+          };
+        }
+
         if (!passed) {
           // Return results to UI but do not persist as 'completed'
           return { ok: true, data: responsePayload };
@@ -343,9 +400,19 @@ class QuizService {
             earnedXp: earnedXp,
           });
           responsePayload.earned_xp = earnedXp;
+          responsePayload.already_completed = false;
           return { ok: true, data: responsePayload };
         } catch (err) {
-          return { ok: false, status: 400, message: "Quiz already completed" };
+          // Treat races/uniques as idempotent completion.
+          return {
+            ok: true,
+            data: {
+              ...responsePayload,
+              already_completed: true,
+              earned_xp: 0,
+              practice_earned_xp: passed ? earnedXp : 0,
+            },
+          };
         }
       } catch (err) {
         return { ok: false, status: 500, message: "Failed to run tests" };

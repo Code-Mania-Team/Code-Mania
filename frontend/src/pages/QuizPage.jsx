@@ -32,6 +32,7 @@ const QuizPage = () => {
   const [accessLoading, setAccessLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [codeResult, setCodeResult] = useState(null);
+  const [serverCompletion, setServerCompletion] = useState(null);
 
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
@@ -265,6 +266,7 @@ const QuizPage = () => {
         `/v1/quizzes/${language}/${quizId}/complete`,
         { code }
       );
+      setServerCompletion(data);
       return data;
     } catch (err) {
       console.error("Quiz submission failed:", err);
@@ -291,7 +293,7 @@ const QuizPage = () => {
       try {
         const score = calculateScore();
 
-        await axiosPrivate.post(
+        const res = await axiosPrivate.post(
           `/v1/quizzes/${language}/${quizId}/complete`,
           {
             score_percentage: score.percentage,
@@ -300,6 +302,8 @@ const QuizPage = () => {
             earned_xp: score.totalExp,
           }
         );
+
+        setServerCompletion(res?.data || null);
       } catch (err) {
         console.error("Quiz submission failed:", err);
       }
@@ -514,6 +518,10 @@ const QuizPage = () => {
   ----------------------------------- */
   if (quizCompleted) {
     const score = calculateScore();
+    const alreadyCompleted = Boolean(serverCompletion?.already_completed || codeResult?.already_completed);
+    const xpEarnedRaw = serverCompletion?.earned_xp ?? codeResult?.earned_xp ?? score.totalExp;
+    const xpEarned = alreadyCompleted ? 0 : Number(xpEarnedRaw || 0);
+    const practiceXp = Number(serverCompletion?.practice_earned_xp ?? codeResult?.practice_earned_xp ?? 0);
 
     return (
       <div className={styles.page}>
@@ -529,7 +537,7 @@ const QuizPage = () => {
           <div className={styles.heroContent}>
             <div className={styles.resultsContainer}>
               <h1 className={styles.resultsTitle}>
-                Quiz Completed!
+                {alreadyCompleted ? "Practice Complete" : "Quiz Completed!"}
               </h1>
 
               <div className={styles.scoreDisplay}>
@@ -543,10 +551,13 @@ const QuizPage = () => {
                   Correct Answers: {score.correct}/{score.total}
                 </p>
                 <p>
-                  Score: {score.totalExp}/
-                  {score.maxExp}{" "}
-                  EXP
+                  XP Earned: {xpEarned}{alreadyCompleted ? " (practice)" : ""}
                 </p>
+                {alreadyCompleted && Number.isFinite(practiceXp) && practiceXp > 0 ? (
+                  <p>
+                    Practice XP (not granted): {practiceXp}
+                  </p>
+                ) : null}
               </div>
 
               <button

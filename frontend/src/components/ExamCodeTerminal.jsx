@@ -41,7 +41,7 @@ function coerceBool(value) {
   return Boolean(value);
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, isMobileView = false, mobilePanel = "code" }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, isMobileView = false, mobilePanel = "code", allowBeyondAttempts = false }) => {
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
@@ -200,7 +200,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   };
   const storageKey = `exam_code_${attemptId}_${language}`;
   const MAX_ATTEMPTS = 5;
-  const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS;
+  const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS && !allowBeyondAttempts;
   const disableSubmit = isRunning || attemptsExhausted;
   const showEditor = !isMobileView || mobilePanel === "code";
   const showOutput = !isMobileView || mobilePanel === "output";
@@ -365,7 +365,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         setIsRunning(false);
         return;
       }
-      if (result.score_percentage === 100) {
+      if (result.score_percentage === 100 && !result?.practice_run) {
         localStorage.removeItem(storageKey);
       }
 
@@ -391,7 +391,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
       }
 
       // Show congratulations message if perfect score
-      if (result.score_percentage === 100) {
+      if (result.score_percentage === 100 && !result?.practice_run) {
         write("\n🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n");
         write("   🏆 PERFECT SCORE! ALL TESTS PASSED!\n");
         write("   Congratulations, you earned a badge!\n");

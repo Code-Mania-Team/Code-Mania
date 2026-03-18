@@ -259,7 +259,7 @@ const CodingExamPage = () => {
             attemptNumber: attempt.attempt_number,
             baseXp,
           }),
-          locked: attempt.score_percentage === 100
+          locked: !isAdmin && Number(attempt.attempt_number || 0) >= 5 && attempt.passed !== true
         });
 
       } catch (err) {
@@ -305,19 +305,19 @@ const CodingExamPage = () => {
 
       const baseXp = Number(challenge?.points || 1000);
 
-      setExamState({
-        attemptNumber: attempt.attempt_number,
-        score: attempt.score_percentage,
-        earnedXp: resolveExamXpDisplay({
-          serverXp:
-            Number(attempt.earned_xp || 0) > 0
-              ? attempt.earned_xp
-              : carryXp,
+        setExamState({
           attemptNumber: attempt.attempt_number,
-          baseXp,
-        }),
-        locked: attempt.score_percentage === 100 || Number(attempt.attempt_number || 0) >= 5,
-      });
+          score: attempt.score_percentage,
+          earnedXp: resolveExamXpDisplay({
+            serverXp:
+              Number(attempt.earned_xp || 0) > 0
+                ? attempt.earned_xp
+                : carryXp,
+            attemptNumber: attempt.attempt_number,
+            baseXp,
+          }),
+          locked: !isAdmin && Number(attempt.attempt_number || 0) >= 5 && attempt.passed !== true,
+        });
 
       if (Number(attempt.attempt_number || 0) < 5) {
         setRetakeMessage("Retake started. You can try again now.");
@@ -650,7 +650,11 @@ const CodingExamPage = () => {
                   attemptNumber={examState.attemptNumber}
                   isAdmin={isAdmin}
                   locked={examState.locked}
+                  allowBeyondAttempts={Number(examState.score || 0) === 100}
                   onResult={async (data) => {
+                    const isPractice = Boolean(data?.practice_run);
+
+                    if (!isPractice) {
                     const baseXp = Number(challenge.points || 1000);
                     setExamState({
                       attemptNumber: data.attempt_number,
@@ -660,11 +664,12 @@ const CodingExamPage = () => {
                         attemptNumber: data.attempt_number,
                         baseXp,
                       }),
-                      locked: !isAdmin && (data.attempt_number || 0) >= 5
+                      locked: !isAdmin && Number(data.attempt_number || 0) >= 5 && data.passed !== true
                     });
+                    }
 
                     // Show congratulations if all tests passed (100%)
-                    if (data.score_percentage === 100 && !badgeAwardedRef.current) {
+                    if (!isPractice && data.score_percentage === 100 && !badgeAwardedRef.current) {
                       badgeAwardedRef.current = true;
                       const badgeId = EXAM_BADGE_MAP[language];
                       const badgeInfo = BADGE_INFO[language];

@@ -1677,25 +1677,93 @@ html[data-theme="light"] .notification-bell-icon {
 }
 
 @media (max-width: 768px) {
-  .community-page {
-    grid-template-columns: 1fr;
-    padding: 1rem;
+  /* Force single-column — override the more-specific .has-right/.no-right rules from 1024px */
+  .community-page,
+  .community-page.has-right,
+  .community-page.no-right {
+    grid-template-columns: 1fr !important;
+    padding: 0.75rem;
+    gap: 0.75rem;
   }
 
+  /* Rail becomes full-width block — override 200px from 1024px */
   .community-nav-rail {
-    width: auto;
+    width: 100% !important;
   }
 
+  /* Remove fixed positioning and explicit width */
   .community-nav-fixed {
-    position: static;
-    top: auto;
+    position: static !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Nav card: auto height, compact padding */
+  .community-nav-card {
     height: auto;
+    overflow: visible;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.875rem;
+  }
+
+  /* Stack sections tightly */
+  .community-nav-section {
+    padding: 0.1rem 0;
+  }
+
+  /* Main nav items (Home / Weekly Challenge) — horizontal row */
+  .community-nav-item-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .community-nav-item {
+    width: auto;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.85rem;
+    flex: 0 1 auto;
+  }
+
+  /* Divider */
+  .community-nav-divider {
+    margin: 0.5rem 0;
+  }
+
+  /* Section title */
+  .community-nav-section-title {
+    font-size: 0.67rem;
+    margin-bottom: 0.35rem;
+  }
+
+  /* Hashtag channels — horizontal scrollable pill strip */
+  .community-nav-item-group:last-child {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.1rem;
+  }
+
+  .community-nav-channel {
+    width: auto;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.82rem;
+    flex: 0 0 auto;
+    border-radius: 9999px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
   }
 
   .community-sidebar {
     position: static;
     max-height: none;
     padding-right: 0;
+    grid-column: auto;
   }
 
   .sidebar-tasks-list {
@@ -1706,30 +1774,48 @@ html[data-theme="light"] .notification-bell-icon {
 
   .comment-input-section,
   .comment-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .comment-input-wrapper {
-    gap: 12px;
+    gap: 10px;
   }
 
   .avatar,
   .comment-avatar {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
   }
 
   .comment-user {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .notification-dropdown {
     width: 300px;
     right: -40px;
   }
+
+  /* Challenges hero — tighten font size */
+  .challenges-hero-title {
+    font-size: clamp(1.8rem, 7vw, 2.4rem);
+  }
+
+  .challenges-hero-subtitle {
+    font-size: 0.9rem;
+  }
+
+  /* Search bar margin */
+  .search-container {
+    margin: 1rem auto;
+  }
 }
 
 @media (max-width: 480px) {
+  .community-page {
+    padding: 0.5rem;
+  }
+
   .sidebar-tasks-list {
     grid-template-columns: 1fr;
   }
@@ -1737,5 +1823,10 @@ html[data-theme="light"] .notification-bell-icon {
   .notification-dropdown {
     width: calc(100vw - 2rem);
     right: -60px;
+  }
+
+  .community-nav-item {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.7rem;
   }
 }

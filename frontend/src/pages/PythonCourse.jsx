@@ -399,6 +399,15 @@ const PythonCourse = () => {
                             >
                               Start
                             </button>
+                          ) : getQuizStatus(module.id) === 'completed' ? (
+                            <button
+                              type="button"
+                              className="retry-btn"
+                              onClick={() => navigate(`/quiz/python/${module.id}`)}
+                              aria-label="Retake completed quiz"
+                            >
+                              Review
+                            </button>
                           ) : (
                             <span className="status-icon-wrap">{getStatusIcon(getQuizStatus(module.id))}</span>
                           )}
@@ -419,6 +428,15 @@ const PythonCourse = () => {
                               onClick={handleStartExam}
                             >
                               Start
+                            </button>
+                          ) : getExamStatus() === 'completed' ? (
+                            <button
+                              type="button"
+                              className="retry-btn"
+                              onClick={handleStartExam}
+                              aria-label="Retake completed exam"
+                            >
+                              Review
                             </button>
                           ) : (
                             getStatusIcon(getExamStatus())

@@ -226,18 +226,47 @@ class ExamService {
     if (String(attempt.user_id) !== String(userId))
       return { ok: false, status: 403, message: "Forbidden" };
 
-    // 🔒 LOCK IF 100%
+    // Fetch problem for test execution
+    const problem = await this.exam.getProblemById(Number(attempt.exam_problem_id));
+    if (!problem) return { ok: false, status: 404, message: "Problem not found" };
+
+    // Practice mode: if the user already has a perfect score, allow reruns without persisting or awarding XP.
     if (attempt.score_percentage === 100) {
+      const { data: execution } = await axios.post(
+        `${TERMINAL_API_BASE_URL}/exam/run`,
+        {
+          language: attempt.language,
+          code,
+          testCases: problem.test_cases || [],
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_KEY,
+          },
+        }
+      );
+
+      const totalTests = execution.total;
+      const passedTests = execution.passed;
+      const scorePercentage = execution.score;
+      const passed = scorePercentage >= PASS_THRESHOLD;
+
       return {
         ok: true,
         data: {
-          score_percentage: 100,
-          passed: true,
-          earned_xp: attempt.earned_xp,
+          practice_run: true,
+          stored_score_percentage: 100,
+          stored_earned_xp: Number(attempt.earned_xp || 0),
+          score_percentage: scorePercentage,
+          passed,
+          earned_xp: 0,
           xp_added: 0,
           attempt_number: attempt.attempt_number,
-          locked: true
-        }
+          locked: true,
+          passed_tests: passedTests,
+          total_tests: totalTests,
+          results: execution.results,
+        },
       };
     }
 
@@ -248,16 +277,9 @@ class ExamService {
       return {
         ok: false,
         status: 400,
-        message: "Maximum attempts reached"
+        message: "Maximum attempts reached",
       };
     }
-
-    const problem = await this.exam.getProblemById(
-      Number(attempt.exam_problem_id)
-    );
-
-    if (!problem)
-      return { ok: false, status: 404, message: "Problem not found" };
 
     /* =====================================
        RUN TESTS
