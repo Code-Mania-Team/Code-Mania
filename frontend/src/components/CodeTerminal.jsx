@@ -54,14 +54,17 @@ function getDomStarterHtml() {
 </html>`;
 }
 
+const DOM_BASE_START = "<!-- CODEMANIA_BASE_HTML_START -->";
+const DOM_BASE_END = "<!-- CODEMANIA_BASE_HTML_END -->";
+
 function mergeBaseIntoDomHtml(userHtml, baseHtml) {
   const base = typeof baseHtml === "string" ? baseHtml.trim() : "";
   if (!base) return String(userHtml ?? "");
 
   const html = String(userHtml ?? "");
-  if (html.includes("CODEMANIA_BASE_INCLUDED")) return html;
+  if (html.includes(DOM_BASE_START)) return html;
 
-  const insert = `\n<!-- CODEMANIA_BASE_INCLUDED -->\n${base}\n`;
+  const insert = `\n${DOM_BASE_START}\n${base}\n${DOM_BASE_END}\n`;
   const bodyRe = /<\s*body\b[^>]*>/i;
   const m = bodyRe.exec(html);
   if (!m) return `${insert}${html}`;
@@ -317,7 +320,6 @@ const InteractiveTerminal = ({
   const [code, setCode] = useState(() => resolveInitialCode());
   const [programOutput, setProgramOutput] = useState("");
   const [inputBuffer, setInputBuffer] = useState("");
-  const [waitingForInput, setWaitingForInput] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
@@ -446,7 +448,6 @@ const InteractiveTerminal = ({
         if (practiceMode) {
           setIsRunning(false);
           setIsSubmitting(false);
-          setWaitingForInput(false);
           terminalRef.current?.blur();
           setIsQuestActive(true);
           return;
@@ -455,7 +456,6 @@ const InteractiveTerminal = ({
         setIsQuestActive(false);
         setIsRunning(false);
         setIsSubmitting(false);
-        setWaitingForInput(false);
         terminalRef.current?.blur();
       }
     };
@@ -481,7 +481,6 @@ const InteractiveTerminal = ({
     setTestResults(null);
     setIsSubmitting(false);
     setIsRunning(false);
-    setWaitingForInput(false);
     setValidationResult(null);
     setFailedSubmissions(0);
     setLastValidatedOutput(null);
@@ -659,10 +658,7 @@ const InteractiveTerminal = ({
       window.dispatchEvent(new Event("code-mania:terminal-active"));
       socket.send(JSON.stringify({ language, code }));
 
-      // Allow typing immediately; stdin can be buffered by the process.
-      setWaitingForInput(true);
-
-      // 🔥 FORCE FOCUS
+      // Focus the terminal so keystrokes show inline.
       setTimeout(() => {
         terminalRef.current?.focus();
       }, 0);
@@ -676,16 +672,12 @@ const InteractiveTerminal = ({
       finalOutput += e.data;
       setProgramOutput(prev => prev + e.data);
 
-      // Keep stdin enabled; relying on newline heuristics breaks for
-      // programs that wait for input after printing a full line.
-      setWaitingForInput(true);
       terminalRef.current?.focus();
     };
 
     socket.onclose = async () => {
       if (runId !== runIdRef.current) return;
 
-      setWaitingForInput(false);
       setIsRunning(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
 
@@ -705,7 +697,6 @@ const InteractiveTerminal = ({
       hadError = true;
       setProgramOutput(prev => prev + "\nConnection error. Please try again.\n");
       setIsRunning(false);
-      setWaitingForInput(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
       showRunToast({ type: "error", message: "Execution failed" });
       try {
@@ -818,7 +809,6 @@ const InteractiveTerminal = ({
 
     setProgramOutput("");
     setInputBuffer("");
-    setWaitingForInput(false);
     if (quest?.quest_type === "dom") {
       Promise.resolve(runDOM()).then(() => handleRunValidation());
     } else {
@@ -887,12 +877,11 @@ const InteractiveTerminal = ({
       socketRef.current.send(JSON.stringify({ stdin: value }));
     }
     setInputBuffer("");
+    terminalRef.current?.focus();
   };
 
   const handleKeyDown = (e) => {
-    if (!canInteract || !isRunning) {
-      return;
-    }
+    if (!canInteract || !isRunning) return;
 
     if (e.key === "Enter") {
       handleSubmitInput();
@@ -901,13 +890,13 @@ const InteractiveTerminal = ({
     }
 
     if (e.key === "Backspace") {
-      setInputBuffer(prev => prev.slice(0, -1));
+      setInputBuffer((prev) => prev.slice(0, -1));
       e.preventDefault();
       return;
     }
 
     if (e.key.length === 1) {
-      setInputBuffer(prev => prev + e.key);
+      setInputBuffer((prev) => prev + e.key);
       e.preventDefault();
     }
   };
@@ -1029,12 +1018,18 @@ const InteractiveTerminal = ({
                       : Boolean(obj?.passed);
                     const isActive = idx === activeObjectiveIndex;
                     const mark = passed === null ? "--" : passed ? "✔" : "✖";
+                    const statusClass =
+                      passed === null
+                        ? styles["runtime-tab-pending"]
+                        : passed
+                          ? styles["runtime-tab-pass"]
+                          : styles["runtime-tab-fail"];
 
                     return (
                       <button
                         key={`obj-tab-${idx}`}
                         type="button"
-                        className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                        className={`${styles["runtime-tab"]} ${statusClass} ${isActive ? styles["runtime-tab-active"] : ""}`}
                         onClick={() => setActiveObjectiveIndex(idx)}
                         role="tab"
                         aria-selected={isActive}
@@ -1094,12 +1089,18 @@ const InteractiveTerminal = ({
                     : Boolean(t?.passed);
                   const isActive = idx === activeRuntimeTestIndex;
                   const mark = passed === null ? "--" : passed ? "✔" : "✖";
+                  const statusClass =
+                    passed === null
+                      ? styles["runtime-tab-pending"]
+                      : passed
+                        ? styles["runtime-tab-pass"]
+                        : styles["runtime-tab-fail"];
 
                   return (
                     <button
                       key={`rt-tab-${idx}`}
                       type="button"
-                      className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                      className={`${styles["runtime-tab"]} ${statusClass} ${isActive ? styles["runtime-tab-active"] : ""}`}
                       onClick={() => setActiveRuntimeTestIndex(idx)}
                       role="tab"
                       aria-selected={isActive}
@@ -1442,8 +1443,13 @@ const InteractiveTerminal = ({
                 <div className={styles["terminal-content"]}>
                   <pre>
                     {programOutput}
-                    {inputBuffer}
-                    <span className={styles.cursor}></span>
+                    {isRunning && canInteract ? (
+                      <>
+                        <span className={styles.prompt}>›</span>
+                        {inputBuffer}
+                        <span className={styles.cursor} />
+                      </>
+                    ) : null}
                   </pre>
                 </div>
               </div>
