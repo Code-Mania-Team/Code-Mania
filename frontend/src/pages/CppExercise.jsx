@@ -121,18 +121,20 @@ const CppExercise = () => {
 
 
 
-  const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, setIsAuthenticated, setUser, user } = useAuth();
 
   // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
   useEffect(() => {
     if (hasLegacyModuleRoute) return;
+
+     if (authLoading) return;
 
     if (!isAuthenticated && activeExerciseId > 2) {
       setIsSignInModalOpen(true);
       navigate("/learn/cpp/exercise/2", { replace: true });
       setIsPageLoading(false);
     }
-  }, [activeExerciseId, isAuthenticated, navigate, hasLegacyModuleRoute]);
+  }, [activeExerciseId, isAuthenticated, navigate, hasLegacyModuleRoute, authLoading]);
 
   useEffect(() => {
     const handleResize = () => {

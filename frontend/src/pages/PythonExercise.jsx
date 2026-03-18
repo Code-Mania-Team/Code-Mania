@@ -34,11 +34,14 @@ import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise";
 
+import useAuth from "../hooks/useAxios";
+
 
 
 
 
 const PythonExercise = ({ isAuthenticated }) => {
+  const { isLoading: authLoading } = useAuth() || { isLoading: false };
 
   const stageBadgeById = {
     1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/python-badge1_qn63do.png",
@@ -115,13 +118,14 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated && activeExerciseId > 2) {
       setIsSignInModalOpen(true);
       // Keep user on the last guest-allowed exercise.
       navigate("/learn/python/exercise/2", { replace: true });
       setIsPageLoading(false);
     }
-  }, [activeExerciseId, isAuthenticated, navigate]);
+  }, [activeExerciseId, isAuthenticated, navigate, authLoading]);
 
 
   useEffect(() => {
