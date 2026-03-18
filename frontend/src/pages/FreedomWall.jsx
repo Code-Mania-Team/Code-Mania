@@ -595,7 +595,7 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
               Weekly Challenge
             </div>
             <h1 className="challenges-hero-title">Weekly Challenge</h1>
-            <p className="challenges-hero-subtitle">Solve a weekly task, earn XP, and collect rewards.</p>
+            <p className="challenges-hero-subtitle">Solve a weekly task, earn XP, and unlock cosmetics.</p>
           </div>
 
             <div className="challenges-panel">
