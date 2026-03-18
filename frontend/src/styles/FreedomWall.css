@@ -639,8 +639,40 @@ html[data-theme="light"] .challenges-panel-title {
   overflow: hidden;
 }
 
+.challenge-wide-card.is-clickable {
+  cursor: pointer;
+}
+
+.challenge-wide-card.is-clickable:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.26);
+  outline-offset: 2px;
+}
+
+html[data-theme="light"] .challenge-wide-card.is-clickable:focus-visible {
+  outline: 2px solid rgba(15, 23, 42, 0.28);
+}
+
 .challenge-wide-card:hover {
   border-color: var(--community-border-strong);
+}
+
+.past-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--community-border);
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 800;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.20);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="light"] .past-view {
+  color: rgba(15, 23, 42, 0.88);
+  background: rgba(255, 255, 255, 0.55);
 }
 
 html[data-theme="light"] .challenge-wide-card {
@@ -747,6 +779,19 @@ html[data-theme="light"] .challenge-wide-meta {
   gap: 0.4rem;
 }
 
+.challenge-meta-prize {
+  max-width: 100%;
+}
+
+.challenge-meta-thumb {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .challenge-meta-pill {
   font-size: 0.7rem;
   font-weight: 900;
@@ -761,6 +806,10 @@ html[data-theme="light"] .challenge-wide-meta {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+}
+
+.challenge-wide-actions.is-empty {
+  padding: 0;
 }
 
 .challenge-wide-btn {
@@ -781,6 +830,19 @@ html[data-theme="light"] .challenge-wide-meta {
 .challenge-wide-btn:hover {
   filter: brightness(1.12);
   transform: translateY(-1px);
+}
+
+.challenge-wide-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.challenge-wide-btn.is-locked {
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(226, 232, 240, 0.85);
 }
 
 @media (max-width: 768px) {
@@ -1301,6 +1363,77 @@ html[data-theme="light"] .comment-user-admin {
   max-width: 66ch;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.comment-hashtag {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(96, 165, 250, 0.95);
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.comment-hashtag:hover {
+  text-decoration: underline;
+}
+
+html[data-theme="light"] .comment-hashtag {
+  color: rgba(29, 78, 216, 0.92);
+}
+
+.comment-actions {
+  margin-top: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem;
+}
+
+.heart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--community-border);
+  background: rgba(0, 0, 0, 0.16);
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, border-color 0.15s ease;
+}
+
+.heart-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--community-border);
+  background: rgba(0, 0, 0, 0.10);
+  color: rgba(226, 232, 240, 0.85);
+  font-weight: 900;
+}
+
+.heart-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  border-color: var(--community-border-strong);
+}
+
+.heart-btn.is-liked {
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.14);
+  color: rgba(254, 202, 202, 0.95);
+}
+
+.heart-count {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
 }
 
 /* No Results */

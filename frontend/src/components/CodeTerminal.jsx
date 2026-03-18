@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
+import React, { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import Editor from "@monaco-editor/react";
 import { Play, Check } from "lucide-react";
 import styles from "../styles/PythonExercise.module.css";
@@ -8,6 +8,7 @@ import useCreateDomSession from "../services/useCreateDomSession";
 import useUpdateDomSession from "../services/useUpdateDomSession";
 import useDeleteDomSession from "../services/useDeleteDomSession";
 import useValidateDom from "../services/useValidateDom";
+import useAuth from "../hooks/useAxios";
 
 /* ===============================
    LANGUAGE DETECTION
@@ -32,6 +33,66 @@ function getMonacoLang(lang) {
   if (lang === "cpp") return "cpp";
   if (lang === "javascript") return "javascript";
   return "python";
+}
+
+function getDomStarterHtml() {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOM Challenge</title>
+  </head>
+  <body>
+    <!-- Your HTML goes here. Base HTML is provided by the challenge. -->
+
+    <script>
+      // Your JavaScript goes here.
+      // Tip: use document.querySelector(...) to target elements from the page.
+    </script>
+  </body>
+</html>`;
+}
+
+function mergeBaseIntoDomHtml(userHtml, baseHtml) {
+  const base = typeof baseHtml === "string" ? baseHtml.trim() : "";
+  if (!base) return String(userHtml ?? "");
+
+  const html = String(userHtml ?? "");
+  if (html.includes("CODEMANIA_BASE_INCLUDED")) return html;
+
+  const insert = `\n<!-- CODEMANIA_BASE_INCLUDED -->\n${base}\n`;
+  const bodyRe = /<\s*body\b[^>]*>/i;
+  const m = bodyRe.exec(html);
+  if (!m) return `${insert}${html}`;
+  const idx = m.index + m[0].length;
+  return html.slice(0, idx) + insert + html.slice(idx);
+}
+
+function coerceDomStartingCode(raw) {
+  const text = String(raw ?? "");
+  if (!text.trim()) return getDomStarterHtml();
+
+  // If DB already stores HTML (recommended), keep it.
+  const looksHtml = /<\s*script\b/i.test(text) || /<\s*!doctype\b/i.test(text) || /<\s*html\b/i.test(text);
+  if (looksHtml) return text;
+
+  // Back-compat: DB stored plain JS; wrap it in the HTML template.
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DOM Challenge</title>
+  </head>
+  <body>
+    <!-- Your HTML goes here. Base HTML is provided by the challenge. -->
+
+    <script>
+${text.trim()}
+    </script>
+  </body>
+</html>`;
 }
 
 function getStarterCode(lang) {
@@ -92,11 +153,66 @@ function normalizeTestResults(result) {
   return [];
 }
 
+function recordGuestQuestCompletion(quest, questId) {
+  const languageId = Number(quest?.programming_language_id);
+  const qid = Number(quest?.dbId ?? questId ?? quest?.id);
+  const orderIndex = Number(quest?.order_index);
+
+  if (!Number.isFinite(languageId) || !Number.isFinite(qid)) return;
+  if (Number.isFinite(orderIndex) && orderIndex > 2) return;
+
+  const key = "guestProgress:v1";
+  let payload = null;
+  try {
+    payload = JSON.parse(localStorage.getItem(key) || "null");
+  } catch {
+    payload = null;
+  }
+
+  const completedByLang =
+    payload?.completedByLang && typeof payload.completedByLang === "object"
+      ? payload.completedByLang
+      : {};
+
+  const langKey = String(languageId);
+  const existing = Array.isArray(completedByLang[langKey]) ? completedByLang[langKey] : [];
+  const next = Array.from(new Set([...existing, qid])).sort((a, b) => a - b);
+  completedByLang[langKey] = next;
+
+  const nextPayload = {
+    version: 1,
+    completedByLang,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    localStorage.setItem(key, JSON.stringify(nextPayload));
+  } catch {
+    // ignore
+  }
+}
+
 function normalizeObjectiveList(objectives) {
   if (!objectives) return [];
   if (Array.isArray(objectives)) return objectives;
   if (typeof objectives === "object") return Object.values(objectives);
   return [];
+}
+
+function formatCaseValue(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function formatOrEmpty(value) {
+  const formatted = formatCaseValue(value);
+  return formatted && String(formatted).trim() ? formatted : "(empty)";
 }
 
 function getQuestExpectedOutput(quest) {
@@ -172,6 +288,12 @@ const InteractiveTerminal = ({
   showMobilePanelSwitcher = true,
   enableMobileSplit = true
 }) => {
+  const { isAuthenticated } = useAuth();
+
+  // `questId` prop is the engine quest id used by map triggers/events (typically 1-16).
+  // Backend endpoints require the DB quest id (usually `quest.id`).
+  const engineQuestId = Number(questId);
+  const backendQuestId = Number(quest?.dbId ?? quest?.id ?? questId);
   const language = useMemo(() => {
     const fromQuest =
       normalizeLanguage(quest?.programming_languages?.slug) ||
@@ -180,9 +302,14 @@ const InteractiveTerminal = ({
     return fromQuest || getLanguageFromLocalStorage();
   }, [quest]);
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
-  const monacoLang = getMonacoLang(language);
+  const isDomQuest = quest?.quest_type === "dom";
+  const monacoLang = isDomQuest ? "html" : getMonacoLang(language);
   const resolveInitialCode = () => {
     const dbStartingCode = typeof quest?.starting_code === "string" ? quest.starting_code : "";
+    if (isDomQuest) {
+      const userHtml = coerceDomStartingCode(dbStartingCode);
+      return mergeBaseIntoDomHtml(userHtml, quest?.base_html);
+    }
     if (dbStartingCode.trim()) return dbStartingCode;
     return getStarterCode(language);
   };
@@ -208,6 +335,13 @@ const InteractiveTerminal = ({
   const [domSessionId, setDomSessionId] = useState(null);
   const [sandboxUrl, setSandboxUrl] = useState(null);
   const [internalActivePanel, setInternalActivePanel] = useState("editor");
+  const [activeRuntimeTestIndex, setActiveRuntimeTestIndex] = useState(0);
+  const [activeObjectiveIndex, setActiveObjectiveIndex] = useState(0);
+  const [activeSidebarTab, setActiveSidebarTab] = useState("objectives");
+  const [bottomPanelTab, setBottomPanelTab] = useState("terminal");
+  const [resultView, setResultView] = useState("runtime");
+  const [activeResultCaseIndex, setActiveResultCaseIndex] = useState(0);
+  const [runToast, setRunToast] = useState(null);
 
   const validateExercise = useValidateExercise();
   const validateExercisePreview = useValidateExercisePreview();
@@ -219,7 +353,31 @@ const InteractiveTerminal = ({
   const socketRef = useRef(null);
   const terminalRef = useRef(null);
   const iframeRef = useRef(null);
+  const runIdRef = useRef(0);
+  const toastTimerRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
+
+  const showRunToast = useCallback((next) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+
+    setRunToast(next);
+
+    if (next) {
+      toastTimerRef.current = setTimeout(() => {
+        setRunToast(null);
+        toastTimerRef.current = null;
+      }, 2000);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const canInteract = practiceMode || (isQuestActive && !isQuestCompleted);
   
@@ -239,7 +397,7 @@ const InteractiveTerminal = ({
 
     const initSession = async () => {
       const result = await createDomSession({
-        questId: quest.id,
+        questId: backendQuestId,
         baseHtml: quest.base_html
       });
 
@@ -276,15 +434,15 @@ const InteractiveTerminal = ({
         setIsQuestActive(true);
         return;
       }
-      const startedId = e.detail?.questId;
-      if (startedId === questId && !isQuestCompleted) {
+      const startedId = Number(e.detail?.questId);
+      if (Number.isFinite(engineQuestId) && startedId === engineQuestId && !isQuestCompleted) {
         setIsQuestActive(true);
       }
     };
 
     const handleQuestComplete = (e) => {
-      const completedId = e.detail?.questId;
-      if (String(completedId) === String(questId)) {
+      const completedId = Number(e.detail?.questId);
+      if (Number.isFinite(engineQuestId) && completedId === engineQuestId) {
         if (practiceMode) {
           setIsRunning(false);
           setIsSubmitting(false);
@@ -309,13 +467,13 @@ const InteractiveTerminal = ({
       window.removeEventListener("code-mania:quest-started", handleQuestStarted);
       window.removeEventListener("code-mania:quest-complete", handleQuestComplete);
     };
-  }, [isQuestCompleted, practiceMode, questId]);
+  }, [engineQuestId, isQuestCompleted, practiceMode]);
 
   useEffect(() => {
     if (!practiceMode) return;
     setIsQuestActive(true);
     setIsQuestCompleted(false);
-  }, [practiceMode, questId]);
+  }, [practiceMode, engineQuestId]);
 
   useEffect(() => {
     setIsQuestActive(false);
@@ -331,7 +489,7 @@ const InteractiveTerminal = ({
     setCode(resolveInitialCode());
     setActivePanel("editor");
     setIsValidationCollapsed(false);
-  }, [questId, quest?.starting_code]);
+  }, [engineQuestId, backendQuestId, quest?.starting_code]);
 
   const handleRunValidation = async () => {
     if (!quest || !canInteract || isValidating || isSubmitting) return;
@@ -375,7 +533,7 @@ const InteractiveTerminal = ({
         return;
       }
 
-      const result = await validateExercisePreview(questId, outputForValidation, code);
+      const result = await validateExercisePreview(backendQuestId, outputForValidation, code);
 
       if (result?.objectives) {
         setValidationResult(result.objectives);
@@ -400,9 +558,45 @@ const InteractiveTerminal = ({
   const hasAnyResults =
     Boolean(validationResult) || (Array.isArray(testResults) && testResults.length > 0);
 
+  const resultObjectives = useMemo(
+    () => (validationResult ? normalizeObjectiveList(validationResult) : []),
+    [validationResult]
+  );
+  const resultRuntimeTests = useMemo(
+    () => (Array.isArray(testResults) ? testResults : []),
+    [testResults]
+  );
+  const hasResultObjectives = resultObjectives.length > 0;
+  const hasResultRuntimeTests = resultRuntimeTests.length > 0;
+
   useEffect(() => {
     if (hasAnyResults) setIsValidationCollapsed(false);
   }, [hasAnyResults]);
+
+  useEffect(() => {
+    // Desktop: after running, jump to the "Test Result" tab.
+    if (useMobileSplit) return;
+    if (!hasAnyResults) return;
+    setBottomPanelTab("result");
+  }, [hasAnyResults, useMobileSplit]);
+
+  useEffect(() => {
+    if (hasResultRuntimeTests) {
+      setResultView("runtime");
+      return;
+    }
+    if (hasResultObjectives) {
+      setResultView("objectives");
+    }
+  }, [hasResultObjectives, hasResultRuntimeTests]);
+
+  useEffect(() => {
+    const activeList = resultView === "runtime" ? resultRuntimeTests : resultObjectives;
+    setActiveResultCaseIndex((prev) => {
+      const max = Math.max(0, activeList.length - 1);
+      return Math.min(prev, max);
+    });
+  }, [resultView, resultObjectives.length, resultRuntimeTests.length]);
 
   const progressiveHints = useMemo(() => {
     const questHints = Array.isArray(quest?.hints)
@@ -447,10 +641,16 @@ const InteractiveTerminal = ({
 
 
   const runViaDocker = () => {
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
+
+    showRunToast(null);
+
     if (socketRef.current) {
       socketRef.current.close();
     }
     let finalOutput = ""; // prevent stale state issue
+    let hadError = false;
 
     const socket = new WebSocket(terminalWsUrl);
     socketRef.current = socket;
@@ -483,16 +683,36 @@ const InteractiveTerminal = ({
     };
 
     socket.onclose = async () => {
+      if (runId !== runIdRef.current) return;
+
       setWaitingForInput(false);
       setIsRunning(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+
+      if (!hadError) {
+        const sep = finalOutput && !finalOutput.endsWith("\n") ? "\n" : "";
+        const ok = !hasExecutionError(finalOutput, language);
+        setProgramOutput((prev) =>
+          prev + `${sep}\n=== ${ok ? "Code Execution Successful" : "Code Execution Finished (with errors)"} ===\n`
+        );
+        showRunToast({ type: "success", message: "Code executed" });
+      }
     };
 
     socket.onerror = () => {
+      if (runId !== runIdRef.current) return;
+
+      hadError = true;
       setProgramOutput(prev => prev + "\nConnection error. Please try again.\n");
       setIsRunning(false);
       setWaitingForInput(false);
       window.dispatchEvent(new Event("code-mania:terminal-inactive"));
+      showRunToast({ type: "error", message: "Execution failed" });
+      try {
+        socket.close();
+      } catch {
+        // ignore
+      }
     };
   };
 
@@ -558,7 +778,7 @@ const InteractiveTerminal = ({
 
     try {
       const result = await validateExercise(
-        questId,
+        backendQuestId,
         lastValidatedOutput,
         code
       );
@@ -570,9 +790,17 @@ const InteractiveTerminal = ({
 
       if (result?.success) {
         setFailedSubmissions(0);
+
+        if (!isAuthenticated) {
+          recordGuestQuestCompletion(quest, backendQuestId);
+        }
+
+        const engineQuestId = Number(
+          quest?.order_index ?? quest?.orderIndex ?? questId
+        );
         window.dispatchEvent(
           new CustomEvent("code-mania:quest-complete", {
-            detail: { questId }
+            detail: { questId: Number.isFinite(engineQuestId) ? engineQuestId : questId }
           })
         );
       } else {
@@ -609,6 +837,10 @@ const InteractiveTerminal = ({
   // Need Validation for DOM
   const runDOM = async () => {
     if (!domSessionId) return;
+    runIdRef.current += 1;
+    const runId = runIdRef.current;
+
+    showRunToast(null);
     setIsRunning(true);
     try {
       await updateDomSession(domSessionId, code);
@@ -621,6 +853,9 @@ const InteractiveTerminal = ({
     }
 
     setIsRunning(false);
+    if (runId === runIdRef.current) {
+      showRunToast({ type: "success", message: "Code executed" });
+    }
   };
 
   const handleSubmitDom = async () => {
@@ -636,7 +871,7 @@ const InteractiveTerminal = ({
     try {
       window.dispatchEvent(
         new CustomEvent("code-mania:quest-complete", {
-          detail: { questId }
+          detail: { questId: Number.isFinite(engineQuestId) ? engineQuestId : questId }
         })
       );
     } finally {
@@ -681,10 +916,32 @@ const InteractiveTerminal = ({
   const runtimeBlueprint = useMemo(() => getQuestRuntimeTestBlueprint(quest), [quest]);
   const displayedRuntimeTests = runtimeTests.length ? runtimeTests : runtimeBlueprint;
 
+  useEffect(() => {
+    setActiveRuntimeTestIndex((prev) => {
+      const max = Math.max(0, displayedRuntimeTests.length - 1);
+      return Math.min(prev, max);
+    });
+  }, [displayedRuntimeTests.length]);
+
   const initialObjectives = useMemo(() => getQuestRequirementsBlueprint(quest), [quest]);
   const objectiveItems = validationResult
     ? normalizeObjectiveList(validationResult)
     : initialObjectives;
+
+  const hasObjectives = objectiveItems.length > 0;
+  const hasRuntimeTests = displayedRuntimeTests.length > 0;
+
+  useEffect(() => {
+    if (hasRuntimeTests) return;
+    setActiveSidebarTab("objectives");
+  }, [hasRuntimeTests]);
+
+  useEffect(() => {
+    setActiveObjectiveIndex((prev) => {
+      const max = Math.max(0, objectiveItems.length - 1);
+      return Math.min(prev, max);
+    });
+  }, [objectiveItems.length]);
 
   const totalObjectives = objectiveItems.length;
   const passedObjectives = objectiveItems.filter((obj) => obj?.passed).length;
@@ -704,9 +961,12 @@ const InteractiveTerminal = ({
     lastValidatedCode === code &&
     Boolean(lastValidatedOutput);
 
-  const renderTestSidebar = () => {
+  const renderTestSidebar = ({ fullWidth = false } = {}) => {
     return (
-      <aside className={styles["test-sidebar"]} aria-label="Test cases">
+      <aside
+        className={`${styles["test-sidebar"]} ${fullWidth ? styles["test-sidebar-full"] : ""}`}
+        aria-label="Test cases"
+      >
         <div className={styles["test-sidebar-header"]}>
           <div className={styles["test-sidebar-title"]}>Test Cases</div>
           <div
@@ -723,83 +983,180 @@ const InteractiveTerminal = ({
           </div>
         </div>
 
-        <div className={styles["test-sidebar-body"]}>
-          {!displayedRuntimeTests.length && !objectiveItems.length ? (
-            <div className={styles["test-sidebar-empty"]}>
-              Run your code to validate the test cases.
-            </div>
-          ) : null}
+          <div className={styles["test-sidebar-body"]}>
+            {!hasRuntimeTests && !hasObjectives ? (
+              <div className={styles["test-sidebar-empty"]}>
+                Run your code to validate the test cases.
+              </div>
+            ) : null}
 
-          {objectiveItems.length ? (
-            <div className={styles["test-sidebar-section"]}>
-              <div className={styles["test-sidebar-section-title"]}>Objectives</div>
-              {objectiveItems.map((obj, idx) => (
-                <div
-                  key={`obj-${idx}`}
-                  className={`${styles["testcase-row"]} ${
-                    obj?.passed === null
-                      ? styles["testcase-row-pending"]
-                      : obj?.passed
-                        ? styles["testcase-pass"]
-                        : styles["testcase-fail"]
-                  }`}
-                >
-                  <span className={styles["testcase-mark"]}>
-                    {obj?.passed === null ? "--" : obj?.passed ? "✔" : "✖"}
-                  </span>
-                  <span className={styles["testcase-text"]}>{obj?.label || "Objective"}</span>
+            {hasObjectives || hasRuntimeTests ? (
+              <div className={styles["test-sidebar-tabs"]} role="tablist" aria-label="Test sidebar">
+                {hasObjectives ? (
+                  <button
+                    type="button"
+                    className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "objectives" ? styles["test-sidebar-tab-active"] : ""}`}
+                    onClick={() => setActiveSidebarTab("objectives")}
+                    role="tab"
+                    aria-selected={activeSidebarTab === "objectives"}
+                  >
+                    Objectives
+                  </button>
+                ) : null}
+
+                {hasRuntimeTests ? (
+                  <button
+                    type="button"
+                    className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "runtime" ? styles["test-sidebar-tab-active"] : ""}`}
+                    onClick={() => setActiveSidebarTab("runtime")}
+                    role="tab"
+                    aria-selected={activeSidebarTab === "runtime"}
+                  >
+                    Runtime Tests
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {hasObjectives && activeSidebarTab === "objectives" ? (
+              <div className={styles["test-sidebar-section"]}>
+                <div className={styles["test-sidebar-section-title"]}>Objectives</div>
+
+                <div className={styles["runtime-tabs"]} role="tablist" aria-label="Objective cases">
+                  {objectiveItems.map((obj, idx) => {
+                    const passed = obj?.passed === null || obj?.passed === undefined
+                      ? null
+                      : Boolean(obj?.passed);
+                    const isActive = idx === activeObjectiveIndex;
+                    const mark = passed === null ? "--" : passed ? "✔" : "✖";
+
+                    return (
+                      <button
+                        key={`obj-tab-${idx}`}
+                        type="button"
+                        className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                        onClick={() => setActiveObjectiveIndex(idx)}
+                        role="tab"
+                        aria-selected={isActive}
+                        title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
+                      >
+                        <span className={styles["runtime-tab-mark"]}>{mark}</span>
+                        <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          ) : null}
 
-          {displayedRuntimeTests.length ? (
-            <div className={styles["test-sidebar-section"]}>
-              <div className={styles["test-sidebar-section-title"]}>Runtime Tests</div>
-              {displayedRuntimeTests.map((t, idx) => {
-                const input = t?.input ?? "";
-                const expected = t?.expected ?? "";
-                const output = t?.output ?? "";
+                {(() => {
+                  const obj = objectiveItems[activeObjectiveIndex] || {};
+                  const passed = obj?.passed === null || obj?.passed === undefined
+                    ? null
+                    : Boolean(obj?.passed);
+
+                  return (
+                    <div
+                      className={`${styles["runtime-panel"]} ${
+                        passed === null
+                          ? styles["testcase-card-pending"]
+                          : passed
+                            ? styles["testcase-card-pass"]
+                            : styles["testcase-card-fail"]
+                      }`}
+                      role="tabpanel"
+                    >
+                      <div className={styles["runtime-panel-head"]}>
+                        <div className={styles["testcase-card-title"]}>Case {activeObjectiveIndex + 1}</div>
+                        <div className={styles["testcase-status"]}>
+                          {passed === null ? "PENDING" : passed ? "PASS" : "FAIL"}
+                        </div>
+                      </div>
+
+                      <div className={styles["runtime-panel-body"]}>
+                        <div className={styles["testcase-cell"]}>
+                          <div className={styles["testcase-label"]}>Requirement</div>
+                          <pre className={styles["testcase-value"]}>{formatOrEmpty(obj?.label)}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : null}
+
+            {hasRuntimeTests && activeSidebarTab === "runtime" ? (
+              <div className={styles["test-sidebar-section"]}>
+                <div className={styles["test-sidebar-section-title"]}>Runtime Tests</div>
+
+              <div className={styles["runtime-tabs"]} role="tablist" aria-label="Runtime test cases">
+                {displayedRuntimeTests.map((t, idx) => {
+                  const passed = t?.passed === null || t?.passed === undefined
+                    ? null
+                    : Boolean(t?.passed);
+                  const isActive = idx === activeRuntimeTestIndex;
+                  const mark = passed === null ? "--" : passed ? "✔" : "✖";
+
+                  return (
+                    <button
+                      key={`rt-tab-${idx}`}
+                      type="button"
+                      className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                      onClick={() => setActiveRuntimeTestIndex(idx)}
+                      role="tab"
+                      aria-selected={isActive}
+                      title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
+                    >
+                      <span className={styles["runtime-tab-mark"]}>{mark}</span>
+                      <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {(() => {
+                const t = displayedRuntimeTests[activeRuntimeTestIndex] || {};
                 const passed = t?.passed === null || t?.passed === undefined
                   ? null
                   : Boolean(t?.passed);
 
                 return (
                   <div
-                    key={`tc-${idx}`}
-                    className={`${styles["testcase-card"]} ${
+                    className={`${styles["runtime-panel"]} ${
                       passed === null
                         ? styles["testcase-card-pending"]
                         : passed
                           ? styles["testcase-card-pass"]
                           : styles["testcase-card-fail"]
                     }`}
+                    role="tabpanel"
                   >
-                    <div className={styles["testcase-card-head"]}>
-                      <div className={styles["testcase-card-title"]}>Test {idx + 1}</div>
+                    <div className={styles["runtime-panel-head"]}>
+                      <div className={styles["testcase-card-title"]}>Case {activeRuntimeTestIndex + 1}</div>
                       <div className={styles["testcase-status"]}>
                         {passed === null ? "PENDING" : passed ? "PASS" : "FAIL"}
                       </div>
                     </div>
-                    <div className={styles["testcase-grid"]}>
+
+                    <div className={styles["runtime-panel-body"]}>
                       <div className={styles["testcase-cell"]}>
                         <div className={styles["testcase-label"]}>Input</div>
-                        <pre className={styles["testcase-value"]}>{String(input)}</pre>
+                        <pre className={styles["testcase-value"]}>{formatOrEmpty(t?.input)}</pre>
                       </div>
-                      <div className={styles["testcase-cell"]}>
-                        <div className={styles["testcase-label"]}>Expected</div>
-                        <pre className={styles["testcase-value"]}>{String(expected)}</pre>
-                      </div>
+
                       <div className={styles["testcase-cell"]}>
                         <div className={styles["testcase-label"]}>Output</div>
-                        <pre className={styles["testcase-value"]}>{String(output)}</pre>
+                        <pre className={styles["testcase-value"]}>{formatOrEmpty(t?.output)}</pre>
+                      </div>
+
+                      <div className={styles["testcase-cell"]}>
+                        <div className={styles["testcase-label"]}>Expected</div>
+                        <pre className={styles["testcase-value"]}>{formatOrEmpty(t?.expected)}</pre>
                       </div>
                     </div>
                   </div>
                 );
-              })}
-            </div>
-          ) : null}
+              })()}
+             </div>
+           ) : null}
         </div>
 
         <div className={styles["test-sidebar-footer"]}>
@@ -814,12 +1171,163 @@ const InteractiveTerminal = ({
     );
   };
 
+  const renderTestResultPanel = () => {
+    const totalResultChecks = resultObjectives.length + resultRuntimeTests.length;
+    const passedResultChecks =
+      resultObjectives.filter((o) => o?.passed).length +
+      resultRuntimeTests.filter((t) => t?.passed).length;
+
+    const allPassed = totalResultChecks > 0 && passedResultChecks === totalResultChecks;
+    const statusText = !totalResultChecks
+      ? "No Results"
+      : allPassed
+        ? "Accepted"
+        : "Wrong Answer";
+
+    const activeList = resultView === "runtime" ? resultRuntimeTests : resultObjectives;
+    const activeCase = activeList[activeResultCaseIndex] || {};
+    const runtimeMs =
+      typeof activeCase?.execution_time_ms === "number"
+        ? activeCase.execution_time_ms
+        : typeof activeCase?.runtime_ms === "number"
+          ? activeCase.runtime_ms
+          : null;
+
+    return (
+      <div className={styles["result-wrap"]} aria-label="Test result">
+        <div className={styles["result-header"]}>
+          <div
+            className={`${styles["result-status"]} ${
+              allPassed ? styles["result-status-accepted"] : styles["result-status-wrong"]
+            }`}
+          >
+            {statusText}
+          </div>
+          <div className={styles["result-meta"]}>
+            {runtimeMs !== null
+              ? `Runtime: ${runtimeMs} ms`
+              : `${passedResultChecks}/${totalResultChecks} passed`}
+          </div>
+        </div>
+
+        {(hasResultRuntimeTests || hasResultObjectives) ? (
+          <div className={styles["result-top-tabs"]} role="tablist" aria-label="Result category">
+            {hasResultRuntimeTests ? (
+              <button
+                type="button"
+                className={`${styles["result-top-tab"]} ${resultView === "runtime" ? styles["result-top-tab-active"] : ""}`}
+                onClick={() => setResultView("runtime")}
+                role="tab"
+                aria-selected={resultView === "runtime"}
+              >
+                Testcase
+              </button>
+            ) : null}
+            {hasResultObjectives ? (
+              <button
+                type="button"
+                className={`${styles["result-top-tab"]} ${resultView === "objectives" ? styles["result-top-tab-active"] : ""}`}
+                onClick={() => setResultView("objectives")}
+                role="tab"
+                aria-selected={resultView === "objectives"}
+              >
+                Objectives
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {!hasAnyResults ? (
+          <div className={styles["result-empty"]}>Run your code to see test results.</div>
+        ) : null}
+
+        {activeList.length ? (
+          <>
+            <div className={styles["runtime-tabs"]} role="tablist" aria-label="Result cases">
+              {activeList.map((item, idx) => {
+                const passed = item?.passed === null || item?.passed === undefined
+                  ? null
+                  : Boolean(item?.passed);
+                const isActive = idx === activeResultCaseIndex;
+                const mark = passed === null ? "--" : passed ? "✔" : "✖";
+
+                return (
+                  <button
+                    key={`res-case-${idx}`}
+                    type="button"
+                    className={`${styles["runtime-tab"]} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                    onClick={() => setActiveResultCaseIndex(idx)}
+                    role="tab"
+                    aria-selected={isActive}
+                    title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
+                  >
+                    <span className={styles["runtime-tab-mark"]}>{mark}</span>
+                    <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {resultView === "runtime" ? (
+              <div className={styles["result-panel"]} role="tabpanel">
+                <div className={styles["result-section-title"]}>Input</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.input)}</pre>
+                </div>
+
+                <div className={styles["result-section-title"]}>Output</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.output)}</pre>
+                </div>
+
+                <div className={styles["result-section-title"]}>Expected</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.expected)}</pre>
+                </div>
+              </div>
+            ) : (
+              <div className={styles["result-panel"]} role="tabpanel">
+                <div className={styles["result-section-title"]}>Requirement</div>
+                <div className={styles["result-block"]}>
+                  <pre className={styles["result-block-pre"]}>{formatOrEmpty(activeCase?.label)}</pre>
+                </div>
+              </div>
+            )}
+
+            {validationResult && unlockedHintCount > 0 ? (
+              <div className={styles["hint-box"]} style={{ marginTop: 14 }}>
+                <div className={styles["hint-title"]}>Hints unlocked</div>
+                {progressiveHints.slice(0, unlockedHintCount).map((hint, index) => (
+                  <div key={index} className={styles["hint-item"]}>
+                    <strong>{hint.level}:</strong> {hint.text}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    );
+  };
+
   /* ===============================
      RENDER
   =============================== */
 
   return (
     <div className={`${styles["code-container"]} ${!canInteract ? styles["code-container-locked"] : ""}`}>
+      {runToast ? (
+        <div
+          className={`${styles["run-toast"]} ${
+            runToast.type === "error" ? styles["run-toast-error"] : styles["run-toast-success"]
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          {runToast.message}
+        </div>
+      ) : null}
+
       {useMobileSplit && showMobilePanelSwitcher && (
         <div className={styles["mobile-panel-switcher"]}>
           <button
@@ -845,9 +1353,11 @@ const InteractiveTerminal = ({
           <span>
             {language === "cpp"
               ? "main.cpp"
-              : language === "javascript"
-              ? "script.js"
-              : "script.py"}
+              : isDomQuest
+                ? "index.html"
+                : language === "javascript"
+                  ? "script.js"
+                  : "script.py"}
           </span>
 
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -906,8 +1416,8 @@ const InteractiveTerminal = ({
       </div>
       )}
 
-      {(!useMobileSplit || activePanel === "terminal") && (
-        <div className={styles["terminal-with-tests"]}>
+      {(!useMobileSplit || activePanel === "terminal") && (() => {
+        const terminalView = (
           <div className={styles["terminal-main"]}>
             {quest?.quest_type === "dom" ? (
               <iframe
@@ -939,82 +1449,54 @@ const InteractiveTerminal = ({
               </div>
             )}
           </div>
+        );
 
-          {!useMobileSplit ? renderTestSidebar() : null}
-        </div>
-      )}
-       {useMobileSplit && hasAnyResults && (
-          <div
-            className={`${styles["validation-box"]} ${isValidationCollapsed ? styles["validation-box-collapsed"] : ""}`}
-          >
-           <div className={styles["validation-header"]}>
-             <div className={styles["validation-title"]}>
-               {totalChecks > 0
-                 ? `TEST RESULTS: ${passedChecks} / ${totalChecks} PASSED`
-                 : "TEST RESULTS"}
-             </div>
-             <button
-               type="button"
-               className={styles["validation-toggle"]}
-               onClick={() => setIsValidationCollapsed((prev) => !prev)}
-               aria-label={isValidationCollapsed ? "Show test results" : "Hide test results"}
-               title={isValidationCollapsed ? "Show" : "Hide"}
-             >
-               {isValidationCollapsed ? ">>" : "<<"}
-             </button>
-           </div>
+        return (
+          <div className={styles["bottom-panel"]}>
+            <div className={styles["bottom-panel-tabs"]} role="tablist" aria-label="Bottom panel">
+              <button
+                type="button"
+                className={`${styles["bottom-panel-tab"]} ${bottomPanelTab === "terminal" ? styles["bottom-panel-tab-active"] : ""}`}
+                onClick={() => setBottomPanelTab("terminal")}
+                role="tab"
+                aria-selected={bottomPanelTab === "terminal"}
+              >
+                Terminal
+              </button>
+              <button
+                type="button"
+                className={`${styles["bottom-panel-tab"]} ${bottomPanelTab === "tests" ? styles["bottom-panel-tab-active"] : ""}`}
+                onClick={() => setBottomPanelTab("tests")}
+                role="tab"
+                aria-selected={bottomPanelTab === "tests"}
+              >
+                Test Cases
+              </button>
+              <button
+                type="button"
+                className={`${styles["bottom-panel-tab"]} ${bottomPanelTab === "result" ? styles["bottom-panel-tab-active"] : ""}`}
+                onClick={() => setBottomPanelTab("result")}
+                role="tab"
+                aria-selected={bottomPanelTab === "result"}
+                disabled={!hasAnyResults}
+                title={!hasAnyResults ? "Run to see results" : ""}
+              >
+                Test Result
+              </button>
+            </div>
 
-           <div className={styles["validation-body"]}>
-             {validationResult && (
-               <>
-                 <div className={styles["validation-subtitle"]}>Objectives</div>
-                 {Object.values(validationResult).map((obj, index) => (
-                   <div
-                     key={index}
-                     className={obj.passed ? styles["test-pass"] : styles["test-fail"]}
-                   >
-                     <span className={styles["test-icon"]}>{obj.passed ? "✔" : "✖"}</span>
-                     <span>{obj.label}</span>
-                   </div>
-                 ))}
-               </>
-             )}
-
-             {Array.isArray(testResults) && testResults.length > 0 && (
-               <>
-                 <div className={styles["validation-subtitle"]}>Runtime Tests</div>
-                 {testResults.map((test, index) => (
-                   <div
-                     key={`runtime-${index}`}
-                     className={test.passed ? styles["test-pass"] : styles["test-fail"]}
-                   >
-                     <span className={styles["test-icon"]}>{test.passed ? "✔" : "✖"}</span>
-                     <span>
-                       Test {index + 1} - Input: <code>{test.input}</code> | Expected:{" "}
-                       <code>{test.expected}</code> | Output: <code>{test.output}</code>
-                     </span>
-                   </div>
-                 ))}
-               </>
-             )}
-
-             {totalChecks > 0 && passedChecks === totalChecks && (
-               <div className={styles["all-pass"]}>🎉 All tests passed!</div>
-             )}
-
-             {validationResult && unlockedHintCount > 0 && (
-               <div className={styles["hint-box"]}>
-                 <div className={styles["hint-title"]}>Hints unlocked</div>
-                 {progressiveHints.slice(0, unlockedHintCount).map((hint, index) => (
-                   <div key={index} className={styles["hint-item"]}>
-                     <strong>{hint.level}:</strong> {hint.text}
-                   </div>
-                 ))}
-               </div>
-             )}
-           </div>
-         </div>
-       )}
+            <div className={styles["bottom-panel-body"]} role="tabpanel">
+              {bottomPanelTab === "terminal" ? (
+                terminalView
+              ) : bottomPanelTab === "tests" ? (
+                renderTestSidebar({ fullWidth: true })
+              ) : (
+                renderTestResultPanel()
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {!canInteract && (
         <div className={styles["terminal-lock-overlay"]}>

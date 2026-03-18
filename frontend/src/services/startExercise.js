@@ -1,10 +1,8 @@
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { axiosPublic } from "../api/axios";
 
 const useStartExercise = () => {
-  const axiosPrivate = useAxiosPrivate();
-
   const startExercise = async (questId) => {
-    const response = await axiosPrivate.post(
+    const response = await axiosPublic.post(
       "/v1/exercises/start",
       { questId }
     );

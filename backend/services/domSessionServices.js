@@ -88,7 +88,9 @@ class DomSessionService {
     const { data } = await axios.post(
         `${TERMINAL_API_BASE_URL}/dom/run`,
         {
-        base_html: session.baseHtml,
+        base_html: (typeof session.userCode === "string" && session.userCode.includes("CODEMANIA_BASE_INCLUDED"))
+          ? ""
+          : session.baseHtml,
         user_code: session.userCode,
         validation: validationRules
         },

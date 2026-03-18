@@ -49,5 +49,6 @@ accountRouter.patch('/', authLimiter(), authentication, account.updateProfile.bi
 accountRouter.delete('/', authentication, account.deleteUser.bind(account));
 accountRouter.get('/summary', authentication, account.getProfileSummary.bind(account));
 accountRouter.get('/learning-progress', authentication, account.getLearningProgress.bind(account));
+accountRouter.get('/attempts', authentication, account.getAttempts.bind(account));
 
 export default accountRouter;

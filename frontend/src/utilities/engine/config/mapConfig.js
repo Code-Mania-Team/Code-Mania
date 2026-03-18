@@ -2,6 +2,31 @@ import { CHARACTERS } from "./characterConfig";
 
 export const MAPS = {
   Python: {
+    demo_map: {
+      mapKey: "demo_map",
+      mapJson: "/assets/maps/demo_map.json",
+      assetManifest: {
+        includeBgm: false,
+      },
+      tilesets: [
+        {
+          name: "fantastic_modern_suburbs2_TileD",
+          key: "fantastic_modern_suburbs2_TileD",
+          image: "/assets/tilesets/Python/fantastic_modern_suburbs2_TileD.png",
+        },
+        { name: "A5_4", key: "A5_4", image: "/assets/tilesets/Python/A5_4.png" },
+        {
+          name: "fsm_Inside01_D_sofa",
+          key: "fsm_Inside01_D_sofa",
+          image: "/assets/tilesets/Python/fsm_Inside01_D_sofa.png",
+        },
+        {
+          name: "MordernOuter_Outdoor",
+          key: "MordernOuter_Outdoor",
+          image: "/assets/tilesets/Python/MordernOuter_Outdoor.png",
+        },
+      ],
+    },
     map1: {
       mapKey: "map1",
       mapJson: "/assets/maps/Python/map1.json",
@@ -743,7 +768,9 @@ export const MAPS = {
         { name: "FutsuCity_A4h", key: "FutsuCity_A4h", image: "/assets/tilesets/Cpp/FutsuCity_A4h.png" },
         { name: "pika_nos_in_tiles01_D", key: "pika_nos_in_tiles01_D", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_D.png" },
         { name: "FutsuCity_C", key: "FutsuCity_C", image: "/assets/tilesets/Cpp/FutsuCity_C.png" },
-        { name: "ModernCity_B", key: "ModernCity_B", image: "/assets/tilesets/Cpp/ModernCity_B.png" }
+        { name: "ModernCity_B", key: "ModernCity_B", image: "/assets/tilesets/Cpp/ModernCity_B.png" },
+        { name: "ModernCity_A5", key: "ModernCity_A5", image: "/assets/tilesets/Cpp/ModernCity_A5.png" },
+        { name: "ModernCity_C_Night_High", key: "ModernCity_C_Night_High", image: "/assets/tilesets/Cpp/ModernCity_C_Night_High.png" },
       ],
       nextMap: "map3"
     },
@@ -775,7 +802,9 @@ export const MAPS = {
           name: "Commu-ditie3",
           key: "Commu-ditie3",
           image: "/assets/tilesets/Python/Commu-ditie3.png"
-        }
+        },
+        { name: "FutsuCity_B", key: "FutsuCity_B", image: "/assets/tilesets/Cpp/FutsuCity_B.png" },
+        { name: "commu_SF_Inside_B", key: "commu_SF_Inside_B", image: "/assets/tilesets/Cpp/commu_SF_Inside_B.png" }
       ],
       nextMap: "map4"
     },
@@ -873,7 +902,8 @@ export const MAPS = {
           key: "ModernCity_A5",
           image: "/assets/tilesets/Cpp/ModernCity_A5.png"
         },
-        { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" }
+        { name: "pika_nos_in_tiles01_A5_2", key: "pika_nos_in_tiles01_A5_2", image: "/assets/tilesets/Cpp/pika_nos_in_tiles01_A5_2.png" },
+        { name: "commu_SF_Inside_B", key: "commu_SF_Inside_B", image: "/assets/tilesets/Cpp/commu_SF_Inside_B.png" }
       ],
       nextMap: "map6"
     },

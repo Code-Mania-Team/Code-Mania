@@ -53,6 +53,11 @@ export const startGame = ({ exerciseId, quest, parent, completedQuests = [] }) =
       height,
       backgroundColor: "#0f172a",
 
+      // Enable Phaser DOM Elements (used for rich quest text)
+      dom: {
+        createContainer: true,
+      },
+
       physics: {
         default: "arcade",
         arcade: {
@@ -83,6 +88,9 @@ export const startGame = ({ exerciseId, quest, parent, completedQuests = [] }) =
       width,
       height,
       backgroundColor: "#0f172a",
+      dom: {
+        createContainer: true,
+      },
       physics: {
         default: "arcade",
         arcade: {

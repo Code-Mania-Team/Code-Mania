@@ -1,5 +1,8 @@
 import ExerciseModel from "../../models/exercises.js";
 import axios from "axios";
+import Notification from "../../models/notification.js";
+import QuizModel from "../../models/quiz.js";
+import { getTotalXpEarned } from "../../services/xpService.js";
 
 const TERMINAL_API_BASE_URL =
   process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
@@ -25,22 +28,84 @@ const parseJsonIfString = (value, fieldName) => {
 class ExerciseController {
   constructor() {
     this.exerciseModel = new ExerciseModel();
+    this.notificationModel = new Notification();
+    this.quizModel = new QuizModel();
+  }
+
+  async maybeTriggerNotifications({ userId, quest, beforeXp, afterXp }) {
+    if (!userId || !quest) return;
+    const langSlug = quest?.programming_languages?.slug || null;
+
+    // XP milestone notifications (selected milestones)
+    const before = Number(beforeXp || 0);
+    const after = Number(afterXp || 0);
+    const milestones = [1000, 5000, 10000];
+    for (const milestone of milestones) {
+      if (before < milestone && after >= milestone) {
+        await this.notificationModel.createOnce({
+          user_id: userId,
+          type: "xp_milestone",
+          title: `Milestone reached: ${milestone.toLocaleString()} XP`,
+          message: "Keep going - your next unlock is closer than you think.",
+          metadata: {
+            milestone_xp: milestone,
+            href: "/dashboard",
+          },
+          dedupe_key: `xp_milestone_${milestone}`,
+        });
+      }
+    }
+
+    // Quiz reminder at stage boundaries (every 4 quests)
+    const orderIndex = Number(quest?.order_index);
+    const languageId = Number(quest?.programming_language_id);
+    const isBoundary = Number.isFinite(orderIndex) && orderIndex > 0 && orderIndex % 4 === 0;
+
+    if (isBoundary && Number.isFinite(languageId) && langSlug) {
+      const stageNumber = Math.floor(orderIndex / 4);
+      try {
+        const quiz = await this.quizModel.getQuizByLanguageAndStage({
+          programmingLanguageId: languageId,
+          stageNumber,
+          select: "id, route",
+        });
+
+        const hasAttempt = await this.quizModel.hasUserAttempt({ userId, quizId: quiz?.id });
+        if (!hasAttempt) {
+          await this.notificationModel.createOnce({
+            user_id: userId,
+            type: "system",
+            title: `Quiz unlocked: ${langSlug.toUpperCase()} Stage ${stageNumber}`,
+            message: "Take the quiz now to lock in what you just learned.",
+            metadata: {
+              language: langSlug,
+              stage: stageNumber,
+              kind: "quiz_reminder",
+              href: `/quiz/${encodeURIComponent(langSlug)}/${encodeURIComponent(String(stageNumber))}`,
+            },
+            dedupe_key: `quiz_reminder_${langSlug}_stage_${stageNumber}`,
+          });
+        }
+      } catch {
+        // If the quiz doesn't exist yet, skip silently.
+      }
+    }
   }
 
   // Validate quest output without marking completion (for "Run" checks)
   async validateExercisePreview(req, res) {
     try {
       const { questId, output, code } = req.body;
-      const userId = res.locals.user_id;
+      const userId = res.locals.user_id || null;
       // Preview validation is used to show test cases on Run / page load.
       // It intentionally does NOT mark completion or award XP.
 
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Authentication required",
-        });
-      }
+      // if (!userId) {
+      //   return res.status(401).json({
+      //     success: false,
+      //     message: "Authentication required",
+      //   });
+      // }
 
       if (!questId || typeof output !== "string") {
         return res.status(400).json({
@@ -242,8 +307,10 @@ class ExerciseController {
       }
 
       // If not logged in → allow first quest only
+      // If not logged in → allow first TWO quests
       if (!userId) {
-        if (exercise.order_index === 1) {
+
+        if (exercise.order_index <= 2) {
           return res.status(200).json({
             success: true,
             data: exercise,
@@ -544,18 +611,14 @@ class ExerciseController {
   async validateExercise(req, res) {
     try {
       const { questId, output, code } = req.body;
-      const userId = res.locals.user_id;
-      const isAdmin =
-        res.locals.role === "admin" ||
-        (await this.exerciseModel.isAdminUser(userId));
+
+      const userId = res.locals.user_id || null;
+
       let alreadyCompleted = false;
 
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "Authentication required",
-        });
-      }
+      const isAdmin =
+        res.locals.role === "admin" ||
+        (userId && (await this.exerciseModel.isAdminUser(userId)));
 
       if (!questId || typeof output !== "string") {
         return res.status(400).json({
@@ -574,11 +637,11 @@ class ExerciseController {
         });
       }
 
-      // 2️⃣ Check quest state (must be active)
-      if (!isAdmin) {
+      // 2️⃣ Logged users must have started quest
+      if (!isAdmin && userId) {
         const questState = await this.exerciseModel.getQuestState(
           userId,
-          questId,
+          questId
         );
 
         alreadyCompleted = questState?.status === "completed";
@@ -591,6 +654,7 @@ class ExerciseController {
         }
       }
 
+      // 3️⃣ Run validation engine
       const { data: validationResult } = await axios.post(
         `${TERMINAL_API_BASE_URL}/exercise/validate`,
         {
@@ -607,9 +671,10 @@ class ExerciseController {
           headers: {
             "x-internal-key": process.env.INTERNAL_KEY,
           },
-        },
+        }
       );
 
+      // ❌ Validation failed
       if (!validationResult?.success) {
         return res.status(200).json({
           success: false,
@@ -621,16 +686,16 @@ class ExerciseController {
       }
 
       // ==================================================
-      // 🎮 PROGRESSION CHECK
+      // 🎮 PROGRESSION CHECK (LOGGED USERS ONLY)
       // ==================================================
 
-      if (!isAdmin) {
+      if (!isAdmin && userId) {
         const previousQuest = await this.exerciseModel.getPreviousQuest(quest);
 
         if (previousQuest) {
           const prevCompleted = await this.exerciseModel.isQuestCompleted(
             userId,
-            previousQuest.id,
+            previousQuest.id
           );
 
           if (!prevCompleted) {
@@ -643,35 +708,47 @@ class ExerciseController {
       }
 
       // ==================================================
-      // 🏆 MARK COMPLETE
+      // 🏆 MARK COMPLETE (LOGGED USERS ONLY)
       // ==================================================
 
-      if (!isAdmin && !alreadyCompleted) {
+      if (!isAdmin && userId && !alreadyCompleted) {
+        const beforeXp = await getTotalXpEarned(userId);
         await this.exerciseModel.markQuestComplete(userId, questId);
+
         await this.exerciseModel.addXp(userId, quest.experience);
+
+        const afterXp = Number(beforeXp || 0) + Number(quest.experience || 0);
+        try {
+          await this.maybeTriggerNotifications({ userId, quest, beforeXp, afterXp });
+        } catch (err) {
+          // Notifications are best-effort; do not fail quest completion.
+          console.error("Notification trigger failed:", err);
+        }
 
         if (quest.achievements_id) {
           await this.exerciseModel.grantAchievement(
             userId,
-            quest.achievements_id,
+            quest.achievements_id
           );
         }
       }
 
       return res.status(200).json({
-       success: true,
-       message: isAdmin
-         ? "Quest validated (admin preview)"
-         : alreadyCompleted
-           ? "Quest validated (retry)"
-           : "Quest completed",
-       xp: isAdmin ? 0 : alreadyCompleted ? 0 : quest.experience,
-       objectives: validationResult?.objectives || null,
-       test_results: validationResult?.test_results || [],
-       runtime_passed: validationResult?.runtime_passed ?? null,
-     });
+        success: true,
+        message: userId
+          ? alreadyCompleted
+            ? "Quest already completed"
+            : "Quest completed"
+          : "Quest validated (guest preview)",
+        xp: userId && !alreadyCompleted ? quest.experience : 0,
+        objectives: validationResult?.objectives || null,
+        test_results: validationResult?.test_results || [],
+        runtime_passed: validationResult?.runtime_passed ?? null,
+      });
+
     } catch (error) {
       console.error("validateExercise error:", error);
+
       return res.status(500).json({
         success: false,
         message: "Internal server error",
@@ -681,13 +758,28 @@ class ExerciseController {
 
   async startExercise(req, res) {
     try {
-      const userId = res.locals.user_id;
+      const userId = res.locals.user_id || null;
       const isAdmin =
         res.locals.role === "admin" ||
-        (await this.exerciseModel.isAdminUser(userId));
+        (userId && (await this.exerciseModel.isAdminUser(userId)));
       const { questId } = req.body;
 
-      if (!userId) return res.status(401).json({ success: false });
+      if (!questId) {
+        return res.status(400).json({ success: false, message: "questId is required" });
+      }
+
+      const quest = await this.exerciseModel.getExerciseById(questId);
+      if (!quest) {
+        return res.status(404).json({ success: false, message: "Quest not found" });
+      }
+
+      // Guest mode: allow starting Exercises 1-2 without DB writes.
+      if (!userId) {
+        if (quest.order_index <= 2) {
+          return res.status(200).json({ success: true, message: "Quest start acknowledged (guest)" });
+        }
+        return res.status(401).json({ success: false, message: "Authentication required" });
+      }
 
       if (isAdmin) {
         return res.status(200).json({ success: true });

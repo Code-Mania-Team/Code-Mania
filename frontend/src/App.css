@@ -500,6 +500,18 @@ html[data-theme="light"] .theme-toggle-icon {
   transform: translateY(0);
 }
 
+.profile-icon-container:focus-within .profile-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.profile-dropdown.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .profile-dropdown .dropdown-item {
   display: block;
   padding: 0.75rem 1rem;
@@ -588,6 +600,34 @@ html[data-theme="light"] .theme-toggle-icon {
 .get-started-btn:hover {
   background: #f59e0b;
   transform: scale(1.05);
+}
+
+.hero-cta-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.hero-demo-btn {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-family: "Jersey 25", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 0.95rem 2.2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease, background 0.2s ease;
+  backdrop-filter: blur(6px);
+}
+
+.hero-demo-btn:hover {
+  background: rgba(15, 23, 42, 0.65);
+  filter: brightness(1.06);
+  transform: scale(1.04);
 }
 
 /* === Learn Section === */
@@ -1751,6 +1791,95 @@ html[data-theme="light"] .notification-bell-icon {
   animation: notifDropIn 0.2s ease-out;
 }
 
+/* Notifications right drawer */
+.notification-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.60);
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2400;
+}
+
+.notification-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(420px, 92vw);
+  background: rgba(15, 23, 42, 0.96);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: -22px 0 70px rgba(0, 0, 0, 0.55);
+  z-index: 2450;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-drawer-header {
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.notification-drawer-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.notification-unread-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(59, 130, 246, 0.30);
+  background: rgba(59, 130, 246, 0.12);
+  color: rgba(191, 219, 254, 0.95);
+  font-weight: 900;
+  font-size: 0.8rem;
+}
+
+.notification-drawer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.notification-drawer-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 900;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.notification-drawer .notification-list {
+  padding: 0.65rem;
+  overflow: auto;
+}
+
+.notification-drawer .notification-item {
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.20);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.notification-drawer .notification-item:hover {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
 @keyframes notifDropIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -1842,6 +1971,60 @@ html[data-theme="light"] .notification-bell-icon {
   color: #6b7280;
   margin-top: 0.2rem;
   display: block;
+}
+
+.notification-item-prize {
+  border-color: rgba(234, 179, 8, 0.32);
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.08), rgba(0, 0, 0, 0.0));
+}
+
+.notification-item-unread.notification-item-prize {
+  box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.16), 0 14px 40px rgba(234, 179, 8, 0.10);
+  animation: notifPrizePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes notifPrizePulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+.notification-prize-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.notification-prize-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.notification-prize-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(234, 179, 8, 0.18);
+  border: 1px solid rgba(234, 179, 8, 0.30);
+  color: rgba(253, 230, 138, 0.98);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+}
+
+.notification-prize-text {
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 800;
+  font-size: 0.92rem;
 }
 
 .notification-empty {

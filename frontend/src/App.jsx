@@ -4,7 +4,7 @@ import "./App.css";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import FreedomWall from "./pages/FreedomWall";
-import FreedomWallChannelPage from "./pages/FreedomWallChannelPage";
+import FreedomWallTagPage from "./pages/FreedomWallTagPage";
 import Leaderboard from "./pages/Leaderboard";
 import Learn from "./pages/Learn";
 import PythonCourse from "./pages/PythonCourse";
@@ -19,21 +19,28 @@ import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
 import Credits from "./pages/credits";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import PageNotFound from "./pages/PageNotFound";
 import Rewards from "./pages/Rewards";
 import Admin from "./pages/Admin";
 import ExerciseManager from "./pages/ExerciseManager";
 import ExamManager from "./pages/ExamManager";
+import QuizManager from "./pages/QuizManager";
 import CodingExamPage from "./pages/CodingExamPage";
 import QuizPage from "./pages/QuizPage";
 import TerminalPage from "./pages/TerminalPage";
 import WeeklyChallengePage from "./pages/WeeklyChallengePage";
 import PastChallengePage from "./pages/PastChallengePage";
+import WeeklyChallengeInfoPage from "./pages/WeeklyChallengeInfoPage";
+import HomeDemoQuest from "./components/HomeDemoQuest";
+import LegalGateModal from "./components/LegalGateModal";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
 import AuthLoadingOverlay from "./components/AuthLoadingOverlay";
 import ProtectedRoute from "./components/protectedRoutes";
+import migrateGuestProgress from "./services/migrateGuestProgress";
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -64,9 +71,13 @@ const Home = () => (
           Learn programming fundamentals through interactive story-based adventures.
           Build logic step by step while exploring new worlds.
         </p>
-        <Link to="/learn" className="get-started-btn">Get Started</Link>
+        <div className="hero-cta-row">
+          <Link to="/learn" className="get-started-btn">Get Started</Link>
+        </div>
       </div>
     </section>
+
+    <HomeDemoQuest />
 
     <section className="featured-languages">
       <h2 className="section-title">Featured Languages</h2>
@@ -185,6 +196,9 @@ function App() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
+  const [legalOpen, setLegalOpen] = useState(false);
+  const [legalBusy, setLegalBusy] = useState(false);
+  const [legalError, setLegalError] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [presenceStats, setPresenceStats] = useState({ connections: 0, uniqueUsers: 0 });
@@ -391,6 +405,15 @@ function App() {
           const profile = res?.data?.data || null;
           setUser(profile);
 
+          // Migrate guest progress only for brand-new accounts (no username yet).
+          if (!profile?.username) {
+            try {
+              await migrateGuestProgress();
+            } catch {
+              // ignore; keep guest progress for later retry
+            }
+          }
+
           try {
             localStorage.setItem(
               "hasSeenTutorial",
@@ -425,6 +448,35 @@ function App() {
     location.pathname.startsWith("/coding-exam");
 
   const authenticatedHomeRedirect = user?.role === "admin" ? "/admin" : "/dashboard";
+
+  useEffect(() => {
+    const needsLegal =
+      Boolean(isAuthenticated) &&
+      Boolean(user) &&
+      (!user?.accepted_terms_at || !user?.accepted_privacy_at);
+    setLegalOpen(needsLegal);
+  }, [isAuthenticated, user]);
+
+  const acceptLegal = async () => {
+    if (!isAuthenticated) return;
+    setLegalBusy(true);
+    setLegalError("");
+    try {
+      await axiosPublic.patch("/v1/account", {
+        accept_terms: true,
+        accept_privacy: true,
+      });
+
+      const res = await axiosPublic.get("/v1/account");
+      const profile = res?.data?.data || null;
+      setUser(profile);
+      setLegalOpen(false);
+    } catch (err) {
+      setLegalError(err?.response?.data?.message || err?.message || "Failed to save.");
+    } finally {
+      setLegalBusy(false);
+    }
+  };
 
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname.startsWith("/freedomwall") ||
@@ -463,53 +515,62 @@ function App() {
           <Route
             path="/learn/python/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <PythonExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
-
+              <PythonExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
           <Route path="/learn/cpp" element={<CppCourse />} />
           <Route
             path="/learn/cpp/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <CppExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>} />
-          <Route path="/learn/cpp/exercise/:moduleId/:exerciseId" element={<ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-            <CppExercise
-              isAuthenticated={isAuthenticated}
-              onOpenModal={() => setIsModalOpen(true)}
-              onSignOut={handleSignOut}
-            />
-          </ProtectedRoute>} />
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
+          <Route
+            path="/learn/cpp/exercise/:moduleId/:exerciseId"
+            element={
+              <CppExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
+            }
+          />
           <Route path="/learn/javascript" element={<JavaScriptCourse />} />
           <Route
             path="/learn/javascript/exercise/:exerciseId"
             element={
-              <ProtectedRoute onRequireAuth={() => setIsModalOpen(true)}>
-                <JavaScriptExercise
-                  isAuthenticated={isAuthenticated}
-                  onOpenModal={() => setIsModalOpen(true)}
-                  onSignOut={handleSignOut}
-                />
-              </ProtectedRoute>
+              <JavaScriptExercise
+                isAuthenticated={isAuthenticated}
+                onOpenModal={() => setIsModalOpen(true)}
+                onSignOut={handleSignOut}
+              />
             }
           />
           <Route path="/freedomwall" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="home" />} />
           <Route path="/freedomwall/challenges" element={<FreedomWall onOpenModal={() => setIsModalOpen(true)} view="challenges" />} />
-          <Route path="/freedomwall/channel/:channelId" element={<FreedomWallChannelPage onOpenModal={() => setIsModalOpen(true)} />} />
+          <Route path="/freedomwall/tags/:tag" element={<FreedomWallTagPage onOpenModal={() => setIsModalOpen(true)} />} />
           <Route path="/freedomwall/challenges/past/:taskId" element={<PastChallengePage />} />
+          <Route
+            path="/freedomwall/challenges/task/:taskId"
+            element={<WeeklyChallengeInfoPage />}
+          />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile onSignOut={handleSignOut} />} />
+          <Route
+            path="/profile"
+            element={
+              user?.role === "admin"
+                ? <Navigate to="/admin" replace />
+                : <Profile onSignOut={handleSignOut} />
+            }
+          />
           <Route path="/profile/:username" element={<Profile onSignOut={handleSignOut} />} />
           <Route path="/dashboard" element={<ProtectedRoute>
             {user?.role === "admin" ? <Navigate to="/admin" replace /> : <Dashboard onSignOut={handleSignOut} />}
@@ -517,6 +578,7 @@ function App() {
           <Route path="/admin" element={<Admin presenceStats={presenceStats} presenceWsStatus={presenceWsStatus} />} />
           <Route path="/admin/exercises/:course" element={<ExerciseManager />} />
           <Route path="/admin/exams/:course" element={<ExamManager />} />
+          <Route path="/admin/quizzes/:course" element={<QuizManager />} />
           <Route path="/exam/:language" element={<ProtectedRoute>
             <CodingExamPage />
           </ProtectedRoute>} />
@@ -540,6 +602,8 @@ function App() {
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
@@ -569,6 +633,15 @@ function App() {
             } catch {
               // ignore
             }
+
+            // Migrate guest progress only when creating a new account.
+            if (isNew) {
+              try {
+                await migrateGuestProgress();
+              } catch {
+                // ignore; keep guest progress for later retry
+              }
+            }
           } catch {
             setUser(null);
           }
@@ -579,6 +652,13 @@ function App() {
           }
           navigate(profile?.role === "admin" ? '/admin' : '/dashboard', { replace: true });
         }}
+      />
+
+      <LegalGateModal
+        isOpen={legalOpen}
+        busy={legalBusy}
+        onAccept={acceptLegal}
+        errorMessage={legalError}
       />
     </div>
   );

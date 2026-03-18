@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { BadgeCheck, Search, Send, Clock, Star, Zap, Trophy, ChevronRight, CheckCircle2, Lock, Home, Hash, CalendarDays, Users } from "lucide-react";
+import { BadgeCheck, Search, Send, Clock, Star, Zap, Trophy, ChevronRight, CheckCircle2, Lock, Home, Hash, CalendarDays, Users, Heart } from "lucide-react";
 import { containsProfanity } from "../utils/profanityFilter";
 import "../styles/FreedomWall.css";
 
@@ -30,88 +30,41 @@ const DIFFICULTY_CONFIG = {
   hard:   { label: "Hard",   color: "#f87171", bg: "rgba(248, 113, 113, 0.12)" },
 };
 
-const COMMUNITY_CHANNELS = [
-  { id: "general", label: "General" },
-  { id: "introductions", label: "Introductions" },
-  { id: "python", label: "Python" },
-  { id: "javascript", label: "JavaScript" },
-  { id: "cpp", label: "C++" },
-  { id: "memes", label: "Memes" },
-  { id: "bug-reports", label: "Bug Reports" },
-];
+const LANGUAGE_CONFIG = {
+  javascript: { label: "JavaScript", color: "#60a5fa", bg: "rgba(96, 165, 250, 0.12)" },
+  python: { label: "Python", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.12)" },
+  cpp: { label: "C++", color: "#a78bfa", bg: "rgba(167, 139, 250, 0.12)" },
+};
+
+const getLanguageMeta = (task) => {
+  const slug = String(task?.language || task?.programming_language?.slug || "").trim().toLowerCase();
+  return LANGUAGE_CONFIG[slug] || (slug ? { label: slug, color: "#e2e8f0", bg: "rgba(226, 232, 240, 0.08)" } : null);
+};
+
+const stripLeadingHash = (raw) => {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  return s.startsWith("#") ? s.slice(1) : s;
+};
+
+const ensureLeadingHash = (raw) => {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  return s.startsWith("#") ? s : `#${s}`;
+};
 
 const DEFAULT_CHALLENGE_COVER =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
 
-// Mock weekly tasks for demo (used when API returns empty or errors)
-const MOCK_WEEKLY_TASKS = [
-  {
-    task_id: 1,
-    title: "Debug the Loop",
-    description: "Find and fix the bug in the provided Python while-loop snippet.",
-    reward_xp: 200,
-    difficulty: "easy",
-    min_xp_required: 5000,
-    userStatus: "not_started",
-    expires_at: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    task_id: 2,
-    title: "Refactor Challenge",
-    description: "Refactor the given JavaScript function to use async/await instead of callbacks.",
-    reward_xp: 350,
-    difficulty: "medium",
-    min_xp_required: 5000,
-    userStatus: "not_started",
-    expires_at: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    task_id: 3,
-    title: "Algorithm Sprint",
-    description: "Implement a binary search algorithm in C++ from scratch.",
-    reward_xp: 500,
-    difficulty: "hard",
-    min_xp_required: 5000,
-    userStatus: "in_progress",
-    expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
-// Mock past challenges for UI preview (used if API returns none)
-const MOCK_PAST_CHALLENGES = [
-  {
-    task_id: 9001,
-    title: "Array Flip Frenzy",
-    description: "Write a function that reverses an array. Keep it clean: no extra prints.",
-    difficulty: "easy",
-    language: "javascript",
-    reward_xp: 250,
-    expires_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    participants_count: 12,
-    winners: [
-      { user_id: 101, rank: 1, note: "Fast + clean output", username: "vader", character_id: 1 },
-      { user_id: 102, rank: 2, note: "Great edge cases", username: "philo", character_id: 2 },
-      { user_id: 103, rank: 3, note: "Nice explanation", username: "coders", character_id: 0 },
-    ],
-    mock_participants: [
-      { user_id: 101, username: "vader", status: "completed" },
-      { user_id: 102, username: "philo", status: "completed" },
-      { user_id: 103, username: "coders", status: "completed" },
-      { user_id: 104, username: "alice", status: "in_progress" },
-      { user_id: 105, username: "bob", status: "in_progress" },
-    ],
-  },
-];
-
-const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
+const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
   const navigate = useNavigate();
   const getAllPosts = useGetAllPosts();
-  const COOLDOWN_MINUTES = 30;
+  const COOLDOWN_MINUTES = 1;
   const userPost = useUserPost();
   const { isAuthenticated, user } = useAuth();
   const axiosPrivate = useAxiosPrivate();
   const { totalXp } = useProfileSummary();
-  const { tasks: apiTasks, loading: tasksLoading, acceptTask } = useWeeklyTasks();
+  const { tasks: apiTasks, loading: tasksLoading, error: tasksError, acceptTask } = useWeeklyTasks();
   const { past: pastChallenges, loading: pastLoading, error: pastError, refetch: refetchPast } = usePastChallenges({ limit: 25 });
   const [comments, setComments] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
@@ -123,8 +76,43 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [challengeActionMsg, setChallengeActionMsg] = useState("");
-  const [participantsByTaskId, setParticipantsByTaskId] = useState({});
-  const [participantsLoadingByTaskId, setParticipantsLoadingByTaskId] = useState({});
+  const [heartsByPostId, setHeartsByPostId] = useState({});
+  const lastHeartsFetchKeyRef = React.useRef("");
+  const [topHashtags, setTopHashtags] = useState([]);
+  const [topHashtagsLoading, setTopHashtagsLoading] = useState(false);
+
+  const fetchHeartStats = async (postIds) => {
+    const ids = (postIds || [])
+      .map((id) => Number(id))
+      .filter((n) => Number.isFinite(n) && n > 0)
+      .slice(0, 200);
+    if (!ids.length) return;
+
+    const key = ids.join(",");
+    if (!key || key === lastHeartsFetchKeyRef.current) return;
+    lastHeartsFetchKeyRef.current = key;
+
+    try {
+      const http = isAuthenticated ? axiosPrivate : axiosPublic;
+      const stats = await http.get(`/v1/post/batch`, {
+        params: { ids: key },
+      });
+      const counts = stats.data?.data?.counts || {};
+      const liked = stats.data?.data?.liked || {};
+      setHeartsByPostId((prev) => {
+        const next = { ...prev };
+        ids.forEach((id) => {
+          next[id] = {
+            count: Number(counts[id] ?? counts[String(id)] ?? 0),
+            liked: Boolean(liked[id] ?? liked[String(id)] ?? false),
+          };
+        });
+        return next;
+      });
+    } catch {
+      // ignore
+    }
+  };
 
   const getTaskId = (task) => {
     const raw = task?.task_id ?? task?.id ?? task?.taskId;
@@ -132,39 +120,37 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     return Number.isFinite(n) ? n : null;
   };
 
-  // Weekly tasks - use API tasks, fallback to mock
-  const usingMockTasks = apiTasks.length === 0;
-  const weeklyTasks = !usingMockTasks ? apiTasks : MOCK_WEEKLY_TASKS;
+  const weeklyTasks = apiTasks;
   const hasWeeklyAccess = totalXp >= WEEKLY_XP_THRESHOLD;
 
   const safePastChallenges = Array.isArray(pastChallenges) ? pastChallenges : [];
-  const effectivePastChallenges =
-    (!pastLoading && !pastError && safePastChallenges.length === 0)
-      ? MOCK_PAST_CHALLENGES
-      : safePastChallenges;
+  const effectivePastChallenges = safePastChallenges;
 
-  const ensureParticipantsLoaded = async (task) => {
-    const taskId = getTaskId(task);
-    if (!taskId) return;
-    if (participantsByTaskId[taskId]) return;
-    if (participantsLoadingByTaskId[taskId]) return;
+  const tagSlug = useMemo(() => stripLeadingHash(tag).toLowerCase(), [tag]);
+  const tagDisplay = useMemo(() => ensureLeadingHash(tagSlug), [tagSlug]);
 
-    if (Array.isArray(task?.mock_participants)) {
-      setParticipantsByTaskId((prev) => ({ ...prev, [taskId]: task.mock_participants }));
-      return;
-    }
+  useEffect(() => {
+    let alive = true;
+    const loadTop = async () => {
+      setTopHashtagsLoading(true);
+      try {
+        const res = await axiosPublic.get("/v1/hashtags/top", { params: { limit: 12 } });
+        const rows = res.data?.data;
+        if (!alive) return;
+        setTopHashtags(Array.isArray(rows) ? rows : []);
+      } catch {
+        if (!alive) return;
+        setTopHashtags([]);
+      } finally {
+        if (alive) setTopHashtagsLoading(false);
+      }
+    };
 
-    setParticipantsLoadingByTaskId((prev) => ({ ...prev, [taskId]: true }));
-    try {
-      const res = await axiosPublic.get(`/v1/weekly-tasks/${taskId}/participants`, { params: { limit: 200 } });
-      const rows = res.data?.success ? (res.data?.data || []) : [];
-      setParticipantsByTaskId((prev) => ({ ...prev, [taskId]: Array.isArray(rows) ? rows : [] }));
-    } catch {
-      setParticipantsByTaskId((prev) => ({ ...prev, [taskId]: [] }));
-    } finally {
-      setParticipantsLoadingByTaskId((prev) => ({ ...prev, [taskId]: false }));
-    }
-  };
+    loadTop();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const cooldownKey = useMemo(() => {
     if (!user?.user_id) return null;
@@ -247,6 +233,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
       username,
       avatar,
       text: post?.content ?? '',
+      hashtags: Array.isArray(post?.hashtags) ? post.hashtags : [],
       time: createdAtLabel,
       isAdmin: ADMIN_USERS.has(username.trim().toLowerCase()),
     };
@@ -256,9 +243,19 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     setIsFetching(true);
     setFetchError('');
     try {
-      const res = await getAllPosts();
-      const items = Array.isArray(res?.result) ? res.result : [];
-      setComments(items.map(mapApiPostToComment));
+      let items = [];
+      if (view === "tag" && tagSlug) {
+        const res = await axiosPublic.get(`/v1/hashtags/${encodeURIComponent(tagSlug)}/posts`, {
+          params: { limit: 50, offset: 0 },
+        });
+        items = Array.isArray(res?.data?.data) ? res.data.data : [];
+      } else {
+        const res = await getAllPosts();
+        items = Array.isArray(res?.result) ? res.result : [];
+      }
+      const mapped = items.map(mapApiPostToComment);
+      setComments(mapped);
+      await fetchHeartStats(mapped.map((c) => c.id));
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to fetch posts.';
       setFetchError(String(msg));
@@ -270,7 +267,16 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
   useEffect(() => {
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [view, tagSlug]);
+
+  useEffect(() => {
+    // Refresh liked state after sign-in
+    if (!comments.length) return;
+    // Allow refetch for same ids when auth status changes
+    lastHeartsFetchKeyRef.current = "";
+    fetchHeartStats(comments.map((c) => c.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const handleAddComment = async () => {
     const content = (newComment || '').trim();
@@ -329,6 +335,13 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
 
         if (created) {
           setComments((prev) => [created, ...prev]);
+          const pid = Number(created.id);
+          if (Number.isFinite(pid) && pid > 0) {
+            setHeartsByPostId((prev) => ({
+              ...prev,
+              [pid]: prev[pid] || { count: 0, liked: false },
+            }));
+          }
         } else {
           await fetchPosts();
         }
@@ -352,6 +365,53 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
       setPostError(String(msg));
     } finally {
       setIsPosting(false);
+    }
+  };
+
+  const toggleHeart = async (postIdRaw) => {
+    const postId = Number(postIdRaw);
+    if (!Number.isFinite(postId) || postId <= 0) return;
+
+    const canReact = Boolean(isAuthenticated && user?.user_id && user?.role !== "admin");
+    if (!canReact) {
+      // Guests and admins can view counts but cannot react.
+      return;
+    }
+
+    const current = heartsByPostId[postId] || { count: 0, liked: false };
+    const nextLiked = !current.liked;
+    const optimisticCount = Math.max(0, Number(current.count || 0) + (nextLiked ? 1 : -1));
+    setHeartsByPostId((prev) => ({
+      ...prev,
+      [postId]: { count: optimisticCount, liked: nextLiked },
+    }));
+
+    try {
+      if (nextLiked) {
+        const res = await axiosPrivate.post(`/v1/post/${postId}/like`);
+        const like_count = res.data?.like_count;
+        if (like_count !== undefined) {
+          setHeartsByPostId((prev) => ({
+            ...prev,
+            [postId]: { count: Number(like_count || 0), liked: true },
+          }));
+        }
+      } else {
+        const res = await axiosPrivate.delete(`/v1/post/${postId}/unlike`);
+        const like_count = res.data?.like_count;
+        if (like_count !== undefined) {
+          setHeartsByPostId((prev) => ({
+            ...prev,
+            [postId]: { count: Number(like_count || 0), liked: false },
+          }));
+        }
+      }
+    } catch {
+      // rollback on error
+      setHeartsByPostId((prev) => ({
+        ...prev,
+        [postId]: current,
+      }));
     }
   };
 
@@ -383,16 +443,6 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
       return;
     }
 
-    if (usingMockTasks) {
-      setChallengeActionMsg(
-        "No weekly challenges found in the database yet. Create one in admin first (this is a preview card)."
-      );
-      navigate(`/weekly-challenge/${encodeURIComponent(String(taskId))}`, {
-        state: { task },
-      });
-      return;
-    }
-
     if (!hasWeeklyAccess) {
       setChallengeActionMsg(
         `Weekly Challenge is locked until ${WEEKLY_XP_THRESHOLD.toLocaleString()} XP.`
@@ -402,6 +452,14 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
 
     await handleAcceptTask(taskId);
     navigate(`/weekly-challenge/${encodeURIComponent(String(taskId))}`, {
+      state: { task },
+    });
+  };
+
+  const handleOpenWeeklyChallenge = (task) => {
+    const taskId = getTaskId(task);
+    if (!taskId) return;
+    navigate(`/freedomwall/challenges/task/${encodeURIComponent(String(taskId))}`, {
       state: { task },
     });
   };
@@ -437,6 +495,30 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
     comment.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const renderPostText = (textRaw) => {
+    const text = String(textRaw || "");
+    const parts = text.split(/(#[A-Za-z0-9_]+)/g);
+
+    return parts.map((part, idx) => {
+      if (/^#[A-Za-z0-9_]+$/.test(part)) {
+        const slug = stripLeadingHash(part).toLowerCase();
+        return (
+          <button
+            key={`tag-${idx}-${slug}`}
+            type="button"
+            className="comment-hashtag"
+            onClick={() => navigate(`/freedomwall/tags/${encodeURIComponent(slug)}`)}
+            title={`View ${ensureLeadingHash(slug)}`}
+          >
+            {part}
+          </button>
+        );
+      }
+
+      return <React.Fragment key={`txt-${idx}`}>{part}</React.Fragment>;
+    });
+  };
+
   return (
     <div className="community-shell">
     <div className={`community-page ${view === "challenges" ? "has-right" : "no-right"}`}>
@@ -468,18 +550,35 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
           <div className="community-nav-divider" />
 
           <div className="community-nav-section">
-            <div className="community-nav-section-title">Channels</div>
+            <div className="community-nav-section-title">Top hashtags</div>
             <div className="community-nav-item-group">
-              {COMMUNITY_CHANNELS.map((ch) => (
-                <NavLink
-                  key={ch.id}
-                  to={`/freedomwall/channel/${encodeURIComponent(ch.id)}`}
-                  className={({ isActive }) => `community-nav-channel ${isActive ? "is-active" : ""}`}
-                >
+              {topHashtagsLoading ? (
+                <div className="community-nav-channel" aria-label="Loading hashtags">
                   <span className="channel-hash">#</span>
-                  <span>{ch.label}</span>
-                </NavLink>
-              ))}
+                  <span>Loading...</span>
+                </div>
+              ) : topHashtags.length > 0 ? (
+                topHashtags.map((t) => {
+                  const text = ensureLeadingHash(t?.hashtag_text);
+                  const slug = stripLeadingHash(text).toLowerCase();
+                  return (
+                    <NavLink
+                      key={slug}
+                      to={`/freedomwall/tags/${encodeURIComponent(slug)}`}
+                      className={({ isActive }) => `community-nav-channel ${isActive ? "is-active" : ""}`}
+                      title={text}
+                    >
+                      <span className="channel-hash">#</span>
+                      <span>{stripLeadingHash(text)}</span>
+                    </NavLink>
+                  );
+                })
+              ) : (
+                <div className="community-nav-channel" aria-label="No hashtags">
+                  <span className="channel-hash">#</span>
+                  <span>No hashtags yet</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -519,19 +618,17 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                 </div>
               ) : null}
 
-              {!isAuthenticated ? (
-                <div className="sidebar-locked-card">
-                  <Lock size={28} className="sidebar-locked-icon" />
-                  <p className="sidebar-locked-text">Sign in to view weekly challenges</p>
-                  <button className="sidebar-unlock-btn" onClick={onOpenModal}>
-                    Sign In
-                  </button>
+              {tasksError ? (
+                <div className="challenges-banner" role="status">
+                  {String(tasksError)}
                 </div>
-              ) : tasksLoading ? (
+              ) : null}
+
+              {tasksLoading ? (
                 <div className="sidebar-loading">Loading challenges...</div>
               ) : (
                 <>
-                  {!hasWeeklyAccess ? (
+                  {isAuthenticated && !hasWeeklyAccess ? (
                     <div className="sidebar-xp-progress challenges-xp-inline">
                       <div className="sidebar-xp-bar">
                         <div
@@ -545,19 +642,35 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                     </div>
                   ) : null}
 
-                  <div className="challenges-wide-list">
-                    {weeklyTasks.map((task) => {
-                      const diff = DIFFICULTY_CONFIG[task.difficulty] || DIFFICULTY_CONFIG.medium;
-                      const isCompleted = task.userStatus === "completed";
-                      const isInProgress = task.userStatus === "in_progress";
-                      const taskId = getTaskId(task) ?? task.task_id ?? task.id;
-                      const expiresLabel = task.expires_at ? formatChallengeDate(task.expires_at) : "";
-                      const cover = task.cover_image || task.coverImage || DEFAULT_CHALLENGE_COVER;
+                   {weeklyTasks.length === 0 ? (
+                     <div className="sidebar-loading">
+                       No weekly challenges yet.{isAdminPoster ? " Create one with + Add Task." : ""}
+                     </div>
+                   ) : (
+                   <div className="challenges-wide-list">
+                     {weeklyTasks.map((task) => {
+                       const diff = DIFFICULTY_CONFIG[task.difficulty] || DIFFICULTY_CONFIG.medium;
+                       const langMeta = getLanguageMeta(task);
+                       const isCompleted = task.userStatus === "completed";
+                       const isInProgress = task.userStatus === "in_progress";
+                       const taskId = getTaskId(task) ?? task.task_id ?? task.id;
+                       const expiresLabel = task.expires_at ? formatChallengeDate(task.expires_at) : "";
+                       const cover = task.cover_image || task.coverImage || DEFAULT_CHALLENGE_COVER;
 
                       return (
                         <div
                           key={taskId}
-                          className={`challenge-wide-card ${isCompleted ? "is-done" : ""} ${isInProgress ? "is-progress" : ""}`}
+                          className={`challenge-wide-card is-clickable ${isCompleted ? "is-done" : ""} ${isInProgress ? "is-progress" : ""}`}
+                          role="button"
+                          tabIndex={0}
+                          title="Open weekly challenge"
+                          onClick={() => handleOpenWeeklyChallenge(task)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleOpenWeeklyChallenge(task);
+                            }
+                          }}
                         >
                           <div className="challenge-wide-media" aria-hidden="true">
                             <img className="challenge-wide-img" src={cover} alt="" loading="lazy" />
@@ -579,34 +692,89 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                                 <Zap size={14} />
                                 +{task.reward_xp} XP
                               </span>
+                              {task?.reward_cosmetic ? (
+                                <span className="challenge-meta-item challenge-meta-prize" title={task.reward_cosmetic.name || "Cosmetic"}>
+                                  <Trophy size={14} />
+                                  {task.reward_cosmetic.asset_url ? (
+                                    <img
+                                      className="challenge-meta-thumb"
+                                      src={task.reward_cosmetic.asset_url}
+                                      alt=""
+                                      loading="lazy"
+                                      aria-hidden="true"
+                                    />
+                                  ) : null}
+                                  {task.reward_cosmetic.name || "Cosmetic"}
+                                </span>
+                              ) : null}
                               <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
                                 {diff.label}
                               </span>
+
+                              {langMeta ? (
+                                <span
+                                  className="challenge-meta-pill"
+                                  style={{ color: langMeta.color, background: langMeta.bg }}
+                                  title={langMeta.label}
+                                >
+                                  {langMeta.label}
+                                </span>
+                              ) : null}
                             </div>
                           </div>
 
-                          <div className="challenge-wide-actions">
-                            {isCompleted ? (
-                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
-                                View
+                          <div className={`challenge-wide-actions ${!isAuthenticated ? "is-empty" : ""}`}>
+                            {!isAuthenticated ? null : isCompleted ? (
+                              <button
+                                type="button"
+                                className="challenge-wide-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartWeeklyChallenge(task);
+                                }}
+                              >
+                                Completed
                                 <ChevronRight size={14} />
                               </button>
                             ) : isInProgress ? (
-                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
+                              <button
+                                type="button"
+                                className="challenge-wide-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartWeeklyChallenge(task);
+                                }}
+                              >
                                 Continue
                                 <ChevronRight size={14} />
                               </button>
                             ) : (
-                              <button type="button" className="challenge-wide-btn" onClick={() => handleStartWeeklyChallenge(task)}>
-                                Accept
-                                <ChevronRight size={14} />
+                              <button
+                                type="button"
+                                className={`challenge-wide-btn ${!hasWeeklyAccess ? "is-locked" : ""}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!hasWeeklyAccess) return;
+                                  handleStartWeeklyChallenge(task);
+                                }}
+                                disabled={!hasWeeklyAccess}
+                              >
+                                {hasWeeklyAccess ? (
+                                  <>
+                                    Accept
+                                    <ChevronRight size={14} />
+                                  </>
+                                ) : (
+                                  "Locked"
+                                )}
                               </button>
                             )}
                           </div>
                         </div>
                       );
                     })}
-                  </div>
+                   </div>
+                   )}
                 </>
               )}
             </div>
@@ -626,7 +794,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                 <div className="past-challenges-list">
                   {(effectivePastChallenges || []).map((t) => {
                     const diff = DIFFICULTY_CONFIG[t.difficulty] || DIFFICULTY_CONFIG.medium;
-                    const winners = Array.isArray(t.winners) ? t.winners : [];
+                    const langMeta = getLanguageMeta(t);
                     const ended = t.expires_at ? new Date(t.expires_at) : null;
 
                     return (
@@ -664,28 +832,24 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                                 <span className="challenge-meta-pill" style={{ color: diff.color, background: diff.bg }}>
                                   {diff.label}
                                 </span>
+
+                                {langMeta ? (
+                                  <span
+                                    className="challenge-meta-pill"
+                                    style={{ color: langMeta.color, background: langMeta.bg }}
+                                    title={langMeta.label}
+                                  >
+                                    {langMeta.label}
+                                  </span>
+                                ) : null}
                               </div>
                             </div>
 
                             <div className="challenge-wide-actions">
-                              {winners.length ? (
-                                <div className="past-winners">
-                                  <span className="past-winners-label">Winners</span>
-                                  <div className="past-winners-avatars">
-                                    {winners.slice(0, 3).map((w) => (
-                                      <span
-                                        key={`${t.task_id}-w-${w.user_id}`}
-                                        className="past-winner-avatar"
-                                        title={w.username || "Winner"}
-                                      >
-                                        {(w.username || "?").slice(0, 1).toUpperCase()}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="past-winners-label">No winners yet</span>
-                              )}
+                              <div className="past-view">
+                                View
+                                <ChevronRight size={14} />
+                              </div>
                             </div>
                           </div>
                       </button>
@@ -697,11 +861,11 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
           </>
         ) : (
           <>
-            {view === "channel" ? (
+            {view === "tag" ? (
               <div className="challenges-hero" style={{ paddingTop: 0 }}>
                 <div className="challenges-hero-badge">
                   <Hash size={18} />
-                  #{COMMUNITY_CHANNELS.find((c) => c.id === String(channelId || ""))?.label || channelId || "channel"}
+                  {tagDisplay || "#tag"}
                 </div>
               </div>
             ) : null}
@@ -710,7 +874,7 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
               <Search className="search-icon" />
               <input
                 type="text"
-                placeholder={view === "channel" ? "Search channel posts..." : "Search posts..."}
+                placeholder={view === "tag" ? `Search ${tagDisplay || "#tag"} posts...` : "Search posts..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -802,7 +966,27 @@ const FreedomWall = ({ onOpenModal, view = "home", channelId }) => {
                         </span>
                         <span className="comment-time">{comment.time}</span>
                       </div>
-                      <p className="comment-text">{comment.text}</p>
+                      <p className="comment-text">{renderPostText(comment.text)}</p>
+
+                      <div className="comment-actions">
+                        {isAuthenticated && user?.role !== "admin" ? (
+                          <button
+                            type="button"
+                            className={`heart-btn ${heartsByPostId[Number(comment.id)]?.liked ? "is-liked" : ""}`}
+                            onClick={() => toggleHeart(comment.id)}
+                            aria-label="React with a heart"
+                            title="Heart"
+                          >
+                            <Heart size={16} />
+                            <span className="heart-count">{Number(heartsByPostId[Number(comment.id)]?.count || 0)}</span>
+                          </button>
+                        ) : (
+                          <div className="heart-pill" aria-label="Hearts">
+                            <Heart size={16} />
+                            <span className="heart-count">{Number(heartsByPostId[Number(comment.id)]?.count || 0)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))

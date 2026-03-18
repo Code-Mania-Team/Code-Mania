@@ -4,6 +4,10 @@ import { axiosPublic } from "../api/axios";
 import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import examStyles from "../styles/ExamPage.module.css";
+import TestCasesEditor from "../components/TestCasesEditor";
+import JsonEditor from "../components/JsonEditor";
+import Editor from "@monaco-editor/react";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const LANG_SLUG_BY_COURSE = {
   python: "python",
@@ -103,40 +107,65 @@ const ExamManager = () => {
     return "";
   };
 
-  const normalizeProblemDescriptionForApi = (input) => {
-    const normalizeParsed = (parsed) => {
-      if (parsed === null || parsed === undefined) return { sections: [] };
-      if (Array.isArray(parsed)) return { sections: parsed };
-      if (typeof parsed === "object" && Array.isArray(parsed.sections)) return parsed;
-      if (typeof parsed === "string") return { sections: [{ type: "paragraph", content: parsed }] };
-      return { sections: [{ type: "paragraph", content: toPlainText(parsed) }] };
-    };
-
-    if (typeof input === "string") {
-      const trimmed = input.trim();
-      if (!trimmed) return { value: { sections: [] } };
-
-      const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
-      if (looksJson) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          return { value: normalizeParsed(parsed) };
-        } catch {
-          return { error: "Problem description must be valid JSON." };
-        }
-      }
-
-      return { value: { sections: [{ type: "paragraph", content: trimmed }] } };
-    }
-
-    return { value: normalizeParsed(input) };
+  const normalizeProblemDescriptionForApi = ({ input }) => {
+    if (typeof input === "string") return { value: input.trim() };
+    return { value: toPlainText(input) };
   };
 
   const handleEdit = async (problem) => {
+    const legacySectionsToMarkdown = (value) => {
+      if (value === null || value === undefined) return "";
+      if (typeof value === "string") return value;
+      if (!value || typeof value !== "object") return "";
+
+      const sections = Array.isArray(value)
+        ? value
+        : Array.isArray(value.sections)
+          ? value.sections
+          : [];
+
+      if (!sections.length) {
+        try {
+          return JSON.stringify(value, null, 2);
+        } catch {
+          return String(value);
+        }
+      }
+
+      const parts = sections
+        .map((s) => {
+          const type = String(s?.type || "").toLowerCase();
+          if (type === "heading") {
+            const levelRaw = Number(s?.level || 2);
+            const level = Number.isFinite(levelRaw) ? Math.min(6, Math.max(1, levelRaw)) : 2;
+            const content = String(s?.content ?? "").trim();
+            return content ? `${"#".repeat(level)} ${content}` : "";
+          }
+          if (type === "paragraph") {
+            return String(s?.content ?? "").trimEnd();
+          }
+          if (type === "list") {
+            const style = String(s?.style || "bullet").toLowerCase();
+            const items = Array.isArray(s?.items) ? s.items : [];
+            if (!items.length) return "";
+            if (style === "number" || style === "ordered") {
+              return items.map((it, idx) => `${idx + 1}. ${String(it ?? "").trim()}`).join("\n");
+            }
+            return items.map((it) => `- ${String(it ?? "").trim()}`).join("\n");
+          }
+          if (s?.content !== undefined) return String(s.content ?? "").trim();
+          return "";
+        })
+        .map((s) => String(s || "").trimEnd())
+        .filter((s) => s.trim().length);
+
+      return parts.join("\n\n").trim();
+    };
+
     setEditingProblem(problem.id);
     setFormData({
       ...problem,
-      problem_description: toPrettyJsonString(problem.problem_description, ""),
+      problem_description: legacySectionsToMarkdown(problem.problem_description),
       test_cases: toPrettyJsonString(problem.test_cases, "[]"),
     });
 
@@ -149,7 +178,7 @@ const ExamManager = () => {
         const full = response.data.data;
         setFormData({
           ...full,
-          problem_description: toPrettyJsonString(full.problem_description, ""),
+          problem_description: legacySectionsToMarkdown(full.problem_description),
           test_cases: toPrettyJsonString(full.test_cases, "[]"),
         });
       }
@@ -173,7 +202,10 @@ const ExamManager = () => {
         }
       }
 
-      const normalizedDescription = normalizeProblemDescriptionForApi(formData.problem_description);
+      const normalizedDescription = normalizeProblemDescriptionForApi({
+        input: formData.problem_description,
+        format: "markdown",
+      });
       if (normalizedDescription.error) {
         alert(normalizedDescription.error);
         setSaving(false);
@@ -284,6 +316,7 @@ const ExamManager = () => {
                         onSave={handleSave}
                         onCancel={handleCancel}
                         saving={saving}
+                        languageSlug={languageSlug}
                       />
                     </div>
                   ) : (
@@ -325,74 +358,43 @@ const ExamManager = () => {
   );
 };
 
-const ExamForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
+const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlug }) => {
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const renderInlineCode = (text, keyPrefix = "t") => {
-    const raw = String(text ?? "");
-    if (!raw.includes("`")) return raw;
-
-    const parts = raw.split("`");
-    return parts.map((part, idx) => {
-      const isCode = idx % 2 === 1;
-      if (!isCode) return part;
-      return (
-        <code key={`${keyPrefix}-${idx}`} className={examStyles.lcInlineCode}>
-          {part}
-        </code>
-      );
-    });
+  const baseEditorOptions = {
+    contextmenu: false,
+    minimap: { enabled: false },
+    fontSize: 13,
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+    wordWrap: "on",
   };
 
-  const isBacktickWrapped = (value) => {
-    const s = String(value ?? "").trim();
-    return s.length >= 2 && s.startsWith("`") && s.endsWith("`") && s.slice(1, -1).trim().length > 0;
+  const codeLanguage = (() => {
+    const raw =
+      formData?.programming_language?.slug ||
+      formData?.programming_languages?.slug ||
+      languageSlug ||
+      "";
+    const slug = String(raw).toLowerCase();
+    if (slug.includes("python")) return "python";
+    if (slug.includes("javascript") || slug === "js") return "javascript";
+    if (slug.includes("cpp") || slug.includes("c++")) return "cpp";
+    return "plaintext";
+  })();
+
+  const codeEditorOptions = {
+    ...baseEditorOptions,
+    lineNumbers: "on",
+    padding: { top: 10, bottom: 10 },
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
   };
 
-  const stripBackticks = (value) => String(value ?? "").trim().replace(/^`/, "").replace(/`$/, "");
-
-  const looksLikeExampleBlock = (value) => {
-    const s = String(value ?? "");
-    if (!s.includes("\n")) return false;
-    return /(\bInput:|\bOutput:|\bExplanation:)/.test(s);
-  };
-
-  const getDescriptionPreview = (input) => {
-    const trimmed = String(input ?? "").trim();
-    if (!trimmed) return { sections: [], error: "" };
-
-    const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
-
-    if (!looksJson) {
-      return {
-        sections: [{ type: "paragraph", content: trimmed }],
-        error: "",
-      };
-    }
-
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) return { sections: parsed, error: "" };
-      if (parsed && typeof parsed === "object" && Array.isArray(parsed.sections)) {
-        return { sections: parsed.sections, error: "" };
-      }
-      return {
-        sections: [{ type: "paragraph", content: trimmed }],
-        error: "Description JSON is valid but not in the expected shape (use { sections: [...] } or [...] ).",
-      };
-    } catch {
-      return {
-        sections: [{ type: "paragraph", content: trimmed }],
-        error: "Invalid JSON in Description (previewing raw text).",
-      };
-    }
-  };
-
-  const { sections: previewSections, error: previewError } = getDescriptionPreview(
-    formData.problem_description
-  );
+  const previewMarkdown = String(formData.problem_description || "").trim();
+  const previewError = "";
 
   const getTestCasesPreview = (input) => {
     const raw = String(input ?? "").trim();
@@ -411,13 +413,36 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
   };
 
   const normalizeTestCase = (tc) => {
+    const coerceBool = (value) => {
+      if (value === true) return true;
+      if (value === false) return false;
+      if (value === 1) return true;
+      if (value === 0) return false;
+      if (typeof value === "string") {
+        const s = value.trim().toLowerCase();
+        if (s === "true" || s === "1" || s === "yes") return true;
+        if (s === "false" || s === "0" || s === "no" || s === "") return false;
+      }
+      return Boolean(value);
+    };
+
+    const toPrettyText = (value) => {
+      if (value === null || value === undefined) return "";
+      if (typeof value === "string") return value;
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    };
+
     const input = tc?.input ?? tc?.stdin ?? "";
     const expected = tc?.expected ?? tc?.expectedOutput ?? tc?.expected_output ?? "";
-    const hidden = Boolean(tc?.is_hidden ?? tc?.isHidden);
+    const hidden = coerceBool(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
 
     return {
-      input: input === null || input === undefined ? "" : String(input),
-      expected: expected === null || expected === undefined ? "" : String(expected),
+      input: hidden ? "Hidden test case" : toPrettyText(input),
+      expected: hidden ? "Hidden" : toPrettyText(expected),
       hidden,
     };
   };
@@ -447,78 +472,77 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
           <label>Title</label>
           <input
             type="text"
+            className={styles.titleInput}
             value={formData.problem_title || ""}
             onChange={(e) => handleChange("problem_title", e.target.value)}
           />
         </div>
 
         <div className={styles.formGroupFull}>
-          <label>Description (JSON)</label>
-          <textarea
-            value={formData.problem_description || ""}
-            onChange={(e) => handleChange("problem_description", e.target.value)}
-            rows={8}
-            style={{ fontFamily: "monospace" }}
-          />
+          <label>Description</label>
+          <div className={styles.jsonEditorWrap}>
+            <Editor
+              height="220px"
+              language="markdown"
+              theme="vs-dark"
+              value={String(formData.problem_description || "")}
+              onChange={(v) => handleChange("problem_description", v ?? "")}
+              options={baseEditorOptions}
+            />
+          </div>
           <details className={styles.helpDetails}>
-            <summary className={styles.helpSummary}>Description JSON tags (click to expand)</summary>
+            <summary className={styles.helpSummary}>Description format notes (click to expand)</summary>
             <p className={styles.helpText}>
-              Use an object with <code>sections</code>. Each section supports <code>type</code>:
-              <code>heading</code>, <code>paragraph</code>, <code>list</code>. Lists support
-              <code>style</code>: <code>number</code> or <code>bullet</code>. Use backticks for inline code like
-              <code>`n`</code>.
-            </p>
-            <pre className={styles.helpCode}>
-{`{
-  "sections": [
-    { "type": "heading", "level": 2, "content": "Problem" },
-    { "type": "paragraph", "content": "Use \`n\` warriors..." },
-    {
-      "type": "list",
-      "style": "bullet",
-      "items": [
-        "\`1 <= n <= 100000\`",
-        "\`age >= 18\`"
-      ]
-    }
-  ]
-}`}
-            </pre>
-            <p className={styles.helpText}>
-              Tip: if a paragraph contains multi-line text with <code>Input:</code> and <code>Output:</code>, it will
-              render like a LeetCode example block.
+              This field supports Markdown (headings, lists, inline code with backticks, and fenced code blocks).
             </p>
           </details>
         </div>
 
         <div className={styles.formGroupFull}>
           <label>Starting Code</label>
-          <textarea
-            value={formData.starting_code || ""}
-            onChange={(e) => handleChange("starting_code", e.target.value)}
-            rows={6}
-            style={{ fontFamily: "monospace" }}
-          />
+          <div className={styles.jsonEditorWrap}>
+            <Editor
+              height="200px"
+              language={codeLanguage}
+              theme="vs-dark"
+              value={String(formData.starting_code || "")}
+              onChange={(v) => handleChange("starting_code", v ?? "")}
+              options={codeEditorOptions}
+            />
+          </div>
         </div>
 
         <div className={styles.formGroupFull}>
           <label>Solution</label>
-          <textarea
-            value={formData.solution || ""}
-            onChange={(e) => handleChange("solution", e.target.value)}
-            rows={6}
-            style={{ fontFamily: "monospace" }}
-          />
+          <div className={styles.jsonEditorWrap}>
+            <Editor
+              height="240px"
+              language={codeLanguage}
+              theme="vs-dark"
+              value={String(formData.solution || "")}
+              onChange={(v) => handleChange("solution", v ?? "")}
+              options={codeEditorOptions}
+            />
+          </div>
         </div>
 
         <div className={styles.formGroupFull}>
-          <label>Test Cases (JSON)</label>
-          <textarea
+          <label>Test Cases</label>
+          <TestCasesEditor
             value={formData.test_cases || "[]"}
-            onChange={(e) => handleChange("test_cases", e.target.value)}
-            rows={8}
-            style={{ fontFamily: "monospace" }}
+            onChange={(v) => handleChange("test_cases", v ?? "[]")}
           />
+          <details className={styles.helpDetails}>
+            <summary className={styles.helpSummary}>Raw JSON (advanced)</summary>
+            <div className={styles.jsonEditorWrap}>
+              <JsonEditor
+                height="240px"
+                value={formData.test_cases || "[]"}
+                onChange={(v) => handleChange("test_cases", v)}
+              />
+            </div>
+          </details>
+
           <details className={styles.helpDetails}>
             <summary className={styles.helpSummary}>Test cases JSON format (click to expand)</summary>
             <p className={styles.helpText}>
@@ -579,83 +603,10 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
           </div>
 
           <div>
-            {previewSections.length === 0 ? (
-              <div style={{ fontSize: 13, color: "#94a3b8" }}>(No description)</div>
+            {previewMarkdown ? (
+              <MarkdownRenderer>{previewMarkdown}</MarkdownRenderer>
             ) : (
-              previewSections.map((section, index) => {
-                if (section?.type === "heading") {
-                  const level = Math.min(4, Math.max(2, Number(section.level || 2)));
-                  const Tag = `h${level}`;
-                  const headingClass =
-                    level === 2 ? examStyles.lcH2 : level === 3 ? examStyles.lcH3 : examStyles.lcH4;
-                  return (
-                    <Tag
-                      key={index}
-                      className={headingClass}
-                      style={{ marginTop: index === 0 ? 0 : undefined }}
-                    >
-                      {renderInlineCode(section.content, `h-${index}`)}
-                    </Tag>
-                  );
-                }
-
-                if (section?.type === "paragraph") {
-                  if (looksLikeExampleBlock(section.content)) {
-                    return (
-                      <pre key={index} className={examStyles.lcPre}>
-                        <code>{String(section.content ?? "")}</code>
-                      </pre>
-                    );
-                  }
-
-                  return (
-                    <p key={index} className={examStyles.lcParagraph}>
-                      {renderInlineCode(section.content, `p-${index}`)}
-                    </p>
-                  );
-                }
-
-                if (section?.type === "list" && Array.isArray(section.items)) {
-                  const ListTag = section.style === "number" ? "ol" : "ul";
-
-                  const allCodeOnly = section.items.length > 0 && section.items.every(isBacktickWrapped);
-                  if (allCodeOnly) {
-                    return (
-                      <div key={index} className={examStyles.lcListWrap}>
-                        <div className={examStyles.lcChipRow}>
-                          {section.items.map((item, i) => (
-                            <span key={i} className={examStyles.lcChip}>
-                              {stripBackticks(item)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div key={index} className={examStyles.lcListWrap}>
-                      <ListTag className={examStyles.lcList}>
-                        {section.items.map((item, i) => (
-                          <li key={i} className={examStyles.lcListItem}>
-                            {renderInlineCode(item, `li-${index}-${i}`)}
-                          </li>
-                        ))}
-                      </ListTag>
-                    </div>
-                  );
-                }
-
-                if (section?.content) {
-                  return (
-                    <p key={index} style={{ margin: "0 0 0.65rem 0", color: "#cbd5e1" }}>
-                      {String(section.content)}
-                    </p>
-                  );
-                }
-
-                return null;
-              })
+              <div style={{ fontSize: 13, color: "#94a3b8" }}>(No description)</div>
             )}
           </div>
 

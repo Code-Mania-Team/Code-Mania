@@ -41,15 +41,26 @@ class AccountService {
 
     // await sendOtpEmail(email, otp);
 
-    await sendOtpEmail({
-      toEmail: email,
+    let email_sent = false;
+    try {
+      await sendOtpEmail({
+        toEmail: email,
+        otp,
+        type: "signup",
+      });
+      email_sent = true;
+    } catch (err) {
+      const isProd = String(process.env.NODE_ENV || "").toLowerCase() === "production";
+      const allowNoEmail = String(process.env.ALLOW_OTP_WITHOUT_EMAIL || "").toLowerCase() === "true";
 
-      otp,
+      if (isProd && !allowNoEmail) {
+        throw err;
+      }
 
-      type: "signup",
-    });
+      console.warn("<warn> OTP email send failed; continuing for dev", err?.message || err);
+    }
 
-    return record;
+    return { ...record, email_sent, otp };
   }
 
   async verifySignupOtp(email, otp) {

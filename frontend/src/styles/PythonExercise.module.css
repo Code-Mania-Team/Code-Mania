@@ -105,29 +105,31 @@
 }
 
 .practice-info {
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.86) 0%, rgba(2, 6, 23, 0.86) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.34);
   border-radius: 10px;
   padding: 1rem;
   margin-bottom: 0.9rem;
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: auto;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
 }
 
 .practice-title {
-  font-family: "Press Start 2P", cursive;
-  font-size: 0.85rem;
-  line-height: 1.35;
-  color: #93c5fd;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 800;
+  color: rgba(226, 232, 240, 0.92);
   margin: 0 0 0.75rem 0;
 }
 
 .practice-desc {
   margin: 0;
-  color: #cbd5e1;
-  line-height: 1.6;
-  font-size: 0.95rem;
+  color: rgba(226, 232, 240, 0.92);
+  line-height: 1.75;
+  font-size: 1rem;
 }
 
 .practice-task {
@@ -137,16 +139,85 @@
 }
 
 .practice-task-label {
-  font-family: "Press Start 2P", cursive;
-  font-size: 0.72rem;
+  font-size: 0.95rem;
+  font-weight: 800;
   color: #38bdf8;
   margin-bottom: 0.55rem;
 }
 
 .practice-task-body {
-  color: #e2e8f0;
-  line-height: 1.55;
-  font-size: 0.95rem;
+  color: rgba(226, 232, 240, 0.92);
+  line-height: 1.75;
+  font-size: 1rem;
+}
+
+/* Retry mode: markdown typography upgrades */
+.practice-desc :global(p),
+.practice-task-body :global(p) {
+  margin: 0 0 0.95rem;
+}
+
+.practice-desc :global(ul),
+.practice-desc :global(ol),
+.practice-task-body :global(ul),
+.practice-task-body :global(ol) {
+  margin: 0 0 0.95rem;
+  padding-left: 1.35rem;
+}
+
+.practice-desc :global(li),
+.practice-task-body :global(li) {
+  margin: 0.35rem 0;
+}
+
+.practice-desc :global(h1),
+.practice-desc :global(h2),
+.practice-desc :global(h3),
+.practice-task-body :global(h1),
+.practice-task-body :global(h2),
+.practice-task-body :global(h3) {
+  color: rgba(226, 232, 240, 0.96);
+}
+
+/* Section bars (matches retry-mode "Instructions" look) */
+.practice-desc :global(h2),
+.practice-task-body :global(h2) {
+  margin: 1.15rem -1rem 0.85rem;
+  padding: 0.85rem 1rem;
+  background: rgba(148, 163, 184, 0.14);
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.practice-desc :global(h3),
+.practice-task-body :global(h3) {
+  margin: 1rem 0 0.6rem;
+  font-size: 1.06rem;
+  line-height: 1.35;
+}
+
+.practice-desc :global(code),
+.practice-task-body :global(code) {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: rgba(125, 211, 252, 0.96);
+}
+
+.practice-desc :global(pre),
+.practice-task-body :global(pre) {
+  background: rgba(2, 6, 23, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  padding: 0.95rem 1rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.practice-desc :global(pre code),
+.practice-task-body :global(pre code) {
+  color: rgba(226, 232, 240, 0.94);
 }
 
 @media (max-width: 1024px) {
@@ -840,6 +911,159 @@
   height: clamp(280px, 34vh, 420px);
 }
 
+.bottom-panel {
+  height: clamp(280px, 34vh, 420px);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.42);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-panel-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.55);
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+}
+
+.bottom-panel-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bottom-panel-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.bottom-panel-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.bottom-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+}
+
+@media (max-width: 900px) {
+  .bottom-panel {
+    height: 46vh;
+    min-height: 260px;
+    max-height: 420px;
+  }
+}
+
+.result-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+  padding: 12px;
+}
+
+.result-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 6px 2px 10px;
+}
+
+.result-status {
+  font-family: "Press Start 2P", cursive;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+.result-status-accepted {
+  color: rgba(34, 197, 94, 0.95);
+}
+
+.result-status-wrong {
+  color: rgba(239, 68, 68, 0.95);
+}
+
+.result-meta {
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.result-top-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 12px;
+}
+
+.result-top-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.result-top-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.result-top-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.result-empty {
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 12px;
+  padding: 10px 10px;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.25);
+  margin-top: 10px;
+}
+
+.result-panel {
+  margin-top: 10px;
+}
+
+.result-section-title {
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.95);
+  margin: 14px 0 8px;
+}
+
+.result-block {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.45);
+  padding: 10px 10px;
+}
+
+.result-block-pre {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.95);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .terminal-with-tests > * {
   min-height: 0;
 }
@@ -852,6 +1076,11 @@
 }
 
 .terminal-with-tests .terminal {
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+.bottom-panel-body .terminal {
   height: 100%;
   flex: 1 1 auto;
 }
@@ -876,6 +1105,13 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  height: 100%;
+}
+
+.test-sidebar-full {
+  flex: 1 1 auto;
+  max-width: none;
+  min-width: 0;
   height: 100%;
 }
 
@@ -942,6 +1178,34 @@
   border: 1px dashed rgba(148, 163, 184, 0.25);
   border-radius: 10px;
   background: rgba(15, 23, 42, 0.35);
+}
+
+.test-sidebar-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.test-sidebar-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.9);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.test-sidebar-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.test-sidebar-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
 }
 
 .test-sidebar-section {
@@ -1075,6 +1339,83 @@
   color: rgba(226, 232, 240, 0.95);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.runtime-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px;
+  margin-bottom: 10px;
+  scrollbar-gutter: stable;
+}
+
+.runtime-tab {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.35);
+  color: rgba(226, 232, 240, 0.9);
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.runtime-tab:hover {
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.runtime-tab-active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.runtime-tab-mark {
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  line-height: 1;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  padding: 4px 6px;
+  background: rgba(2, 6, 23, 0.55);
+  min-width: 26px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.runtime-tab-label {
+  white-space: nowrap;
+}
+
+.runtime-panel {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.45);
+  overflow: hidden;
+}
+
+.runtime-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px;
+  background: rgba(2, 6, 23, 0.55);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.runtime-panel-body {
+  padding: 10px 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .test-sidebar-footer {
@@ -1384,6 +1725,33 @@
   z-index: 1400;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
   animation: validationToastIn 180ms ease-out;
+}
+
+.run-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(18, 22, 30, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  z-index: 1500;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  animation: validationToastIn 180ms ease-out;
+}
+
+.run-toast-success {
+  color: rgba(134, 239, 172, 0.95);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.run-toast-error {
+  color: rgba(252, 165, 165, 0.95);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 .validation-box-collapsed .validation-body {

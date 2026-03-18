@@ -10,6 +10,7 @@ import useGetExercises from "../services/getExercise";
 import useGetGameProgress from "../services/getGameProgress";
 import styles from "../styles/QuizPage.module.css";
 import examStyles from "../styles/ExamPage.module.css";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const QuizPage = () => {
   const navigate = useNavigate();
@@ -66,6 +67,35 @@ const QuizPage = () => {
 
   const heroBackground =
     languageBackgrounds[language] || languageBackgrounds.python;
+
+  const sanitizeColor = (value) => {
+    const s = String(value || "").trim();
+    if (!s) return null;
+
+    // Allow hex (#rgb, #rrggbb, #rrggbbaa)
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(s)) return s;
+
+    // Allow rgb/rgba()
+    if (/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/.test(s)) return s;
+
+    // Allow a small set of named colors
+    const allowed = new Set([
+      "white",
+      "black",
+      "red",
+      "green",
+      "blue",
+      "yellow",
+      "orange",
+      "gray",
+      "grey",
+      "cyan",
+      "magenta",
+    ]);
+    if (allowed.has(s.toLowerCase())) return s;
+
+    return null;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -379,6 +409,8 @@ const QuizPage = () => {
                 <div className={examStyles.questionText}>
                   {typeof quizData.code_prompt === "object" && quizData.code_prompt !== null && quizData.code_prompt.sections ? (
                     quizData.code_prompt.sections.map((section, index) => {
+                      const sectionColor = sanitizeColor(section?.color);
+
                       if (section.type === "heading") {
                         const Tag = `h${section.level || 2}`;
                         return (
@@ -387,7 +419,7 @@ const QuizPage = () => {
                             style={{
                               marginTop: index === 0 ? "0" : "1.5rem",
                               marginBottom: "0.75rem",
-                              color: "#f1f5f9",
+                              color: sectionColor || "#f1f5f9",
                               fontWeight: "700"
                             }}
                           >
@@ -402,7 +434,7 @@ const QuizPage = () => {
                             key={index}
                             style={{
                               marginBottom: "0.75rem",
-                              color: "#cbd5e1",
+                              color: sectionColor || "#cbd5e1",
                               lineHeight: "1.6"
                             }}
                           >
@@ -425,7 +457,13 @@ const QuizPage = () => {
                               marginBottom: "1rem"
                             }}
                           >
-                            <ListTag style={{ paddingLeft: "1.2rem", lineHeight: "1.7", color: "#cbd5e1" }}>
+                            <ListTag
+                              style={{
+                                paddingLeft: "1.2rem",
+                                lineHeight: "1.7",
+                                color: sectionColor || "#cbd5e1",
+                              }}
+                            >
                               {section.items.map((item, i) => (
                                 <li key={i} style={{ marginBottom: "0.4rem" }}>
                                   {item}
@@ -439,9 +477,11 @@ const QuizPage = () => {
                       return null;
                     })
                   ) : (
-                    <p style={{ color: "#cbd5e1", whiteSpace: "pre-wrap", lineHeight: "1.6" }}>
-                      {typeof quizData.code_prompt === "string" ? quizData.code_prompt : JSON.stringify(quizData.code_prompt)}
-                    </p>
+                    <MarkdownRenderer className={examStyles.lcDescription}>
+                      {typeof quizData.code_prompt === "string"
+                        ? quizData.code_prompt
+                        : JSON.stringify(quizData.code_prompt)}
+                    </MarkdownRenderer>
                   )}
                 </div>
               </div>

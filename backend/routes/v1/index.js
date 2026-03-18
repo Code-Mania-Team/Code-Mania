@@ -34,7 +34,17 @@ import notificationRouter from './notificationRoutes.js';
 
 import examRouter from "./examRoutes.js";
 
+import fd_LikesRouter from "./fd_LikeRoutes.js";
+
+import hashtagRouter from "./hashtagRoutes.js";
+
+import searchRouter from "./searchRoutes.js";
+
+import cosmeticsRouter from "./cosmeticsRoutes.js";
+
 const v1 = new Router();
+
+v1.use("/post", fd_LikesRouter)
 
 v1.use('/dom', domRouter);
 
@@ -49,6 +59,10 @@ v1.use("/exam", examRouter);
 v1.use("/game", userGameDataRouter);
 
 v1.use("/freedom-wall", freedomWallRouter);
+
+v1.use("/hashtags", hashtagRouter);
+
+v1.use("/search", searchRouter);
 
 v1.use("/refresh", refreshRouter);
 
@@ -65,6 +79,8 @@ v1.use("/quizzes", quizRouter);
 v1.use("/weekly-tasks", weeklyTaskRouter);
 
 v1.use("/notifications", notificationRouter);
+
+v1.use("/cosmetics", cosmeticsRouter);
 
 v1.use("/", publicExerciseRouter);
 

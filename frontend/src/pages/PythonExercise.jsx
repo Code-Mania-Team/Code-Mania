@@ -18,6 +18,7 @@ import MobileControls from "../components/MobileControls";
 import CourseCompletionPromptModal from "../components/CourseCompletionPromptModal";
 
 import AuthLoadingOverlay from "../components/AuthLoadingOverlay";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 
 
@@ -33,11 +34,14 @@ import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise";
 
+import useAuth from "../hooks/useAxios";
 
 
 
 
-const PythonExercise = ({ isAuthenticated }) => {
+
+const PythonExercise = ({ isAuthenticated, onSignOut }) => {
+  const { isLoading: authLoading } = useAuth() || { isLoading: false };
 
   const stageBadgeById = {
     1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/python-badge1_qn63do.png",
@@ -110,6 +114,19 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   const [isPageLoading, setIsPageLoading] = useState(true);
 
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+
+  // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated && activeExerciseId > 2) {
+      setIsSignInModalOpen(true);
+      // Keep user on the last guest-allowed exercise.
+      navigate("/learn/python/exercise/2", { replace: true });
+      setIsPageLoading(false);
+    }
+  }, [activeExerciseId, isAuthenticated, navigate, authLoading]);
+
 
   useEffect(() => {
     const handleStart = async (e) => {
@@ -132,6 +149,11 @@ const PythonExercise = ({ isAuthenticated }) => {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
+        if (!isAuthenticated) {
+          setDbCompletedQuests([]);
+          setCompletedQuizStages([]);
+          return;
+        }
 
         const data = await getGameProgress(1);
 
@@ -151,7 +173,7 @@ const PythonExercise = ({ isAuthenticated }) => {
     };
 
     fetchProgress();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
 
@@ -188,21 +210,21 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
 
-        // 🔒 Locked → redirect
-
-        if (err.response?.status === 403) {
-
-          const redirectId = err.response.data?.redirectTo;
-
-
-          if (redirectId) {
-
-            navigate(`/learn/python/exercise/${redirectId}`);
-
+        // 🔒 Locked
+        if (err.response?.status === 403 || err.response?.status === 401) {
+          // Guest trying to access exercise 3+
+          if (!isAuthenticated && activeExerciseId > 2) {
+            setIsSignInModalOpen(true);
+            navigate("/learn/python/exercise/2", { replace: true });
+            setIsPageLoading(false);
             return;
-
           }
 
+          const redirectId = err.response?.data?.redirectTo;
+          if (redirectId) {
+            navigate(`/learn/python/exercise/${redirectId}`);
+            return;
+          }
         }
 
 
@@ -239,7 +261,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     fetchExercise();
 
-  }, [activeExerciseId]);
+  }, [activeExerciseId, isAuthenticated, navigate]);
 
 
 
@@ -352,30 +374,26 @@ const PythonExercise = ({ isAuthenticated }) => {
     }
 
     const onRequestNext = async (e) => {
+      const currentId = Number(e.detail?.exerciseId);
+      if (!Number.isFinite(currentId)) return;
 
-      const currentId = e.detail?.exerciseId;
-
-      if (!currentId) return;
-
-
-
-      const next = await getNextExercise(currentId);
-
-
-
-      if (!next) {
-
-
-        navigate("/learn/python/completed");
-
+      // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in.
+      if (!isAuthenticated) {
+        if (currentId >= 2) {
+          setIsSignInModalOpen(true);
+          return;
+        }
+        navigate(`/learn/python/exercise/${currentId + 1}`);
         return;
-
       }
 
-
+      const next = await getNextExercise(currentId);
+      if (!next) {
+        navigate("/learn/python/completed");
+        return;
+      }
 
       navigate(`/learn/python/exercise/${next.id}`);
-
     };
 
 
@@ -390,7 +408,7 @@ const PythonExercise = ({ isAuthenticated }) => {
 
     };
 
-  }, []);
+  }, [getNextExercise, isAuthenticated, isRetryMode, navigate]);
 
 
 
@@ -470,6 +488,14 @@ const PythonExercise = ({ isAuthenticated }) => {
 
 
     if (!activeExercise) return;
+
+    // Prevent starting Phaser with stale quest while the route param changes.
+    // When navigating between exercises, React can render with the previous quest
+    // before the new quest fetch completes.
+    const activeQuestId = Number(activeExercise?.id);
+    if (!Number.isFinite(activeQuestId) || activeQuestId !== activeExerciseId) {
+      return;
+    }
 
 
 
@@ -644,10 +670,6 @@ const PythonExercise = ({ isAuthenticated }) => {
 
   =============================== */
 
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-
-
-
   const handleSignInSuccess = () => {
 
     localStorage.setItem("isAuthenticated", "true");
@@ -671,6 +693,8 @@ const PythonExercise = ({ isAuthenticated }) => {
         isAuthenticated={isAuthenticated}
 
         onOpenModal={() => setIsSignInModalOpen(true)}
+
+        onSignOut={onSignOut}
 
       />
 
@@ -786,12 +810,16 @@ const PythonExercise = ({ isAuthenticated }) => {
                   {activeExercise?.title || "Quest"}
                 </div>
                 {activeExercise?.description ? (
-                  <p className={styles["practice-desc"]}>{activeExercise.description}</p>
+                  <MarkdownRenderer className={styles["practice-desc"]}>
+                    {activeExercise.description}
+                  </MarkdownRenderer>
                 ) : null}
                 {activeExercise?.task ? (
                   <div className={styles["practice-task"]}>
                     <div className={styles["practice-task-label"]}>Task</div>
-                    <div className={styles["practice-task-body"]}>{activeExercise.task}</div>
+                    <MarkdownRenderer className={styles["practice-task-body"]}>
+                      {activeExercise.task}
+                    </MarkdownRenderer>
                   </div>
                 ) : null}
               </div>

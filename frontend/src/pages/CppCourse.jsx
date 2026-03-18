@@ -213,9 +213,9 @@ const CppCourse = () => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
 
-  const handleStartExercise = (moduleId, exerciseId, options = {}) => {
+  const handleStartExercise = (orderIndex, options = {}) => {
     const retry = options?.retry === true;
-    const route = `/learn/cpp/exercise/${moduleId}/${exerciseId}${retry ? "?retry=1" : ""}`;
+    const route = `/learn/cpp/exercise/${orderIndex}${retry ? "?retry=1" : ""}`;
 
     const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
     const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
@@ -393,7 +393,7 @@ const CppCourse = () => {
                                 onClick={() =>
                                   module.id === 5
                                     ? handleStartExam()
-                                    : handleStartExercise(module.id, exercise.id)
+                                    : handleStartExercise(exercise.order_index)
                                 }
                                 disabled={status === "locked"}
                               >
@@ -403,11 +403,10 @@ const CppCourse = () => {
                               <button
                                 type="button"
                                 className="retry-btn"
-                                onClick={() => handleStartExercise(module.id, exercise.id, { retry: true })}
-                                aria-label="Retry quest"
-                                title="Retry"
+                                onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
+                                aria-label="Open completed exercise"
                               >
-                                Done
+                                Review
                               </button>
                             ) : (
                               getStatusIcon(status)

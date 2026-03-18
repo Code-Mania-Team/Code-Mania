@@ -1464,6 +1464,33 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
             </div>
           </div>
         )}
+
+        <h3 className={styles.panelTitle} style={{ marginTop: 16, marginBottom: 8 }}>Quizzes</h3>
+        <div className={styles.panel}>
+          <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
+            {[
+              { name: "Python Quizzes", course: "python" },
+              { name: "C++ Quizzes", course: "cpp" },
+              { name: "JavaScript Quizzes", course: "javascript" },
+            ].map((d) => (
+              <div key={d.course} className={styles.datasetRow}>
+                <div className={styles.datasetLeft}>
+                  <div className={styles.datasetName}>{d.name}</div>
+                  <div className={styles.datasetMeta}>Edit quiz metadata + code quiz content.</div>
+                </div>
+                <div className={styles.datasetActions}>
+                  <button
+                    className={styles.button}
+                    type="button"
+                    onClick={() => navigate(`/admin/quizzes/${d.course}`)}
+                  >
+                    Edit Quizzes
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
     </div>
   );

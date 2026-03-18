@@ -175,6 +175,27 @@
   transition: border-color 0.2s;
 }
 
+.titleInput {
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(148, 197, 255, 0.22);
+}
+
+.jsonEditorWrap {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  overflow: hidden;
+}
+
+.jsonEditorWrap:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .helpDetails {
   margin-top: 8px;
   padding: 10px 12px;
@@ -904,6 +925,11 @@ html[data-theme="light"] .formGroup textarea {
   background: var(--page-bg);
   color: var(--text);
   border: 1px solid var(--border);
+}
+
+html[data-theme="light"] .titleInput {
+  background: var(--page-bg);
+  border-color: var(--border);
 }
 
 html[data-theme="light"] .rangePicker,

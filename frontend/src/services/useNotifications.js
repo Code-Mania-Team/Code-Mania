@@ -51,6 +51,15 @@ const useNotifications = () => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const handler = () => {
+      fetchNotifications();
+    };
+    window.addEventListener("code-mania:notifications:refresh", handler);
+    return () => window.removeEventListener("code-mania:notifications:refresh", handler);
+  }, [isAuthenticated, fetchNotifications]);
+
   // Poll unread count every 60 seconds
   useEffect(() => {
     if (!isAuthenticated) return;

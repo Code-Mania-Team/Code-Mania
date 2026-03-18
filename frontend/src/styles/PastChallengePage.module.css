@@ -251,6 +251,12 @@
   filter: brightness(1.08);
 }
 
+.sideBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  filter: none;
+}
+
 .state {
   padding: 28px 0;
   color: rgba(203, 213, 225, 0.85);

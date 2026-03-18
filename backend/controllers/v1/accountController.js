@@ -4,6 +4,8 @@ import { generateAccessToken, generateRefreshToken } from "../../utils/token.js"
 import UserToken from "../../models/userToken.js";
 import crypto from "crypto";
 import Achievements from "../../models/achievements.js";
+import QuizModel from "../../models/quiz.js";
+import ExamModel from "../../models/exam.js";
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
@@ -24,7 +26,36 @@ class AccountController {
         this.accountService = new AccountService();
         this.userToken = new UserToken();
         this.achievements = new Achievements();
+        this.quiz = new QuizModel();
+        this.exam = new ExamModel();
         this.refreshInProgress = false; // Prevent race conditions
+    }
+
+    async getAttempts(req, res) {
+        try {
+            const user_id = res.locals.user_id;
+            if (!user_id) {
+                return res.status(401).json({ success: false, message: 'Unauthorized' });
+            }
+
+            const limitRaw = Number(req.query?.limit || 30);
+            const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(200, limitRaw)) : 30;
+
+            const [quizAttempts, examAttempts] = await Promise.all([
+                this.quiz.listUserAttempts({ userId: user_id, limit }),
+                this.exam.listUserAttempts({ userId: user_id, limit }),
+            ]);
+
+            return res.status(200).json({
+                success: true,
+                data: {
+                    quizzes: quizAttempts || [],
+                    exams: examAttempts || [],
+                },
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+        }
     }
 
     async publicProfile(req, res) {
@@ -133,8 +164,12 @@ class AccountController {
             const response = await this.accountService.requestSignupOtp(email, password);            
             return res.status(200).json({
                 success: true,
-                message: "OTP sent to email",
-                data: { email: response?.email, isNewUser: true }
+                message: response?.email_sent ? "OTP sent to email" : "OTP generated",
+                data: {
+                    email: response?.email,
+                    isNewUser: true,
+                    ...(response?.email_sent ? {} : (String(process.env.NODE_ENV || "").toLowerCase() === "production" ? {} : { debug_otp: response?.otp }))
+                }
             });
         } catch (err) {
 
@@ -154,7 +189,9 @@ class AccountController {
 
             return res.status(500).json({
                 success: false,
-                message: "Failed to process OTP request"
+                message: String(process.env.NODE_ENV || "").toLowerCase() === "production"
+                    ? "Failed to process OTP request"
+                    : (err?.message || "Failed to process OTP request")
             });
         }
 
@@ -521,7 +558,15 @@ class AccountController {
 
     async updateProfile(req, res) {
 
-        const { username, full_name, hasSeen_tutorial } = req.body || {};
+        const {
+            username,
+            full_name,
+            hasSeen_tutorial,
+            accept_terms,
+            accept_privacy,
+            accepted_terms_version,
+            accepted_privacy_version,
+        } = req.body || {};
 
         const userId = res.locals.user_id;
 
@@ -551,6 +596,24 @@ class AccountController {
                 updateFields.hasSeen_tutorial = hasSeen_tutorial;
             }
 
+            const nowIso = new Date().toISOString();
+
+            if (accept_terms === true) {
+                updateFields.accepted_terms_at = nowIso;
+                updateFields.accepted_terms_version =
+                    typeof accepted_terms_version === "string" && accepted_terms_version.trim()
+                        ? accepted_terms_version.trim()
+                        : (process.env.TERMS_VERSION || "v1");
+            }
+
+            if (accept_privacy === true) {
+                updateFields.accepted_privacy_at = nowIso;
+                updateFields.accepted_privacy_version =
+                    typeof accepted_privacy_version === "string" && accepted_privacy_version.trim()
+                        ? accepted_privacy_version.trim()
+                        : (process.env.PRIVACY_VERSION || "v1");
+            }
+
             if (!Object.keys(updateFields).length) {
                 return res.status(400).json({
                     success: false,
@@ -573,6 +636,10 @@ class AccountController {
                 message: "Profile updated successfully",
                 full_name: updated?.full_name,
                 hasSeen_tutorial: updated?.hasSeen_tutorial,
+                accepted_terms_at: updated?.accepted_terms_at || null,
+                accepted_privacy_at: updated?.accepted_privacy_at || null,
+                accepted_terms_version: updated?.accepted_terms_version || null,
+                accepted_privacy_version: updated?.accepted_privacy_version || null,
             });
 
         } catch (err) {

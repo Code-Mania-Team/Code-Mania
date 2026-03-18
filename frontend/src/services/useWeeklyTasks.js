@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAxios";
+import { axiosPublic } from "../api/axios";
 
 const useWeeklyTasks = () => {
   const axiosPrivate = useAxiosPrivate();
@@ -10,16 +11,12 @@ const useWeeklyTasks = () => {
   const [error, setError] = useState("");
 
   const fetchActiveTasks = useCallback(async () => {
-    if (!isAuthenticated) {
-      setTasks([]);
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     setError("");
     try {
-      const res = await axiosPrivate.get("/v1/weekly-tasks/active");
+      const res = isAuthenticated
+        ? await axiosPrivate.get("/v1/weekly-tasks/active")
+        : await axiosPublic.get("/v1/weekly-tasks/active");
       if (res.data?.success) {
         setTasks(res.data.data || []);
       } else {

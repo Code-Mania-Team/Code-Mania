@@ -3,11 +3,13 @@ import { authentication } from '../../middlewares/authentication.js';
 import { authorization } from '../../middlewares/authorization.js';
 import requireAdmin from '../../middlewares/requireAdmin.js';
 import AdminExamController from '../../controllers/v1/adminExamController.js';
+import AdminQuizController from '../../controllers/v1/adminQuizController.js';
 import ExerciseController from '../../controllers/v1/exerciseController.js';
 import AdminController from '../../controllers/v1/adminController.js';
 
 const router = Router();
 const adminExam = new AdminExamController();
+const adminQuiz = new AdminQuizController();
 const exerciseController = new ExerciseController();
 const adminController = new AdminController();
 
@@ -35,6 +37,28 @@ router.patch(
   authentication,
   requireAdmin,
   adminExam.updateProblem.bind(adminExam),
+);
+
+// ---------------- QUIZZES (ADMIN) ----------------
+router.get(
+  "/quizzes",
+  authentication,
+  requireAdmin,
+  adminQuiz.list.bind(adminQuiz),
+);
+
+router.get(
+  "/quizzes/:quizId",
+  authentication,
+  requireAdmin,
+  adminQuiz.get.bind(adminQuiz),
+);
+
+router.patch(
+  "/quizzes/:quizId",
+  authentication,
+  requireAdmin,
+  adminQuiz.update.bind(adminQuiz),
 );
 
 // ---------------- EXERCISES (ADMIN) ----------------

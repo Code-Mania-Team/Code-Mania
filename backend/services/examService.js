@@ -1,5 +1,6 @@
 import ExamModel from "../models/exam.js";
 import axios from "axios";
+import sectionsToMarkdown from "../utilities/sectionsToMarkdown.js";
 
 const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
 
@@ -10,6 +11,21 @@ function normalizeText(value) {
     .map((l) => l.replace(/\s+$/g, ""))
     .join("\n")
     .trim();
+}
+
+function coerceBool(value) {
+  if (value === true) return true;
+  if (value === false) return false;
+  if (value === 1) return true;
+  if (value === 0) return false;
+
+  if (typeof value === "string") {
+    const s = value.trim().toLowerCase();
+    if (s === "true" || s === "1" || s === "yes") return true;
+    if (s === "false" || s === "0" || s === "no" || s === "") return false;
+  }
+
+  return Boolean(value);
 }
 
 class ExamService {
@@ -23,7 +39,7 @@ class ExamService {
     return (problems || []).map((p) => ({
       id: p.id,
       problem_title: p.problem_title,
-      problem_description: p.problem_description,
+      problem_description: sectionsToMarkdown(p.problem_description),
       exp: p.exp,
       programming_language: p.programming_languages
         ? {
@@ -46,7 +62,7 @@ class ExamService {
     return {
       id: problem.id,
       problem_title: problem.problem_title,
-      problem_description: problem.problem_description,
+      problem_description: sectionsToMarkdown(problem.problem_description),
       starting_code: problem.starting_code,
       exp: problem.exp,
       programming_language: problem.programming_languages
@@ -60,9 +76,9 @@ class ExamService {
         test_case_count: testCases.length,
       },
       test_cases: testCases.map(tc => ({
-        input: tc.is_hidden ? "Hidden test case" : tc.input,
-        expected: tc.is_hidden ? "Hidden" : tc.expected,
-        is_hidden: tc.is_hidden
+        input: coerceBool(tc?.is_hidden ?? tc?.isHidden) ? "Hidden test case" : tc.input,
+        expected: coerceBool(tc?.is_hidden ?? tc?.isHidden) ? "Hidden" : tc.expected,
+        is_hidden: coerceBool(tc?.is_hidden ?? tc?.isHidden)
       })),
       created_at: problem.created_at,
       updated_at: problem.updated_at,

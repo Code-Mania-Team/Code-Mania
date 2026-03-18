@@ -1,13 +1,11 @@
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { axiosPublic } from "../api/axios";
 
 const useValidateExercisePreview = () => {
-  const axiosPrivate = useAxiosPrivate();
-
   const validateExercisePreview = async (questId, output, code) => {
     if (!questId) return null;
 
     try {
-      const response = await axiosPrivate.post(
+      const response = await axiosPublic.post(
         "/v1/exercises/validate-preview",
         {
           questId,
