@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 import { useParams } from 'react-router-dom';
 
+import useAuth from '../hooks/useAxios';
+
 
 
 
@@ -100,6 +102,9 @@ const Profile = ({ onSignOut }) => {
   const routeUsernameRaw = params?.username ? String(params.username) : "";
   const routeUsername = routeUsernameRaw ? routeUsernameRaw.replace(/^@+/, "").trim() : "";
   const isPublicView = Boolean(routeUsername);
+
+  const { isAuthenticated } = useAuth();
+  const showAccountActions = !isPublicView && Boolean(isAuthenticated);
 
 
 
@@ -3371,7 +3376,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-      {isDeleteConfirmOpen && (
+      {showAccountActions && isDeleteConfirmOpen && (
 
 
 
@@ -3531,7 +3536,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-      {isSignOutConfirmOpen && (
+      {showAccountActions && isSignOutConfirmOpen && (
 
 
 
@@ -3915,6 +3920,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
+        {showAccountActions ? (
         <div className={styles.sidebarCard}>
 
 
@@ -4012,6 +4018,7 @@ const Profile = ({ onSignOut }) => {
 
 
         </div>
+        ) : null}
 
 
 
