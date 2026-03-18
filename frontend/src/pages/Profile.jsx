@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+import { useParams } from 'react-router-dom';
+
 
 
 
@@ -48,6 +50,11 @@ import useLearningProgress from '../services/useLearningProgress';
 
 import useGetAchievements from '../services/getUserAchievements';
 
+import useGetPublicProfile from "../services/getPublicProfile";
+import usePublicProfileSummary from "../services/usePublicProfileSummary";
+import usePublicLearningProgress from "../services/usePublicLearningProgress";
+import useGetPublicAchievements from "../services/getPublicAchievements";
+
 import useCosmeticsMe from "../services/useCosmeticsMe";
 import useUpdateCosmeticsPreferences from "../services/useUpdateCosmeticsPreferences";
 
@@ -75,6 +82,12 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const FULL_NAME_MAX_LENGTH = 40;
 
+const formatJoinMonthYear = (dateInput) => {
+  const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (!d || Number.isNaN(d.getTime())) return "-";
+  return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+};
+
 
 
 
@@ -82,6 +95,11 @@ const FULL_NAME_MAX_LENGTH = 40;
 
 
 const Profile = ({ onSignOut }) => {
+
+  const params = useParams();
+  const routeUsernameRaw = params?.username ? String(params.username) : "";
+  const routeUsername = routeUsernameRaw ? routeUsernameRaw.replace(/^@+/, "").trim() : "";
+  const isPublicView = Boolean(routeUsername);
 
 
 
@@ -123,6 +141,8 @@ const Profile = ({ onSignOut }) => {
 
   const [editError, setEditError] = useState('');
 
+  const [joinDateLabel, setJoinDateLabel] = useState('');
+
   const [ownedFrames, setOwnedFrames] = useState([]);
   const [preferences, setPreferences] = useState(null);
   const [avatarFrameDraft, setAvatarFrameDraft] = useState('');
@@ -151,6 +171,8 @@ const Profile = ({ onSignOut }) => {
 
 
   const getProfile = useGetProfile();
+
+  const getPublicProfile = useGetPublicProfile();
 
   const getCosmeticsMe = useCosmeticsMe();
   const updateCosmeticsPreferences = useUpdateCosmeticsPreferences();
@@ -186,6 +208,8 @@ const Profile = ({ onSignOut }) => {
 
 
   useEffect(() => {
+
+     if (isPublicView) return;
 
 
 
@@ -266,6 +290,10 @@ const Profile = ({ onSignOut }) => {
 
 
       if (!profile) return;
+
+       if (profile?.created_at) {
+         setJoinDateLabel(`Joined ${formatJoinMonthYear(profile.created_at)}`);
+       }
 
 
 
@@ -629,7 +657,60 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  }, []);
+  }, [isPublicView]);
+
+  useEffect(() => {
+    if (!isPublicView) return;
+
+    let mounted = true;
+
+    // Public view should not reuse current-user cosmetics state.
+    setPreferences(null);
+    setOwnedFrames([]);
+    setAvatarFrameDraft('');
+    setCosmeticsError('');
+
+    const loadPublic = async () => {
+      try {
+        const res = await getPublicProfile(routeUsername);
+        if (!mounted) return;
+        const profile = res?.data;
+        if (!profile) return;
+
+        const nextUsername = String(profile?.username || routeUsername || "").trim();
+        const nextFullName = String(profile?.full_name || "").trim();
+        const nextCharacterId = Number(profile?.character_id);
+        const iconByCharacterId = {
+          0: characterIcon1,
+          1: characterIcon0,
+          2: characterIcon2,
+          3: characterIcon3,
+        };
+        const nextIcon = Number.isFinite(nextCharacterId) ? (iconByCharacterId[nextCharacterId] || "") : "";
+
+        setEditFormData((prev) => ({
+          ...prev,
+          userName: nextFullName || nextUsername || prev.userName,
+          username: nextUsername ? `@${nextUsername}` : prev.username,
+          characterIcon: nextIcon,
+        }));
+
+        if (profile?.created_at) {
+          setJoinDateLabel(`Joined ${formatJoinMonthYear(profile.created_at)}`);
+        } else {
+          setJoinDateLabel('');
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    loadPublic();
+
+    return () => {
+      mounted = false;
+    };
+  }, [getPublicProfile, isPublicView, routeUsername]);
 
 
 
@@ -1077,17 +1158,19 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  const { totalXp, badgeCount } = useProfileSummary();
+  const selfSummary = useProfileSummary();
+  const publicSummary = usePublicProfileSummary(routeUsername);
 
+  const selfProgress = useLearningProgress();
+  const publicProgress = usePublicLearningProgress(routeUsername);
 
+  const selfAchievements = useGetAchievements();
+  const publicAchievements = useGetPublicAchievements(routeUsername);
 
-  const { progress: learningProgressRows } = useLearningProgress();
-
-
-
-  const { achievements } = useGetAchievements();
-
-  console.log("Achievements data:", achievements);
+  const totalXp = isPublicView ? publicSummary.totalXp : selfSummary.totalXp;
+  const badgeCount = isPublicView ? publicSummary.badgeCount : selfSummary.badgeCount;
+  const learningProgressRows = isPublicView ? publicProgress.progress : selfProgress.progress;
+  const achievements = isPublicView ? publicAchievements.achievements : selfAchievements.achievements;
 
 
 
@@ -2185,7 +2268,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-                <span>Joined Jan 2026</span>
+                <span>{joinDateLabel || "Joined -"}</span>
 
 
 
@@ -2233,6 +2316,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
+            {!isPublicView ? (
             <button className={styles.coverEditProfileBtn} onClick={handleEditAccount}>
 
 
@@ -2258,6 +2342,7 @@ const Profile = ({ onSignOut }) => {
 
 
             </button>
+            ) : null}
 
 
 
@@ -2987,7 +3072,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-      {isEditModalOpen && (
+      {!isPublicView && isEditModalOpen && (
 
 
 
