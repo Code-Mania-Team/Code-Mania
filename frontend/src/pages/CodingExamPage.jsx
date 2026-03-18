@@ -107,6 +107,7 @@ const CodingExamPage = () => {
   const {
     startAttempt,
     submitAttempt,
+    validateAttempt,
     attemptId
   } = useExamAttempt();
   const [attemptStarted, setAttemptStarted] = useState(false);
@@ -646,27 +647,28 @@ const CodingExamPage = () => {
                   isMobileView={isMobileView}
                   mobilePanel={mobileTab}
                   attemptId={attemptId}
+                  validateAttempt={validateAttempt}
                   submitAttempt={submitAttempt}
                   attemptNumber={examState.attemptNumber}
                   isAdmin={isAdmin}
                   locked={examState.locked}
-                  allowBeyondAttempts={Number(examState.score || 0) === 100}
-                  onResult={async (data) => {
-                    const isPractice = Boolean(data?.practice_run);
-
-                    if (!isPractice) {
-                    const baseXp = Number(challenge.points || 1000);
-                    setExamState({
-                      attemptNumber: data.attempt_number,
-                      score: data.score_percentage,
-                      earnedXp: resolveExamXpDisplay({
-                        serverXp: data.earned_xp,
-                        attemptNumber: data.attempt_number,
-                        baseXp,
-                      }),
-                      locked: !isAdmin && Number(data.attempt_number || 0) >= 5 && data.passed !== true
-                    });
-                    }
+                   onResult={async (data) => {
+                     const baseXp = Number(challenge.points || 1000);
+                     const attemptLocked =
+                       !isAdmin &&
+                       (Boolean(data?.locked) ||
+                         Number(data?.score_percentage || 0) === 100 ||
+                         Number(data?.attempt_number || 0) >= 5);
+                     setExamState({
+                       attemptNumber: data.attempt_number,
+                       score: data.score_percentage,
+                       earnedXp: resolveExamXpDisplay({
+                         serverXp: data.earned_xp,
+                         attemptNumber: data.attempt_number,
+                         baseXp,
+                       }),
+                       locked: attemptLocked
+                     });
 
                     // Show congratulations if all tests passed (100%)
                     if (!isPractice && data.score_percentage === 100 && !badgeAwardedRef.current) {

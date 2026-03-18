@@ -41,14 +41,13 @@ function coerceBool(value) {
   return Boolean(value);
 }
 
-const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, isMobileView = false, mobilePanel = "code", allowBeyondAttempts = false }) => {
+const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, submitAttempt, onResult, attemptNumber = 1, testCases = [], isAdmin = false, locked = false, isMobileView = false, mobilePanel = "code" }) => {
   const terminalWsUrl = import.meta.env.VITE_TERMINAL_WS_URL || "https://terminal.codemania.fun";
   const monacoLang = getMonacoLang(language);
   const [code, setCode] = useState(initialCode || "");
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [inputBuffer, setInputBuffer] = useState("");
-  const [waitingForInput, setWaitingForInput] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [activeTestCaseIndex, setActiveTestCaseIndex] = useState(0);
   const [activeResultCaseIndex, setActiveResultCaseIndex] = useState(0);
@@ -93,6 +92,47 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     const lines = stdin.split(/\r?\n/);
     while (lines.length && lines[lines.length - 1] === "") lines.pop();
     if (!lines.length) return [];
+
+    // Function-mode friendly display: if stdin is a single JSON value,
+    // show args without the "args" wrapper.
+    if (lines.length === 1) {
+      const one = String(lines[0] ?? "").trim();
+      const looksJson =
+        (one.startsWith("{") && one.endsWith("}")) ||
+        (one.startsWith("[") && one.endsWith("]"));
+
+      if (looksJson) {
+        try {
+          const parsed = JSON.parse(one);
+
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            const args = Array.isArray(parsed.args) ? parsed.args : null;
+            const kwargs = parsed.kwargs && typeof parsed.kwargs === "object" && !Array.isArray(parsed.kwargs)
+              ? parsed.kwargs
+              : null;
+
+            if (args) {
+              const out = args.map((v, i) => ({ name: `arg${i + 1}`, value: v }));
+              if (kwargs) {
+                Object.entries(kwargs).forEach(([k, v]) => out.push({ name: String(k), value: v }));
+              }
+              return out;
+            }
+          }
+
+          if (Array.isArray(parsed)) {
+            return parsed.map((v, i) => ({ name: `arg${i + 1}`, value: v }));
+          }
+
+          // Generic JSON object fallback.
+          if (parsed && typeof parsed === "object") {
+            return Object.entries(parsed).map(([name, value]) => ({ name, value }));
+          }
+        } catch {
+          // fall through
+        }
+      }
+    }
 
     const parseWarriorTrialInput = (allLines) => {
       const head = String(allLines[0] ?? "").trim();
@@ -198,15 +238,22 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     // Fallback: show stdin lines as "Line 1", "Line 2", ...
     return lines.map((line, idx) => ({ name: `Line ${idx + 1}`, value: line }));
   };
-  const storageKey = `exam_code_${attemptId}_${language}`;
   const MAX_ATTEMPTS = 5;
-  const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS && !allowBeyondAttempts;
-  const disableSubmit = isRunning || attemptsExhausted;
+  const attemptsExhausted = !isAdmin && attemptNumber >= MAX_ATTEMPTS;
+  const [hasRunOnce, setHasRunOnce] = useState(false);
+
+  useEffect(() => {
+    // New attempt = require at least one Run again.
+    setHasRunOnce(false);
+  }, [attemptId, language]);
+
+  const disableSubmit = isRunning || attemptsExhausted || locked || !hasRunOnce;
   const showEditor = !isMobileView || mobilePanel === "code";
   const showOutput = !isMobileView || mobilePanel === "output";
   const editorHeight = isMobileView ? "320px" : "430px";
   const testCasesCount = Array.isArray(testCases) ? testCases.length : 0;
   const terminalBodyRef = useRef(null);
+  const terminalWrapRef = useRef(null);
 
   const socketRef = useRef(null);
   const outputRef = useRef("");
@@ -265,23 +312,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
     setCode(initialCode || "");
   }, [initialCode]);
 
-  useEffect(() => {
-    if (!attemptId) return;
-
-    const saved = localStorage.getItem(storageKey);
-
-    if (saved !== null) {
-      setCode(saved);
-    } else if (initialCode) {
-      setCode(initialCode);
-    }
-  }, [attemptId]);
-
-  useEffect(() => {
-    if (!attemptId) return;
-
-    localStorage.setItem(storageKey, code);
-  }, [code, attemptId]);
+  // Intentionally do not persist exam/quiz code in localStorage.
 
   /* ===============================
      TERMINAL WRITE
@@ -292,22 +323,78 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   };
 
   const resetTerminal = () => {
+    try {
+      socketRef.current?.close();
+    } catch {
+      // ignore
+    }
+    socketRef.current = null;
     outputRef.current = "";
     setOutput("");
     setInputBuffer("");
-    setWaitingForInput(false);
   };
 
   /* ===============================
      RUN (WS CONNECT)
   =============================== */
-  const handleRun = () => {
+  const handleRun = async () => {
     if (isRunning) return;
 
+    setHasRunOnce(true);
     resetTerminal();
     setIsRunning(true);
 
+    // If the caller provides a validator (quiz/exam), run visible tests here.
+    if (typeof validateAttempt === "function") {
+      write("\n⏳ Validating test cases...\n");
+
+      try {
+        const result = await validateAttempt(code, language);
+
+        if (!result) {
+          write("\n❌ Validation failed\n");
+          return;
+        }
+
+        setLastSubmitResult(result);
+        setTestResults(Array.isArray(result?.results) ? result.results : []);
+        setActiveResultCaseIndex((prev) => {
+          if (visibleResultCaseIndices.length) return visibleResultCaseIndices[0];
+          return Math.max(0, Math.min(prev, Math.max(0, (testCases?.length || 1) - 1)));
+        });
+        setActiveBottomTab("result");
+
+        write("\n=== VALIDATION (TESTS) ===\n");
+        if (typeof result.score_percentage === "number") {
+          write(`Score: ${result.score_percentage}%\n`);
+        }
+        if (typeof result.passed === "boolean") {
+          write(`Passed: ${result.passed ? "YES" : "NO"}\n`);
+        }
+        write("================================\n\n");
+      } catch (err) {
+        console.error("Validation error:", err);
+        write("\n❌ Error while validating\n");
+      } finally {
+        write("\n▶ Ready for Execution\n");
+        setIsRunning(false);
+      }
+
+      return;
+    }
+
+    // Fallback: interactive WS "Run".
+    // Ensure keystrokes go to the terminal for stdin.
+    setTimeout(() => {
+      try {
+        terminalWrapRef.current?.focus();
+      } catch {
+        // ignore
+      }
+    }, 0);
+
     let hadSocketError = false;
+    let gotAnyOutput = false;
 
     const socket = new WebSocket(terminalWsUrl);
     socketRef.current = socket;
@@ -319,21 +406,31 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
           code
         })
       );
+
+      // Some programs call input("") and print no prompt.
+      // If we see no output shortly after start, assume waiting for stdin.
+      setTimeout(() => {
+        if (!gotAnyOutput && socketRef.current === socket) {
+          // stdin input field is always visible while running
+        }
+      }, 250);
     };
 
     socket.onmessage = (e) => {
       const text = e.data;
+      gotAnyOutput = true;
       write(text);
+
+      terminalWrapRef.current?.focus();
 
       // If output doesn't end with newline,
       // assume program is waiting for input
       if (!text.endsWith("\n")) {
-        setWaitingForInput(true);
+        // stdin input field is always visible while running
       }
     };
 
     socket.onclose = () => {
-      setWaitingForInput(false);
       setIsRunning(false);
 
       if (hadSocketError) return;
@@ -351,7 +448,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
   };
 
   const handleSubmit = async () => {
-    if (isRunning || !attemptId) return;
+    if (isRunning || !attemptId || locked) return;
 
     resetTerminal();
     write("\n⏳ Running some tests...\n");
@@ -415,9 +512,15 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
 
     const isHidden = coerceBool(r.is_hidden ?? r.isHidden ?? r.hidden);
 
+    const expected = isHidden
+      ? ""
+      : (r.expected ?? r.expected_output ?? r.expectedOutput ?? r.exp ?? "");
+
     const output = isHidden
       ? ""
-      : (r.output ??
+      : (r.stdout_display ??
+        r.stdoutDisplay ??
+        r.output ??
         r.stdout ??
         r.actual_output ??
         r.actualOutput ??
@@ -438,6 +541,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
       test_index: Number(idxRaw) || fallbackIndex + 1,
       passed: Boolean(r.passed),
       output: output === undefined ? "" : output,
+      expected: expected === undefined ? "" : expected,
       runtimeMs,
       isHidden,
     };
@@ -456,28 +560,24 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
      HANDLE USER INPUT
   =============================== */
   const handleKeyDown = (e) => {
-    if (!waitingForInput || !socketRef.current) return;
+    if (!socketRef.current || !isRunning) return;
 
     if (e.key === "Enter") {
-      socketRef.current.send(
-        JSON.stringify({ stdin: inputBuffer })
-      );
-
+      socketRef.current.send(JSON.stringify({ stdin: inputBuffer }));
       write(inputBuffer + "\n");
       setInputBuffer("");
-      setWaitingForInput(false);
       e.preventDefault();
       return;
     }
 
     if (e.key === "Backspace") {
-      setInputBuffer(prev => prev.slice(0, -1));
+      setInputBuffer((prev) => prev.slice(0, -1));
       e.preventDefault();
       return;
     }
 
     if (e.key.length === 1) {
-      setInputBuffer(prev => prev + e.key);
+      setInputBuffer((prev) => prev + e.key);
       e.preventDefault();
     }
   };
@@ -508,6 +608,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
             <button
               className={styles.examSubmitBtn}
               disabled={disableSubmit}
+              title={!hasRunOnce ? "Run once to enable Submit" : undefined}
               style={{
                 background: disableSubmit ? "#475569" : "#10b981",
                 cursor: disableSubmit ? "not-allowed" : "pointer",
@@ -549,6 +650,11 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
         >
           <div
             className={styles.examTerminal}
+            ref={terminalWrapRef}
+            onClick={() => {
+              if (activeBottomTab !== "terminal") return;
+              terminalWrapRef.current?.focus();
+            }}
             tabIndex={activeBottomTab === "terminal" ? 0 : -1}
             onKeyDown={activeBottomTab === "terminal" ? handleKeyDown : undefined}
             style={{
@@ -615,16 +721,15 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                   <pre style={{ margin: 0, color: "#cbd5e1" }}>
                     {output}
 
-                    {waitingForInput && (
+                    {isRunning && (
                       <>
-                        <span style={{ color: "#22c55e" }}>
-                          {inputBuffer}
-                        </span>
+                        <span style={{ color: "#22c55e" }}>›</span>{" "}
+                        <span style={{ color: "#22c55e" }}>{inputBuffer}</span>
                         <span style={{ color: "#22c55e" }}>|</span>
                       </>
                     )}
 
-                    {!output && !waitingForInput && (
+                    {!output && !isRunning && (
                       <span style={{ color: "#22c55e", opacity: 0.7 }}>
                         ▶ Ready for Execution
                       </span>
@@ -708,7 +813,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
               {activeBottomTab === "result" && (
                 <div className={styles.examTabPanel} role="tabpanel">
                   {!lastSubmitResult ? (
-                    <div className={styles.examEmptyPanel}>No submission yet.</div>
+                    <div className={styles.examEmptyPanel}>Submit to validate.</div>
                   ) : (
                     (() => {
                       const total = Array.isArray(testCases) ? testCases.length : 0;
@@ -745,7 +850,11 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, submitAttempt, onR
                       const safeInputHidden = coerceBool(activeTc?.is_hidden ?? activeTc?.isHidden ?? r.isHidden);
                       const safeExpected = safeInputHidden
                         ? "Hidden"
-                        : formatOrEmpty(activeTc?.expected ?? activeTc?.output ?? activeTc?.expected_output ?? activeTc?.expectedOutput);
+                        : (() => {
+                          const fromRunner = r?.expected;
+                          if (typeof fromRunner === "string" && fromRunner.trim()) return formatOrEmpty(fromRunner);
+                          return formatOrEmpty(activeTc?.expected ?? activeTc?.output ?? activeTc?.expected_output ?? activeTc?.expectedOutput);
+                        })();
 
                       return (
                         <div className={styles.resultWrap}>

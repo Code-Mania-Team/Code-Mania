@@ -15,6 +15,11 @@ router.get(
 
 router.get('/:language/:quizId', quizController.getQuizById.bind(quizController));
 router.post(
+  '/:language/:quizId/validate',
+  authentication,
+  quizController.validateQuiz.bind(quizController)
+);
+router.post(
   '/:language/:quizId/complete',
   authentication,
   quizController.completeQuiz.bind(quizController)

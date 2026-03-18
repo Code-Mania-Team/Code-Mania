@@ -470,6 +470,58 @@ function extractLastTwoNumbers(text) {
   return nums.slice(-2);
 }
 
+function isNumericOnlyExpected(expectedRaw) {
+  const s = String(expectedRaw ?? "").trim();
+  if (!s) return false;
+  // Only numbers separated by whitespace/newlines.
+  return /^-?\d+(?:\s+-?\d+)*\s*$/.test(s);
+}
+
+function matchesStdinExpected(output, expectedRaw) {
+  const outNorm = normalizeValidationText(String(output ?? ""));
+  const expNorm = normalizeValidationText(String(expectedRaw ?? ""));
+
+  // First: strict match (original behavior).
+  if (outNorm === expNorm) return true;
+
+  // Back-compat: allow extra prompts/text, match by trailing numbers.
+  // This supports solutions that print input prompts or extra lines.
+  if (!isNumericOnlyExpected(expNorm)) return false;
+
+  const expectedNums = extractNumbers(expNorm);
+  if (!expectedNums.length) return false;
+
+  const outNums = extractNumbers(outNorm);
+  if (outNums.length < expectedNums.length) return false;
+
+  const tail = outNums.slice(-expectedNums.length);
+  return isDeepStrictEqual(tail, expectedNums);
+}
+
+function buildStdoutDisplay(output, expectedRaw) {
+  const raw = String(output ?? "");
+
+  // Preserve compiler/runtime diagnostics as-is.
+  if (raw.startsWith("COMPILE_ERROR")) return raw.trim();
+  if (hasExecutionError(raw, "python") || hasExecutionError(raw, "javascript") || hasExecutionError(raw, "cpp")) {
+    return raw.trim();
+  }
+
+  const outNorm = normalizeValidationText(raw);
+  const expNorm = normalizeValidationText(String(expectedRaw ?? ""));
+
+  // If expected is numeric-only, show just the designated numeric output (last N numbers).
+  if (isNumericOnlyExpected(expNorm)) {
+    const expectedNums = extractNumbers(expNorm);
+    const outNums = extractNumbers(outNorm);
+    if (expectedNums.length && outNums.length >= expectedNums.length) {
+      return outNums.slice(-expectedNums.length).join("\n");
+    }
+  }
+
+  return outNorm;
+}
+
 /* ===============================
    DOCKER EXECUTION (SINGLE TEST)
 =============================== */
@@ -503,7 +555,7 @@ async function runSingleTest(language, code, input = "", mode = "stdin", functio
 
           if (language === "javascript") {
             finalCode = `
-const __rawInput = ${JSON.stringify(input)};
+ const __rawInput = ${JSON.stringify(input)};
 
 /* USER CODE START */
 ${sanitized}
@@ -529,53 +581,74 @@ if (typeof __rawInput === "string") {
   }
 }
 
- const __fn = ${functionName};
- const __args = (__arg && typeof __arg === "object" && !Array.isArray(__arg) && Array.isArray(__arg.args))
-   ? __arg.args
-   : null;
- const result = __args ? __fn(...__args) : __fn(__arg);
- console.log("OUTPUT:", JSON.stringify(result));
- `;
-          } else if (language === "python") {
-            const inputJsonText = typeof input === "string" ? input : JSON.stringify(input);
-            // Embed as a Python string and parse via json.loads.
-            const inputJsonLiteral = JSON.stringify(String(inputJsonText));
+  const __fnName = ${JSON.stringify(String(functionName))};
+  // Avoid eval() so this wrapper stays sanitizer-friendly.
+  const __root = (typeof globalThis !== "undefined" && globalThis)
+    ? globalThis
+    : (typeof self !== "undefined" && self ? self : null);
+  const __fn = __root ? __root[__fnName] : null;
+  if (typeof __fn !== "function") {
+    console.log(
+      "FUNCTION_NOT_FOUND: " + __fnName + " (define it in your code or switch the test case mode to stdin)"
+    );
+  } else {
+  // Accept either {"args": [...]} OR a raw JSON array [...] as the argument list.
+  const __args =
+    (__arg && typeof __arg === "object" && !Array.isArray(__arg) && Array.isArray(__arg.args))
+      ? __arg.args
+      : (Array.isArray(__arg) ? __arg : null);
+    const result = __args ? __fn(...__args) : __fn(__arg);
+    console.log("OUTPUT:", JSON.stringify(result));
+  }
+   `;
+            } else if (language === "python") {
+             const inputJsonText = typeof input === "string" ? input : JSON.stringify(input);
+             // Embed as a Python string and parse via json.loads.
+             const inputJsonLiteral = JSON.stringify(String(inputJsonText));
 
-            finalCode = `
-import json
-
-input_json = ${inputJsonLiteral}
-
-${sanitized}
-
-arg = None
-if isinstance(input_json, str) and input_json.strip():
-  try:
-    arg = json.loads(input_json)
-  except Exception:
-    arg = input_json
-
-def __call(fn, value):
-  # Avoid ambiguity: JSON arrays are passed as a single argument by default.
-  # To pass multiple positional/keyword args, wrap input as:
-  #   {"args": [...], "kwargs": {...}}
-  if isinstance(value, dict) and ("args" in value or "kwargs" in value):
-    args = value.get("args", [])
-    kwargs = value.get("kwargs", {})
-    if not isinstance(args, (list, tuple)):
-      args = [args]
-    if not isinstance(kwargs, dict):
-      kwargs = {}
-    return fn(*args, **kwargs)
-  return fn(value)
-
-result = __call(${functionName}, arg)
-print("OUTPUT:", json.dumps(result))
-`;
-          } else if (language === "cpp") {
-            const inputText = typeof input === "string" ? input : JSON.stringify(input);
-            // Raw string literal; keep it simple (user parses as needed).
-            const safe = String(inputText).replace(/\)"/g, ')""');
+             finalCode = [
+               "import json",
+               "",
+               `input_json = ${inputJsonLiteral}`,
+               "",
+               String(sanitized ?? ""),
+               "",
+               "arg = None",
+               "if isinstance(input_json, str) and input_json.strip():",
+               "  try:",
+               "    arg = json.loads(input_json)",
+               "  except Exception:",
+               "    arg = input_json",
+               "",
+               "def __call(fn, value):",
+               "  # Avoid ambiguity: JSON arrays are passed as a single argument by default.",
+               "  # To pass multiple positional/keyword args, wrap input as:",
+               "  #   {\"args\": [...], \"kwargs\": {...}}",
+               "  # CodeMania: also allow passing a raw JSON array as positional args.",
+               "  if isinstance(value, (list, tuple)):",
+               "    return fn(*value)",
+               "  if isinstance(value, dict) and (\"args\" in value or \"kwargs\" in value):",
+               "    args = value.get(\"args\", [])",
+               "    kwargs = value.get(\"kwargs\", {})",
+               "    if not isinstance(args, (list, tuple)):",
+               "      args = [args]",
+               "    if not isinstance(kwargs, dict):",
+               "      kwargs = {}",
+               "    return fn(*args, **kwargs)",
+               "  return fn(value)",
+               "",
+               `fn = globals().get(${JSON.stringify(String(functionName))})`,
+               "if not callable(fn):",
+               `  print(\"FUNCTION_NOT_FOUND:\", ${JSON.stringify(String(functionName))})`,
+               "else:",
+               "  result = __call(fn, arg)",
+               "  print(\"OUTPUT:\", json.dumps(result))",
+               "",
+             ].join("\n");
+           } else if (language === "cpp") {
+             const inputText = typeof input === "string" ? input : JSON.stringify(input);
+             // Raw string literal; keep it simple (user parses as needed).
+             const safe = String(inputText).replace(/\)"/g, ')""');
 
             finalCode = `
 #include <bits/stdc++.h>
@@ -839,6 +912,14 @@ app.post("/exam/run", async (req, res) => {
     for (let i = 0; i < testCases.length; i++) {
       const test = testCases[i];
 
+      const expectedRaw =
+        test?.expected ??
+        test?.expected_output ??
+        test?.expectedOutput ??
+        test?.output ??
+        test?.expectedResult ??
+        "";
+
       const start = Date.now();
 
       try{
@@ -867,7 +948,7 @@ app.post("/exam/run", async (req, res) => {
           cleanOutput = cleanOutput.replace(/^OUTPUT:\s*/, "");
         }
 
-        const expected = parseMaybeJson(test.expected);
+        const expected = parseMaybeJson(expectedRaw);
 
         // Prefer JSON compare when possible.
         try {
@@ -889,9 +970,7 @@ app.post("/exam/run", async (req, res) => {
       } else {
 
         // STDIN mode: compare full output.
-        success =
-          normalizeValidationText(String(output ?? "")) ===
-          normalizeValidationText(String(test.expected ?? ""));
+        success = matchesStdinExpected(output, expectedRaw);
       }
 
       if (success) passed++;
@@ -901,7 +980,8 @@ app.post("/exam/run", async (req, res) => {
         passed: success,
         execution_time_ms: executionTime,
         stdout: String(output ?? ""),
-        expected: String(test.expected ?? "")
+        stdout_display: test.mode === "stdin" ? buildStdoutDisplay(output, expectedRaw) : String(output ?? "").trim(),
+        expected: String(expectedRaw ?? "")
       });
     }
 

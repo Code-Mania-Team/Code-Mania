@@ -111,6 +111,45 @@ class ExamController {
     }
   }
 
+  async validateAttempt(req, res) {
+    try {
+      const userId = res.locals.user_id;
+      const isAdmin = await this.resolveIsAdmin(userId, res.locals.role);
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+
+      const attemptId = Number(req.params.attemptId);
+      if (!Number.isFinite(attemptId)) {
+        return res.status(400).json({ success: false, message: "Invalid attemptId" });
+      }
+
+      const code = req.body?.code;
+      const language = req.body?.language;
+      if (typeof code !== "string" || !code.trim()) {
+        return res.status(400).json({ success: false, message: "code is required" });
+      }
+
+      const result = await this.examService.validateAttempt({
+        userId,
+        attemptId,
+        code,
+        languageSlug: typeof language === "string" ? language.toLowerCase() : undefined,
+        isAdmin,
+      });
+
+      if (!result.ok) {
+        return res
+          .status(result.status || 500)
+          .json({ success: false, message: result.message, ...(result.data || {}) });
+      }
+
+      return res.status(200).json({ success: true, data: result.data });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: "Failed to validate exam attempt" });
+    }
+  }
+
   async listAttempts(req, res) {
     try {
       const userId = res.locals.user_id;

@@ -1,6 +1,18 @@
 import DomSessionService from "../../services/domSessionServices.js";
 import ExerciseModel from "../../models/exercises.js";
 
+const BASE_START = "<!-- CODEMANIA_BASE_HTML_START -->";
+const BASE_END = "<!-- CODEMANIA_BASE_HTML_END -->";
+
+function stripBaseBlock(text) {
+  const s = String(text ?? "");
+  const start = s.indexOf(BASE_START);
+  if (start === -1) return s;
+  const end = s.indexOf(BASE_END, start);
+  if (end === -1) return s;
+  return s.slice(0, start) + s.slice(end + BASE_END.length);
+}
+
 function splitUserSubmission(raw) {
   const text = String(raw ?? "");
   const hasScriptTag = /<\s*script\b/i.test(text);
@@ -178,9 +190,8 @@ class DomController {
 
       const session = result.data;
 
-      const { userHtml, userJs } = splitUserSubmission(session.userCode);
-      const mergedBase = typeof session.userCode === "string" && session.userCode.includes("CODEMANIA_BASE_INCLUDED");
-      const baseHtml = mergedBase ? "" : session.baseHtml;
+      const cleanedUserCode = stripBaseBlock(session.userCode);
+      const { userHtml, userJs } = splitUserSubmission(cleanedUserCode);
 
       const html = `
       <!DOCTYPE html>
@@ -194,7 +205,7 @@ class DomController {
         </style>
       </head>
       <body>
-        ${baseHtml}
+        ${session.baseHtml}
         ${userHtml}
 
         <script>

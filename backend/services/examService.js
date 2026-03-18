@@ -28,6 +28,52 @@ function coerceBool(value) {
   return Boolean(value);
 }
 
+function coerceTestCaseArray(value) {
+  if (Array.isArray(value)) return value;
+
+  if (typeof value === "string") {
+    const s = value.trim();
+    if (!s) return [];
+    try {
+      const parsed = JSON.parse(s);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function filterVisibleTestCases(testCases) {
+  const arr = coerceTestCaseArray(testCases);
+  return arr.filter((tc) => !coerceBool(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden));
+}
+
+function sanitizeExecutionResults({ testCases, results }) {
+  const tcArr = Array.isArray(testCases) ? testCases : [];
+  const rows = Array.isArray(results) ? results : [];
+
+  return rows.map((r, i) => {
+    const idx = Number(r?.test_index ?? r?.testIndex ?? i + 1);
+    const tc = tcArr[idx - 1] || {};
+    const hidden = coerceBool(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden ?? r?.is_hidden ?? r?.isHidden ?? r?.hidden);
+
+    if (!hidden) {
+      return { ...r, is_hidden: false };
+    }
+
+    return {
+      ...r,
+      is_hidden: true,
+      expected: "",
+      stdout: "",
+      stdout_display: "",
+    };
+  });
+}
+
+
 class ExamService {
   constructor() {
     this.exam = new ExamModel();      
@@ -203,6 +249,11 @@ class ExamService {
       const scorePercentage = execution.score;
       const passed = scorePercentage >= PASS_THRESHOLD;
 
+       const sanitizedResults = sanitizeExecutionResults({
+        testCases: fullProblem.test_cases || [],
+        results: execution.results
+      });
+
       return {
         ok: true,
         data: {
@@ -213,7 +264,7 @@ class ExamService {
           attempt_number: 1,
           passed_tests: passedTests,
           total_tests: totalTests,
-          results: execution.results,
+          results: sanitizedResults,
           preview: true,
         },
       };
@@ -304,6 +355,11 @@ class ExamService {
 
     const passed = scorePercentage >= PASS_THRESHOLD;
 
+    const sanitizedResults = sanitizeExecutionResults({
+      testCases: problem.test_cases || [],
+      results: execution.results
+    });
+
     const baseXp = Number(problem.exp || 1000);
     const previousXp = Number(attempt.earned_xp || 0);
     const startingXp = previousXp > 0 ? previousXp : baseXp;
@@ -371,8 +427,90 @@ class ExamService {
         achievement_awarded: achievementAwarded,
         passed_tests: passedTests,
         total_tests: totalTests,
-        results: execution.results
+        results: sanitizedResults
       }
+    };
+  }
+
+  async validateAttempt({ userId, attemptId, code, languageSlug, isAdmin = false }) {
+    const PASS_THRESHOLD = 70;
+    const effectiveIsAdmin = isAdmin || await this.exam.isAdminUser(userId);
+
+    let effectiveLanguage = null;
+    let testCases = [];
+    let attempt = null;
+
+    if (effectiveIsAdmin) {
+      if (!languageSlug) {
+        return { ok: false, status: 400, message: "language is required for admin preview" };
+      }
+
+      const problems = await this.exam.listProblems({ languageSlug });
+      const problem = problems?.[0];
+      if (!problem) {
+        return { ok: false, status: 404, message: "Exam not found for language" };
+      }
+
+      const fullProblem = await this.exam.getProblemById(Number(problem.id));
+      if (!fullProblem) {
+        return { ok: false, status: 404, message: "Problem not found" };
+      }
+
+      effectiveLanguage = languageSlug;
+      testCases = filterVisibleTestCases(fullProblem.test_cases || []);
+    } else {
+      attempt = await this.exam.getAttemptById({ attemptId });
+      if (!attempt) return { ok: false, status: 404, message: "Attempt not found" };
+
+      if (String(attempt.user_id) !== String(userId)) {
+        return { ok: false, status: 403, message: "Forbidden" };
+      }
+
+      const problem = await this.exam.getProblemById(Number(attempt.exam_problem_id));
+      if (!problem) return { ok: false, status: 404, message: "Problem not found" };
+
+      effectiveLanguage = attempt.language;
+      testCases = filterVisibleTestCases(problem.test_cases || []);
+    }
+
+    const { data: execution } = await axios.post(
+      `${TERMINAL_API_BASE_URL}/exam/run`,
+      {
+        language: effectiveLanguage,
+        code,
+        testCases
+      },
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_KEY
+        }
+      }
+    );
+
+    const totalTests = execution.total;
+    const passedTests = execution.passed;
+    const scorePercentage = execution.score;
+    const passed = scorePercentage >= PASS_THRESHOLD;
+
+    const sanitizedResults = sanitizeExecutionResults({
+      testCases,
+      results: execution.results
+    });
+
+    return {
+      ok: true,
+      data: {
+        score_percentage: scorePercentage,
+        passed,
+        earned_xp: effectiveIsAdmin ? 0 : Number(attempt?.earned_xp || 0),
+        xp_added: 0,
+        attempt_number: effectiveIsAdmin ? 0 : Number(attempt?.attempt_number || 0),
+        passed_tests: passedTests,
+        total_tests: totalTests,
+        results: sanitizedResults,
+        preview: true,
+        visible_only: true,
+      },
     };
   }
 

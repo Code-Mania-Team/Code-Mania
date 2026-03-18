@@ -1377,6 +1377,30 @@
   border-color: rgba(59, 130, 246, 0.35);
 }
 
+.runtime-tab-pass {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.runtime-tab-pass .runtime-tab-mark {
+  border-color: rgba(34, 197, 94, 0.55);
+  color: rgba(34, 197, 94, 0.98);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.runtime-tab-fail {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.runtime-tab-fail .runtime-tab-mark {
+  border-color: rgba(239, 68, 68, 0.55);
+  color: rgba(239, 68, 68, 0.98);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.runtime-tab-pending {
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
 .runtime-tab-mark {
   font-family: "Press Start 2P", cursive;
   font-size: 10px;

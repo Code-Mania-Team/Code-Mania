@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import { axiosPublic } from "../api/axios";
@@ -106,10 +106,18 @@ const QuizManager = () => {
               String(full.code_prompt ?? "").trim().startsWith("[")
               ? "json"
               : "markdown";
+        const normalizedCodePrompt = toPrettyJsonString(full.code_prompt, full.code_prompt || "");
+        const normalizedDescription = String(full.quiz_description || "").trim();
+
         setFormData({
           ...full,
-          code_prompt: toPrettyJsonString(full.code_prompt, full.code_prompt || ""),
+          // Keep code_prompt in state for backward compatibility, but the UI
+          // edits the prompt via quiz_description.
+          code_prompt: normalizedCodePrompt,
           code_prompt_format: fullPromptFormat,
+          quiz_description:
+            normalizedDescription ||
+            (typeof full.code_prompt === "string" ? String(full.code_prompt) : normalizedCodePrompt),
           test_cases: toPrettyJsonString(full.test_cases, "[]"),
         });
       }
@@ -146,31 +154,11 @@ const QuizManager = () => {
         }
       }
 
-      const promptFormat = String(formData.code_prompt_format || "markdown").toLowerCase();
-      let normalizedPrompt = formData.code_prompt;
-      if (promptFormat === "json") {
-        if (typeof normalizedPrompt === "string") {
-          const raw = normalizedPrompt.trim();
-          if (!raw) {
-            normalizedPrompt = { sections: [] };
-          } else {
-            try {
-              normalizedPrompt = JSON.parse(raw);
-            } catch {
-              alert("Code prompt must be valid JSON when format is JSON.");
-              setSaving(false);
-              return;
-            }
-          }
-        }
-      } else {
-        if (typeof normalizedPrompt !== "string") {
-          try {
-            normalizedPrompt = JSON.stringify(normalizedPrompt, null, 2);
-          } catch {
-            normalizedPrompt = String(normalizedPrompt ?? "");
-          }
-        }
+      // For code quizzes: treat quiz_description as the learner-visible prompt.
+      // Keep code_prompt stored in the DB but hide it in the admin UI.
+      let normalizedPrompt = String(formData.quiz_description ?? "");
+      if (!normalizedPrompt.trim()) {
+        normalizedPrompt = typeof formData.code_prompt === "string" ? formData.code_prompt : "";
       }
 
       const payload = {
@@ -271,7 +259,22 @@ const QuizManager = () => {
               <div key={q.id} className={styles.exerciseRow}>
                 {editingQuiz === q.id ? (
                   <div className={styles.exerciseEditor}>
-                    <h3>Edit Quiz: {formData.quiz_title || q.quiz_title}</h3>
+                    <div className={styles.editorHeaderRow}>
+                      <div>
+                        <h3 className={styles.editorHeaderTitle}>
+                          Edit Quiz: {formData.quiz_title || q.quiz_title}
+                        </h3>
+                        <div className={styles.editorHeaderMeta}>
+                          <span className={`${styles.badge} ${styles.badgeBlue}`}>#{q.id}</span>
+                          <span className={`${styles.badge} ${String(formData.quiz_type || q.quiz_type || "mcq").toLowerCase() === "code" ? styles.badgeGreen : styles.badgeAmber}`}>
+                            {String(formData.quiz_type || q.quiz_type || "mcq").toLowerCase()}
+                          </span>
+                          <span className={styles.badge}>XP {Number(formData.exp_total ?? q.exp_total ?? 0)}</span>
+                          {q.route ? <span className={styles.badge}>{q.route}</span> : null}
+                        </div>
+                      </div>
+                    </div>
+
                     <QuizForm
                       formData={formData}
                       setFormData={setFormData}
@@ -318,8 +321,6 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const promptFormat = String(formData.code_prompt_format || "markdown").toLowerCase();
-
   const baseEditorOptions = {
     contextmenu: false,
     minimap: { enabled: false },
@@ -331,152 +332,219 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
 
   const isCode = String(formData.quiz_type || "mcq").toLowerCase() === "code";
 
+  const safeParseJson = (value) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value !== "string") return value;
+    const raw = value.trim();
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  };
+
+  const testCaseStats = useMemo(() => {
+    const parsed = safeParseJson(formData.test_cases);
+    const arr = Array.isArray(parsed) ? parsed : [];
+    const hidden = arr.filter((tc) => Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden)).length;
+    return {
+      total: arr.length,
+      hidden,
+      visible: Math.max(0, arr.length - hidden),
+    };
+  }, [formData.test_cases]);
+
   return (
-    <div className={styles.formGrid}>
-      <div className={styles.formGroup}>
-        <label>Quiz ID</label>
-        <input type="number" value={formData.id || ""} disabled />
-      </div>
+    <div className={styles.formWithPreview}>
+      <div>
+        <div className={styles.formSection}>
+          <div className={styles.sectionHead}>
+            <p className={styles.sectionTitle}>Basics</p>
+            <p className={styles.sectionDesc}>Identity, type, and XP payout</p>
+          </div>
+          <div className={styles.formGrid}>
+            <div className={styles.formGroup}>
+              <label>Quiz ID</label>
+              <input type="number" value={formData.id || ""} disabled />
+            </div>
 
-      <div className={styles.formGroup}>
-        <label>Type</label>
-        <select
-          value={formData.quiz_type || "mcq"}
-          onChange={(e) => handleChange("quiz_type", e.target.value)}
-        >
-          <option value="mcq">mcq</option>
-          <option value="code">code</option>
-        </select>
-      </div>
+            <div className={styles.formGroup}>
+              <label>Type</label>
+              <select
+                value={formData.quiz_type || "mcq"}
+                onChange={(e) => handleChange("quiz_type", e.target.value)}
+              >
+                <option value="mcq">mcq</option>
+                <option value="code">code</option>
+              </select>
+            </div>
 
-      <div className={styles.formGroup}>
-        <label>XP Total</label>
-        <input
-          type="number"
-          value={formData.exp_total ?? 0}
-          onChange={(e) => handleChange("exp_total", e.target.value)}
-        />
-      </div>
+            <div className={styles.formGroup}>
+              <label>XP Total</label>
+              <input
+                type="number"
+                value={formData.exp_total ?? 0}
+                onChange={(e) => handleChange("exp_total", e.target.value)}
+              />
+            </div>
 
-      <div className={styles.formGroupFull}>
-        <label>Quiz Title</label>
-        <input
-          type="text"
-          value={formData.quiz_title || ""}
-          onChange={(e) => handleChange("quiz_title", e.target.value)}
-        />
-      </div>
+            <div className={styles.formGroup}>
+              <label>Route</label>
+              <input type="text" value={formData.route || ""} disabled />
+            </div>
+          </div>
+        </div>
 
-      <div className={styles.formGroupFull}>
-        <label>Description</label>
-        <textarea
-          value={formData.quiz_description || ""}
-          onChange={(e) => handleChange("quiz_description", e.target.value)}
-          rows={3}
-        />
+      <div className={styles.formSection}>
+        <div className={styles.sectionHead}>
+          <p className={styles.sectionTitle}>Copy</p>
+          <p className={styles.sectionDesc}>What the learner sees</p>
+        </div>
+        <div className={styles.formGrid}>
+            <div className={styles.formGroupFull}>
+              <label>Quiz Title</label>
+              <input
+                className={styles.titleInput}
+                type="text"
+                value={formData.quiz_title || ""}
+                onChange={(e) => handleChange("quiz_title", e.target.value)}
+                placeholder="e.g. Python Stage 2 Quiz"
+              />
+            </div>
+
+          <div className={styles.formGroupFull}>
+            <label>Description</label>
+            <div className={styles.jsonEditorWrap}>
+              <Editor
+                height="200px"
+                language="markdown"
+                theme="vs-dark"
+                value={formData.quiz_description || ""}
+                onChange={(v) => handleChange("quiz_description", v ?? "")}
+                options={baseEditorOptions}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {isCode ? (
         <>
-          <div className={styles.formGroup}>
-            <label>Code Prompt Format</label>
-            <select
-              value={promptFormat}
-              onChange={(e) => handleChange("code_prompt_format", e.target.value)}
-            >
-              <option value="markdown">markdown</option>
-              <option value="json">json</option>
-            </select>
+          <div className={styles.formSection}>
+            <div className={styles.sectionHead}>
+              <p className={styles.sectionTitle}>Starter Code</p>
+              <p className={styles.sectionDesc}>Prefills the editor for learners</p>
+            </div>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroupFull}>
+                  <label>Starting Code</label>
+                  <div className={styles.jsonEditorWrap}>
+                    <Editor
+                      height="260px"
+                      language="plaintext"
+                      theme="vs-dark"
+                      value={formData.starting_code || ""}
+                      onChange={(v) => handleChange("starting_code", v ?? "")}
+                      options={baseEditorOptions}
+                    />
+                  </div>
+                </div>
+              </div>
           </div>
 
-           <div className={styles.formGroupFull}>
-            <label>Code Prompt ({promptFormat})</label>
-           <Editor
-              height="220px"
-              language={promptFormat === "json" ? "json" : "markdown"}
-              theme="vs-dark"
-              value={formData.code_prompt || ""}
-              onChange={(v) => handleChange("code_prompt", v ?? "")}
-              options={baseEditorOptions}
-            />
+          <div className={styles.formSection}>
+            <div className={styles.sectionHead}>
+              <p className={styles.sectionTitle}>Tests</p>
+              <p className={styles.sectionDesc}>Controls validation + scoring</p>
+            </div>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroupFull}>
+                  <label>Test Cases</label>
+                  <TestCasesEditor
+                    value={formData.test_cases || "[]"}
+                    onChange={(v) => handleChange("test_cases", v ?? "[]")}
+                  />
+                  <details className={styles.helpDetails}>
+                    <summary className={styles.helpSummary}>Raw JSON (advanced)</summary>
+                    <div className={styles.jsonEditorWrap}>
+                      <Editor
+                        height="240px"
+                        language="json"
+                        theme="vs-dark"
+                        value={formData.test_cases || "[]"}
+                        onChange={(v) => handleChange("test_cases", v ?? "")}
+                        options={baseEditorOptions}
+                      />
+                    </div>
+                  </details>
 
-            {promptFormat === "markdown" ? (
-              <details className={styles.helpDetails}>
-                <summary className={styles.helpSummary}>Preview (Markdown)</summary>
-                <MarkdownRenderer>{formData.code_prompt || ""}</MarkdownRenderer>
-              </details>
-            ) : null}
-            <details className={styles.helpDetails}>
-              <summary className={styles.helpSummary}>Prompt format notes</summary>
-              <p className={styles.helpText}>
-                Use <code>markdown</code> for normal prompts. Use <code>json</code> only for legacy prompts like{" "}
-                <code>{"{"} "sections": [...] {"}"}</code>.
-              </p>
-            </details>
-          </div>
-
-          <div className={styles.formGroupFull}>
-            <label>Starting Code</label>
-            <Editor
-              height="240px"
-              language="plaintext"
-              theme="vs-dark"
-              value={formData.starting_code || ""}
-              onChange={(v) => handleChange("starting_code", v ?? "")}
-              options={baseEditorOptions}
-            />
-          </div>
-
-           <div className={styles.formGroupFull}>
-             <label>Test Cases</label>
-             <TestCasesEditor
-               value={formData.test_cases || "[]"}
-               onChange={(v) => handleChange("test_cases", v ?? "[]")}
-             />
-             <details className={styles.helpDetails}>
-               <summary className={styles.helpSummary}>Raw JSON (advanced)</summary>
-               <Editor
-                 height="240px"
-                 language="json"
-                 theme="vs-dark"
-                 value={formData.test_cases || "[]"}
-                 onChange={(v) => handleChange("test_cases", v ?? "")}
-                 options={baseEditorOptions}
-               />
-             </details>
-
-             <details className={styles.helpDetails}>
-               <summary className={styles.helpSummary}>Test cases JSON format</summary>
-               <p className={styles.helpText}>
-                 Must be a JSON array. Fields: <code>input</code>, <code>expected</code>, <code>is_hidden</code>.
-               </p>
-               <pre className={styles.helpCode}>
+                  <details className={styles.helpDetails}>
+                    <summary className={styles.helpSummary}>Test cases JSON format</summary>
+                    <p className={styles.helpText}>
+                      Must be a JSON array. Fields: <code>input</code>, <code>expected</code>, <code>is_hidden</code>.
+                    </p>
+                    <pre className={styles.helpCode}>
 {`[
   { "input": "2 3", "expected": "5", "is_hidden": false },
   { "input": "-1 1", "expected": "0", "is_hidden": true }
 ]`}
-               </pre>
-             </details>
-           </div>
-         </>
-       ) : null}
+                    </pre>
+                  </details>
+                </div>
+              </div>
+          </div>
+        </>
+      ) : null}
 
-      <div className={styles.formActions}>
-        <button className={styles.button} type="button" onClick={onSave} disabled={saving}>
-          <Save size={16} style={{ marginRight: 4 }} />
-          {saving ? "Saving..." : "Save"}
-        </button>
-        <button
-          className={styles.button}
-          type="button"
-          onClick={onCancel}
-          style={{ backgroundColor: "#6b7280" }}
-          disabled={saving}
-        >
-          <X size={16} style={{ marginRight: 4 }} />
-          Cancel
-        </button>
+        <div className={`${styles.formActions} ${styles.formActionsSticky}`}>
+          <button className={`${styles.button} ${styles.buttonPrimary}`} type="button" onClick={onSave} disabled={saving}>
+            <Save size={16} style={{ marginRight: 6 }} />
+            {saving ? "Saving..." : "Save"}
+          </button>
+          <button
+            className={`${styles.button} ${styles.buttonMuted}`}
+            type="button"
+            onClick={onCancel}
+            disabled={saving}
+          >
+            <X size={16} style={{ marginRight: 6 }} />
+            Cancel
+          </button>
+        </div>
       </div>
+
+      <aside className={styles.previewPanel}>
+        <div className={styles.previewTitle}>
+          Live Preview
+          <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>as learners see it</span>
+        </div>
+        <p className={styles.previewHint}>
+          This is a render preview. Validation is controlled by your test cases.
+        </p>
+
+        <div className={styles.previewMetaRow}>
+          <span className={`${styles.badge} ${styles.badgeBlue}`}>Type: {String(formData.quiz_type || "mcq")}</span>
+          <span className={styles.badge}>XP: {Number(formData.exp_total ?? 0)}</span>
+          {isCode ? (
+            <span className={`${styles.badge} ${styles.badgeGreen}`}>
+              Tests: {testCaseStats.total} ({testCaseStats.visible} visible / {testCaseStats.hidden} hidden)
+            </span>
+          ) : null}
+        </div>
+
+        <div className={styles.previewCard}>
+          <h3 style={{ margin: "0 0 10px", fontSize: 16 }}>{formData.quiz_title || "(Untitled quiz)"}</h3>
+          {formData.quiz_description ? (
+            <div style={{ opacity: 0.95 }}>
+              <MarkdownRenderer>{formData.quiz_description}</MarkdownRenderer>
+            </div>
+          ) : (
+            <div style={{ color: "#94a3b8", fontSize: 13 }}>No description yet.</div>
+          )}
+        </div>
+
+      </aside>
     </div>
   );
 };

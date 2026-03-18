@@ -80,6 +80,40 @@ const useExamAttempt = () => {
     }
   };
 
+  /* ===============================
+     VALIDATE ATTEMPT (NO CONSUME)
+  =============================== */
+  const validateAttempt = async (code, language) => {
+    if (!attemptId) {
+      const err = new Error("No active attempt");
+      setError(err);
+      return null;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axiosPrivate.post(
+        `/v1/exam/attempts/${attemptId}/validate`,
+        { code, language }
+      );
+
+      if (response.data?.success) {
+        return response.data.data;
+      }
+
+      throw new Error(response.data?.message || "Validation failed");
+
+    } catch (err) {
+      console.error("Validate attempt error:", err);
+      setError(err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const reset = () => {
     setAttemptId(null);
     setResult(null);
@@ -92,6 +126,7 @@ const useExamAttempt = () => {
     loading,
     error,
     startAttempt,
+    validateAttempt,
     submitAttempt,
     reset,
   };

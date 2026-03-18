@@ -13,6 +13,16 @@ function needsRunner(language, code) {
   return true;
 }
 
+function toJsonIfNeeded(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 function appendQuizRunner({ language, stageNumber, startingCode }) {
   const base = String(startingCode || "").trimEnd();
   if (!needsRunner(language, base)) return base;
@@ -62,6 +72,73 @@ function appendQuizRunner({ language, stageNumber, startingCode }) {
   }
 
   return base;
+}
+
+function stripRunnerHelper({ language, code }) {
+  const s = String(code || "");
+  if (!s.trim()) return s;
+
+  const markers = [];
+  if (language === "python") {
+    markers.push("\n# Runner helper");
+    markers.push("\n# Terminal runner helper");
+  } else if (language === "javascript") {
+    markers.push("\n// Runner helper");
+    markers.push("\n// Terminal runner helper");
+  } else if (language === "cpp") {
+    markers.push("\n// Terminal runner helper");
+    markers.push("\n\nint main(");
+  }
+
+  let cut = -1;
+  for (const m of markers) {
+    const idx = s.indexOf(m);
+    if (idx !== -1 && (cut === -1 || idx < cut)) cut = idx;
+  }
+  if (cut === -1) return s;
+  return s.slice(0, cut).trimEnd();
+}
+
+function coerceBool(value) {
+  if (value === true) return true;
+  if (value === false) return false;
+  if (value === 1) return true;
+  if (value === 0) return false;
+  if (typeof value === "string") {
+    const s = value.trim().toLowerCase();
+    if (s === "true" || s === "1" || s === "yes") return true;
+    if (s === "false" || s === "0" || s === "no" || s === "") return false;
+  }
+  return Boolean(value);
+}
+
+function filterVisibleTestCases(testCases) {
+  const list = Array.isArray(testCases) ? testCases : [];
+  const visible = list.filter((tc) => !coerceBool(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden));
+  return visible.length ? visible : list;
+}
+
+function sanitizeExecutionResults({ testCases, results }) {
+  const tcArr = Array.isArray(testCases) ? testCases : [];
+  const rows = Array.isArray(results) ? results : [];
+
+  return rows.map((r, i) => {
+    const idx = Number(r?.test_index ?? r?.testIndex ?? i + 1);
+    const tc = tcArr[idx - 1] || {};
+    const hidden = coerceBool(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden ?? r?.is_hidden ?? r?.isHidden ?? r?.hidden);
+
+    if (!hidden) {
+      return { ...r, is_hidden: false };
+    }
+
+    return {
+      ...r,
+      is_hidden: true,
+      expected: "",
+      stdout: "",
+      stdout_display: "",
+    };
+  });
 }
 
 class QuizService {
@@ -129,9 +206,9 @@ class QuizService {
       };
       
       let mockStartingCode = {
-        python: 'def calculate_sum(a, b):\n    # Write your code here\n    pass\n\n# Terminal runner helper\nimport sys\ninput_data = sys.stdin.read().strip().split()\nif len(input_data) >= 2:\n    print(calculate_sum(int(input_data[0]), int(input_data[1])))',
-        javascript: 'function calculateSum(a, b) {\n    // Write your code here\n}\n\n// Terminal runner helper\nconst fs = require("fs");\ntry {\n  const inputData = fs.readFileSync(0, "utf-8").trim().split(/\\s+/);\n  if (inputData.length >= 2) {\n      console.log(calculateSum(Number(inputData[0]), Number(inputData[1])));\n  }\n} catch(e) {}',
-        cpp: '#include <iostream>\nusing namespace std;\n\nint calculateSum(int a, int b) {\n    // Write your code here\n}\n\n// Terminal runner helper\nint main() {\n    int a, b;\n    if (cin >> a >> b) cout << calculateSum(a, b);\n    return 0;\n}'
+        python: 'def calculate_sum(a, b):\n    # Write your code here\n    pass\n',
+        javascript: 'function calculateSum(a, b) {\n  // Write your code here\n}\n',
+        cpp: '#include <vector>\n\nint calculateSum(int a, int b) {\n  // Write your code here\n  return 0;\n}\n'
       }[language] || '// Write your code here';
 
       let mockTestCases = [
@@ -164,11 +241,7 @@ class QuizService {
       responseData.code_prompt = parseMaybeJsonPrompt(quizData.code_prompt) || mockPrompt;
 
       const effectiveStarting = quizData.starting_code || mockStartingCode;
-      responseData.starting_code = appendQuizRunner({
-        language,
-        stageNumber,
-        startingCode: effectiveStarting,
-      });
+      responseData.starting_code = stripRunnerHelper({ language, code: effectiveStarting });
       responseData.exp_total = quizData.exp_total || 500;
       
       const normalizeTestCase = (tc) => {
@@ -313,12 +386,17 @@ class QuizService {
       }
 
       const normalizeTestCase = (tc) => {
-        const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden);
-        const input = tc?.input ?? tc?.stdin ?? "";
-        const expected = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+        const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+        const modeRaw = tc?.mode ?? "stdin";
+        const mode = String(modeRaw || "stdin").trim().toLowerCase() === "function" ? "function" : "stdin";
+        const inputRaw = tc?.input ?? tc?.stdin ?? "";
+        const expectedRaw = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+        const functionName = tc?.functionName ?? tc?.function_name ?? null;
         return {
-          input: input === null || input === undefined ? "" : String(input),
-          expected: expected === null || expected === undefined ? "" : String(expected),
+          mode,
+          functionName: functionName ? String(functionName) : null,
+          input: mode === "function" ? toJsonIfNeeded(inputRaw) : (inputRaw === null || inputRaw === undefined ? "" : String(inputRaw)),
+          expected: mode === "function" ? toJsonIfNeeded(expectedRaw) : (expectedRaw === null || expectedRaw === undefined ? "" : String(expectedRaw)),
           is_hidden: isHidden,
         };
       };
@@ -331,12 +409,21 @@ class QuizService {
             { input: "10 20", expected: "30", is_hidden: true },
           ];
 
+      const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
+
+      // JavaScript stdin requires process/fs, which are blocked by sanitizer.
+      // For JS quizzes, prefer function mode and do not append a runner.
+      const executionCode =
+        language === "javascript" || hasFunctionMode
+          ? code
+          : appendQuizRunner({ language, stageNumber, startingCode: code });
+
       try {
         const { data: execution } = await axios.post(
           `${TERMINAL_API_BASE_URL}/exam/run`,
           {
             language,
-            code,
+            code: executionCode,
             testCases: effectiveTestCases,
           },
           {
@@ -351,6 +438,11 @@ class QuizService {
         const scorePercentage = execution.score;
         const passed = scorePercentage >= 70;
 
+        const sanitizedResults = sanitizeExecutionResults({
+          testCases: effectiveTestCases,
+          results: execution.results
+        });
+
         const baseExp = Number(quizData.exp_total || 0);
         let earnedXp = Math.round(baseExp * (scorePercentage / 100));
         if (scorePercentage === 100) {
@@ -364,7 +456,7 @@ class QuizService {
           passed_tests: passedTests,
           total_tests: totalTests,
           earned_xp: passed ? earnedXp : 0,
-          results: execution.results,
+          results: sanitizedResults,
         };
 
         if (isAdmin) {
@@ -417,6 +509,125 @@ class QuizService {
       } catch (err) {
         return { ok: false, status: 500, message: "Failed to run tests" };
       }
+    }
+  }
+
+  async validateQuiz({ userId, tokenRole, language, quizId, payload }) {
+    if (!userId) {
+      return { ok: false, status: 401, message: "Unauthorized" };
+    }
+
+    const stageNumber = Number(quizId);
+    if (!Number.isFinite(stageNumber)) {
+      return { ok: false, status: 400, message: "Invalid quizId" };
+    }
+
+    let languageData;
+    try {
+      languageData = await this.model.getLanguageBySlug(language);
+    } catch {
+      return { ok: false, status: 404, message: "Language not found" };
+    }
+
+    let quizData;
+    try {
+      quizData = await this.model.getQuizByLanguageAndStage({
+        programmingLanguageId: languageData.id,
+        stageNumber,
+        select: "*",
+      });
+    } catch {
+      return { ok: false, status: 404, message: "Quiz not found" };
+    }
+
+    const isAdmin = await this.resolveIsAdmin(userId, tokenRole);
+    let quizType = quizData.quiz_type;
+    if (!quizType) {
+      quizType = stageNumber >= 2 && stageNumber <= 4 ? "code" : "mcq";
+    }
+    quizType = String(quizType).toLowerCase() === "code" ? "code" : "mcq";
+
+    if (quizType !== "code") {
+      return { ok: true, data: { success: true, preview: true } };
+    }
+
+    const code = payload.code;
+    if (typeof code !== "string" || !code.trim()) {
+      return { ok: false, status: 400, message: "code is required" };
+    }
+
+    const normalizeTestCase = (tc) => {
+      const isHidden = Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+      const modeRaw = tc?.mode ?? "stdin";
+      const mode = String(modeRaw || "stdin").trim().toLowerCase() === "function" ? "function" : "stdin";
+      const inputRaw = tc?.input ?? tc?.stdin ?? "";
+      const expectedRaw = tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? "";
+      const functionName = tc?.functionName ?? tc?.function_name ?? null;
+      return {
+        mode,
+        functionName: functionName ? String(functionName) : null,
+        input: mode === "function" ? toJsonIfNeeded(inputRaw) : (inputRaw === null || inputRaw === undefined ? "" : String(inputRaw)),
+        expected: mode === "function" ? toJsonIfNeeded(expectedRaw) : (expectedRaw === null || expectedRaw === undefined ? "" : String(expectedRaw)),
+        is_hidden: isHidden,
+      };
+    };
+
+    const effectiveTestCases = Array.isArray(quizData.test_cases) && quizData.test_cases.length > 0
+      ? quizData.test_cases.map(normalizeTestCase)
+      : [
+          { input: "2 3", expected: "5", is_hidden: false },
+          { input: "-1 1", expected: "0", is_hidden: true },
+          { input: "10 20", expected: "30", is_hidden: true },
+        ];
+
+    const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
+    const executionCode =
+      language === "javascript" || hasFunctionMode
+        ? code
+        : appendQuizRunner({ language, stageNumber, startingCode: code });
+
+    try {
+      const { data: execution } = await axios.post(
+        `${TERMINAL_API_BASE_URL}/exam/run`,
+        {
+          language,
+          code: executionCode,
+          testCases: effectiveTestCases,
+        },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_KEY
+          }
+        }
+      );
+
+      const totalTests = execution.total;
+      const passedTests = execution.passed;
+      const scorePercentage = execution.score;
+      const passed = scorePercentage >= 70;
+
+      const sanitizedResults = sanitizeExecutionResults({
+        testCases: effectiveTestCases,
+        results: execution.results
+      });
+
+      return {
+        ok: true,
+        data: {
+          success: true,
+          passed,
+          score_percentage: scorePercentage,
+          passed_tests: passedTests,
+          total_tests: totalTests,
+          earned_xp: 0,
+          results: sanitizedResults,
+          preview: true,
+          visible_only: false,
+          admin: Boolean(isAdmin),
+        },
+      };
+    } catch (err) {
+      return { ok: false, status: 500, message: "Failed to run tests" };
     }
   }
 

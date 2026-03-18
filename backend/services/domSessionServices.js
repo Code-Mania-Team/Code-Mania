@@ -85,21 +85,32 @@ class DomSessionService {
         CALL DOCKER SERVER
     =============================== */
 
-    const { data } = await axios.post(
-        `${TERMINAL_API_BASE_URL}/dom/run`,
-        {
-        base_html: (typeof session.userCode === "string" && session.userCode.includes("CODEMANIA_BASE_INCLUDED"))
-          ? ""
-          : session.baseHtml,
-        user_code: session.userCode,
+     const BASE_START = "<!-- CODEMANIA_BASE_HTML_START -->";
+     const BASE_END = "<!-- CODEMANIA_BASE_HTML_END -->";
+     const stripBaseBlock = (text) => {
+       const s = String(text ?? "");
+       const start = s.indexOf(BASE_START);
+       if (start === -1) return s;
+       const end = s.indexOf(BASE_END, start);
+       if (end === -1) return s;
+       return s.slice(0, start) + s.slice(end + BASE_END.length);
+     };
+
+     const cleanedUserCode = stripBaseBlock(session.userCode);
+
+     const { data } = await axios.post(
+         `${TERMINAL_API_BASE_URL}/dom/run`,
+         {
+        base_html: session.baseHtml,
+        user_code: cleanedUserCode,
         validation: validationRules
-        },
-        {
-        headers: {
-            "x-internal-key": process.env.INTERNAL_KEY
-        }
-        }
-    );
+         },
+         {
+         headers: {
+             "x-internal-key": process.env.INTERNAL_KEY
+         }
+         }
+     );
 
     return {
         ok: true,

@@ -274,6 +274,19 @@ const QuizPage = () => {
     }
   };
 
+  const handleCodeValidate = async (code) => {
+    try {
+      const { data } = await axiosPrivate.post(
+        `/v1/quizzes/${language}/${quizId}/validate`,
+        { code }
+      );
+      return data;
+    } catch (err) {
+      console.error("Quiz validation failed:", err);
+      throw err;
+    }
+  };
+
   const handleCodeResult = (result) => {
     setCodeResult(result);
     if (result.passed || result.score_percentage >= 70) {
@@ -498,6 +511,7 @@ const QuizPage = () => {
                   initialCode={quizData.starting_code}
                   testCases={quizData.test_cases}
                   attemptId={`quiz_${language}_${quizId}`}
+                  validateAttempt={handleCodeValidate}
                   submitAttempt={handleCodeSubmit}
                   onResult={handleCodeResult}
                   attemptNumber={1} 
