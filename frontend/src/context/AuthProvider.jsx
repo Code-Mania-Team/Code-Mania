@@ -30,32 +30,46 @@ export const AuthProvider = ({ children }) => {
     };
 
     const checkAuth = async () => {
-  try {
-    // 1️⃣ Try refresh FIRST
-      // await refresh(); // this will throw if session invalid
+      try {
+        // 1) Try account with existing cookies
+        const response = await axiosPrivate.get("/v1/account");
 
-    // 2️⃣ Only call account if refresh succeeded
-    const response = await axiosPrivate.get("/v1/account");
+        if (response?.data?.success) {
+          applyProfile(response.data.data);
+          return;
+        }
 
-    if (response?.data?.success) {
-      applyProfile(response.data.data);
-    } else {
-      setSignedOut();
-    }
+        setSignedOut();
+      } catch (error) {
+        // 2) If access token is missing/expired, try refresh and retry account
+        if (error?.response?.status === 401) {
+          try {
+            const refreshed = await refresh();
+            if (!refreshed) {
+              setSignedOut();
+              return;
+            }
 
-  } catch (error) {
-    // 🔥 If refresh fails (401), reload immediately
-    if (error?.response?.status === 401) {
-      window.location.href = "/";
-      return;
-    }
+            const retry = await axiosPrivate.get("/v1/account");
+            if (retry?.data?.success) {
+              applyProfile(retry.data.data);
+              return;
+            }
 
-    console.error("Auth check error:", error);
-    setSignedOut();
-  } finally {
-    if (mounted) setIsLoading(false);
-  }
-};
+            setSignedOut();
+            return;
+          } catch (refreshErr) {
+            setSignedOut();
+            return;
+          }
+        }
+
+        console.error("Auth check error:", error);
+        setSignedOut();
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
 
     const path = (typeof window !== 'undefined' && window.location && typeof window.location.pathname === 'string')
       ? window.location.pathname

@@ -121,16 +121,17 @@ const JavaScriptExercise = () => {
 
 
 
-  const { isAuthenticated, setIsAuthenticated, setUser, user } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, setIsAuthenticated, setUser, user } = useAuth();
 
   // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated && activeExerciseId > 2) {
       setIsSignInModalOpen(true);
       navigate("/learn/javascript/exercise/2", { replace: true });
       setIsPageLoading(false);
     }
-  }, [activeExerciseId, isAuthenticated, navigate]);
+  }, [activeExerciseId, isAuthenticated, navigate, authLoading]);
 
   useEffect(() => {
     const handleResize = () => {
