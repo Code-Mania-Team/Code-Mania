@@ -932,7 +932,7 @@ app.post("/dom/run", async (req, res) => {
 
     const { base_html, user_code, validation } = req.body;
 
-    if (!base_html || typeof user_code !== "string") {
+    if (typeof base_html !== "string" || typeof user_code !== "string") {
       return res.status(400).json({ error: "Invalid payload" });
     }
 
