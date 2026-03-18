@@ -336,11 +336,6 @@
                          "value":3
                         }, 
                         {
-                         "name":"side_quest_id",
-                         "type":"int",
-                         "value":1
-                        }, 
-                        {
                          "name":"type",
                          "type":"string",
                          "value":"npc"
