@@ -40,7 +40,7 @@ import useAuth from "../hooks/useAxios";
 
 
 
-const PythonExercise = ({ isAuthenticated }) => {
+const PythonExercise = ({ isAuthenticated, onSignOut }) => {
   const { isLoading: authLoading } = useAuth() || { isLoading: false };
 
   const stageBadgeById = {
@@ -693,6 +693,8 @@ const PythonExercise = ({ isAuthenticated }) => {
         isAuthenticated={isAuthenticated}
 
         onOpenModal={() => setIsSignInModalOpen(true)}
+
+        onSignOut={onSignOut}
 
       />
 

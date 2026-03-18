@@ -41,7 +41,7 @@ import useStartExercise from "../services/startExercise.js";
 
 
 
-const CppExercise = () => {
+const CppExercise = ({ onSignOut }) => {
 
   const location = useLocation();
 
@@ -637,6 +637,8 @@ const CppExercise = () => {
         onOpenModal={() => setIsSignInModalOpen(true)}
 
         user={user}
+
+        onSignOut={onSignOut}
 
       />
 

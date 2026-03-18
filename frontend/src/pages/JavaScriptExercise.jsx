@@ -39,7 +39,7 @@ import useGetNextExercise from "../services/getNextExcercise.js";
 import useStartExercise from "../services/startExercise.js";
 
 
-const JavaScriptExercise = () => {
+const JavaScriptExercise = ({ onSignOut }) => {
 
   const location = useLocation();
 
@@ -621,6 +621,8 @@ const JavaScriptExercise = () => {
         onOpenModal={() => setIsSignInModalOpen(true)}
 
         user={user}
+
+        onSignOut={onSignOut}
 
       />
 

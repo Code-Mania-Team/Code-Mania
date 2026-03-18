@@ -51,6 +51,7 @@ import useLearningProgress from '../services/useLearningProgress';
 
 
 import useGetAchievements from '../services/getUserAchievements';
+import useUserAttempts from "../services/useUserAttempts";
 
 import useGetPublicProfile from "../services/getPublicProfile";
 import usePublicProfileSummary from "../services/usePublicProfileSummary";
@@ -84,7 +85,7 @@ const characterIcon3 = 'https://res.cloudinary.com/daegpuoss/image/upload/v17704
 
 const FULL_NAME_MAX_LENGTH = 40;
 
-const formatJoinMonthYear = (dateInput) => {
+  const formatJoinMonthYear = (dateInput) => {
   const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
   if (!d || Number.isNaN(d.getTime())) return "-";
   return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
@@ -112,7 +113,7 @@ const Profile = ({ onSignOut }) => {
 
 
 
-  const [activeTab, setActiveTab] = useState('achievements'); // 'achievements' or 'learningProgress'
+  const [activeTab, setActiveTab] = useState('achievements'); // achievements | learningProgress | attempts
 
 
 
@@ -148,6 +149,10 @@ const Profile = ({ onSignOut }) => {
 
   const [joinDateLabel, setJoinDateLabel] = useState('');
 
+  const [attempts, setAttempts] = useState({ quizzes: [], exams: [] });
+  const [attemptsLoading, setAttemptsLoading] = useState(false);
+  const [attemptsError, setAttemptsError] = useState('');
+
   const [ownedFrames, setOwnedFrames] = useState([]);
   const [preferences, setPreferences] = useState(null);
   const [avatarFrameDraft, setAvatarFrameDraft] = useState('');
@@ -176,6 +181,8 @@ const Profile = ({ onSignOut }) => {
 
 
   const getProfile = useGetProfile();
+
+  const getUserAttempts = useUserAttempts();
 
   const getPublicProfile = useGetPublicProfile();
 
@@ -628,7 +635,7 @@ const Profile = ({ onSignOut }) => {
 
       });
 
-      // Cosmetics (best-effort)
+     // Cosmetics (best-effort)
       try {
         const cosmeticsRes = await getCosmeticsMe();
         const owned = cosmeticsRes?.data?.owned_cosmetics;
@@ -638,6 +645,23 @@ const Profile = ({ onSignOut }) => {
         setPreferences(prefs || null);
       } catch (e) {
         setCosmeticsError(e?.response?.data?.message || e?.message || "");
+      }
+
+      // Attempts (best-effort)
+      try {
+        setAttemptsLoading(true);
+        setAttemptsError('');
+        const attemptsRes = await getUserAttempts({ limit: 50 });
+        const payload = attemptsRes?.data;
+        setAttempts({
+          quizzes: Array.isArray(payload?.quizzes) ? payload.quizzes : [],
+          exams: Array.isArray(payload?.exams) ? payload.exams : [],
+        });
+      } catch (e) {
+        setAttempts({ quizzes: [], exams: [] });
+        setAttemptsError(e?.response?.data?.message || e?.message || '');
+      } finally {
+        setAttemptsLoading(false);
       }
 
 
@@ -1188,6 +1212,12 @@ const Profile = ({ onSignOut }) => {
     javascript: { progress: 0, total: 0, icon: <FileCode2 size={20} /> },
 
   };
+
+const languageIconBySlug = {
+  python: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925752/python_gwzofh.png",
+  cpp: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925753/C_tvqhay.png",
+  javascript: "https://res.cloudinary.com/daegpuoss/image/upload/v1766925756/javascript_pypygq.jpg",
+};
 
 
 
@@ -2471,6 +2501,15 @@ const Profile = ({ onSignOut }) => {
 
           </button>
 
+          {!isPublicView ? (
+          <button
+            className={`${styles.tab} ${activeTab === 'attempts' ? styles.active : ''}`}
+            onClick={() => setActiveTab('attempts')}
+          >
+            QUIZZES &amp; EXAMS
+          </button>
+          ) : null}
+
 
 
 
@@ -3039,6 +3078,104 @@ const Profile = ({ onSignOut }) => {
 
           )}
 
+          {activeTab === 'attempts' && !isPublicView && (
+            <div className={styles.attemptsContainer}>
+              <h3 className={styles.progressTitle}>Quizzes &amp; Exams</h3>
+
+              {attemptsLoading ? (
+                <div className={styles.emptyState}>Loading attempts...</div>
+              ) : attemptsError ? (
+                <div className={styles.emptyState}>Failed to load attempts.</div>
+              ) : null}
+
+              {!attemptsLoading && !attemptsError ? (() => {
+                const quizRows = (attempts?.quizzes || []).map((a) => {
+                  const quizTitle = a?.quizzes?.quiz_title || a?.quizzes?.title || 'Quiz';
+                  const lang = a?.quizzes?.programming_languages?.slug || '';
+                  return {
+                    key: `q-${a?.id}`,
+                    kind: 'Quiz',
+                    title: quizTitle,
+                    language: lang,
+                    score: typeof a?.score_percentage === 'number' ? `${Math.round(a.score_percentage)}%` : '- ',
+                    xp: Number(a?.earned_xp || 0),
+                    at: a?.completed_at || null,
+                  };
+                });
+
+                const examRows = (attempts?.exams || []).map((a) => {
+                  const examTitle = a?.exam_problems?.problem_title || 'Exam';
+                  const lang = a?.exam_problems?.programming_languages?.slug || a?.language || '';
+                  return {
+                    key: `e-${a?.id}`,
+                    kind: 'Exam',
+                    title: examTitle,
+                    language: lang,
+                    score: typeof a?.score_percentage === 'number' ? `${Math.round(a.score_percentage)}%` : (a?.passed ? 'Passed' : 'Failed'),
+                    xp: Number(a?.earned_xp || 0),
+                    at: a?.created_at || null,
+                    attempt: a?.attempt_number,
+                  };
+                });
+
+                const merged = [...quizRows, ...examRows].sort((x, y) => {
+                  const ax = x?.at ? new Date(x.at).getTime() : 0;
+                  const ay = y?.at ? new Date(y.at).getTime() : 0;
+                  return ay - ax;
+                });
+
+                if (!merged.length) {
+                  return (
+                    <div className={styles.emptyState}>
+                      No quiz or exam attempts yet.
+                      <div className={styles.emptyStateSecondary}>Finish a quiz or exam and it will show up here.</div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className={styles.attemptsTable}>
+                    <div className={styles.attemptsHeader}>
+                      <div>Type</div>
+                      <div>Title</div>
+                      <div>Language</div>
+                      <div>Score</div>
+                      <div>XP</div>
+                      <div>Submitted</div>
+                    </div>
+                    {merged.map((row) => (
+                      <div key={row.key} className={styles.attemptsRow}>
+                        <div>{row.kind}</div>
+                        <div className={styles.attemptsTitle}>
+                          {row.title}{row.kind === 'Exam' && Number.isFinite(Number(row.attempt)) ? ` (Attempt ${row.attempt})` : ''}
+                        </div>
+                        <div className={styles.attemptsLanguageCell}>
+                          {(() => {
+                            const slug = String(row.language || "").toLowerCase();
+                            const normalized = slug === "c++" ? "cpp" : slug;
+                            const src = languageIconBySlug[normalized];
+                            if (!src) return <span>{row.language || '-'}</span>;
+                            return (
+                              <img
+                                src={src}
+                                alt=""
+                                className={styles.attemptsLangIcon}
+                                loading="lazy"
+                              />
+                            );
+                          })()}
+                        </div>
+                        <div>{row.score}</div>
+                        <div>{row.xp}</div>
+                        <div>{row.at ? new Date(row.at).toLocaleString() : '-'}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })() : null}
+            </div>
+          )}
+
 
 
 
@@ -3210,13 +3347,6 @@ const Profile = ({ onSignOut }) => {
 
 
               ) : null}
-
-
-
-
-
-
-
             </div>
 
             <div className={styles.formGroup}>
@@ -3266,798 +3396,113 @@ const Profile = ({ onSignOut }) => {
               ) : null}
             </div>
 
-
-
-
-
-
-
             <div className={styles.modalButtons}>
-
-
-
-
-
-
-
               <button className={styles.cancelBtn} onClick={() => setIsEditModalOpen(false)}>
-
-
-
-
-
-
-
                 Cancel
-
-
-
-
-
-
-
               </button>
-
-
-
-
-
-
 
               <button className={styles.saveBtn} onClick={handleSaveEdit}>
-
-
-
-
-
-
-
                 Save Changes
-
-
-
-
-
-
-
               </button>
-
-
-
-
-
-
-
             </div>
-
-
-
-
-
-
-
           </div>
-
-
-
-
-
-
-
         </div>
-
-
-
-
-
-
-
       )}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       {/* Delete Account Confirmation Modal */}
-
-
-
-
-
-
-
       {showAccountActions && isDeleteConfirmOpen && (
-
-
-
-
-
-
-
         <div className={styles.modalOverlay} onClick={handleCancelDelete}>
-
-
-
-
-
-
-
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-
-
-
-
-
-
-
             <h2 className={styles.modalTitle}>Delete Account</h2>
-
-
-
-
-
-
-
             <p className={styles.confirmMessage}>
-
-
-
-
-
-
-
               Are you sure you want to delete your account? This action cannot be undone.
-
-
-
-
-
-
-
             </p>
 
-
-
-
-
-
-
             <div className={styles.modalButtons}>
-
-
-
-
-
-
-
               <button className={styles.cancelBtn} onClick={handleCancelDelete}>
-
-
-
-
-
-
-
                 Cancel
-
-
-
-
-
-
-
               </button>
-
-
-
-
-
-
 
               <button className={styles.deleteConfirmBtn} onClick={handleConfirmDelete}>
-
-
-
-
-
-
-
                 Delete Account
-
-
-
-
-
-
-
               </button>
-
-
-
-
-
-
-
             </div>
-
-
-
-
-
-
-
           </div>
-
-
-
-
-
-
-
         </div>
-
-
-
-
-
-
-
       )}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       {/* Sign Out Confirmation Modal */}
-
-
-
-
-
-
-
       {showAccountActions && isSignOutConfirmOpen && (
-
-
-
-
-
-
-
         <div className={styles.modalOverlay} onClick={handleCancelSignOut}>
-
-
-
-
-
-
-
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-
-
-
-
-
-
-
             <h2 className={styles.modalTitle}>Sign Out</h2>
-
-
-
-
-
-
-
             <p className={styles.confirmMessage}>
-
-
-
-
-
-
-
               Are you sure you want to sign out?
-
-
-
-
-
-
-
             </p>
 
-
-
-
-
-
-
             <div className={styles.modalButtons}>
-
-
-
-
-
-
-
               <button className={styles.cancelBtn} onClick={handleCancelSignOut}>
-
-
-
-
-
-
-
                 Cancel
-
-
-
-
-
-
-
               </button>
-
-
-
-
-
-
 
               <button className={styles.signOutConfirmBtn} onClick={handleConfirmSignOut}>
-
-
-
-
-
-
-
                 Sign Out
-
-
-
-
-
-
-
               </button>
-
-
-
-
-
-
-
             </div>
-
-
-
-
-
-
-
           </div>
-
-
-
-
-
-
-
         </div>
-
-
-
-
-
-
-
       )}
-
-
-
-
-
-
-
       </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       {/* Right Sidebar */}
-
-
-
-
-
-
-
       <aside className={styles.sidebar}>
-
-
-
-
-
-
-
         <div className={`${styles.sidebarCard} ${styles.desktopStatsCard}`}>
-
-
-
-
-
-
-
           <div className={styles.sidebarCardTitle} title={editFormData.userName}>{editFormData.userName}</div>
-
-
-
-
-
-
-
           <div className={styles.sidebarCardStatRow}>
-
-
-
-
-
-
-
             <div className={styles.sidebarCardStat}>
-
-
-
-
-
-
-
               <div className={styles.sidebarCardStatValue}>{totalXp || 0}</div>
-
-
-
-
-
-
-
               <div className={styles.sidebarCardStatLabel}>Total XP</div>
-
-
-
-
-
-
-
             </div>
-
-
-
-
-
-
 
             <div className={styles.sidebarCardStat}>
-
-
-
-
-
-
-
               <div className={styles.sidebarCardStatValue}>{badgeCount || badges.length || 0}</div>
-
-
-
-
-
-
-
               <div className={styles.sidebarCardStatLabel}>Badges</div>
-
-
-
-
-
-
-
             </div>
-
-
-
-
-
-
-
           </div>
-
-
-
-
-
-
-
         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         <div className={`${styles.sidebarCard} ${styles.learningProgramCard}`}>
-
-
-
-
-
-
-
           <div className={styles.sidebarCardTitle}>Learning Program</div>
-
-
-
-
-
-
-
           <button
-
-
-
-
-
-
-
             className={styles.sidebarPrimaryBtn}
-
-
-
-
-
-
-
             onClick={() => {
-
-
-
-
-
-
-
               window.location.href = '/learn';
-
-
-
-
-
-
-
             }}
-
-
-
-
-
-
-
           >
-
-
-
-
-
-
-
             View Courses
-
-
-
-
-
-
-
           </button>
 
-
-
-
-
-
-
         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         {showAccountActions ? (
         <div className={styles.sidebarCard}>
-
-
-
-
-
-
-
           <div className={styles.sidebarCardTitle}>Account</div>
-
-
-
-
-
-
-
           <div className={styles.sidebarBottom}>
-
-
-
-
-
-
-
             <button className={styles.deleteBtn} onClick={handleDeleteAccount} title="Delete Account">
-
-
-
-
-
-
-
               <Trash2 size={18} />
-
-
-
-
-
-
-
               <span>Delete Account</span>
-
-
-
-
-
-
-
             </button>
-
-
-
-
-
-
-
             <button className={styles.signOutBtn} onClick={handleSignOut} title="Sign Out">
-
-
-
-
-
-
-
               <LogOut size={18} />
-
-
-
-
-
-
-
               <span>Sign Out</span>
-
-
-
-
-
-
-
             </button>
-
-
-
-
-
-
-
           </div>
-
-
-
-
-
-
-
         </div>
         ) : null}
-
-
-
-
-
-
-
       </aside>
-
-
-
-
-
-
-
       </div>
-
-
-
-
-
-
-
     </div>
-
-
-
-
-
-
-
   );
-
-
-
-
-
-
-
 };
 
 

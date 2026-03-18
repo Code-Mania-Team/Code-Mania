@@ -374,7 +374,7 @@ const PythonCourse = () => {
                                 onClick={() => handleStartExercise(exercise.id, { retry: true })}
                                 aria-label="Open completed exercise"
                               >
-                                Done
+                                Review
                               </button>
                             ) : (
                               <span className="status-icon-wrap">{getStatusIcon(status)}</span>

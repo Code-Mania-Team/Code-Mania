@@ -655,6 +655,85 @@ html[data-theme="light"] .achievementDescription {
   font-size: 0.9rem;
 }
 
+/* Attempts tab */
+.attemptsContainer {
+  width: 100%;
+}
+
+.attemptsTable {
+  margin-top: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme="light"] .attemptsTable {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border);
+}
+
+.attemptsHeader {
+  display: grid;
+  grid-template-columns: 0.75fr 2fr 1fr 0.9fr 0.7fr 1.4fr;
+  gap: 0.75rem;
+  padding: 1rem;
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 0.75rem;
+  color: #fff;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.16);
+}
+
+html[data-theme="light"] .attemptsHeader {
+  color: var(--text-strong);
+  border-bottom: 1px solid var(--border);
+}
+
+.attemptsRow {
+  display: grid;
+  grid-template-columns: 0.75fr 2fr 1fr 0.9fr 0.7fr 1.4fr;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  color: #e2e8f0;
+  align-items: center;
+}
+
+html[data-theme="light"] .attemptsRow {
+  color: var(--text);
+  border-top: 1px solid var(--border);
+}
+
+.attemptsRow:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.attemptsTitle {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attemptsLanguageCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attemptsLangIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="light"] .attemptsLangIcon {
+  border: 1px solid var(--border);
+}
+
 html[data-theme="light"] .timeCell {
   color: var(--muted);
 }

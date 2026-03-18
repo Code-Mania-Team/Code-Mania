@@ -539,6 +539,7 @@ const CodingExamPage = () => {
                 <ul style={{ paddingLeft: "1.2rem", lineHeight: "1.6", color: "#cbd5e1" }}>
                   <li>Your program is tested automatically using hidden test cases.</li>
                   <li>Do NOT print extra text — only print the required output.</li>
+                  <li>Must use the required variables</li>
                   <li>You have a maximum of <strong>5 attempts</strong>.</li>
                   <li>Failed submissions reduce exam XP by 5% each attempt.</li>
                   <li>Exam locks only when you use all <strong>5 attempts</strong>.</li>

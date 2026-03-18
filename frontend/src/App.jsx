@@ -19,6 +19,8 @@ import Dashboard from "./pages/Dashboard";
 import WelcomeOnboarding from "./components/WelcomeOnboarding";
 import About from "./pages/About";
 import Credits from "./pages/credits";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import PageNotFound from "./pages/PageNotFound";
 import Rewards from "./pages/Rewards";
 import Admin from "./pages/Admin";
@@ -32,6 +34,7 @@ import WeeklyChallengePage from "./pages/WeeklyChallengePage";
 import PastChallengePage from "./pages/PastChallengePage";
 import WeeklyChallengeInfoPage from "./pages/WeeklyChallengeInfoPage";
 import HomeDemoQuest from "./components/HomeDemoQuest";
+import LegalGateModal from "./components/LegalGateModal";
 import useSessionOut, { clearUserSession } from "./services/signOut";
 import useAuth from "./hooks/useAxios";
 import { axiosPublic } from "./api/axios";
@@ -193,6 +196,9 @@ function App() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAuthenticated, user, setIsAuthenticated, setUser } = useAuth();
+  const [legalOpen, setLegalOpen] = useState(false);
+  const [legalBusy, setLegalBusy] = useState(false);
+  const [legalError, setLegalError] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [presenceStats, setPresenceStats] = useState({ connections: 0, uniqueUsers: 0 });
@@ -443,6 +449,35 @@ function App() {
 
   const authenticatedHomeRedirect = user?.role === "admin" ? "/admin" : "/dashboard";
 
+  useEffect(() => {
+    const needsLegal =
+      Boolean(isAuthenticated) &&
+      Boolean(user) &&
+      (!user?.accepted_terms_at || !user?.accepted_privacy_at);
+    setLegalOpen(needsLegal);
+  }, [isAuthenticated, user]);
+
+  const acceptLegal = async () => {
+    if (!isAuthenticated) return;
+    setLegalBusy(true);
+    setLegalError("");
+    try {
+      await axiosPublic.patch("/v1/account", {
+        accept_terms: true,
+        accept_privacy: true,
+      });
+
+      const res = await axiosPublic.get("/v1/account");
+      const profile = res?.data?.data || null;
+      setUser(profile);
+      setLegalOpen(false);
+    } catch (err) {
+      setLegalError(err?.response?.data?.message || err?.message || "Failed to save.");
+    } finally {
+      setLegalBusy(false);
+    }
+  };
+
   // hide only footer on freedom wall and PageNotFound
   const hideFooterOnly = location.pathname.startsWith("/freedomwall") ||
     !["/", "/learn", "/learn/python", "/learn/cpp", "/learn/javascript", "/freedomwall", "/leaderboard", "/profile", "/dashboard", "/about", "/credits", "/welcome"].includes(location.pathname);
@@ -567,6 +602,8 @@ function App() {
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/about" element={<About />} />
           <Route path="/credits" element={<Credits />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>
@@ -615,6 +652,13 @@ function App() {
           }
           navigate(profile?.role === "admin" ? '/admin' : '/dashboard', { replace: true });
         }}
+      />
+
+      <LegalGateModal
+        isOpen={legalOpen}
+        busy={legalBusy}
+        onAccept={acceptLegal}
+        errorMessage={legalError}
       />
     </div>
   );

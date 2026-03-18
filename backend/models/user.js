@@ -214,7 +214,7 @@ class User {
       .from("users")
 
       .select(
-        "user_id, email, username, full_name, character_id, created_at, role, hasSeen_tutorial",
+        "user_id, email, username, full_name, character_id, created_at, role, hasSeen_tutorial, accepted_terms_at, accepted_privacy_at, accepted_terms_version, accepted_privacy_version",
       )
 
       .eq("user_id", user_id)
@@ -243,7 +243,7 @@ class User {
     const { data, error } = await this.db
       .from("users")
       .select(
-        "user_id, email, username, full_name, character_id, created_at, role, hasSeen_tutorial",
+        "user_id, email, username, full_name, character_id, created_at, role, hasSeen_tutorial, accepted_terms_at, accepted_privacy_at, accepted_terms_version, accepted_privacy_version",
       )
       .order("created_at", { ascending: false });
 
@@ -252,7 +252,7 @@ class User {
   }
 
   async updateProfile(user_id, fields) {
-    const { data } = await this.db
+    const { data, error } = await this.db
 
       .from("users")
 
@@ -264,6 +264,7 @@ class User {
 
       .single();
 
+    if (error) throw error;
     return data;
   }
 

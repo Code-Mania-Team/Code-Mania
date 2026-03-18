@@ -44,6 +44,7 @@ export default class QuestUI {
       scene.sys.game.device.os.iOS;
     this.visible = false;
     this.ignoreWheelUntil = 0;
+    this._wheelConsumedUntil = 0;
 
     const { width, height } = scene.scale;
 
@@ -156,6 +157,15 @@ export default class QuestUI {
       .setDepth(1001)
       .setVisible(false);
 
+    try {
+      // Ensure the Phaser-created wrapper also doesn't capture wheel events.
+      if (this.bodyDom?.node?.style) {
+        this.bodyDom.node.style.pointerEvents = "none";
+      }
+    } catch {
+      // ignore
+    }
+
     // Mask
     this.bodyMaskGraphics = scene.add.graphics();
     this.bodyMaskGraphics.fillStyle(0xffffff, 1);
@@ -188,6 +198,7 @@ export default class QuestUI {
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
       if (!this.visible) return;
       if (this.scene.time.now < this.ignoreWheelUntil) return;
+      if (this.scene.time.now < this._wheelConsumedUntil) return;
       if (this.bodyScrollMax <= 0) return;
 
       const insidePanel = this._isInsidePanel(pointer.x, pointer.y);
@@ -197,6 +208,40 @@ export default class QuestUI {
       this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
       this._applyScroll();
       this._updateScrollbarThumb();
+    };
+
+    // Some browsers / Phaser setups won't emit Phaser's `wheel` event reliably,
+    // and Phaser DOMElements can capture wheel events. Use a native wheel listener.
+    this._onNativeWheel = (e) => {
+      if (!this.visible) return;
+      if (this.scene.time.now < this.ignoreWheelUntil) return;
+      if (this.bodyScrollMax <= 0) return;
+
+      const canvas = this.scene?.game?.canvas;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) return;
+
+      // Convert client coords -> Phaser coords
+      const scaleX = this.scene.scale.width / rect.width;
+      const scaleY = this.scene.scale.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      if (!this._isInsidePanel(x, y)) return;
+
+      // Prevent page scroll while scrolling inside the quest HUD.
+      e.preventDefault();
+      e.stopPropagation?.();
+
+      const deltaY = e.deltaY;
+      this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
+      this._applyScroll();
+      this._updateScrollbarThumb();
+
+      // Avoid double-handling if Phaser `wheel` also fires.
+      this._wheelConsumedUntil = this.scene.time.now + 32;
     };
 
     this.onPointerDown = (pointer) => {
@@ -280,7 +325,19 @@ export default class QuestUI {
 
       this.bodyDom?.destroy();
       this.bodyDom = null;
+
+      try {
+        window.removeEventListener?.("wheel", this._onNativeWheel, true);
+      } catch {
+        // ignore
+      }
     });
+
+    try {
+      window.addEventListener?.("wheel", this._onNativeWheel, { passive: false, capture: true });
+    } catch {
+      // ignore
+    }
 
     this.container.add([
       this.bg,

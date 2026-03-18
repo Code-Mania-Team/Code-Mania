@@ -1,0 +1,109 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal {
+  width: min(560px, 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.96));
+  box-shadow: 0 30px 120px rgba(0, 0, 0, 0.55);
+  padding: 18px 18px 16px;
+}
+
+.title {
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: rgba(226, 232, 240, 0.96);
+}
+
+.sub {
+  margin-top: 8px;
+  color: rgba(203, 213, 225, 0.88);
+  line-height: 1.5;
+}
+
+
+.scroll {
+  margin-top: 14px;
+  max-height: 44vh;
+  overflow: auto;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.20);
+}
+
+.docTitle {
+  font-weight: 900;
+  color: rgba(226, 232, 240, 0.96);
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+.docMeta {
+  margin-top: 4px;
+  color: rgba(203, 213, 225, 0.78);
+  font-size: 0.9rem;
+}
+
+.docHeading {
+  margin-top: 12px;
+  font-weight: 900;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.docP {
+  margin: 6px 0 0;
+  color: rgba(203, 213, 225, 0.9);
+  line-height: 1.55;
+}
+
+.docDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.10);
+  margin: 14px 0;
+}
+
+.checkRow {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.checkRow input {
+  margin-top: 4px;
+}
+
+.error {
+  margin-top: 12px;
+  color: rgba(248, 113, 113, 0.95);
+  font-size: 0.95rem;
+}
+
+.primaryBtn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

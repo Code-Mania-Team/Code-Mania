@@ -384,7 +384,7 @@ const JavaScriptCourse = () => {
                                 onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
                                 aria-label="Open completed exercise"
                               >
-                                Done
+                                Review
                               </button>
                             ) : (
                               <span className="status-icon-wrap">{getStatusIcon(status)}</span>

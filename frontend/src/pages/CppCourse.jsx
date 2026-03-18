@@ -406,7 +406,7 @@ const CppCourse = () => {
                                 onClick={() => handleStartExercise(exercise.order_index, { retry: true })}
                                 aria-label="Open completed exercise"
                               >
-                                Done
+                                Review
                               </button>
                             ) : (
                               getStatusIcon(status)
