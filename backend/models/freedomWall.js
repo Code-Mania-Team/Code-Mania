@@ -1,9 +1,84 @@
 import { supabase } from "../core/supabaseClient.js";
+import UserPreferences from "./userPreferences.js";
+import Cosmetics from "./cosmetics.js";
 
 
 class FreedomWall {
     constructor() {
         this.db = supabase;
+        this.userPreferences = new UserPreferences();
+        this.cosmetics = new Cosmetics();
+    }
+
+    async attachAvatarFramesToPosts(rows) {
+        const list = Array.isArray(rows) ? rows : [];
+        if (!list.length) return list;
+
+        const userIds = Array.from(
+            new Set(
+                list
+                    .map((r) => r?.user_id)
+                    .map((id) => (id === null || id === undefined ? null : Number(id)))
+                    .filter((n) => Number.isFinite(n) && n > 0)
+            )
+        );
+        if (!userIds.length) return list;
+
+        let prefs = [];
+        try {
+            prefs = await this.userPreferences.getByUserIds(userIds);
+        } catch {
+            prefs = [];
+        }
+
+        const prefByUserId = new Map((prefs || []).map((p) => [Number(p.user_id), p]));
+
+        const frameKeys = Array.from(
+            new Set(
+                (prefs || [])
+                    .map((p) => (p?.avatar_frame_key ? String(p.avatar_frame_key) : ""))
+                    .filter(Boolean)
+            )
+        );
+
+        let frames = [];
+        try {
+            frames = await this.cosmetics.getByKeys(frameKeys);
+        } catch {
+            frames = [];
+        }
+        const frameUrlByKey = new Map(
+            (frames || [])
+                .filter((c) => c?.key)
+                .map((c) => [String(c.key), c?.asset_url ? String(c.asset_url) : null])
+        );
+
+        return list.map((row) => {
+            const userId = Number(row?.user_id);
+            const pref = Number.isFinite(userId) ? prefByUserId.get(userId) : null;
+            const key = pref?.avatar_frame_key ? String(pref.avatar_frame_key) : null;
+            const url = key ? (frameUrlByKey.get(key) || null) : null;
+
+            const usersRaw = row?.users;
+            const users = Array.isArray(usersRaw)
+                ? (usersRaw[0] && typeof usersRaw[0] === "object" ? usersRaw[0] : null)
+                : (usersRaw && typeof usersRaw === "object" ? usersRaw : null);
+
+            return {
+                ...row,
+                avatar_frame_key: key,
+                avatar_frame_url: url,
+                ...(users
+                    ? {
+                        users: {
+                            ...users,
+                            avatar_frame_key: key,
+                            avatar_frame_url: url,
+                        },
+                    }
+                    : null),
+            };
+        });
     }
 
     normalizeHashtag(raw) {
@@ -176,10 +251,10 @@ class FreedomWall {
             let data;
             let error;
 
-            ({ data, error } = await this.db
-                .from("freedom_wall")
-                .select(withTagsSelect)
-                .order("created_at", { ascending: false }));
+             ({ data, error } = await this.db
+                 .from("freedom_wall")
+                 .select(withTagsSelect)
+                 .order("created_at", { ascending: false }));
 
             if (error) {
                 // Fallback if relationships aren't available yet.
@@ -187,21 +262,22 @@ class FreedomWall {
                     .from("freedom_wall")
                     .select(basicSelect)
                     .order("created_at", { ascending: false });
-                if (fallback.error) throw fallback.error;
-                return fallback.data;
-            }
+                 if (fallback.error) throw fallback.error;
+                 return await this.attachAvatarFramesToPosts(fallback.data);
+             }
 
-            return (data || []).map((row) => {
-                const hashtags = (row?.post_hashtags || [])
-                    .map((l) => l?.hashtags?.hashtag_text)
-                    .filter(Boolean);
-                const { post_hashtags, ...rest } = row || {};
-                return { ...rest, hashtags };
-            });
+             const mapped = (data || []).map((row) => {
+                 const hashtags = (row?.post_hashtags || [])
+                     .map((l) => l?.hashtags?.hashtag_text)
+                     .filter(Boolean);
+                 const { post_hashtags, ...rest } = row || {};
+                 return { ...rest, hashtags };
+             });
+             return await this.attachAvatarFramesToPosts(mapped);
         } catch (err) {
-                throw new Error('An error occurred while fetching posts. Please try again later.');
-            }
-        }
+                 throw new Error('An error occurred while fetching posts. Please try again later.');
+             }
+         }
     
     async getPostById(post_id) {
 
@@ -235,7 +311,9 @@ class FreedomWall {
                 .map((l) => l?.hashtags?.hashtag_text)
                 .filter(Boolean);
             const { post_hashtags, ...rest } = data || {};
-            return { ...rest, hashtags };
+
+            const enriched = await this.attachAvatarFramesToPosts([{ ...rest, hashtags }]);
+            return enriched?.[0] || { ...rest, hashtags };
 
         } catch (err) {
 

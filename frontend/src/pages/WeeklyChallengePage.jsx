@@ -7,12 +7,12 @@ import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useAuth from "../hooks/useAxios";
 import MarkdownRenderer from "../components/MarkdownRenderer";
 
-const DEFAULT_HOW_IT_WORKS = [
+  const DEFAULT_HOW_IT_WORKS = [
   "Your program is tested automatically using hidden test cases.",
   "Do NOT print extra text — only print the required output.",
   "Pass threshold is 70%.",
   "If you pass, you earn the challenge XP.",
-];
+  ];
 
 function normalizeLanguage(raw) {
   const v = String(raw || "").trim().toLowerCase();
@@ -265,7 +265,7 @@ export default function WeeklyChallengePage() {
                       <li key={line}>{line}</li>
                     ))}
                     <li>
-                      Reward: <strong>{challenge.points} XP</strong>.
+                      XP: <strong>{challenge.points} XP</strong>.
                     </li>
                   </ul>
                 </div>
@@ -329,14 +329,14 @@ export default function WeeklyChallengePage() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Weekly rewards"
+          aria-label="Weekly completion"
           className={styles.congratsOverlay}
           onClick={() => setRewardModal((p) => ({ ...p, open: false }))}
         >
           <div className={styles.congratsModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.congratsIcon}>🏆</div>
             <div className={styles.congratsTitle}>Congratulations!</div>
-            <div className={styles.congratsSubtitle}>You completed the Weekly Challenge.</div>
+              <div className={styles.congratsSubtitle}>Weekly Challenge completed.</div>
 
             {rewardModal.prizeName ? (
               <div className={styles.congratsBadge} style={{ borderColor: "rgba(251, 191, 36, 0.35)" }}>
@@ -352,7 +352,7 @@ export default function WeeklyChallengePage() {
                       ? "Avatar frame unlocked"
                       : rewardModal.prizeType === "terminal_skin"
                         ? "Terminal theme unlocked"
-                        : "Reward unlocked"}
+                        : "Unlocked"}
                   </div>
                 </div>
               </div>

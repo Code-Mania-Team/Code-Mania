@@ -10,6 +10,16 @@ class WeeklyTaskController {
     this.cosmetics = new Cosmetics();
   }
 
+  async getUsedRewardKeys({ excludeTaskId = null } = {}) {
+    return this.model.listRewardCosmeticKeys({ excludeTaskId });
+  }
+
+  pickRandom(list) {
+    const arr = Array.isArray(list) ? list : [];
+    if (!arr.length) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
   async enrichRewardCosmetic(tasks) {
     const list = Array.isArray(tasks) ? tasks : [];
     const keys = Array.from(
@@ -48,13 +58,16 @@ class WeeklyTaskController {
     if (hasReward) return task;
 
     const enabled = await this.cosmetics.listEnabledByTypes(["avatar_frame", "terminal_skin"]);
-    const frames = enabled.filter((c) => c.type === "avatar_frame");
-    const skins = enabled.filter((c) => c.type === "terminal_skin");
+    const used = await this.getUsedRewardKeys({ excludeTaskId: taskId });
+    const frames = (enabled || []).filter((c) => c.type === "avatar_frame" && c.key && !used.has(String(c.key)));
+    const skins = (enabled || []).filter((c) => c.type === "terminal_skin" && c.key && !used.has(String(c.key)));
 
-    const pickFrom = skins.length && Math.random() < 0.2 ? skins : frames;
+    // Prefer unique frames; allow skins when frames are exhausted.
+    const pickFrom = frames.length ? frames : skins;
     if (!pickFrom.length) return task;
 
-    const picked = pickFrom[Math.floor(Math.random() * pickFrom.length)];
+    const picked = this.pickRandom(pickFrom);
+    if (!picked) return task;
     const reward_avatar_frame_key = picked.type === "avatar_frame" ? picked.key : null;
     const reward_terminal_skin_id = picked.type === "terminal_skin" ? picked.key : null;
 
@@ -92,10 +105,13 @@ class WeeklyTaskController {
     if (!Number.isFinite(taskId) || taskId <= 0) return task;
 
     const enabled = await this.cosmetics.listEnabledByTypes(["avatar_frame", "terminal_skin"]);
-    const rewardKey = this.pickDeterministicRewardKey({ taskId, enabledCosmetics: enabled });
+    const used = await this.getUsedRewardKeys({ excludeTaskId: taskId });
+    const filtered = (enabled || []).filter((c) => c?.key && !used.has(String(c.key)));
+    const pool = filtered.length ? filtered : enabled;
+    const rewardKey = this.pickDeterministicRewardKey({ taskId, enabledCosmetics: pool });
     if (!rewardKey) return task;
 
-    const cosmetic = (enabled || []).find((c) => String(c.key) === String(rewardKey)) || null;
+    const cosmetic = (pool || []).find((c) => String(c.key) === String(rewardKey)) || null;
     return {
       ...task,
       reward_avatar_frame_key: cosmetic?.type === "avatar_frame" ? rewardKey : null,
@@ -126,19 +142,33 @@ class WeeklyTaskController {
         finalRewardAvatar = null;
         finalRewardSkin = null;
       } else {
+        const used = await this.getUsedRewardKeys();
+
+        if ((finalRewardAvatar && used.has(String(finalRewardAvatar))) || (finalRewardSkin && used.has(String(finalRewardSkin)))) {
+          return res.status(409).json({
+            success: false,
+            message: "This cosmetic prize is already used by another weekly challenge. Weekly cosmetic prizes must be unique.",
+          });
+        }
+
         // If no reward provided, randomize one from cosmetics.
         if (!finalRewardAvatar && !finalRewardSkin) {
           const enabled = await this.cosmetics.listEnabledByTypes(["avatar_frame", "terminal_skin"]);
-          const frames = enabled.filter((c) => c.type === "avatar_frame");
-          const skins = enabled.filter((c) => c.type === "terminal_skin");
+          const frames = (enabled || []).filter((c) => c.type === "avatar_frame" && c.key && !used.has(String(c.key)));
+          const skins = (enabled || []).filter((c) => c.type === "terminal_skin" && c.key && !used.has(String(c.key)));
 
-          // Prefer frames; allow skins if any exist.
-          const pickFrom = skins.length && Math.random() < 0.2 ? skins : frames;
-          if (pickFrom.length) {
-            const picked = pickFrom[Math.floor(Math.random() * pickFrom.length)];
-            if (picked.type === "terminal_skin") finalRewardSkin = picked.key;
-            else finalRewardAvatar = picked.key;
+          // Prefer frames; allow skins only when frames are exhausted.
+          const pickFrom = frames.length ? frames : skins;
+          const picked = this.pickRandom(pickFrom);
+          if (!picked) {
+            return res.status(409).json({
+              success: false,
+              message: "No unused cosmetic prizes available. Add more cosmetics or choose a different reward.",
+            });
           }
+
+          if (picked.type === "terminal_skin") finalRewardSkin = picked.key;
+          else finalRewardAvatar = picked.key;
         }
       }
 
@@ -232,7 +262,21 @@ class WeeklyTaskController {
       const { task_id } = req.params;
       const fields = req.body || {};
 
-      const task = await this.model.updateTask(Number(task_id), fields);
+      const taskIdNum = Number(task_id);
+      if (Object.prototype.hasOwnProperty.call(fields, "reward_avatar_frame_key") || Object.prototype.hasOwnProperty.call(fields, "reward_terminal_skin_id")) {
+        const used = await this.getUsedRewardKeys({ excludeTaskId: taskIdNum });
+        const nextAvatar = fields.reward_avatar_frame_key || null;
+        const nextSkin = fields.reward_terminal_skin_id || null;
+
+        if ((nextAvatar && used.has(String(nextAvatar))) || (nextSkin && used.has(String(nextSkin)))) {
+          return res.status(409).json({
+            success: false,
+            message: "This cosmetic prize is already used by another weekly challenge. Weekly cosmetic prizes must be unique.",
+          });
+        }
+      }
+
+      const task = await this.model.updateTask(taskIdNum, fields);
       if (!task) {
         return res.status(404).json({ success: false, message: "Task not found." });
       }

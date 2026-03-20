@@ -550,7 +550,7 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
               (true/false). Use <code>\\n</code> for new lines.
             </p>
             <pre className={styles.helpCode}>
-{`[
+              {`[
   {
     "input": "3\\nAva 20 60 70 yes\\n...\\n",
     "expected": "1\\n2\\n",
@@ -566,22 +566,6 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
           </details>
         </div>
 
-        <div className={styles.formActions}>
-          <button className={styles.button} type="button" onClick={onSave} disabled={saving}>
-            <Save size={16} style={{ marginRight: 4 }} />
-            {saving ? "Saving..." : "Save"}
-          </button>
-          <button
-            className={styles.button}
-            type="button"
-            onClick={onCancel}
-            style={{ backgroundColor: "#6b7280" }}
-            disabled={saving}
-          >
-            <X size={16} style={{ marginRight: 4 }} />
-            Cancel
-          </button>
-        </div>
       </div>
 
       <aside className={styles.previewPanel}>
@@ -707,6 +691,23 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
           </div>
         </div>
       </aside>
+
+      <div className={styles.formActions} style={{ gridColumn: "1 / -1", marginTop: "16px" }}>
+        <button className={styles.button} type="button" onClick={onSave} disabled={saving}>
+          <Save size={16} style={{ marginRight: 4 }} />
+          {saving ? "Saving..." : "Save"}
+        </button>
+        <button
+          className={styles.button}
+          type="button"
+          onClick={onCancel}
+          style={{ backgroundColor: "#6b7280" }}
+          disabled={saving}
+        >
+          <X size={16} style={{ marginRight: 4 }} />
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };
