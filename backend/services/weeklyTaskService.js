@@ -179,7 +179,10 @@ class WeeklyTaskService {
       if (!finalRewardKey && diff === "hard") {
         try {
           const enabled = await this.cosmetics.listEnabledByTypes(["avatar_frame", "terminal_skin"]);
-          finalRewardKey = this.pickDeterministicRewardKey({ taskId, enabledCosmetics: enabled });
+          const used = await this.weekly.listRewardCosmeticKeys({ excludeTaskId: taskId });
+          const filtered = (enabled || []).filter((c) => c?.key && !used.has(String(c.key)));
+          const pool = filtered.length ? filtered : enabled;
+          finalRewardKey = this.pickDeterministicRewardKey({ taskId, enabledCosmetics: pool });
         } catch {
           finalRewardKey = null;
         }

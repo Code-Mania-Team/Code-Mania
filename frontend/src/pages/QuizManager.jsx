@@ -497,21 +497,6 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
         </>
       ) : null}
 
-        <div className={`${styles.formActions} ${styles.formActionsSticky}`}>
-          <button className={`${styles.button} ${styles.buttonPrimary}`} type="button" onClick={onSave} disabled={saving}>
-            <Save size={16} style={{ marginRight: 6 }} />
-            {saving ? "Saving..." : "Save"}
-          </button>
-          <button
-            className={`${styles.button} ${styles.buttonMuted}`}
-            type="button"
-            onClick={onCancel}
-            disabled={saving}
-          >
-            <X size={16} style={{ marginRight: 6 }} />
-            Cancel
-          </button>
-        </div>
       </div>
 
       <aside className={styles.previewPanel}>
@@ -545,6 +530,22 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
         </div>
 
       </aside>
+
+      <div className={`${styles.formActions} ${styles.formActionsSticky}`} style={{ gridColumn: "1 / -1", marginTop: "16px" }}>
+        <button className={`${styles.button} ${styles.buttonPrimary}`} type="button" onClick={onSave} disabled={saving}>
+          <Save size={16} style={{ marginRight: 6 }} />
+          {saving ? "Saving..." : "Save"}
+        </button>
+        <button
+          className={`${styles.button} ${styles.buttonMuted}`}
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+        >
+          <X size={16} style={{ marginRight: 6 }} />
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };

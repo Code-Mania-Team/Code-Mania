@@ -6,6 +6,41 @@ class WeeklyTask {
     this.db = supabase;
   }
 
+  async listRewardCosmeticKeys({ excludeTaskId = null } = {}) {
+    // Best-effort: some environments may not have reward columns yet.
+    const excludeId = Number(excludeTaskId);
+    const shouldExclude = Number.isFinite(excludeId) && excludeId > 0;
+
+    try {
+      const { data, error } = await this.db
+        .from("weekly_tasks")
+        .select("task_id, reward_avatar_frame_key, reward_terminal_skin_id");
+
+      if (error) {
+        const msg = String(error.message || "");
+        if (/reward_(avatar_frame_key|terminal_skin_id)/i.test(msg) || /column .* does not exist/i.test(msg)) {
+          return new Set();
+        }
+        throw error;
+      }
+
+      const keys = new Set();
+      (data || []).forEach((row) => {
+        const taskId = Number(row?.task_id);
+        if (shouldExclude && taskId === excludeId) return;
+
+        const a = row?.reward_avatar_frame_key;
+        const t = row?.reward_terminal_skin_id;
+        if (a) keys.add(String(a));
+        if (t) keys.add(String(t));
+      });
+      return keys;
+    } catch (err) {
+      // Keep it non-blocking for older schemas.
+      return new Set();
+    }
+  }
+
   async resolveProgrammingLanguageId({ programming_language_id, language } = {}) {
     const directId = Number(programming_language_id);
     if (Number.isFinite(directId) && directId > 0) return directId;

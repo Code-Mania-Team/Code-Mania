@@ -436,21 +436,6 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel, course }) => {
         </details>
       </div>
 
-      <div className={styles.formActions}>
-        <button className={styles.button} type="button" onClick={onSave}>
-          <Save size={16} style={{ marginRight: 4 }} />
-          Save
-        </button>
-        <button 
-          className={styles.button} 
-          type="button" 
-          onClick={onCancel}
-          style={{ backgroundColor: '#6b7280' }}
-        >
-          <X size={16} style={{ marginRight: 4 }} />
-          Cancel
-        </button>
-      </div>
       </div>
 
       <aside className={styles.previewPanel}>
@@ -515,6 +500,22 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel, course }) => {
           </div>
         </div>
       </aside>
+
+      <div className={styles.formActions} style={{ gridColumn: "1 / -1", marginTop: "16px" }}>
+        <button className={styles.button} type="button" onClick={onSave}>
+          <Save size={16} style={{ marginRight: 4 }} />
+          Save
+        </button>
+        <button 
+          className={styles.button} 
+          type="button" 
+          onClick={onCancel}
+          style={{ backgroundColor: '#6b7280' }}
+        >
+          <X size={16} style={{ marginRight: 4 }} />
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };
