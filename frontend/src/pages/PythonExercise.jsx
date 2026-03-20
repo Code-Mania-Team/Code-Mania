@@ -33,6 +33,7 @@ import useGetExerciseById from "../services/getExerciseById";
 import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise";
+import useSideQuestProgress from "../services/useSideQuestProgress";
 
 import useAuth from "../hooks/useAxios";
 
@@ -41,7 +42,8 @@ import useAuth from "../hooks/useAxios";
 
 
 const PythonExercise = ({ isAuthenticated, onSignOut }) => {
-  const { isLoading: authLoading } = useAuth() || { isLoading: false };
+  const { isLoading: authLoading, user } = useAuth() || { isLoading: false, user: null };
+  const isAdminUser = String(user?.role || "").toLowerCase() === "admin";
 
   const stageBadgeById = {
     1: "https://res.cloudinary.com/daegpuoss/image/upload/v1771173773/python-badge1_qn63do.png",
@@ -111,6 +113,21 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
 
 
   const [activeExercise, setActiveExercise] = useState(null);
+
+  const {
+    sideQuests,
+    refreshSideQuests,
+    acceptRequiredByTags,
+    markLocalStatus,
+  } = useSideQuestProgress({
+    enabled: !isRetryMode && Boolean(activeExercise),
+    isAdmin: isAdminUser,
+    languageSlug:
+      activeExercise?.programming_languages?.slug ||
+      activeExercise?.programming_languages?.name ||
+      "python",
+    programmingLanguageId: activeExercise?.programming_language_id || null,
+  });
 
   const [isPageLoading, setIsPageLoading] = useState(true);
 
@@ -225,6 +242,10 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
             navigate(`/learn/python/exercise/${redirectId}`);
             return;
           }
+
+          // Locked route without redirect target: keep current screen quietly.
+          setIsPageLoading(false);
+          return;
         }
 
 
@@ -262,11 +283,6 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
     fetchExercise();
 
   }, [activeExerciseId, isAuthenticated, navigate]);
-
-
-
-
-
   /* ===============================
 
      TERMINAL STATE
@@ -274,12 +290,14 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
   =============================== */
 
   const [terminalEnabled, setTerminalEnabled] = useState(false);
+  const [sideQuestTerminalContext, setSideQuestTerminalContext] = useState({ active: false });
 
 
 
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setSideQuestTerminalContext({ active: false });
     setShowStageQuizPrompt(false);
     setStageQuizId(null);
 
@@ -387,13 +405,24 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
         return;
       }
 
-      const next = await getNextExercise(currentId);
-      if (!next) {
-        navigate("/learn/python/completed");
-        return;
-      }
+      try {
+        const currentDbId = Number(activeExercise?.id);
+        const next = await getNextExercise(
+          Number.isFinite(currentDbId) && currentDbId > 0 ? currentDbId : currentId
+        );
+        if (!next) {
+          navigate("/learn/python/completed");
+          return;
+        }
 
-      navigate(`/learn/python/exercise/${next.id}`);
+        navigate(`/learn/python/exercise/${next.id}`);
+      } catch (err) {
+        const redirectId = Number(err?.response?.data?.redirectTo);
+        if (Number.isFinite(redirectId) && redirectId > 0) {
+          navigate(`/learn/python/exercise/${redirectId}`);
+          return;
+        }
+      }
     };
 
 
@@ -408,7 +437,7 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
 
     };
 
-  }, [getNextExercise, isAuthenticated, isRetryMode, navigate]);
+  }, [activeExercise?.id, getNextExercise, isAuthenticated, isRetryMode, navigate]);
 
 
 
@@ -423,37 +452,90 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
   ===================================================== */
 
   useEffect(() => {
-
-    let terminalActive = false;
-
-
-
     const onTerminalActive = () => {
-
-      terminalActive = true;
-
+      // Side quest / quest HUD interaction should also unlock terminal usage.
+      setTerminalEnabled(true);
     };
 
 
 
     const onTerminalInactive = () => {
+      // Keep terminal enabled once user has interacted with a quest flow.
+    };
 
-      terminalActive = false;
+    const onTerminalLock = () => {
+      setTerminalEnabled(false);
+    };
 
+    const onSideQuestContext = (e) => {
+      const detail = e?.detail || { active: false };
+      setSideQuestTerminalContext(detail);
     };
 
     window.addEventListener("code-mania:terminal-active", onTerminalActive);
 
     window.addEventListener("code-mania:terminal-inactive", onTerminalInactive);
+    window.addEventListener("code-mania:terminal-lock", onTerminalLock);
+    window.addEventListener("code-mania:side-quest-terminal-context", onSideQuestContext);
 
     return () => {
 
       window.removeEventListener("code-mania:terminal-active", onTerminalActive);
 
       window.removeEventListener("code-mania:terminal-inactive", onTerminalInactive);
+      window.removeEventListener("code-mania:terminal-lock", onTerminalLock);
+      window.removeEventListener("code-mania:side-quest-terminal-context", onSideQuestContext);
     };
 
   }, []);
+
+  useEffect(() => {
+    if (isRetryMode) return;
+
+    const emitSideQuestUpdate = (list) => {
+      window.dispatchEvent(
+        new CustomEvent("code-mania:side-quests-updated", {
+          detail: { sideQuests: Array.isArray(list) ? list : [] },
+        })
+      );
+    };
+
+    emitSideQuestUpdate(sideQuests);
+
+    const onRefreshRequest = async () => {
+      const list = await refreshSideQuests();
+      emitSideQuestUpdate(list);
+    };
+
+    const onAcceptRequired = async (e) => {
+      const tags = Array.isArray(e?.detail?.tags) ? e.detail.tags : [];
+      const list = await acceptRequiredByTags(tags);
+      emitSideQuestUpdate(list);
+    };
+
+    const onSideQuestComplete = async (e) => {
+      if (isAdminUser) {
+        const sideQuestId = Number(e?.detail?.sideQuestId);
+        if (Number.isFinite(sideQuestId) && sideQuestId > 0) {
+          const updated = markLocalStatus(sideQuestId, "completed", 0);
+          emitSideQuestUpdate(updated);
+          return;
+        }
+      }
+      const list = await refreshSideQuests();
+      emitSideQuestUpdate(list);
+    };
+
+    window.addEventListener("code-mania:side-quests-refresh-request", onRefreshRequest);
+    window.addEventListener("code-mania:side-quests-accept-required", onAcceptRequired);
+    window.addEventListener("code-mania:side-quest-complete", onSideQuestComplete);
+
+    return () => {
+      window.removeEventListener("code-mania:side-quests-refresh-request", onRefreshRequest);
+      window.removeEventListener("code-mania:side-quests-accept-required", onAcceptRequired);
+      window.removeEventListener("code-mania:side-quest-complete", onSideQuestComplete);
+    };
+  }, [acceptRequiredByTags, isAdminUser, isRetryMode, markLocalStatus, refreshSideQuests, sideQuests]);
 
 
 
@@ -562,7 +644,12 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
           setShowStageQuizPrompt(true);
         }
 
-        getNextExercise(activeExerciseId).then((next) => {
+        const currentDbId = Number(activeExercise?.id);
+        const nextSourceId = Number.isFinite(currentDbId) && currentDbId > 0
+          ? currentDbId
+          : activeExerciseId;
+
+        getNextExercise(nextSourceId).then((next) => {
 
           if (!next) {
 
@@ -570,6 +657,8 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
 
           }
 
+        }).catch(() => {
+          // Ignore lock responses here; route listeners handle navigation.
         });
 
       }
@@ -714,8 +803,6 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
 
       )}
 
-
-
       <div className={styles["codex-fullscreen"]}>
 
         <ProgressBar
@@ -840,6 +927,8 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
               mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
               practiceMode={isRetryMode}
+              externallyUnlocked={terminalEnabled}
+              sideQuestContext={sideQuestTerminalContext}
             />
           </div>
 

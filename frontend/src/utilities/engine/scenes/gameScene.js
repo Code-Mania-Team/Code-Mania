@@ -111,6 +111,10 @@ export default class GameScene extends Phaser.Scene {
     this._mobileControlsEnabled = null;
     this._pointerTargetCache = { target: null, nextAt: 0 };
     this._arrowVisible = false;
+    this.completedSideQuestTags = new Set();
+    this.sideQuestStateByTag = {};
+    this.sideQuestGuideActivated = false;
+    this.applySideQuestProgress(Array.isArray(data.sideQuestProgress) ? data.sideQuestProgress : []);
 
     this._bgmUnlockHandler = null;
   }
@@ -520,6 +524,7 @@ export default class GameScene extends Phaser.Scene {
   create() {
     // 🗺 MAP
     this.mapLoader.create(this.mapData.mapKey, this.mapData.tilesets);
+    this.requestSideQuestProgressRefresh();
 
     this.textures.each(t =>
       t.setFilter(Phaser.Textures.FilterMode.NEAREST)
@@ -947,9 +952,84 @@ export default class GameScene extends Phaser.Scene {
       this.syncMobileControlsVisibility();
     };
 
+    this.handleSideQuestProgressUpdated = (e) => {
+      const list = Array.isArray(e?.detail?.sideQuests) ? e.detail.sideQuests : [];
+      this.applySideQuestProgress(list);
+    };
+
+    this.handleSideQuestCompleted = (e) => {
+      const completedTagFromTab = this.normalizeSideQuestToken(e?.detail?.tabKey || "");
+      const completedSideQuestId = Number(e?.detail?.sideQuestId);
+      let completedTag = completedTagFromTab;
+
+      if (!completedTag && Number.isFinite(completedSideQuestId) && completedSideQuestId > 0) {
+        const match = Object.entries(this.sideQuestStateByTag || {}).find(([, row]) => {
+          return Number(row?.quest_id) === completedSideQuestId;
+        });
+        completedTag = this.normalizeSideQuestToken(match?.[0] || "");
+      }
+
+      if (completedTag) {
+        this.completedSideQuestTags.add(completedTag);
+        const row = this.sideQuestStateByTag?.[completedTag];
+        if (row) {
+          this.sideQuestStateByTag[completedTag] = {
+            ...row,
+            userStatus: "completed",
+          };
+        }
+      }
+
+      this.refreshExitUnlockStates();
+      this.refreshSideQuestGuideIcons();
+      this.requestSideQuestProgressRefresh();
+
+      const mainNpc =
+        this.npcs?.find(
+          (npc) =>
+            !npc?.npcData?.sideQuestGuide &&
+            Number.isFinite(Number(npc?.npcData?.questId)) &&
+            (npc?.npcData?.requiredSideQuestTags || []).length > 0
+        ) || null;
+      const requiredTags = mainNpc?.npcData?.requiredSideQuestTags || [];
+      const allDone = requiredTags.length > 0 && this.areRequiredSideQuestsCompleted(requiredTags);
+
+      if (allDone) {
+        this.sideQuestGuideActivated = false;
+        this.questHUD?.hide();
+        this.syncMobileControlsVisibility();
+
+        // Return control to map flow; main quest NPC becomes the next interaction.
+        window.dispatchEvent(new Event("code-mania:terminal-lock"));
+        window.dispatchEvent(
+          new CustomEvent("code-mania:side-quest-terminal-context", {
+            detail: { active: false },
+          })
+        );
+
+        this.dialogueManager.startDialogue(
+          [
+            "Excellent work. All side quests are complete.",
+            "Now return to the main quest NPC on the left.",
+          ],
+          () => {}
+        );
+        return;
+      }
+
+      if (this.questHUD?.visible && this.sideQuestGuideActivated) {
+        if (requiredTags.length) {
+          const updatedView = this.buildSideQuestGuideQuest(requiredTags);
+          this.questHUD?.showQuest(updatedView, { refreshOnly: true });
+        }
+      }
+    };
+
     window.addEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
     window.addEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
     window.addEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
+    window.addEventListener("code-mania:side-quests-updated", this.handleSideQuestProgressUpdated);
+    window.addEventListener("code-mania:side-quest-complete", this.handleSideQuestCompleted);
 
     this.events.once("shutdown", () => {
       window.removeEventListener(
@@ -959,6 +1039,8 @@ export default class GameScene extends Phaser.Scene {
       window.removeEventListener("code-mania:quest-started", this.handleQuestStartedForMobile);
       window.removeEventListener("code-mania:quest-complete", this.handleQuestCompletedForMobile);
       window.removeEventListener("code-mania:close-quest-hud", this.handleCloseQuestHud);
+      window.removeEventListener("code-mania:side-quests-updated", this.handleSideQuestProgressUpdated);
+      window.removeEventListener("code-mania:side-quest-complete", this.handleSideQuestCompleted);
     });
 
 
@@ -1299,11 +1381,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // 2️⃣ If any exit requires a completed quest → point to it
-    const exitZone = this.mapExits?.getChildren()?.find(zone => {
-      const requiredQuest = zone.exitData?.requiredQuest;
-      if (!requiredQuest) return false;
-      return this.isRequiredQuestSatisfied(requiredQuest);
-    });
+    const exitZone = this.mapExits?.getChildren()?.find((zone) => this.isExitUnlocked(zone));
 
     if (exitZone) {
       this._pointerTargetCache.target = exitZone;
@@ -1320,7 +1398,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // 3️⃣ Otherwise point to first incomplete NPC quest
-    const npc = this.npcs?.find(n => {
+    const npc = this.npcs?.find((n) => {
       const questId = n?.npcData?.questId;
       const quest = questId ? this.questManager.getQuestById(questId) : null;
       return quest && !quest.completed;
@@ -1332,7 +1410,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // 4️⃣ If no NPC quest remains, point to a map exit
-    const anyExit = this.mapExits?.getChildren?.()?.[0] || null;
+    const anyExit = this.mapExits?.getChildren?.()?.find((zone) => this.isExitUnlocked(zone)) || null;
     if (anyExit) {
       this._pointerTargetCache.target = anyExit;
       return anyExit;
@@ -1350,6 +1428,255 @@ export default class GameScene extends Phaser.Scene {
     if (!quest || !quest.completed) return false;
 
     return Number(quest.id) === required || Number(quest.order_index) === required;
+  }
+
+  normalizeSideQuestToken(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (!normalized) return "";
+    if (normalized === "multipication") return "multiplication";
+    return normalized;
+  }
+
+  parseRequiredSideQuestTags(value) {
+    if (Array.isArray(value)) {
+      return Array.from(
+        new Set(
+          value
+            .map((item) => this.normalizeSideQuestToken(item))
+            .filter(Boolean)
+        )
+      );
+    }
+
+    const raw = String(value || "").trim();
+    if (!raw) return [];
+
+    return Array.from(
+      new Set(
+        raw
+          .split(/[|,]/)
+          .map((item) => this.normalizeSideQuestToken(item))
+          .filter(Boolean)
+      )
+    );
+  }
+
+  parseNpcDialogueLines(value, fallback = []) {
+    if (Array.isArray(value)) {
+      const lines = value.map((item) => String(item || "").trim()).filter(Boolean);
+      return lines.length ? lines : fallback;
+    }
+
+    const raw = String(value || "").trim();
+    if (!raw) return fallback;
+
+    const lines = raw
+      .split("|")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    return lines.length ? lines : fallback;
+  }
+
+  extractSideQuestTags(quest) {
+    const directTag = this.normalizeSideQuestToken(quest?.tag);
+    return directTag ? [directTag] : [];
+  }
+
+  applySideQuestProgress(list) {
+    const safeList = Array.isArray(list) ? list : [];
+
+    this.completedSideQuestTags.clear();
+    this.sideQuestStateByTag = {};
+
+    safeList.forEach((quest) => {
+      this.extractSideQuestTags(quest).forEach((tag) => {
+        const normalized = this.normalizeSideQuestToken(tag);
+        if (!normalized) return;
+
+        this.sideQuestStateByTag[normalized] = quest;
+        if (String(quest?.userStatus || "") === "completed") {
+          this.completedSideQuestTags.add(normalized);
+        }
+      });
+    });
+
+    this.refreshExitUnlockStates();
+    this.refreshSideQuestGuideIcons();
+  }
+
+  requestSideQuestProgressRefresh() {
+    window.dispatchEvent(new Event("code-mania:side-quests-refresh-request"));
+  }
+
+  areRequiredSideQuestsCompleted(requiredTags) {
+    const tags = this.parseRequiredSideQuestTags(requiredTags);
+    if (!tags.length) return true;
+    return tags.every((tag) => this.completedSideQuestTags.has(tag));
+  }
+
+  getMissingSideQuestTags(requiredTags) {
+    const tags = this.parseRequiredSideQuestTags(requiredTags);
+    return tags.filter((tag) => !this.completedSideQuestTags.has(tag));
+  }
+
+  isExitUnlocked(zone) {
+    const requiredQuest = zone?.exitData?.requiredQuest;
+    const requiredSideQuests = zone?.exitData?.requiredSideQuests || [];
+
+    if (requiredQuest && !this.isRequiredQuestSatisfied(requiredQuest)) return false;
+    if (!this.areRequiredSideQuestsCompleted(requiredSideQuests)) return false;
+    return true;
+  }
+
+  refreshExitUnlockStates() {
+    const exitsGroup = this.mapExits;
+    if (!exitsGroup || typeof exitsGroup.getChildren !== "function") return;
+
+    let zones = [];
+    try {
+      zones = exitsGroup.getChildren();
+    } catch {
+      return;
+    }
+
+    if (!Array.isArray(zones) || !zones.length) return;
+
+    zones.forEach((zone) => {
+      if (!zone) return;
+      let unlocked = false;
+      try {
+        unlocked = this.isExitUnlocked(zone);
+      } catch {
+        unlocked = false;
+      }
+      zone.exitArrow?.setVisible(Boolean(unlocked));
+    });
+  }
+
+  acceptRequiredSideQuests(requiredTags) {
+    const normalizedRequired = this.parseRequiredSideQuestTags(requiredTags);
+    if (!normalizedRequired.length) return;
+
+    // Optimistic local update so HUD immediately reflects accepted side quests.
+    normalizedRequired.forEach((tag) => {
+      const row = this.sideQuestStateByTag?.[tag];
+      const status = String(row?.userStatus || "not_started");
+      if (!row || status !== "not_started") return;
+      this.sideQuestStateByTag[tag] = {
+        ...row,
+        userStatus: "in_progress",
+      };
+    });
+
+    window.dispatchEvent(
+      new CustomEvent("code-mania:side-quests-accept-required", {
+        detail: { tags: normalizedRequired },
+      })
+    );
+
+    // If a specific NPC currently shows the quest icon, prioritize it.
+    const npcWithVisibleIcon = this.npcs?.find((n) => n?.questIcon?.visible);
+    if (npcWithVisibleIcon) {
+      this._pointerTargetCache.target = npcWithVisibleIcon;
+      return npcWithVisibleIcon;
+    }
+
+  }
+
+  buildSideQuestGuideQuest(requiredTags) {
+    const normalizedRequired = this.parseRequiredSideQuestTags(requiredTags);
+    const sideQuestTabs = normalizedRequired.map((tag) => {
+      const row = this.sideQuestStateByTag?.[tag] || null;
+      const status = String(row?.userStatus || "not_started");
+      const testCases = Array.isArray(row?.test_cases) ? row.test_cases : [];
+      const objectives = Array.isArray(row?.objectives)
+        ? row.objectives
+        : Array.isArray(row?.requirements?.objectives)
+          ? row.requirements.objectives
+          : [];
+
+      return {
+        key: tag,
+        questId: Number(row?.quest_id) || null,
+        label: tag.charAt(0).toUpperCase() + tag.slice(1),
+        status,
+        description:
+          row?.description ||
+          `Practice ${tag} fundamentals to unlock the next main quest step.`,
+        task:
+          row?.task ||
+          `Complete the ${tag} side quest in the terminal challenges.`,
+        testCases,
+        objectives,
+      };
+    });
+
+    const checklist = normalizedRequired
+      .map((tag) => {
+        const done = this.completedSideQuestTags.has(tag);
+        return `${done ? "[x]" : "[ ]"} ${tag.charAt(0).toUpperCase()}${tag.slice(1)}`;
+      })
+      .join("\n");
+
+    return {
+      title: "Arithmetic Side Quest Set",
+      lessonHeader: "Side Quest Mentor",
+      description:
+        "Before the main quest, complete all fundamentals below.\n\n" + checklist,
+      task:
+        "Complete all unchecked side quests, then talk to the main quest NPC.",
+      sideQuestTabs,
+    };
+  }
+
+  openSideQuestGuide(requiredTags) {
+    const normalizedRequired = this.parseRequiredSideQuestTags(requiredTags);
+    if (!normalizedRequired.length) return;
+
+    this.acceptRequiredSideQuests(normalizedRequired);
+
+    const questView = this.buildSideQuestGuideQuest(normalizedRequired);
+    this.questHUD?.showQuest(questView);
+
+    this.refreshExitUnlockStates();
+    this.refreshSideQuestGuideIcons();
+  }
+
+  refreshSideQuestGuideIcons() {
+    const npcs = this.npcs || [];
+    const guideNpc = npcs.find((npc) => Boolean(npc?.npcData?.sideQuestGuide)) || null;
+    const mainNpc =
+      npcs.find(
+        (npc) =>
+          !npc?.npcData?.sideQuestGuide &&
+          Number.isFinite(Number(npc?.npcData?.questId)) &&
+          (npc?.npcData?.requiredSideQuestTags || []).length > 0
+      ) || null;
+
+    if (!guideNpc || !mainNpc) return;
+
+    const requiredTags = mainNpc?.npcData?.requiredSideQuestTags || [];
+    const done = this.areRequiredSideQuestsCompleted(requiredTags);
+
+    const shouldShowMainIcon = done || !this.sideQuestGuideActivated;
+    const shouldShowGuideIcon = !done && this.sideQuestGuideActivated;
+
+    if (shouldShowMainIcon && !mainNpc.questIcon) {
+      mainNpc.questIcon = this.questIconManager.createIcon(mainNpc, true);
+    }
+    if (!shouldShowMainIcon && mainNpc.questIcon) {
+      this.questIconManager.hideForNPC(mainNpc);
+      mainNpc.questIcon = null;
+    }
+
+    if (shouldShowGuideIcon && !guideNpc.questIcon) {
+      guideNpc.questIcon = this.questIconManager.createIcon(guideNpc, true);
+    }
+    if (!shouldShowGuideIcon && guideNpc.questIcon) {
+      this.questIconManager.hideForNPC(guideNpc);
+      guideNpc.questIcon = null;
+    }
   }
 
 
@@ -1423,6 +1750,30 @@ export default class GameScene extends Phaser.Scene {
           npc.npcData = {
             id: getProp(obj, "id") || obj.name || "npc",
             questId: Number.isFinite(questIdNum) ? questIdNum : null,
+            sideQuestGuide: Boolean(getProp(obj, "side_quest_guide")),
+            requiredSideQuestTags: this.parseRequiredSideQuestTags(
+              getProp(obj, "required_side_quests") ||
+                getProp(obj, "required_side_quest_tags") ||
+                ""
+            ),
+            sideQuestPendingDialogue: this.parseNpcDialogueLines(
+              getProp(obj, "side_quest_dialogue_pending") ||
+                getProp(obj, "dialogue_before_main") ||
+                "",
+              [
+                "Before the main quest, prove your fundamentals.",
+                "Finish Addition, Subtraction, Multiplication, and Division side quests first.",
+              ]
+            ),
+            sideQuestReadyDialogue: this.parseNpcDialogueLines(
+              getProp(obj, "side_quest_dialogue_ready") ||
+                getProp(obj, "dialogue_after_side_quests") ||
+                "",
+              [
+                "Excellent. Your side quests are complete.",
+                "Now speak to the main quest NPC and continue your journey.",
+              ]
+            ),
           };
 
 
@@ -1441,6 +1792,8 @@ export default class GameScene extends Phaser.Scene {
           }
         });
     });
+
+    this.refreshSideQuestGuideIcons();
   }
 
 
@@ -1567,7 +1920,71 @@ export default class GameScene extends Phaser.Scene {
       return true;
     }
 
+    const isSideQuestGuide = Boolean(npc?.npcData?.sideQuestGuide);
+    if (!quest && isSideQuestGuide) {
+      const requiredTags = npc?.npcData?.requiredSideQuestTags || [];
+      this.requestSideQuestProgressRefresh();
+
+      if (requiredTags.length && !this.sideQuestGuideActivated) {
+        this.playerCanMove = false;
+        this.dialogueManager.startDialogue(
+          [
+            "I can help with side quests, but talk to the main quest NPC first.",
+            "They will endorse you before I open your side quest training.",
+          ],
+          () => {
+            this.playerCanMove = true;
+          }
+        );
+        return true;
+      }
+
+      if (requiredTags.length && !this.areRequiredSideQuestsCompleted(requiredTags)) {
+        this.playerCanMove = false;
+        this.dialogueManager.startDialogue(
+          npc?.npcData?.sideQuestPendingDialogue || ["Finish side quests first."],
+          () => {
+            this.playerCanMove = true;
+            this.openSideQuestGuide(requiredTags);
+          }
+        );
+        return true;
+      }
+
+      this.playerCanMove = false;
+      this.dialogueManager.startDialogue(
+        npc?.npcData?.sideQuestReadyDialogue || ["You are ready for the main quest."],
+        () => {
+          this.playerCanMove = true;
+        }
+      );
+      return true;
+    }
+
     if (!quest) return false;
+
+    const requiredSideQuestTags = npc?.npcData?.requiredSideQuestTags || [];
+    if (!this.areRequiredSideQuestsCompleted(requiredSideQuestTags)) {
+      const missing = this.getMissingSideQuestTags(requiredSideQuestTags)
+        .map((tag) => tag.charAt(0).toUpperCase() + tag.slice(1));
+      const missingText = missing.length ? missing.join(", ") : "required side quests";
+
+      this.sideQuestGuideActivated = true;
+      this.refreshSideQuestGuideIcons();
+
+      this.playerCanMove = false;
+      this.dialogueManager.startDialogue(
+        [
+          "You need to finish side quests first.",
+          `Missing: ${missingText}`,
+          "Now speak to the mentor on the right. They will open the side quest training.",
+        ],
+        () => {
+          this.playerCanMove = true;
+        }
+      );
+      return true;
+    }
 
     this.playerCanMove = false;
 
@@ -1954,6 +2371,13 @@ export default class GameScene extends Phaser.Scene {
             ? null
             : Number(rawQuest);
 
+        const rawSideQuests =
+          obj.properties.find((p) => p.name === "required_side_quests")?.value ||
+          obj.properties.find((p) => p.name === "required_side_quest_tags")?.value ||
+          "";
+
+        const requiredSideQuests = this.parseRequiredSideQuestTags(rawSideQuests);
+
         // If no required quest, exit is open by default
         let unlocked = requiredQuestId === null;
 
@@ -1961,10 +2385,15 @@ export default class GameScene extends Phaser.Scene {
           unlocked = this.isRequiredQuestSatisfied(requiredQuestId);
         }
 
+        if (!this.areRequiredSideQuestsCompleted(requiredSideQuests)) {
+          unlocked = false;
+        }
+
         zone.exitData = {
           targetMap,
           targetSpawn,
-          requiredQuest: requiredQuestId
+          requiredQuest: requiredQuestId,
+          requiredSideQuests,
         };
 
         // 🏹 EXIT-ONLY ARROW
@@ -1993,11 +2422,29 @@ export default class GameScene extends Phaser.Scene {
 
 
   handleMapExit(player, zone) {
-    const { requiredQuest } = zone.exitData;
+    const { requiredQuest, requiredSideQuests } = zone.exitData;
 
     // Quest not finished → do nothing
     if (requiredQuest) {
       if (!this.isRequiredQuestSatisfied(requiredQuest)) return;
+    }
+
+    if (!this.areRequiredSideQuestsCompleted(requiredSideQuests)) {
+      const missing = this.getMissingSideQuestTags(requiredSideQuests)
+        .map((tag) => tag.charAt(0).toUpperCase() + tag.slice(1));
+      const missingText = missing.length ? missing.join(", ") : "required side quests";
+
+      this.dialogueManager.startDialogue(
+        [
+          "The path is sealed.",
+          `Complete side quests first: ${missingText}`,
+          "Talk to the side quest mentor NPC to unlock the path.",
+        ],
+        async () => {
+          await this.openSideQuestGuide(requiredSideQuests);
+        }
+      );
+      return;
     }
 
     // Prevent multiple triggers

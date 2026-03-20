@@ -81,6 +81,73 @@ if (!fs.existsSync(TMP_DIR)) {
   fs.mkdirSync(TMP_DIR, { recursive: true });
 }
 
+// Auto-clean temp workspace to prevent ENOSPC.
+// These folders are safe to delete because they only contain per-run code.
+const TMP_TTL_MS = Number(process.env.CODEMANIA_TMP_TTL_MS || 1000 * 60 * 30); // 30 minutes
+const TMP_MAX_ENTRIES = Number(process.env.CODEMANIA_TMP_MAX_ENTRIES || 2000);
+const TMP_CLEAN_INTERVAL_MS = Number(process.env.CODEMANIA_TMP_CLEAN_INTERVAL_MS || 1000 * 60 * 5); // 5 minutes
+
+function cleanupTmpDirSync({ maxAgeMs = TMP_TTL_MS, maxEntries = TMP_MAX_ENTRIES } = {}) {
+  try {
+    const now = Date.now();
+    const names = fs.readdirSync(TMP_DIR, { withFileTypes: true });
+    const entries = [];
+
+    for (const d of names) {
+      if (!d || !d.name) continue;
+      const full = path.join(TMP_DIR, d.name);
+      let st;
+      try {
+        st = fs.statSync(full);
+      } catch {
+        continue;
+      }
+      const t = Number(st.mtimeMs || st.ctimeMs || 0);
+      entries.push({ full, timeMs: t || 0 });
+
+      if (maxAgeMs && t && now - t > maxAgeMs) {
+        try {
+          fs.rmSync(full, { recursive: true, force: true });
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    if (maxEntries && entries.length > maxEntries) {
+      entries.sort((a, b) => a.timeMs - b.timeMs);
+      const extra = entries.length - maxEntries;
+      for (let i = 0; i < extra; i++) {
+        try {
+          fs.rmSync(entries[i].full, { recursive: true, force: true });
+        } catch {
+          // ignore
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function mkdirTempDirOrCleanup(tempDir) {
+  try {
+    fs.mkdirSync(tempDir);
+    return;
+  } catch (err) {
+    if (err && err.code === "ENOSPC") {
+      cleanupTmpDirSync();
+      fs.mkdirSync(tempDir);
+      return;
+    }
+    throw err;
+  }
+}
+
+// Periodic background cleanup (best-effort)
+cleanupTmpDirSync();
+setInterval(() => cleanupTmpDirSync(), TMP_CLEAN_INTERVAL_MS).unref?.();
+
 
 /* ===============================
    LANGUAGE CONFIG
@@ -282,6 +349,25 @@ function sanitizeCode(language, code) {
   }
 
   return clean;
+}
+
+function killContainerBestEffort(containerName) {
+  if (!containerName) return;
+  try {
+    const killer = spawn("docker", ["kill", containerName]);
+    killer.on?.("error", () => {});
+  } catch {
+    // ignore
+  }
+
+  // If the docker client process is killed, --rm may not run.
+  // Force remove to avoid orphaned infinite-loop containers.
+  try {
+    const remover = spawn("docker", ["rm", "-f", containerName]);
+    remover.on?.("error", () => {});
+  } catch {
+    // ignore
+  }
 }
 
   const handleSubmit = async () => {
@@ -540,7 +626,7 @@ async function runSingleTest(language, code, input = "", mode = "stdin", functio
         const sanitized = sanitizeCode(language, code);
 
         const tempDir = path.join(TMP_DIR, crypto.randomUUID());
-        fs.mkdirSync(tempDir);
+        mkdirTempDirOrCleanup(tempDir);
 
         let finalCode = sanitized;
 
@@ -672,8 +758,14 @@ int main() {
         fs.writeFileSync(filePath, finalCode);
         fs.chmodSync(filePath, 0o644);
 
+        const containerName = `codemania-test-${crypto.randomUUID()}`;
+
         const docker = spawn("docker", [
           "run", "--rm", "-i",
+          "--name", containerName,
+          "--init",
+          "--log-driver=none",
+          "--stop-timeout", "0",
           "--network", "none",
           "--read-only",
           "--pids-limit", "64",
@@ -695,7 +787,12 @@ int main() {
         let output = "";
 
         const timeout = setTimeout(() => {
-          docker.kill("SIGKILL");
+          killContainerBestEffort(containerName);
+          try {
+            docker.kill("SIGKILL");
+          } catch {
+            // ignore
+          }
         }, 10000);
 
         docker.stdout.on("data", d => {
@@ -703,7 +800,12 @@ int main() {
           outputSize += d.length;
 
           if (outputSize > MAX_OUTPUT) {
-            docker.kill("SIGKILL");
+            killContainerBestEffort(containerName);
+            try {
+              docker.kill("SIGKILL");
+            } catch {
+              // ignore
+            }
             output = "Output limit exceeded";
             return;
           }
@@ -727,6 +829,8 @@ int main() {
 
         docker.on("error", err => {
           clearTimeout(timeout);
+
+          killContainerBestEffort(containerName);
 
           try {
             fs.rmSync(tempDir, { recursive: true, force: true });
@@ -770,8 +874,14 @@ async function runDomValidation(base_html, user_code, validation) {
         validation
       });
 
+      const containerName = `codemania-dom-${crypto.randomUUID()}`;
+
       const docker = spawn("docker", [
         "run", "--rm", "-i",
+        "--name", containerName,
+        "--init",
+        "--log-driver=none",
+        "--stop-timeout", "0",
 
         "--network", "none",
         "--read-only",
@@ -790,7 +900,12 @@ async function runDomValidation(base_html, user_code, validation) {
       let errorOutput = "";
 
       const timeout = setTimeout(() => {
-        docker.kill("SIGKILL");
+        killContainerBestEffort(containerName);
+        try {
+          docker.kill("SIGKILL");
+        } catch {
+          // ignore
+        }
         reject(new Error("DOM validation timeout"));
       }, 30000);
 
@@ -820,6 +935,7 @@ async function runDomValidation(base_html, user_code, validation) {
 
       docker.on("error", err => {
         clearTimeout(timeout);
+        killContainerBestEffort(containerName);
         reject(err);
       });
 
@@ -1112,6 +1228,7 @@ wss.on("connection", (ws) => {
   let tempDir = null;
   let timeout = null;
   let outputSize = 0;
+  let containerName = null;
 
   ws.__isAlive = true;
   ws.on("pong", () => {
@@ -1124,7 +1241,14 @@ wss.on("connection", (ws) => {
     if (timeout) clearTimeout(timeout);
 
     timeout = setTimeout(() => {
-      if (docker) docker.kill("SIGKILL");
+      if (containerName) killContainerBestEffort(containerName);
+      if (docker) {
+        try {
+          docker.kill("SIGKILL");
+        } catch {
+          // ignore
+        }
+      }
     }, EXEC_TIMEOUT);
   }
 
@@ -1180,15 +1304,21 @@ wss.on("connection", (ws) => {
         const sanitized = sanitizeCode(language, code);
 
         tempDir = path.join(TMP_DIR, crypto.randomUUID());
-        fs.mkdirSync(tempDir);
+        mkdirTempDirOrCleanup(tempDir);
 
         fs.writeFileSync(path.join(tempDir, lang.file), sanitized);
 
         await enqueueExercise(() =>
           new Promise((resolve, reject) => {
 
+            containerName = `codemania-ws-${crypto.randomUUID()}`;
+
             docker = spawn("docker", [
               "run", "--rm", "-i",
+              "--name", containerName,
+              "--init",
+              "--log-driver=none",
+              "--stop-timeout", "0",
               "--network", "none",
               "--read-only",
               "--pids-limit", "64",
@@ -1259,7 +1389,14 @@ wss.on("connection", (ws) => {
         ws.__isPresence = false;
         broadcastPresence();
       }
-      if (docker) docker.kill("SIGKILL");
+      if (containerName) killContainerBestEffort(containerName);
+      if (docker) {
+        try {
+          docker.kill("SIGKILL");
+        } catch {
+          // ignore
+        }
+      }
       if (timeout) clearTimeout(timeout);
       if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
     } catch (err) {

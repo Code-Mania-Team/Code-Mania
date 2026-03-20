@@ -478,6 +478,39 @@ html[data-theme="light"] .profile-card {
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  position: relative;
+  overflow: visible;
+}
+
+.avatarHasFrame {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0b1224 100%);
+}
+
+.avatarFrameImage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 22px);
+  height: calc(100% + 22px);
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  pointer-events: none;
+  image-rendering: pixelated;
+  z-index: 3;
+}
+
+.avatarImage {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  position: relative;
+  z-index: 2;
+}
+
+.avatarFallback {
+  position: relative;
+  z-index: 2;
 }
 
 .profile-info {

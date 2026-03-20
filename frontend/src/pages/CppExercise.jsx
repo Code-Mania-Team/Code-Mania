@@ -38,6 +38,7 @@ import useGetExercises from "../services/getExercise";
 import useGetNextExercise from "../services/getNextExcercise.js";
 
 import useStartExercise from "../services/startExercise.js";
+import useSideQuestProgress from "../services/useSideQuestProgress";
 
 
 
@@ -94,6 +95,7 @@ const CppExercise = ({ onSignOut }) => {
 
 
   const [terminalEnabled, setTerminalEnabled] = useState(false);
+  const [sideQuestTerminalContext, setSideQuestTerminalContext] = useState({ active: false });
 
   const [code, setCode] = useState("");
 
@@ -122,6 +124,22 @@ const CppExercise = ({ onSignOut }) => {
 
 
   const { isAuthenticated, isLoading: authLoading, setIsAuthenticated, setUser, user } = useAuth();
+  const isAdminUser = String(user?.role || "").toLowerCase() === "admin";
+
+  const {
+    sideQuests,
+    refreshSideQuests,
+    acceptRequiredByTags,
+    markLocalStatus,
+  } = useSideQuestProgress({
+    enabled: !isRetryMode && Boolean(activeExercise),
+    isAdmin: isAdminUser,
+    languageSlug:
+      activeExercise?.programming_languages?.slug ||
+      activeExercise?.programming_languages?.name ||
+      "cpp",
+    programmingLanguageId: activeExercise?.programming_language_id || null,
+  });
 
   // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
   useEffect(() => {
@@ -342,6 +360,7 @@ const CppExercise = ({ onSignOut }) => {
   useEffect(() => {
 
     setTerminalEnabled(false);
+    setSideQuestTerminalContext({ active: false });
     setShowStageQuizPrompt(false);
     setStageQuizId(null);
 
@@ -378,6 +397,80 @@ const CppExercise = ({ onSignOut }) => {
       sceneManager.resume("GameScene");
     }
   }, [isMobileView, isRetryMode, mobileActivePanel]);
+
+  useEffect(() => {
+    const onTerminalActive = () => {
+      setTerminalEnabled(true);
+    };
+
+    const onTerminalLock = () => {
+      setTerminalEnabled(false);
+    };
+
+    const onSideQuestContext = (e) => {
+      const detail = e?.detail || { active: false };
+      setSideQuestTerminalContext(detail);
+    };
+
+    window.addEventListener("code-mania:terminal-active", onTerminalActive);
+    window.addEventListener("code-mania:terminal-lock", onTerminalLock);
+    window.addEventListener("code-mania:side-quest-terminal-context", onSideQuestContext);
+
+    return () => {
+      window.removeEventListener("code-mania:terminal-active", onTerminalActive);
+      window.removeEventListener("code-mania:terminal-lock", onTerminalLock);
+      window.removeEventListener("code-mania:side-quest-terminal-context", onSideQuestContext);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isRetryMode) return;
+
+    const emitSideQuestUpdate = (list) => {
+      window.dispatchEvent(
+        new CustomEvent("code-mania:side-quests-updated", {
+          detail: { sideQuests: Array.isArray(list) ? list : [] },
+        })
+      );
+    };
+
+    emitSideQuestUpdate(sideQuests);
+
+    const onRefreshRequest = async () => {
+      const list = await refreshSideQuests();
+      emitSideQuestUpdate(list);
+    };
+
+    const onAcceptRequired = async (e) => {
+      const tags = Array.isArray(e?.detail?.tags) ? e.detail.tags : [];
+      const list = await acceptRequiredByTags(tags);
+      emitSideQuestUpdate(list);
+    };
+
+    const onSideQuestComplete = async (e) => {
+      if (isAdminUser) {
+        const sideQuestId = Number(e?.detail?.sideQuestId);
+        if (Number.isFinite(sideQuestId) && sideQuestId > 0) {
+          const updated = markLocalStatus(sideQuestId, "completed", 0);
+          emitSideQuestUpdate(updated);
+          return;
+        }
+      }
+
+      const list = await refreshSideQuests();
+      emitSideQuestUpdate(list);
+    };
+
+    window.addEventListener("code-mania:side-quests-refresh-request", onRefreshRequest);
+    window.addEventListener("code-mania:side-quests-accept-required", onAcceptRequired);
+    window.addEventListener("code-mania:side-quest-complete", onSideQuestComplete);
+
+    return () => {
+      window.removeEventListener("code-mania:side-quests-refresh-request", onRefreshRequest);
+      window.removeEventListener("code-mania:side-quests-accept-required", onAcceptRequired);
+      window.removeEventListener("code-mania:side-quest-complete", onSideQuestComplete);
+    };
+  }, [acceptRequiredByTags, isAdminUser, isRetryMode, markLocalStatus, refreshSideQuests, sideQuests]);
 
 
 
@@ -551,6 +644,8 @@ const CppExercise = ({ onSignOut }) => {
           if (!next) {
             setShowCourseCompletePrompt(true);
           }
+        }).catch(() => {
+          // Ignore lock responses here; map flow keeps player in current lesson.
         });
       }
 
@@ -774,6 +869,8 @@ const CppExercise = ({ onSignOut }) => {
               mobileActivePanel={mobileActivePanel === "editor" ? "editor" : "terminal"}
               quest={activeExercise}
               practiceMode={isRetryMode}
+              externallyUnlocked={terminalEnabled}
+              sideQuestContext={sideQuestTerminalContext}
             />
           </div>
 
