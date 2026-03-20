@@ -16,8 +16,29 @@ const createCookieOptions = (maxAge) => {
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax",
         ...(isProduction ? { domain: ".codemania.fun" } : {}),
+        path: "/",
         maxAge,
     };
+};
+
+const clearAuthCookies = (res) => {
+    // Cookies are removed by overwriting with the SAME name+domain+path.
+    // The project sets domain/samesite/secure dynamically, so we clear using
+    // multiple compatible option sets to handle env/config mismatches.
+    const candidates = [
+        createCookieOptions(0),
+        { ...createCookieOptions(0), sameSite: "lax" },
+        { ...createCookieOptions(0), sameSite: "strict" },
+        // Hardcoded production domain fallback (in case NODE_ENV is mis-set).
+        { httpOnly: true, secure: true, sameSite: "none", domain: ".codemania.fun", path: "/" },
+        // Local/dev fallback.
+        { httpOnly: true, secure: false, sameSite: "lax", path: "/" },
+    ];
+
+    for (const options of candidates) {
+        res.clearCookie("accessToken", options);
+        res.clearCookie("refreshToken", options);
+    }
 };
 
 class AccountController {
@@ -470,7 +491,7 @@ class AccountController {
             
             // Clear refresh token only on actual invalid token
             if (err.message === 'Invalid refresh token') {
-                res.clearCookie("refreshToken");
+                clearAuthCookies(res);
             }
             
             return res.status(401).json({
@@ -670,19 +691,7 @@ class AccountController {
                 message: "Failed to delete account" 
             });
 
-            // Clear refresh token cookie
-            res.clearCookie("refreshToken", 
-                { httpOnly: true, 
-                  secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
-            });
-
-            
-             res.clearCookie("accessToken", 
-                { httpOnly: true, 
-                  secure: process.env.NODE_ENV === "production", 
-                  sameSite: "strict" 
-            });
+            clearAuthCookies(res);
 
             return res.status(200).json({ 
                 success: true, 
@@ -708,17 +717,8 @@ class AccountController {
             if (userId) {
                 await this.userToken.invalidateByUserId(userId);
             }
-            res.clearCookie("accessToken", {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-            });
 
-            res.clearCookie("refreshToken", {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-            });
+            clearAuthCookies(res);
 
             return res.status(200).json({ 
                 success: true, 
