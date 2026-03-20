@@ -86,10 +86,16 @@ export default class QuestUI {
     this.lastDragY = 0;
     this.isDraggingThumb = false;
     this.thumbDragOffsetY = 0;
+    this.currentQuest = null;
+    this.sideTabs = [];
+    this.activeSideTabIndex = 0;
+    this.sideTabNodes = [];
+    this.sideTabWidth = 168;
+    this.sideTabGap = 14;
 
     // Container
     this.container = scene.add.container(0, 0)
-      .setDepth(1000)
+      .setDepth(15000)
       .setScrollFactor(0)
       .setVisible(false);
 
@@ -154,7 +160,7 @@ export default class QuestUI {
       .dom(this.contentLeft, this.bodyBaseY, this.richWrapperEl)
       .setOrigin(0, 0)
       .setScrollFactor(0)
-      .setDepth(1001)
+      .setDepth(15001)
       .setVisible(false);
 
     try {
@@ -360,22 +366,180 @@ export default class QuestUI {
     this._syncDomPosition();
   }
 
-  showQuest(quest) {
+  _setContentLayout(hasSideTabs) {
+    const contentInsetLeft = this.isMobile ? 22 : 30;
+    const contentInsetRight = this.isMobile ? 18 : 30;
+    const tabOffset = hasSideTabs ? this.sideTabWidth + this.sideTabGap : 0;
+
+    this.contentLeft = this.panelLeft + contentInsetLeft + tabOffset;
+    this.scrollbarX = this.panelLeft + this.panelWidth - contentInsetRight - this.scrollbarWidth;
+    this.contentWidth = Math.max(80, this.scrollbarX - this.contentLeft - this.scrollbarPadding);
+
+    this.bodyText.setPosition(this.contentLeft, this.bodyBaseY - this.bodyScroll);
+    this.bodyText.setWordWrapWidth(this.contentWidth);
+    this.taskText.setWordWrapWidth(this.contentWidth);
+
+    if (this.richWrapperEl) {
+      this.richWrapperEl.style.width = `${this.contentWidth}px`;
+      this.richWrapperEl.style.height = `${this.bodyMaskHeight}px`;
+    }
+
+    this.bodyMaskGraphics.clear();
+    this.bodyMaskGraphics.fillStyle(0xffffff, 1);
+    this.bodyMaskGraphics.fillRect(
+      this.contentLeft,
+      this.bodyBaseY,
+      this.contentWidth + this.scrollbarWidth + this.scrollbarPadding + 10,
+      this.bodyMaskHeight
+    );
+    this.bodyMaskGraphics.setAlpha(0);
+
+    this._syncDomPosition();
+  }
+
+  _clearSideTabs() {
+    this.sideTabNodes.forEach((node) => {
+      node?.removeAllListeners?.();
+      node?.destroy?.();
+    });
+    this.sideTabNodes = [];
+  }
+
+  _renderSideTabs() {
+    this._clearSideTabs();
+    if (!this.sideTabs.length) return;
+
+    const tabStartX = this.panelLeft + 24;
+    const tabStartY = this.bodyBaseY + 8;
+    const tabHeight = 46;
+
+    this.sideTabs.forEach((tab, idx) => {
+      const y = tabStartY + idx * (tabHeight + 10);
+      const isActive = idx === this.activeSideTabIndex;
+      const status = String(tab?.status || "not_started");
+      const isCompleted = status === "completed";
+      const marker = status === "completed" ? "[✓]" : "[ ]";
+
+      const fillColor = isCompleted
+        ? (isActive ? 0x1f5d31 : 0x184726)
+        : (isActive ? 0x294776 : 0x1a2d52);
+      const strokeColor = isCompleted
+        ? (isActive ? 0x6ad48b : 0x2f8e50)
+        : (isActive ? 0x5f89cf : 0x385c96);
+      const labelColor = isCompleted
+        ? (isActive ? "#d9ffd5" : "#bcf5b8")
+        : (isActive ? "#ffe2a1" : "#e7efff");
+
+      const bg = this.scene.add
+        .rectangle(
+          tabStartX + this.sideTabWidth / 2,
+          y + tabHeight / 2,
+          this.sideTabWidth,
+          tabHeight,
+          fillColor,
+          0.92
+        )
+        .setStrokeStyle(1, strokeColor)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: true });
+
+      const label = this.scene.add
+        .text(tabStartX + 10, y + tabHeight / 2, `${marker} ${tab.label || "Side Quest"}`, {
+          fontFamily: "Georgia",
+          fontSize: "14px",
+          color: labelColor,
+        })
+        .setOrigin(0, 0.5)
+        .setScrollFactor(0);
+
+      bg.on("pointerdown", () => {
+        if (idx === this.activeSideTabIndex) return;
+        this.activeSideTabIndex = idx;
+        this.showQuest(this.currentQuest, { refreshOnly: true });
+      });
+
+      this.sideTabNodes.push(bg, label);
+      this.container.add([bg, label]);
+    });
+  }
+
+  _buildDisplayQuest(baseQuest) {
+    if (!this.sideTabs.length) return baseQuest;
+
+    const safeIndex = Phaser.Math.Clamp(this.activeSideTabIndex, 0, this.sideTabs.length - 1);
+    const tab = this.sideTabs[safeIndex] || {};
+    const tabStatus = String(tab?.status || "not_started").replace("_", " ");
+    const defaultDescription = "Description coming soon for this side quest.";
+
+    return {
+      ...baseQuest,
+      lessonHeader: tab?.header || tab?.label || baseQuest.lessonHeader || baseQuest.lesson_header || "Side Quest",
+      description:
+        `${tab?.description || defaultDescription}\n\nStatus: ${tabStatus}`,
+      task:
+        tab?.task || baseQuest.task || "Complete this side quest challenge.",
+    };
+  }
+
+  _emitSideQuestTerminalContext(displayQuest) {
+    if (!this.sideTabs.length) {
+      window.dispatchEvent(
+        new CustomEvent("code-mania:side-quest-terminal-context", {
+          detail: { active: false },
+        })
+      );
+      return;
+    }
+
+    const idx = Phaser.Math.Clamp(this.activeSideTabIndex, 0, this.sideTabs.length - 1);
+    const tab = this.sideTabs[idx] || {};
+      window.dispatchEvent(
+        new CustomEvent("code-mania:side-quest-terminal-context", {
+          detail: {
+            active: true,
+            tabKey: tab?.key || "",
+            questId: Number(tab?.questId) || null,
+            status: String(tab?.status || "not_started"),
+            title: tab?.label || displayQuest?.title || "Side Quest",
+            description: tab?.description || "",
+            task: tab?.task || "",
+            testCases: Array.isArray(tab?.testCases) ? tab.testCases : [],
+            objectives: Array.isArray(tab?.objectives) ? tab.objectives : [],
+        },
+      })
+    );
+  }
+
+  showQuest(quest, options = {}) {
     if (!quest) return;
+
+    this.currentQuest = quest;
+
+    const refreshOnly = Boolean(options?.refreshOnly && this.visible);
+    this.sideTabs = Array.isArray(quest?.sideQuestTabs) ? quest.sideQuestTabs : [];
+    if (this.activeSideTabIndex >= this.sideTabs.length) this.activeSideTabIndex = 0;
+
+    this._setContentLayout(this.sideTabs.length > 0);
+    this._renderSideTabs();
+
+    const displayQuest = this._buildDisplayQuest(quest);
+    this._emitSideQuestTerminalContext(displayQuest);
 
     this.ignoreWheelUntil = this.scene.time.now + 250;
 
-    window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
+    if (!refreshOnly) {
+      window.dispatchEvent(new CustomEvent("code-mania:terminal-active"));
+    }
 
-    this.titleText.setText(quest.title || "");
+    this.titleText.setText(displayQuest.title || "");
 
-    const lessonHeader = quest.lessonHeader || quest.lesson_header || "";
-    const description = quest.description || "";
-    const task = quest.task || "";
+    const lessonHeader = displayQuest.lessonHeader || displayQuest.lesson_header || "";
+    const description = displayQuest.description || "";
+    const task = displayQuest.task || "";
 
     if (this._useRichDom && this.bodyDom && this.richContentEl) {
       // Render into DOM with syntax highlighting.
-      const prismLanguage = inferPrismLanguage(quest);
+      const prismLanguage = inferPrismLanguage(displayQuest);
       const html = renderQuestRichHtml({
         lessonHeader,
         description,
@@ -436,10 +600,10 @@ export default class QuestUI {
 
       // Canvas fallback path
       const bodyBottom = this.bodyText.y + this.bodyText.height;
-      if (quest.task) {
+      if (displayQuest.task) {
         this._taskBaseY = bodyBottom + this._GAP;
         this.taskText
-          .setText(quest.task)
+          .setText(displayQuest.task)
           .setVisible(true)
           .setPosition(this.contentLeft, this._taskBaseY);
       }
@@ -457,16 +621,18 @@ export default class QuestUI {
     });
 
     this.container.setVisible(true);
-    this.container.y = -500;
-    this.scene.tweens.add({
-      targets: this.container,
-      y: 0,
-      duration: 500,
-      ease: "Back.Out",
-      onUpdate: () => {
-        this._syncDomPosition?.();
-      }
-    });
+    if (!refreshOnly) {
+      this.container.y = -500;
+      this.scene.tweens.add({
+        targets: this.container,
+        y: 0,
+        duration: 500,
+        ease: "Back.Out",
+        onUpdate: () => {
+          this._syncDomPosition?.();
+        }
+      });
+    }
 
     this._syncDomPosition?.();
 
@@ -495,6 +661,17 @@ export default class QuestUI {
         this.container.setVisible(false);
         this.visible = false;
         this.bodyScroll = 0;
+        this.currentQuest = null;
+        this.sideTabs = [];
+        this.activeSideTabIndex = 0;
+        this._setContentLayout(false);
+        this._clearSideTabs();
+
+        window.dispatchEvent(
+          new CustomEvent("code-mania:side-quest-terminal-context", {
+            detail: { active: false },
+          })
+        );
 
         this.bodyDom?.setVisible(false);
       }

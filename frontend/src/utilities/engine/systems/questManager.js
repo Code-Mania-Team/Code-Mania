@@ -94,7 +94,8 @@ export default class QuestManager {
     exitZones.forEach((zone) => {
       const required = Number(zone?.exitData?.requiredQuest);
       if (required === questId || (Number.isFinite(questOrder) && required === questOrder)) {
-        zone?.exitArrow?.setVisible(true);
+        const unlocked = this.scene?.isExitUnlocked?.(zone) ?? true;
+        zone?.exitArrow?.setVisible(Boolean(unlocked));
         exitTarget = zone;
       }
     });
@@ -103,7 +104,8 @@ export default class QuestManager {
     if (!exitTarget) {
       const firstExit = this.scene.mapExits?.getChildren?.()?.[0] || null;
       if (firstExit) {
-        firstExit.exitArrow?.setVisible(true);
+        const unlocked = this.scene?.isExitUnlocked?.(firstExit) ?? true;
+        firstExit.exitArrow?.setVisible(Boolean(unlocked));
         exitTarget = firstExit;
       }
     }

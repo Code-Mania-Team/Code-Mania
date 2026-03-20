@@ -10,6 +10,7 @@ import useUpdateDomSession from "../services/useUpdateDomSession";
 import useDeleteDomSession from "../services/useDeleteDomSession";
 import useValidateDom from "../services/useValidateDom";
 import useAuth from "../hooks/useAxios";
+import { axiosPublic } from "../api/axios";
 
 /* ===============================
    LANGUAGE DETECTION
@@ -265,28 +266,100 @@ function getQuestRequirementsBlueprint(quest) {
       .map((token) => ({ label: `Must include: ${token}`, passed: null }));
   }
 
+  const directObjectives = Array.isArray(quest?.objectives) ? quest.objectives : [];
+  if (directObjectives.length) {
+    return directObjectives
+      .map((label) => String(label || "").trim())
+      .filter(Boolean)
+      .map((label) => ({ label, passed: null }));
+  }
+
   return [];
 }
 
 function getQuestRuntimeTestBlueprint(quest) {
-  const cases = Array.isArray(quest?.requirements?.test_cases)
+  const reqSnake = Array.isArray(quest?.requirements?.test_cases)
     ? quest.requirements.test_cases
     : [];
+  const reqCamel = Array.isArray(quest?.requirements?.testCases)
+    ? quest.requirements.testCases
+    : [];
+  const direct = Array.isArray(quest?.test_cases)
+    ? quest.test_cases
+    : [];
+
+  const cases = reqSnake.length ? reqSnake : reqCamel.length ? reqCamel : direct;
 
   return cases
     .map((t) => ({
       input: t?.input ?? "",
-      expected: t?.expected ?? "",
+      expected: t?.expected ?? t?.expected_output ?? t?.output ?? "",
       output: "-",
       passed: null,
     }))
     .filter((t) => String(t.input).trim() || String(t.expected).trim());
 }
 
+function normalizeSideQuestObjectives(context) {
+  const list = Array.isArray(context?.objectives) ? context.objectives : [];
+  const normalized = list
+    .map((label) => String(label || "").trim())
+    .filter(Boolean)
+    .map((label) => ({ label, passed: null }));
+
+  return normalized;
+}
+
+function evaluateSideQuestValidation(context, outputText) {
+  const output = String(outputText || "");
+  const trimmedOutput = output.trim();
+  const testCases = Array.isArray(context?.testCases) ? context.testCases : [];
+
+  const runtimeResults = testCases.map((test) => {
+    const expectedRaw = test?.expected ?? test?.expected_output ?? test?.output ?? "";
+    const expected = formatCaseValue(expectedRaw);
+    const passed = expected
+      ? trimmedOutput.includes(String(expected).trim())
+      : Boolean(trimmedOutput);
+
+    return {
+      input: test?.input ?? "",
+      expected: expectedRaw,
+      output,
+      passed,
+    };
+  });
+
+  const objectiveBlueprint = normalizeSideQuestObjectives(context);
+  const objectiveResults = objectiveBlueprint.map((obj) => ({
+    ...obj,
+    passed: Boolean(trimmedOutput),
+  }));
+
+  const runtimePassed = runtimeResults.filter((r) => r?.passed).length;
+  const objectivesPassed = objectiveResults.filter((o) => o?.passed).length;
+  const totalChecks = runtimeResults.length + objectiveResults.length;
+  const passedChecks = runtimePassed + objectivesPassed;
+
+  return {
+    objectives: objectiveResults,
+    runtime: runtimeResults,
+    success: totalChecks > 0 ? passedChecks === totalChecks : true,
+  };
+}
+
+function hasConfiguredSideQuestChecks(context) {
+  const hasTestCases = Array.isArray(context?.testCases) && context.testCases.length > 0;
+  const hasObjectives = Array.isArray(context?.objectives) && context.objectives.length > 0;
+  return hasTestCases || hasObjectives;
+}
+
 const InteractiveTerminal = ({
   quest,
   questId,
   practiceMode = false,
+  externallyUnlocked = false,
+  sideQuestContext = null,
   mobileActivePanel,
   onMobilePanelChange,
   showMobilePanelSwitcher = true,
@@ -385,8 +458,9 @@ const InteractiveTerminal = ({
     };
   }, []);
 
-  const canInteract = practiceMode || (isQuestActive && !isQuestCompleted);
-
+  const canInteract = externallyUnlocked || practiceMode || (isQuestActive && !isQuestCompleted);
+  const isSideQuestMode = Boolean(sideQuestContext?.active);
+  
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
   const isBusy = isRunning || isSubmitting || isValidating;
@@ -496,6 +570,38 @@ const InteractiveTerminal = ({
 
   const handleRunValidation = async () => {
     if (!quest || !canInteract || isValidating || isSubmitting) return;
+
+    if (isSideQuestMode) {
+      setIsValidating(true);
+      try {
+        const outputForValidation = await executeCodeForValidation();
+
+        if (hasExecutionError(outputForValidation, language)) {
+          setLastValidatedOutput(null);
+          setLastValidatedCode(null);
+          setValidationResult(null);
+          setTestResults([]);
+          return;
+        }
+
+        const localResult = evaluateSideQuestValidation(sideQuestContext, outputForValidation);
+        setValidationResult(localResult.objectives);
+        setTestResults(localResult.runtime);
+        setLastValidatedOutput(outputForValidation);
+        setLastValidatedCode(code);
+
+        if (localResult.success) {
+          setFailedSubmissions(0);
+        } else {
+          setFailedSubmissions((prev) => prev + 1);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsValidating(false);
+      }
+      return;
+    }
 
     // DOM quests: validate against DOM requirements (no completion here)
     if (quest?.quest_type === "dom") {
@@ -765,9 +871,39 @@ const InteractiveTerminal = ({
 
     // Submit is only allowed after a successful validation run
     if (!lastValidatedCode || lastValidatedCode !== code) return;
-    if (!lastValidatedOutput) return;
+    if (!isSideQuestMode && !lastValidatedOutput) return;
+    if (isSideQuestMode && (lastValidatedOutput === null || lastValidatedOutput === undefined)) return;
 
     if (!canSubmit) return;
+
+    if (isSideQuestMode) {
+      const sideQuestId = Number(sideQuestContext?.questId);
+      if (!Number.isFinite(sideQuestId) || sideQuestId <= 0) return;
+
+      setIsSubmitting(true);
+      try {
+        await axiosPublic.post(`/v1/side-quests/${sideQuestId}/complete`);
+
+        window.dispatchEvent(
+          new CustomEvent("code-mania:side-quest-complete", {
+            detail: {
+              sideQuestId,
+              tabKey: sideQuestContext?.tabKey || "",
+            },
+          })
+        );
+        showRunToast({ type: "success", message: "Side quest completed" });
+      } catch (err) {
+        console.error(err);
+        showRunToast({
+          type: "error",
+          message: err?.response?.data?.message || "Side quest submission failed",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -908,7 +1044,20 @@ const InteractiveTerminal = ({
   };
 
   const runtimeTests = Array.isArray(testResults) ? testResults : [];
-  const runtimeBlueprint = useMemo(() => getQuestRuntimeTestBlueprint(quest), [quest]);
+  const runtimeBlueprint = useMemo(() => {
+    if (isSideQuestMode) {
+      const list = Array.isArray(sideQuestContext?.testCases) ? sideQuestContext.testCases : [];
+      return list
+        .map((t) => ({
+          input: t?.input ?? "",
+          expected: t?.expected ?? t?.expected_output ?? t?.output ?? "",
+          output: "-",
+          passed: null,
+        }))
+        .filter((t) => String(t.input).trim() || String(t.expected).trim());
+    }
+    return getQuestRuntimeTestBlueprint(quest);
+  }, [quest, isSideQuestMode, sideQuestContext]);
   const displayedRuntimeTests = runtimeTests.length ? runtimeTests : runtimeBlueprint;
 
   useEffect(() => {
@@ -918,9 +1067,30 @@ const InteractiveTerminal = ({
     });
   }, [displayedRuntimeTests.length]);
 
-  const initialObjectives = useMemo(() => getQuestRequirementsBlueprint(quest), [quest]);
-  const objectiveItems = validationResult
+  const initialObjectives = useMemo(() => {
+    if (isSideQuestMode) {
+      const objectives = Array.isArray(sideQuestContext?.objectives)
+        ? sideQuestContext.objectives
+        : [];
+      return objectives
+        .map((item) => {
+          if (typeof item === "string") return item;
+          if (item && typeof item === "object") {
+            return item.label || item.description || item.id || "";
+          }
+          return "";
+        })
+        .map((label) => String(label || "").trim())
+        .filter(Boolean)
+        .map((label) => ({ label, passed: null }));
+    }
+    return getQuestRequirementsBlueprint(quest);
+  }, [quest, isSideQuestMode, sideQuestContext]);
+  const normalizedValidationObjectives = validationResult
     ? normalizeObjectiveList(validationResult)
+    : [];
+  const objectiveItems = normalizedValidationObjectives.length
+    ? normalizedValidationObjectives
     : initialObjectives;
 
   const hasObjectives = objectiveItems.length > 0;
@@ -949,12 +1119,29 @@ const InteractiveTerminal = ({
   const totalChecks = totalObjectives + totalRuntimeTests;
   const passedChecks = passedObjectives + passedRuntimeTests;
 
+
   const allChecksPassed = totalChecks > 0 && passedChecks === totalChecks;
-  const canSubmit =
+  const canSubmitBase =
     allChecksPassed &&
     Boolean(lastValidatedCode) &&
     lastValidatedCode === code &&
     Boolean(lastValidatedOutput);
+  const sideQuestCanSubmit =
+    isSideQuestMode &&
+    Boolean(lastValidatedCode) &&
+    lastValidatedCode === code &&
+    lastValidatedOutput !== null &&
+    lastValidatedOutput !== undefined &&
+    (!hasConfiguredSideQuestChecks(sideQuestContext) || allChecksPassed);
+  const canSubmit = isSideQuestMode ? sideQuestCanSubmit : canSubmitBase;
+
+  useEffect(() => {
+    setTestResults(null);
+    setValidationResult(null);
+    setLastValidatedCode(null);
+    setLastValidatedOutput(null);
+    setIsSubmitting(false);
+  }, [isSideQuestMode, sideQuestContext?.tabKey]);
 
   const renderTestSidebar = ({ fullWidth = false } = {}) => {
     return (
@@ -963,7 +1150,7 @@ const InteractiveTerminal = ({
         aria-label="Test cases"
       >
         <div className={styles["test-sidebar-header"]}>
-          <div className={styles["test-sidebar-title"]}>Test Cases</div>
+          <div className={styles["test-sidebar-title"]}>{isSideQuestMode ? "Side Quest Checks" : "Test Cases"}</div>
           <div
             className={`${styles["test-sidebar-pill"]} ${totalChecks > 0 && passedChecks === totalChecks
               ? styles["test-sidebar-pill-pass"]
@@ -977,12 +1164,14 @@ const InteractiveTerminal = ({
           </div>
         </div>
 
-        <div className={styles["test-sidebar-body"]}>
-          {!hasRuntimeTests && !hasObjectives ? (
-            <div className={styles["test-sidebar-empty"]}>
-              Run your code to validate the test cases.
-            </div>
-          ) : null}
+          <div className={styles["test-sidebar-body"]}>
+            {!hasRuntimeTests && !hasObjectives ? (
+              <div className={styles["test-sidebar-empty"]}>
+                {isSideQuestMode
+                  ? "No side quest checks configured. Run once, then press Complete."
+                  : "Run your code to validate the test cases."}
+              </div>
+            ) : null}
 
           {hasObjectives || hasRuntimeTests ? (
             <div className={styles["test-sidebar-tabs"]} role="tablist" aria-label="Test sidebar">
@@ -1165,10 +1354,10 @@ const InteractiveTerminal = ({
 
         <div className={styles["test-sidebar-footer"]}>
           <div className={styles["test-sidebar-footer-left"]}>
-            {canSubmit ? "Submit unlocked" : "Submit locked"}
+            {isSideQuestMode ? (canSubmit ? "Side quest complete ready" : "Side quest complete locked") : canSubmit ? "Submit unlocked" : "Submit locked"}
           </div>
           <div className={styles["test-sidebar-footer-right"]}>
-            {canSubmit ? "All checks passed" : "Pass all tests"}
+            {isSideQuestMode ? (canSubmit ? "Press Complete" : "Run and pass side checks") : canSubmit ? "All checks passed" : "Pass all tests"}
           </div>
         </div>
       </aside>
@@ -1364,9 +1553,8 @@ const InteractiveTerminal = ({
 
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
-                className={`${styles["submit-btn"]} ${!canInteract ? styles["btn-disabled"] : ""
-                  }`}
-                onClick={handleRun}
+                className={`${styles["submit-btn"]} ${!canInteract ? styles["btn-disabled"] : ""}`}
+                onClick={handleRunValidation}
                 disabled={isRunning || isSubmitting || isValidating || !canInteract}
                 title="Test your code and see the output"
               >
@@ -1374,20 +1562,21 @@ const InteractiveTerminal = ({
                 {isValidating ? "Validating..." : isRunning ? "Running..." : "Run"}
               </button>
               <button
-                className={`${styles["submit-btn"]} ${!canInteract ? styles["btn-disabled"] : ""
-                  }`}
+                className={`${styles["submit-btn"]} ${!canInteract ? styles["btn-disabled"] : ""}`}
                 onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
-                disabled={
-                  isRunning ||
-                  isSubmitting ||
-                  isValidating ||
-                  !canInteract ||
-                  !canSubmit
+                disabled={isRunning || isSubmitting || isValidating || !canInteract || !canSubmit}
+                title={
+                  isSideQuestMode
+                    ? canSubmit
+                      ? "Complete this side quest"
+                      : "Run and satisfy side quest checks first"
+                    : canSubmit
+                      ? "Submit your solution to complete the quest"
+                      : "Run and pass all test cases to unlock Submit"
                 }
-                title={canSubmit ? "Submit your solution to complete the quest" : "Run and pass all test cases to unlock Submit"}
               >
                 <Check size={16} />
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting ? "Submitting..." : isSideQuestMode ? "Complete" : "Submit"}
               </button>
             </div>
           </div>
@@ -1415,6 +1604,7 @@ const InteractiveTerminal = ({
           />
         </div>
       )}
+
 
       {(!useMobileSplit || activePanel === "terminal") && (() => {
         const terminalView = (

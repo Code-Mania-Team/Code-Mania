@@ -88,6 +88,8 @@ const Dashboard = ({ onSignOut }) => {
 
   const [characterIcon, setCharacterIcon] = useState(null);
 
+  const [equippedFrameUrl, setEquippedFrameUrl] = useState("");
+
 
 
   const { isAuthenticated, user } = useAuth();
@@ -366,6 +368,16 @@ const Dashboard = ({ onSignOut }) => {
 
     };
 
+    const loadEquippedFrameUrl = () => {
+      if (!isAuthenticated) {
+        setEquippedFrameUrl("");
+        return;
+      }
+
+      const url = localStorage.getItem('equippedAvatarFrameUrl') || "";
+      setEquippedFrameUrl(url);
+    };
+
 
 
 
@@ -373,6 +385,8 @@ const Dashboard = ({ onSignOut }) => {
 
 
     loadCharacterIcon();
+
+    loadEquippedFrameUrl();
 
 
 
@@ -392,6 +406,10 @@ const Dashboard = ({ onSignOut }) => {
 
 
 
+      }
+
+      if (e.key === 'equippedAvatarFrameUrl') {
+        loadEquippedFrameUrl();
       }
 
 
@@ -414,6 +432,10 @@ const Dashboard = ({ onSignOut }) => {
 
     };
 
+    const handleCosmeticsUpdate = () => {
+      loadEquippedFrameUrl();
+    };
+
 
 
 
@@ -425,6 +447,8 @@ const Dashboard = ({ onSignOut }) => {
 
 
     window.addEventListener('characterUpdated', handleCharacterUpdate);
+
+    window.addEventListener('cosmeticsUpdated', handleCosmeticsUpdate);
 
 
 
@@ -529,6 +553,8 @@ const Dashboard = ({ onSignOut }) => {
 
 
       window.removeEventListener('characterUpdated', handleCharacterUpdate);
+
+      window.removeEventListener('cosmeticsUpdated', handleCosmeticsUpdate);
 
 
 
@@ -1170,9 +1196,18 @@ const Dashboard = ({ onSignOut }) => {
 
 
 
-              <div className={styles.avatar}>
+              <div className={`${styles.avatar} ${equippedFrameUrl ? styles.avatarHasFrame : ""}`}>
 
 
+
+                {equippedFrameUrl ? (
+                  <img
+                    src={equippedFrameUrl}
+                    alt=""
+                    className={styles.avatarFrameImage}
+                    loading="lazy"
+                  />
+                ) : null}
 
                 {characterIcon ? (
 
@@ -1190,7 +1225,7 @@ const Dashboard = ({ onSignOut }) => {
 
 
 
-                    style={{ width: '70%', height: '70%', objectFit: 'contain', imageRendering: 'pixelated' }}
+                    className={styles.avatarImage}
 
 
 
@@ -1202,7 +1237,7 @@ const Dashboard = ({ onSignOut }) => {
 
 
 
-                  '👤'
+                  <span className={styles.avatarFallback} role="img" aria-label="Avatar">👤</span>
 
 
 

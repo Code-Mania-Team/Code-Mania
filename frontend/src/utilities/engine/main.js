@@ -24,7 +24,13 @@ export const stopGame = () => {
   destroyGameInstance();
 };
 
-export const startGame = ({ exerciseId, quest, parent, completedQuests = [] }) => {
+export const startGame = ({
+  exerciseId,
+  quest,
+  parent,
+  completedQuests = [],
+  sideQuestProgress = [],
+}) => {
   const container = document.getElementById(parent);
   if (!container) {
     console.error("❌ Phaser container not found:", parent);
@@ -114,7 +120,7 @@ export const startGame = ({ exerciseId, quest, parent, completedQuests = [] }) =
     game.scene.stop("GameScene");
   }
 
-  game.scene.start("GameScene", { exerciseId, quest, completedQuests });
+  game.scene.start("GameScene", { exerciseId, quest, completedQuests, sideQuestProgress });
 
   // 🔁 keep reference
   window.game = game;

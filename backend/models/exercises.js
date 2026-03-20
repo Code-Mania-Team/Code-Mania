@@ -386,6 +386,27 @@ class ExerciseModel {
         return data;
     }
 
+    async getCompletedSideQuestTags(userId, programmingLanguageId) {
+        if (!userId || !programmingLanguageId) return [];
+
+        const { data, error } = await this.db
+            .from('user_side_quests')
+            .select('side_quests!inner(tag, programming_language_id)')
+            .eq('user_id', userId)
+            .eq('status', 'completed')
+            .eq('side_quests.programming_language_id', programmingLanguageId);
+
+        if (error) throw error;
+
+        const tags = new Set();
+        (data || []).forEach((row) => {
+            const tag = String(row?.side_quests?.tag || '').trim().toLowerCase();
+            if (tag) tags.add(tag);
+        });
+
+        return Array.from(tags);
+    }
+
     async markQuestComplete(userId, questId) {
         const { error } = await this.db
             .from('users_game_data')

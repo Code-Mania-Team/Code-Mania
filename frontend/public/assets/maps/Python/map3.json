@@ -336,6 +336,11 @@
                          "value":3
                         }, 
                         {
+                         "name":"required_side_quests",
+                         "type":"string",
+                         "value":"addition,subtraction,multiplication,division"
+                        }, 
+                        {
                          "name":"type",
                          "type":"string",
                          "value":"npc"
@@ -346,7 +351,54 @@
                  "width":17.6666666666666,
                  "x":472.666666666667,
                  "y":162.621228787879
-                }],
+                 }, 
+                 {
+                  "height":18.9999666666667,
+                  "id":7,
+                  "name":"npc_sidequest_guide",
+                  "properties":[
+                         {
+                          "name":"id",
+                          "type":"string",
+                          "value":"sidequest_guide_npc"
+                         }, 
+                         {
+                          "name":"name",
+                          "type":"string",
+                          "value":"npc_spawn"
+                         }, 
+                         {
+                          "name":"side_quest_guide",
+                          "type":"bool",
+                          "value":true
+                         }, 
+                         {
+                          "name":"required_side_quests",
+                          "type":"string",
+                          "value":"addition,subtraction,multiplication,division"
+                         }, 
+                         {
+                          "name":"dialogue_before_main",
+                          "type":"string",
+                          "value":"Halt, adventurer. Before the Arithmetic Operators main quest, you must master the four fundamentals.|Complete Addition, Subtraction, Multiplication, and Division side quests first."
+                         }, 
+                         {
+                          "name":"dialogue_after_side_quests",
+                          "type":"string",
+                          "value":"Well done. You have finished all required side quests.|You may now proceed to the main quest NPC."
+                         }, 
+                         {
+                          "name":"type",
+                          "type":"string",
+                          "value":"npc"
+                         }],
+                  "rotation":0,
+                  "type":"",
+                  "visible":true,
+                  "width":17.6666666666666,
+                  "x":566.666666666667,
+                  "y":162.621228787879
+                 }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -380,6 +432,11 @@
                          "value":3
                         }, 
                         {
+                         "name":"required_side_quests",
+                         "type":"string",
+                         "value":"addition,subtraction,multiplication,division"
+                        }, 
+                        {
                          "name":"target_map",
                          "type":"string",
                          "value":"map4"
@@ -403,7 +460,7 @@
          "y":0
         }],
  "nextlayerid":15,
- "nextobjectid":7,
+  "nextobjectid":8,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

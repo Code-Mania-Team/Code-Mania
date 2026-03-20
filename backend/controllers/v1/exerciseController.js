@@ -32,6 +32,75 @@ class ExerciseController {
     this.quizModel = new QuizModel();
   }
 
+  normalizeSideQuestTag(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (!normalized) return "";
+    if (normalized === "multipication") return "multiplication";
+    return normalized;
+  }
+
+  parseRequiredSideQuestTags(value) {
+    if (Array.isArray(value)) {
+      return Array.from(
+        new Set(value.map((item) => this.normalizeSideQuestTag(item)).filter(Boolean))
+      );
+    }
+
+    const raw = String(value || "").trim();
+    if (!raw) return [];
+
+    return Array.from(
+      new Set(
+        raw
+          .split(/[|,]/)
+          .map((item) => this.normalizeSideQuestTag(item))
+          .filter(Boolean)
+      )
+    );
+  }
+
+  getRequiredSideQuestTagsForQuest(quest) {
+    const req = quest?.requirements;
+    let tags = [];
+
+    if (req && typeof req === "object" && !Array.isArray(req)) {
+      tags = this.parseRequiredSideQuestTags(
+        req.required_side_quests ||
+          req.requiredSideQuests ||
+          req.prerequisite_side_quests ||
+          req.prerequisiteSideQuests ||
+          ""
+      );
+    }
+
+    return tags;
+  }
+
+  async checkSideQuestPrerequisites(userId, quest) {
+    const requiredTags = this.getRequiredSideQuestTagsForQuest(quest);
+    if (!requiredTags.length) {
+      return { ok: true, requiredTags: [], missingTags: [] };
+    }
+
+    if (!userId) {
+      return { ok: false, requiredTags, missingTags: requiredTags };
+    }
+
+    const completedTags = await this.exerciseModel.getCompletedSideQuestTags(
+      userId,
+      quest?.programming_language_id
+    );
+
+    const completed = new Set(completedTags.map((t) => this.normalizeSideQuestTag(t)));
+    const missingTags = requiredTags.filter((tag) => !completed.has(tag));
+
+    return {
+      ok: missingTags.length === 0,
+      requiredTags,
+      missingTags,
+    };
+  }
+
   async maybeTriggerNotifications({ userId, quest, beforeXp, afterXp }) {
     if (!userId || !quest) return;
     const langSlug = quest?.programming_languages?.slug || null;
@@ -92,6 +161,43 @@ class ExerciseController {
     }
   }
 
+  buildValidationRequirements(quest) {
+    const raw = quest?.requirements;
+    let normalized = {};
+
+    if (Array.isArray(raw)) {
+      normalized = { objectives: raw };
+    } else if (raw && typeof raw === "object") {
+      normalized = { ...raw };
+    }
+
+    const reqSnakeCases = Array.isArray(normalized.test_cases)
+      ? normalized.test_cases
+      : [];
+    const reqCamelCases = Array.isArray(normalized.testCases)
+      ? normalized.testCases
+      : [];
+    const directCases = Array.isArray(quest?.test_cases)
+      ? quest.test_cases
+      : [];
+
+    if (!reqSnakeCases.length && !reqCamelCases.length && directCases.length) {
+      normalized.test_cases = directCases;
+    }
+
+    const reqObjectives = Array.isArray(normalized.objectives)
+      ? normalized.objectives
+      : [];
+    const directObjectives = Array.isArray(quest?.objectives)
+      ? quest.objectives
+      : [];
+    if (!reqObjectives.length && directObjectives.length) {
+      normalized.objectives = directObjectives;
+    }
+
+    return normalized;
+  }
+
   // Validate quest output without marking completion (for "Run" checks)
   async validateExercisePreview(req, res) {
     try {
@@ -130,7 +236,7 @@ class ExerciseController {
           quest: {
             expected_output: quest.expected_output,
             validation_mode: quest.validation_mode,
-            requirements: quest.requirements,
+            requirements: this.buildValidationRequirements(quest),
           },
           programming_language_id: quest.programming_language_id,
         },
@@ -340,6 +446,17 @@ class ExerciseController {
         });
       }
 
+      const prereq = await this.checkSideQuestPrerequisites(userId, exercise);
+      if (!prereq.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Complete required side quests first",
+          code: "SIDE_QUEST_PREREQ_NOT_MET",
+          requiredSideQuests: prereq.requiredTags,
+          missingSideQuests: prereq.missingTags,
+        });
+      }
+
       const latestAllowed = await this.exerciseModel.getLatestUnlockedQuest(
         userId,
         exercise.programming_language_id,
@@ -376,6 +493,10 @@ class ExerciseController {
   async getNextExercise(req, res) {
     try {
       const { id } = req.params;
+      const userId = res.locals.user_id || null;
+      const role = String(res.locals.role || "").toLowerCase();
+      const isAdmin =
+        role === "admin" || (userId ? await this.exerciseModel.isAdminUser(userId) : false);
 
       if (isNaN(id)) {
         return res.status(400).json({
@@ -393,6 +514,19 @@ class ExerciseController {
         });
       }
 
+      if (userId && !isAdmin) {
+        const currentCompleted = await this.exerciseModel.isQuestCompleted(
+          userId,
+          Number(id)
+        );
+        if (!currentCompleted) {
+          return res.status(403).json({
+            success: false,
+            message: "Complete current quest first",
+          });
+        }
+      }
+
       const next = await this.exerciseModel.getNextExercise(
         current.programming_language_id,
         current.order_index,
@@ -404,6 +538,19 @@ class ExerciseController {
           data: null, // 🔥 IMPORTANT
           message: "No more exercises",
         });
+      }
+
+      if (userId && !isAdmin) {
+        const prereq = await this.checkSideQuestPrerequisites(userId, next);
+        if (!prereq.ok) {
+          return res.status(403).json({
+            success: false,
+            message: "Complete required side quests first",
+            code: "SIDE_QUEST_PREREQ_NOT_MET",
+            requiredSideQuests: prereq.requiredTags,
+            missingSideQuests: prereq.missingTags,
+          });
+        }
       }
 
       return res.status(200).json({
@@ -637,6 +784,19 @@ class ExerciseController {
         });
       }
 
+      if (!isAdmin && userId) {
+        const prereq = await this.checkSideQuestPrerequisites(userId, quest);
+        if (!prereq.ok) {
+          return res.status(403).json({
+            success: false,
+            message: "Complete required side quests first",
+            code: "SIDE_QUEST_PREREQ_NOT_MET",
+            requiredSideQuests: prereq.requiredTags,
+            missingSideQuests: prereq.missingTags,
+          });
+        }
+      }
+
       // 2️⃣ Logged users must have started quest
       if (!isAdmin && userId) {
         const questState = await this.exerciseModel.getQuestState(
@@ -663,7 +823,7 @@ class ExerciseController {
           quest: {
             expected_output: quest.expected_output,
             validation_mode: quest.validation_mode,
-            requirements: quest.requirements,
+            requirements: this.buildValidationRequirements(quest),
           },
           programming_language_id: quest.programming_language_id,
         },
@@ -783,6 +943,17 @@ class ExerciseController {
 
       if (isAdmin) {
         return res.status(200).json({ success: true });
+      }
+
+      const prereq = await this.checkSideQuestPrerequisites(userId, quest);
+      if (!prereq.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Complete required side quests first",
+          code: "SIDE_QUEST_PREREQ_NOT_MET",
+          requiredSideQuests: prereq.requiredTags,
+          missingSideQuests: prereq.missingTags,
+        });
       }
 
       await this.exerciseModel.startQuest(userId, questId);
