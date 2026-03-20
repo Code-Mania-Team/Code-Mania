@@ -1,6 +1,7 @@
 import React, { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import Editor from "@monaco-editor/react";
 import { Play, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/PythonExercise.module.css";
 import useValidateExercise from "../services/validateExercise";
 import useValidateExercisePreview from "../services/validateExercisePreview";
@@ -359,6 +360,9 @@ const InteractiveTerminal = ({
   const toastTimerRef = useRef(null);
   const useMobileSplit = isMobileView && enableMobileSplit;
 
+  const navigate = useNavigate();
+  const [showReviewComplete, setShowReviewComplete] = useState(false);
+
   const showRunToast = useCallback((next) => {
     if (toastTimerRef.current) {
       clearTimeout(toastTimerRef.current);
@@ -382,7 +386,7 @@ const InteractiveTerminal = ({
   }, []);
 
   const canInteract = practiceMode || (isQuestActive && !isQuestCompleted);
-  
+
 
   const activePanel = mobileActivePanel ?? internalActivePanel;
   const isBusy = isRunning || isSubmitting || isValidating;
@@ -415,7 +419,7 @@ const InteractiveTerminal = ({
   useEffect(() => {
     return () => {
       if (domSessionId) {
-        deleteDomSession(domSessionId).catch(() => {});
+        deleteDomSession(domSessionId).catch(() => { });
       }
     };
   }, [domSessionId]);
@@ -609,8 +613,8 @@ const InteractiveTerminal = ({
 
     const requirements = Array.isArray(quest?.requirements)
       ? quest.requirements
-          .map((item) => item?.label)
-          .filter((label) => typeof label === "string" && label.trim())
+        .map((item) => item?.label)
+        .filter((label) => typeof label === "string" && label.trim())
       : [];
 
     const concept =
@@ -794,6 +798,7 @@ const InteractiveTerminal = ({
             detail: { questId: Number.isFinite(engineQuestId) ? engineQuestId : questId }
           })
         );
+        if (practiceMode) setShowReviewComplete(true);
       } else {
         // keep hints progression on validation runs
       }
@@ -823,7 +828,7 @@ const InteractiveTerminal = ({
       // write content here
     }
   }, [quest, code]);
-  
+
   // Need Validation for DOM
   const runDOM = async () => {
     if (!domSessionId) return;
@@ -864,12 +869,13 @@ const InteractiveTerminal = ({
           detail: { questId: Number.isFinite(engineQuestId) ? engineQuestId : questId }
         })
       );
+      if (practiceMode) setShowReviewComplete(true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  
+
   const handleSubmitInput = () => {
     const value = inputBuffer;
     setProgramOutput(prev => prev + value + "\n");
@@ -959,128 +965,126 @@ const InteractiveTerminal = ({
         <div className={styles["test-sidebar-header"]}>
           <div className={styles["test-sidebar-title"]}>Test Cases</div>
           <div
-            className={`${styles["test-sidebar-pill"]} ${
-              totalChecks > 0 && passedChecks === totalChecks
+            className={`${styles["test-sidebar-pill"]} ${totalChecks > 0 && passedChecks === totalChecks
                 ? styles["test-sidebar-pill-pass"]
                 : totalChecks > 0
                   ? styles["test-sidebar-pill-warn"]
                   : styles["test-sidebar-pill-idle"]
-            }`}
+              }`}
             title={totalChecks > 0 ? `${passedChecks}/${totalChecks} passed` : "Run to validate"}
           >
             {totalChecks > 0 ? `${passedChecks}/${totalChecks}` : "Run"}
           </div>
         </div>
 
-          <div className={styles["test-sidebar-body"]}>
-            {!hasRuntimeTests && !hasObjectives ? (
-              <div className={styles["test-sidebar-empty"]}>
-                Run your code to validate the test cases.
-              </div>
-            ) : null}
+        <div className={styles["test-sidebar-body"]}>
+          {!hasRuntimeTests && !hasObjectives ? (
+            <div className={styles["test-sidebar-empty"]}>
+              Run your code to validate the test cases.
+            </div>
+          ) : null}
 
-            {hasObjectives || hasRuntimeTests ? (
-              <div className={styles["test-sidebar-tabs"]} role="tablist" aria-label="Test sidebar">
-                {hasObjectives ? (
-                  <button
-                    type="button"
-                    className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "objectives" ? styles["test-sidebar-tab-active"] : ""}`}
-                    onClick={() => setActiveSidebarTab("objectives")}
-                    role="tab"
-                    aria-selected={activeSidebarTab === "objectives"}
-                  >
-                    Objectives
-                  </button>
-                ) : null}
+          {hasObjectives || hasRuntimeTests ? (
+            <div className={styles["test-sidebar-tabs"]} role="tablist" aria-label="Test sidebar">
+              {hasObjectives ? (
+                <button
+                  type="button"
+                  className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "objectives" ? styles["test-sidebar-tab-active"] : ""}`}
+                  onClick={() => setActiveSidebarTab("objectives")}
+                  role="tab"
+                  aria-selected={activeSidebarTab === "objectives"}
+                >
+                  Objectives
+                </button>
+              ) : null}
 
-                {hasRuntimeTests ? (
-                  <button
-                    type="button"
-                    className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "runtime" ? styles["test-sidebar-tab-active"] : ""}`}
-                    onClick={() => setActiveSidebarTab("runtime")}
-                    role="tab"
-                    aria-selected={activeSidebarTab === "runtime"}
-                  >
-                    Runtime Tests
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
+              {hasRuntimeTests ? (
+                <button
+                  type="button"
+                  className={`${styles["test-sidebar-tab"]} ${activeSidebarTab === "runtime" ? styles["test-sidebar-tab-active"] : ""}`}
+                  onClick={() => setActiveSidebarTab("runtime")}
+                  role="tab"
+                  aria-selected={activeSidebarTab === "runtime"}
+                >
+                  Runtime Tests
+                </button>
+              ) : null}
+            </div>
+          ) : null}
 
-            {hasObjectives && activeSidebarTab === "objectives" ? (
-              <div className={styles["test-sidebar-section"]}>
-                <div className={styles["test-sidebar-section-title"]}>Objectives</div>
+          {hasObjectives && activeSidebarTab === "objectives" ? (
+            <div className={styles["test-sidebar-section"]}>
+              <div className={styles["test-sidebar-section-title"]}>Objectives</div>
 
-                <div className={styles["runtime-tabs"]} role="tablist" aria-label="Objective cases">
-                  {objectiveItems.map((obj, idx) => {
-                    const passed = obj?.passed === null || obj?.passed === undefined
-                      ? null
-                      : Boolean(obj?.passed);
-                    const isActive = idx === activeObjectiveIndex;
-                    const mark = passed === null ? "--" : passed ? "✔" : "✖";
-                    const statusClass =
-                      passed === null
-                        ? styles["runtime-tab-pending"]
-                        : passed
-                          ? styles["runtime-tab-pass"]
-                          : styles["runtime-tab-fail"];
-
-                    return (
-                      <button
-                        key={`obj-tab-${idx}`}
-                        type="button"
-                        className={`${styles["runtime-tab"]} ${statusClass} ${isActive ? styles["runtime-tab-active"] : ""}`}
-                        onClick={() => setActiveObjectiveIndex(idx)}
-                        role="tab"
-                        aria-selected={isActive}
-                        title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
-                      >
-                        <span className={styles["runtime-tab-mark"]}>{mark}</span>
-                        <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {(() => {
-                  const obj = objectiveItems[activeObjectiveIndex] || {};
+              <div className={styles["runtime-tabs"]} role="tablist" aria-label="Objective cases">
+                {objectiveItems.map((obj, idx) => {
                   const passed = obj?.passed === null || obj?.passed === undefined
                     ? null
                     : Boolean(obj?.passed);
+                  const isActive = idx === activeObjectiveIndex;
+                  const mark = passed === null ? "--" : passed ? "✔" : "✖";
+                  const statusClass =
+                    passed === null
+                      ? styles["runtime-tab-pending"]
+                      : passed
+                        ? styles["runtime-tab-pass"]
+                        : styles["runtime-tab-fail"];
 
                   return (
-                    <div
-                      className={`${styles["runtime-panel"]} ${
-                        passed === null
-                          ? styles["testcase-card-pending"]
-                          : passed
-                            ? styles["testcase-card-pass"]
-                            : styles["testcase-card-fail"]
-                      }`}
-                      role="tabpanel"
+                    <button
+                      key={`obj-tab-${idx}`}
+                      type="button"
+                      className={`${styles["runtime-tab"]} ${statusClass} ${isActive ? styles["runtime-tab-active"] : ""}`}
+                      onClick={() => setActiveObjectiveIndex(idx)}
+                      role="tab"
+                      aria-selected={isActive}
+                      title={passed === null ? "Pending" : passed ? "Pass" : "Fail"}
                     >
-                      <div className={styles["runtime-panel-head"]}>
-                        <div className={styles["testcase-card-title"]}>Case {activeObjectiveIndex + 1}</div>
-                        <div className={styles["testcase-status"]}>
-                          {passed === null ? "PENDING" : passed ? "PASS" : "FAIL"}
-                        </div>
-                      </div>
+                      <span className={styles["runtime-tab-mark"]}>{mark}</span>
+                      <span className={styles["runtime-tab-label"]}>Case {idx + 1}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-                      <div className={styles["runtime-panel-body"]}>
-                        <div className={styles["testcase-cell"]}>
-                          <div className={styles["testcase-label"]}>Requirement</div>
-                          <pre className={styles["testcase-value"]}>{formatOrEmpty(obj?.label)}</pre>
-                        </div>
+              {(() => {
+                const obj = objectiveItems[activeObjectiveIndex] || {};
+                const passed = obj?.passed === null || obj?.passed === undefined
+                  ? null
+                  : Boolean(obj?.passed);
+
+                return (
+                  <div
+                    className={`${styles["runtime-panel"]} ${passed === null
+                        ? styles["testcase-card-pending"]
+                        : passed
+                          ? styles["testcase-card-pass"]
+                          : styles["testcase-card-fail"]
+                      }`}
+                    role="tabpanel"
+                  >
+                    <div className={styles["runtime-panel-head"]}>
+                      <div className={styles["testcase-card-title"]}>Case {activeObjectiveIndex + 1}</div>
+                      <div className={styles["testcase-status"]}>
+                        {passed === null ? "PENDING" : passed ? "PASS" : "FAIL"}
                       </div>
                     </div>
-                  );
-                })()}
-              </div>
-            ) : null}
 
-            {hasRuntimeTests && activeSidebarTab === "runtime" ? (
-              <div className={styles["test-sidebar-section"]}>
-                <div className={styles["test-sidebar-section-title"]}>Runtime Tests</div>
+                    <div className={styles["runtime-panel-body"]}>
+                      <div className={styles["testcase-cell"]}>
+                        <div className={styles["testcase-label"]}>Requirement</div>
+                        <pre className={styles["testcase-value"]}>{formatOrEmpty(obj?.label)}</pre>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          ) : null}
+
+          {hasRuntimeTests && activeSidebarTab === "runtime" ? (
+            <div className={styles["test-sidebar-section"]}>
+              <div className={styles["test-sidebar-section-title"]}>Runtime Tests</div>
 
               <div className={styles["runtime-tabs"]} role="tablist" aria-label="Runtime test cases">
                 {displayedRuntimeTests.map((t, idx) => {
@@ -1121,13 +1125,12 @@ const InteractiveTerminal = ({
 
                 return (
                   <div
-                    className={`${styles["runtime-panel"]} ${
-                      passed === null
+                    className={`${styles["runtime-panel"]} ${passed === null
                         ? styles["testcase-card-pending"]
                         : passed
                           ? styles["testcase-card-pass"]
                           : styles["testcase-card-fail"]
-                    }`}
+                      }`}
                     role="tabpanel"
                   >
                     <div className={styles["runtime-panel-head"]}>
@@ -1156,8 +1159,8 @@ const InteractiveTerminal = ({
                   </div>
                 );
               })()}
-             </div>
-           ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className={styles["test-sidebar-footer"]}>
@@ -1198,9 +1201,8 @@ const InteractiveTerminal = ({
       <div className={styles["result-wrap"]} aria-label="Test result">
         <div className={styles["result-header"]}>
           <div
-            className={`${styles["result-status"]} ${
-              allPassed ? styles["result-status-accepted"] : styles["result-status-wrong"]
-            }`}
+            className={`${styles["result-status"]} ${allPassed ? styles["result-status-accepted"] : styles["result-status-wrong"]
+              }`}
           >
             {statusText}
           </div>
@@ -1319,9 +1321,8 @@ const InteractiveTerminal = ({
     <div className={`${styles["code-container"]} ${!canInteract ? styles["code-container-locked"] : ""}`}>
       {runToast ? (
         <div
-          className={`${styles["run-toast"]} ${
-            runToast.type === "error" ? styles["run-toast-error"] : styles["run-toast-success"]
-          }`}
+          className={`${styles["run-toast"]} ${runToast.type === "error" ? styles["run-toast-error"] : styles["run-toast-success"]
+            }`}
           role="status"
           aria-live="polite"
         >
@@ -1349,72 +1350,70 @@ const InteractiveTerminal = ({
       )}
 
       {(!useMobileSplit || activePanel === "editor") && (
-      <div className={styles["code-editor"]}>
-        <div className={styles["editor-header"]}>
-          <span>
-            {language === "cpp"
-              ? "main.cpp"
-              : isDomQuest
-                ? "index.html"
-                : language === "javascript"
-                  ? "script.js"
-                  : "script.py"}
-          </span>
+        <div className={styles["code-editor"]}>
+          <div className={styles["editor-header"]}>
+            <span>
+              {language === "cpp"
+                ? "main.cpp"
+                : isDomQuest
+                  ? "index.html"
+                  : language === "javascript"
+                    ? "script.js"
+                    : "script.py"}
+            </span>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
-                className={`${styles["submit-btn"]} ${
-                        !canInteract ? styles["btn-disabled"] : ""
-                      }`}
+                className={`${styles["submit-btn"]} ${!canInteract ? styles["btn-disabled"] : ""
+                  }`}
                 onClick={handleRun}
                 disabled={isRunning || isSubmitting || isValidating || !canInteract}
                 title="Test your code and see the output"
               >
-              <Play size={16} />
-              {isValidating ? "Validating..." : isRunning ? "Running..." : "Run"}
-            </button>
-            <button
-              className={`${styles["submit-btn"]} ${
-                        !canInteract ? styles["btn-disabled"] : ""
-                      }`}
-              onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
-              disabled={
-                isRunning ||
-                isSubmitting ||
-                isValidating ||
-                !canInteract ||
-                !canSubmit
-              }
-              title={canSubmit ? "Submit your solution to complete the quest" : "Run and pass all test cases to unlock Submit"}
-            >
-              <Check size={16} />
-              {isSubmitting ? "Submitting..." : "Submit"}
-            </button>
+                <Play size={16} />
+                {isValidating ? "Validating..." : isRunning ? "Running..." : "Run"}
+              </button>
+              <button
+                className={`${styles["submit-btn"]} ${!canInteract ? styles["btn-disabled"] : ""
+                  }`}
+                onClick={quest?.quest_type === "dom" ? handleSubmitDom : handleSubmit}
+                disabled={
+                  isRunning ||
+                  isSubmitting ||
+                  isValidating ||
+                  !canInteract ||
+                  !canSubmit
+                }
+                title={canSubmit ? "Submit your solution to complete the quest" : "Run and pass all test cases to unlock Submit"}
+              >
+                <Check size={16} />
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <Editor
-          height={isMobileView ? "240px" : "300px"}
-          language={monacoLang}
-          theme="vs-dark"
-          value={code}
-          onChange={(v) => {
-            if (!canInteract) return;
-            const next = v ?? "";
-            setCode(next);
-            if (lastValidatedCode && next !== lastValidatedCode) {
-              setLastValidatedCode(null);
-              setLastValidatedOutput(null);
-            }
-          }}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            automaticLayout: true,
-            readOnly: !canInteract
-          }}
-        />
-      </div>
+          <Editor
+            height={isMobileView ? "240px" : "300px"}
+            language={monacoLang}
+            theme="vs-dark"
+            value={code}
+            onChange={(v) => {
+              if (!canInteract) return;
+              const next = v ?? "";
+              setCode(next);
+              if (lastValidatedCode && next !== lastValidatedCode) {
+                setLastValidatedCode(null);
+                setLastValidatedOutput(null);
+              }
+            }}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              automaticLayout: true,
+              readOnly: !canInteract
+            }}
+          />
+        </div>
       )}
 
       {(!useMobileSplit || activePanel === "terminal") && (() => {
@@ -1507,6 +1506,33 @@ const InteractiveTerminal = ({
       {!canInteract && (
         <div className={styles["terminal-lock-overlay"]}>
           <p className={styles["terminal-lock-text"]}>Interact with something to unlock this code terminal.</p>
+        </div>
+      )}
+
+      {showReviewComplete && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 1000, background: "rgba(15, 23, 42, 0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRadius: "8px", border: "1px solid #334155" }}>
+          <h2 style={{ color: "#22c55e", fontFamily: '"Press Start 2P", cursive', fontSize: "1.2rem", marginBottom: "1rem", lineHeight: "1.6" }}>
+            Review Passed!
+          </h2>
+          <p style={{ color: "#e2e8f0", marginBottom: "2rem", fontSize: "0.95rem" }}>
+            Great job! You've successfully passed all tests for this exercise.
+          </p>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <button 
+              type="button"
+              onClick={() => setShowReviewComplete(false)} 
+              style={{ padding: "0.7rem 1.2rem", background: "#334155", color: "#f8fafc", borderRadius: "6px", border: "none", cursor: "pointer", fontWeight: "bold" }}
+            >
+              Review Code
+            </button>
+            <button 
+              type="button"
+              onClick={() => navigate(`/learn/${language === 'javascript' ? 'javascript' : language === 'cpp' ? 'cpp' : 'python'}`)} 
+              style={{ padding: "0.7rem 1.2rem", background: "#3b82f6", color: "#ffffff", borderRadius: "6px", border: "none", cursor: "pointer", fontWeight: "bold" }}
+            >
+              Return to Course
+            </button>
+          </div>
         </div>
       )}
     </div>
