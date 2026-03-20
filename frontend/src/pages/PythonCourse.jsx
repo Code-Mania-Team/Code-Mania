@@ -37,6 +37,7 @@ const PythonCourse = () => {
   const { exerciseId } = useParams();
   const numericExerciseId = Number(exerciseId);
   const [data, setData] = useState();
+  const [isLoadingModules, setIsLoadingModules] = useState(true);
 
 
   useEffect(() => {
@@ -72,6 +73,7 @@ const PythonCourse = () => {
 
     const fetchData = async () => {
       try {
+        setIsLoadingModules(true);
         const exercises = await getExercises(1);
         if (cancelled) return;
 
@@ -93,10 +95,14 @@ const PythonCourse = () => {
         });
 
         setModules(groupedModules);
+        if (!cancelled) setIsLoadingModules(false);
 
       } catch (error) {
         console.error("Failed to fetch Python exercises:", error);
-        if (!cancelled) setModules([]);
+        if (!cancelled) {
+          setModules([]);
+          setIsLoadingModules(false);
+        }
       }
     };
 
@@ -317,7 +323,18 @@ const PythonCourse = () => {
       <div className="python-content">
         {/* Modules Section */}
         <div className="modules-section">
-          {modules.map((module) => (
+          {isLoadingModules ? (
+            <div style={{ textAlign: "center", padding: "4rem 2rem", background: "rgba(30, 41, 59, 0.5)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <h3 style={{ color: "#94a3b8", fontSize: "1.1rem", fontFamily: '"Press Start 2P", cursive', marginBottom: "1rem" }}>Retrieving Syllabus...</h3>
+              <p style={{ color: "#64748b", lineHeight: "1.6" }}>Connecting to Code Mania servers...</p>
+            </div>
+          ) : modules.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "4rem 2rem", background: "rgba(30, 41, 59, 0.5)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <h3 style={{ color: "#ef4444", fontSize: "1.1rem", fontFamily: '"Press Start 2P", cursive', marginBottom: "1rem" }}>Failed to Load</h3>
+              <p style={{ color: "#94a3b8", lineHeight: "1.6" }}>The database is currently unreachable. Our mages are casting repair spells. Please refresh or try again later.</p>
+            </div>
+          ) : (
+            modules.map((module) => (
             <div key={module.id} className="module-card">
               <div
                 className="module-header"
@@ -448,7 +465,7 @@ const PythonCourse = () => {
                 </div>
               )}
             </div>
-          ))}
+          )))}
         </div>
 
         {/* Sidebar */}

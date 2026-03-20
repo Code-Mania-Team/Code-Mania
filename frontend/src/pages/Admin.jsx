@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { axiosPublic } from "../api/axios";
 import useAuth from "../hooks/useAxios";
@@ -100,8 +100,39 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
   const [gaLoading, setGaLoading] = useState(false);
   const [gaError, setGaError] = useState('');
   const [gaTrafficMetric, setGaTrafficMetric] = useState('screenPageViews');
+  const [topicStatMode, setTopicStatMode] = useState('language'); // 'language' or 'quiz'
 
   const quizAttempts = quizMetrics?.attempts || [];
+
+  const quizStatsByTopic = useMemo(() => {
+    if (!quizAttempts.length) return [];
+    
+    const statsMap = {};
+    quizAttempts.forEach(attempt => {
+      const key = topicStatMode === 'language' 
+        ? (attempt.language || 'unknown') 
+        : (attempt.quizTitle || 'unknown');
+        
+      if (!statsMap[key]) {
+        statsMap[key] = { attempts: 0, totalScore: 0, passes: 0, xp: 0 };
+      }
+      
+      statsMap[key].attempts++;
+      statsMap[key].totalScore += (attempt.scorePercentage || 0);
+      if (attempt.isPassed) statsMap[key].passes++;
+      statsMap[key].xp += (attempt.earnedXp || 0);
+    });
+    
+    return Object.entries(statsMap)
+      .map(([name, s]) => ({
+        name,
+        attempts: s.attempts,
+        avgScore: (s.totalScore / s.attempts).toFixed(2),
+        passRate: ((s.passes / s.attempts) * 100).toFixed(2),
+        xp: s.xp
+      }))
+      .sort((a, b) => b.attempts - a.attempts);
+  }, [quizAttempts, topicStatMode]);
   const examAttempts = examMetrics?.attempts || [];
 
   const quizTotalPages = Math.max(1, Math.ceil(quizAttempts.length / ATTEMPTS_PER_PAGE));
@@ -128,6 +159,38 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
     startDate.setDate(startDate.getDate() - days);
     return new Date(user.latestAttemptAt) >= startDate;
   });
+
+  const [examTopicStatMode, setExamTopicStatMode] = useState('language'); // 'language' or 'exam'
+
+  const examStatsByTopic = useMemo(() => {
+    if (!examAttempts.length) return [];
+    
+    const statsMap = {};
+    examAttempts.forEach(attempt => {
+      const key = examTopicStatMode === 'language' 
+        ? (attempt.language || 'unknown') 
+        : (attempt.examTitle || 'unknown');
+        
+      if (!statsMap[key]) {
+        statsMap[key] = { attempts: 0, totalScore: 0, passes: 0, xp: 0 };
+      }
+      
+      statsMap[key].attempts++;
+      statsMap[key].totalScore += (attempt.scorePercentage || 0);
+      if (attempt.isPassed) statsMap[key].passes++;
+      statsMap[key].xp += (attempt.earnedXp || 0);
+    });
+    
+    return Object.entries(statsMap)
+      .map(([name, s]) => ({
+        name,
+        attempts: s.attempts,
+        avgScore: (s.totalScore / s.attempts).toFixed(2),
+        passRate: ((s.passes / s.attempts) * 100).toFixed(2),
+        xp: s.xp
+      }))
+      .sort((a, b) => b.attempts - a.attempts);
+  }, [examAttempts, examTopicStatMode]);
 
   const exportQuizAttemptsCsv = () => {
     const rows = quizAttemptsInExportRange.map((attempt) => [
@@ -1029,6 +1092,65 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
           ) : null}
         </div>
 
+        {/* Topic & Language Statistics Section */}
+        <div className={styles.panel} style={{ marginTop: 12 }}>
+          <div className={styles.quizHeaderRow}>
+            <div>
+              <h3 className={styles.panelTitle}>Topic & Language Statistics</h3>
+              <p className={styles.panelSubtitle}>Aggregate performance by {topicStatMode}</p>
+            </div>
+            <div className={styles.inlineActions}>
+              <div className={styles.rangePicker}>
+                <button
+                  className={`${styles.rangeButton} ${topicStatMode === 'language' ? styles.rangeButtonActive : ''}`}
+                  onClick={() => setTopicStatMode('language')}
+                  type="button"
+                >
+                  By Language
+                </button>
+                <button
+                  className={`${styles.rangeButton} ${topicStatMode === 'quiz' ? styles.rangeButtonActive : ''}`}
+                  onClick={() => setTopicStatMode('quiz')}
+                  type="button"
+                >
+                  By Quiz
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.quizTableWrap}>
+            <table className={styles.quizTable}>
+              <thead>
+                <tr>
+                  <th>{topicStatMode === 'language' ? 'Language' : 'Quiz Title'}</th>
+                  <th>Attempts</th>
+                  <th>Avg Score</th>
+                  <th>Pass Rate</th>
+                  <th>Total XP</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quizStatsByTopic.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className={styles.quizEmpty}>No topic data available.</td>
+                  </tr>
+                ) : (
+                  quizStatsByTopic.map((item) => (
+                    <tr key={item.name}>
+                      <td style={{ fontWeight: 600 }}>{item.name}</td>
+                      <td>{item.attempts}</td>
+                      <td>{item.avgScore}%</td>
+                      <td>{item.passRate}%</td>
+                      <td>{item.xp}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {selectedUser ? (
           <div className={styles.panel} style={{ marginTop: 12 }}>
             <div className={styles.quizHeaderRow}>
@@ -1252,6 +1374,65 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
               </div>
             </div>
           ) : null}
+        </div>
+
+        {/* Exam Topic & Language Statistics Section */}
+        <div className={styles.panel} style={{ marginTop: 12 }}>
+          <div className={styles.quizHeaderRow}>
+            <div>
+              <h3 className={styles.panelTitle}>Topic & Language Statistics</h3>
+              <p className={styles.panelSubtitle}>Aggregate performance by {examTopicStatMode}</p>
+            </div>
+            <div className={styles.inlineActions}>
+              <div className={styles.rangePicker}>
+                <button
+                  className={`${styles.rangeButton} ${examTopicStatMode === 'language' ? styles.rangeButtonActive : ''}`}
+                  onClick={() => setExamTopicStatMode('language')}
+                  type="button"
+                >
+                  By Language
+                </button>
+                <button
+                  className={`${styles.rangeButton} ${examTopicStatMode === 'exam' ? styles.rangeButtonActive : ''}`}
+                  onClick={() => setExamTopicStatMode('exam')}
+                  type="button"
+                >
+                  By Exam
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.quizTableWrap}>
+            <table className={styles.quizTable}>
+              <thead>
+                <tr>
+                  <th>{examTopicStatMode === 'language' ? 'Language' : 'Exam Title'}</th>
+                  <th>Attempts</th>
+                  <th>Avg Score</th>
+                  <th>Pass Rate</th>
+                  <th>Total XP</th>
+                </tr>
+              </thead>
+              <tbody>
+                {examStatsByTopic.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className={styles.quizEmpty}>No topic data available.</td>
+                  </tr>
+                ) : (
+                  examStatsByTopic.map((item) => (
+                    <tr key={item.name}>
+                      <td style={{ fontWeight: 600 }}>{item.name}</td>
+                      <td>{item.attempts}</td>
+                      <td>{item.avgScore}%</td>
+                      <td>{item.passRate}%</td>
+                      <td>{item.xp}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {selectedExamUser ? (

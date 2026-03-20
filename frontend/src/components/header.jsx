@@ -439,17 +439,20 @@ const Header = ({ onOpenModal, onSignOut }) => {
         <h1 className="logo-text"><NavLink to={homePath} onClick={() => setIsMenuOpen(false)}>Code Mania</NavLink></h1>
       </div>
 
-      <button
-        className="hamburger"
-        onClick={toggleMenu}
-        aria-label="Menu"
-      >
-        <img
-          src={burgerIcon}
-          alt="Menu"
-          className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`}
-        />
-      </button>
+      <div className="mobile-header-actions">
+        <NotificationBell />
+        <button
+          className="hamburger"
+          onClick={toggleMenu}
+          aria-label="Menu"
+        >
+          <img
+            src={burgerIcon}
+            alt="Menu"
+            className={`hamburger-icon ${isMenuOpen ? 'is-active' : ''}`}
+          />
+        </button>
+      </div>
 
       <nav className={`nav ${isMenuOpen ? 'is-active' : ''}`}>
         <NavLink to={homePath} className="nav-link" onClick={closeMobileMenu}>{isAdmin ? "ADMIN" : isAuthenticated ? "DASHBOARD" : "HOME"}</NavLink>
@@ -519,8 +522,9 @@ const Header = ({ onOpenModal, onSignOut }) => {
                 <button type="button" className="dropdown-item dropdown-item-button" onClick={handleSignOutClick}>Sign Out</button>
               </div>
             </div>
-
-            <NotificationBell />
+            <div className="desktop-notification-wrapper">
+              <NotificationBell />
+            </div>
 
             <div
               className="profile-icon-container"

@@ -148,7 +148,12 @@ export default function HomeDemoQuest() {
             quest={quest}
             onIntroComplete={() => {
               setIntroCompleted(true);
-              window.dispatchEvent(new CustomEvent("code-mania:close-quest-hud"));
+              const scene = window.game?.scene?.keys?.GameScene;
+              if (scene) {
+                scene.questManager?.completeQuest(DEMO_EXERCISE_ID);
+                scene.playerCanMove = true;
+                scene.gamePausedByTerminal = false;
+              }
             }}
             onGoLearn={() => navigate("/learn")}
           />

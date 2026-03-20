@@ -7,6 +7,7 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Header from "../components/header";
 
 import SignInModal from "../components/SignInModal";
+import GuestProgressModal from "../components/GuestProgressModal";
 
 import ProgressBar from "../components/ProgressBar";
 
@@ -115,6 +116,7 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
   const [isPageLoading, setIsPageLoading] = useState(true);
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isGuestProgressModalOpen, setIsGuestProgressModalOpen] = useState(false);
 
   // Guest gate: exercises 1-2 are playable; exercise 3+ requires sign-in.
   useEffect(() => {
@@ -380,7 +382,7 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
       // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in.
       if (!isAuthenticated) {
         if (currentId >= 2) {
-          setIsSignInModalOpen(true);
+          setIsGuestProgressModalOpen(true);
           return;
         }
         navigate(`/learn/python/exercise/${currentId + 1}`);
@@ -701,19 +703,21 @@ const PythonExercise = ({ isAuthenticated, onSignOut }) => {
 
 
       {isSignInModalOpen && (
-
         <SignInModal
-
           isOpen
-
           onClose={() => setIsSignInModalOpen(false)}
-
           onSignInSuccess={handleSignInSuccess}
-
         />
-
       )}
 
+      <GuestProgressModal
+        isOpen={isGuestProgressModalOpen}
+        onClose={() => setIsGuestProgressModalOpen(false)}
+        onSignIn={() => {
+          setIsGuestProgressModalOpen(false);
+          setIsSignInModalOpen(true);
+        }}
+      />
 
 
       <div className={styles["codex-fullscreen"]}>

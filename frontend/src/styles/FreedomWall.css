@@ -55,12 +55,11 @@ html[data-theme="light"] .community-shell {
 
 .community-nav-fixed {
   position: fixed;
-  top: 92px; /* header + breathing room */
+  top: 92px;
+  /* header + breathing room */
   bottom: 18px;
-  left: max(
-    var(--community-page-pad-x),
-    calc(50% - (var(--community-page-max) / 2) + var(--community-page-pad-x))
-  );
+  left: max(var(--community-page-pad-x),
+      calc(50% - (var(--community-page-max) / 2) + var(--community-page-pad-x)));
   width: 260px;
   z-index: 1200;
   overflow: hidden;
@@ -1698,6 +1697,7 @@ html[data-theme="light"] .notification-bell-icon {
 }
 
 @media (max-width: 768px) {
+
   /* Force single-column — override the more-specific .has-right/.no-right rules from 1024px */
   .community-page,
   .community-page.has-right,

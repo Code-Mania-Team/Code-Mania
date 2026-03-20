@@ -195,7 +195,7 @@ export default function HomeDemoTerminal({
         : styles.demoBadgeIdle;
 
   return (
-    <div className={styles.demoTerminal}>
+    <div className={`${styles.demoTerminal} ${!armed ? styles.demoTerminalLocked : ""}`}>
       <div className={styles.demoTerminalHeader}>
         <div className={styles.demoTerminalTitle}>
           <span className={styles.demoFileName}>{fileName}</span>
@@ -250,6 +250,12 @@ export default function HomeDemoTerminal({
           </div>
         ) : null}
       </div>
+
+      {!armed && (
+        <div className={styles.terminalLockOverlay}>
+          <p className={styles.terminalLockText}>Talk to the NPC in the demo world, then come back here.</p>
+        </div>
+      )}
     </div>
   );
 }

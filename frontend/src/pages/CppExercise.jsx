@@ -7,6 +7,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/header";
 
 import SignInModal from "../components/SignInModal";
+import GuestProgressModal from "../components/GuestProgressModal";
 
 import ProgressBar from "../components/ProgressBar";
 
@@ -118,6 +119,7 @@ const CppExercise = ({ onSignOut }) => {
   const [completedQuizStages, setCompletedQuizStages] = useState([]);
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isGuestProgressModalOpen, setIsGuestProgressModalOpen] = useState(false);
 
 
 
@@ -397,7 +399,7 @@ const CppExercise = ({ onSignOut }) => {
       // Guest flow: allow 1 -> 2; block 2 -> 3 and show sign-in.
       if (!isAuthenticated) {
         if (currentId >= 2) {
-          setIsSignInModalOpen(true);
+          setIsGuestProgressModalOpen(true);
           return;
         }
         navigate(`/learn/cpp/exercise/${currentId + 1}`);
@@ -647,16 +649,20 @@ const CppExercise = ({ onSignOut }) => {
       {isSignInModalOpen && (
 
         <SignInModal
-
           isOpen
-
           onClose={() => setIsSignInModalOpen(false)}
-
           onSignInSuccess={handleSignInSuccess}
-
         />
-
       )}
+
+      <GuestProgressModal
+        isOpen={isGuestProgressModalOpen}
+        onClose={() => setIsGuestProgressModalOpen(false)}
+        onSignIn={() => {
+          setIsGuestProgressModalOpen(false);
+          setIsSignInModalOpen(true);
+        }}
+      />
 
 
 

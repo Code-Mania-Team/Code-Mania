@@ -128,6 +128,42 @@
   background: rgba(0, 0, 0, 0.35);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
   overflow: hidden;
+  position: relative;
+}
+
+.demoTerminalLocked {
+  user-select: none;
+}
+
+.terminalLockOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(2, 8, 23, 0.74);
+  backdrop-filter: blur(2px);
+}
+
+.terminalLockText {
+  margin: 0;
+  max-width: 320px;
+  padding: 0.9rem 1rem;
+  border: 2px solid rgba(148, 163, 184, 0.55);
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.92) 100%);
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.65;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  box-shadow: 0 6px 0 rgba(2, 6, 23, 0.85);
 }
 
 .demoTerminalHeader {

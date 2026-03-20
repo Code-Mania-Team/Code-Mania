@@ -97,7 +97,7 @@ const GoogleIcon = () => (
 
 
 
-const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
+const SignInModal = ({ isOpen, onClose, onSignInSuccess, customMessage }) => {
 
   const [email, setEmail] = useState('');
 
@@ -801,6 +801,12 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess }) => {
           <img src={shieldImage} alt="Shield" className={`${styles.pixelIcon} ${styles.pixelShield}`} />
 
         </div>
+
+        {customMessage && !isSignUpMode && !isForgotPasswordMode ? (
+          <div style={{ margin: '0 1.5rem', padding: '0.8rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', fontWeight: '500' }}>
+            {customMessage}
+          </div>
+        ) : null}
 
 
 
