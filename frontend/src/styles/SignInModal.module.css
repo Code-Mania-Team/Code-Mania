@@ -9,7 +9,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  /* Keep above in-game/terminal overlays (some use z-index ~1200+) */
+  z-index: 110000;
   backdrop-filter: blur(5px);
 }
 
