@@ -20,7 +20,7 @@ const burgerIcon = 'https://res.cloudinary.com/daegpuoss/image/upload/v176692575
 
 // ── Notification Bell Component ──────────────────────────────
 const NotificationBell = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, refetch } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -51,7 +51,12 @@ const NotificationBell = () => {
     <div className="notification-bell-wrap" ref={dropdownRef}>
       <button
         className="notification-bell-btn"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => {
+          setIsOpen((prev) => !prev);
+          if (!isOpen && refetch) {
+            refetch();
+          }
+        }}
         aria-label="Notifications"
         title="Notifications"
       >

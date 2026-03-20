@@ -1435,10 +1435,23 @@ export default class GameScene extends Phaser.Scene {
           npc.setVisible(false);
         }
 
-          const quest = npc.npcData.questId ? this.questManager.getQuestById(npc.npcData.questId) : null;
+          let quest = npc.npcData.questId ? this.questManager.getQuestById(npc.npcData.questId) : null;
+
+          // If map has wrong quest id or missing: link to current exercise in single-mode
+          if (!quest && this.questManager?.quests?.length === 1) {
+            const onlyQuest = this.questManager.quests[0];
+            const isIntro = npc.npcData.id === "intro_npc";
+            // For intro_npc specifically, we always link it to the only quest available
+            if (isIntro) {
+              quest = onlyQuest;
+              npc.npcData.questId = onlyQuest.id;
+            }
+          }
+
           if (quest && !quest.completed) {
             npc.questIcon = this.questIconManager.createIcon(npc, true);
           }
+
         });
     });
   }
@@ -1551,9 +1564,15 @@ export default class GameScene extends Phaser.Scene {
 
     const isIntroNpc = String(npc?.npcData?.id || "") === "intro_npc";
     const questId = npc?.npcData?.questId;
-    const quest = questId ? this.questManager.getQuestById(questId) : null;
+    let quest = questId ? this.questManager.getQuestById(questId) : null;
 
-    if (!quest && isIntroNpc) {
+    // Fallback if map contains wrong quest id: use the only quest available in single-exercise mode.
+    if (!quest && this.questManager?.quests?.length === 1) {
+      quest = this.questManager.quests[0];
+    }
+
+
+    if (!quest && isIntroNpc && this.currentMapId === "demo_map") {
       const introHud = {
         title: "Welcome to Code Mania",
         lessonHeader: "Your first run",

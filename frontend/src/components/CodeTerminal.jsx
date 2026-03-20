@@ -966,10 +966,10 @@ const InteractiveTerminal = ({
           <div className={styles["test-sidebar-title"]}>Test Cases</div>
           <div
             className={`${styles["test-sidebar-pill"]} ${totalChecks > 0 && passedChecks === totalChecks
-                ? styles["test-sidebar-pill-pass"]
-                : totalChecks > 0
-                  ? styles["test-sidebar-pill-warn"]
-                  : styles["test-sidebar-pill-idle"]
+              ? styles["test-sidebar-pill-pass"]
+              : totalChecks > 0
+                ? styles["test-sidebar-pill-warn"]
+                : styles["test-sidebar-pill-idle"]
               }`}
             title={totalChecks > 0 ? `${passedChecks}/${totalChecks} passed` : "Run to validate"}
           >
@@ -1056,10 +1056,10 @@ const InteractiveTerminal = ({
                 return (
                   <div
                     className={`${styles["runtime-panel"]} ${passed === null
-                        ? styles["testcase-card-pending"]
-                        : passed
-                          ? styles["testcase-card-pass"]
-                          : styles["testcase-card-fail"]
+                      ? styles["testcase-card-pending"]
+                      : passed
+                        ? styles["testcase-card-pass"]
+                        : styles["testcase-card-fail"]
                       }`}
                     role="tabpanel"
                   >
@@ -1126,10 +1126,10 @@ const InteractiveTerminal = ({
                 return (
                   <div
                     className={`${styles["runtime-panel"]} ${passed === null
-                        ? styles["testcase-card-pending"]
-                        : passed
-                          ? styles["testcase-card-pass"]
-                          : styles["testcase-card-fail"]
+                      ? styles["testcase-card-pending"]
+                      : passed
+                        ? styles["testcase-card-pass"]
+                        : styles["testcase-card-fail"]
                       }`}
                     role="tabpanel"
                   >
@@ -1518,16 +1518,16 @@ const InteractiveTerminal = ({
             Great job! You've successfully passed all tests for this exercise.
           </p>
           <div style={{ display: "flex", gap: "1rem" }}>
-            <button 
+            <button
               type="button"
-              onClick={() => setShowReviewComplete(false)} 
+              onClick={() => setShowReviewComplete(false)}
               style={{ padding: "0.7rem 1.2rem", background: "#334155", color: "#f8fafc", borderRadius: "6px", border: "none", cursor: "pointer", fontWeight: "bold" }}
             >
               Review Code
             </button>
-            <button 
+            <button
               type="button"
-              onClick={() => navigate(`/learn/${language === 'javascript' ? 'javascript' : language === 'cpp' ? 'cpp' : 'python'}`)} 
+              onClick={() => navigate(`/learn/${language === 'javascript' ? 'javascript' : language === 'cpp' ? 'cpp' : 'python'}`)}
               style={{ padding: "0.7rem 1.2rem", background: "#3b82f6", color: "#ffffff", borderRadius: "6px", border: "none", cursor: "pointer", fontWeight: "bold" }}
             >
               Return to Course

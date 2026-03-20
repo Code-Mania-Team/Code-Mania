@@ -210,7 +210,7 @@ const PythonCourse = () => {
     const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
     const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
 
-    if (isAuthenticated && !tutorialSeen) {
+    if (!tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
@@ -260,7 +260,7 @@ const PythonCourse = () => {
     const tutorialSeenLocal = localStorage.getItem("hasSeenTutorial") === "true";
     const tutorialSeen = Boolean(user?.hasSeen_tutorial || tutorialSeenLocal);
 
-    if (isAuthenticated && !tutorialSeen) {
+    if (!tutorialSeen) {
       setPendingRoute(route);
       setShowTutorial(true);
       return;
