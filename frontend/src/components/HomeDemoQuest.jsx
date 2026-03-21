@@ -12,9 +12,10 @@ function getDemoQuest() {
     id: DEMO_EXERCISE_ID,
     order_index: DEMO_EXERCISE_ID,
     title: "Welcome",
-    description: "",
-    task: "",
-    lessonHeader: "",
+    description:
+      "This editor is just for typing. No functions, no test cases.\n\nType a short message, then press Run.",
+    task: "Type any short greeting, then press Run.",
+    lessonHeader: "Your first run",
     expectedOutput: "",
     startingCode: "",
     map_id: "demo_map",
@@ -103,8 +104,17 @@ export default function HomeDemoQuest() {
     const onIntro = () => {
       setIntroOpen(true);
     };
+    const onQuestStarted = (e) => {
+      if (Number(e?.detail?.questId) === DEMO_EXERCISE_ID) {
+        setIntroOpen(true);
+      }
+    };
     window.addEventListener("code-mania:home-demo:intro", onIntro);
-    return () => window.removeEventListener("code-mania:home-demo:intro", onIntro);
+    window.addEventListener("code-mania:quest-started", onQuestStarted);
+    return () => {
+      window.removeEventListener("code-mania:home-demo:intro", onIntro);
+      window.removeEventListener("code-mania:quest-started", onQuestStarted);
+    };
   }, []);
 
   return (

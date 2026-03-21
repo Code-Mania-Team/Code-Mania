@@ -84,6 +84,8 @@ export default class QuestUI {
     this.isDraggingScroll = false;
     this.dragPointerId = null;
     this.lastDragY = 0;
+    this.touchDragIdentifier = null;
+    this.lastTouchClientY = 0;
     this.isDraggingThumb = false;
     this.thumbDragOffsetY = 0;
     this.currentQuest = null;
@@ -197,8 +199,26 @@ export default class QuestUI {
 
       this.isDraggingScroll = false;
       this.dragPointerId = null;
+      this.touchDragIdentifier = null;
+      this.lastTouchClientY = 0;
       this.isDraggingThumb = false;
       this.thumbDragOffsetY = 0;
+    };
+
+    this._clientToPhaserCoords = (clientX, clientY) => {
+      const canvas = this.scene?.game?.canvas;
+      if (!canvas) return null;
+
+      const rect = canvas.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) return null;
+
+      const scaleX = this.scene.scale.width / rect.width;
+      const scaleY = this.scene.scale.height / rect.height;
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY,
+      };
     };
 
     this.onWheel = (pointer, gameObjects, deltaX, deltaY) => {
@@ -223,17 +243,9 @@ export default class QuestUI {
       if (this.scene.time.now < this.ignoreWheelUntil) return;
       if (this.bodyScrollMax <= 0) return;
 
-      const canvas = this.scene?.game?.canvas;
-      if (!canvas) return;
-
-      const rect = canvas.getBoundingClientRect();
-      if (!rect || rect.width <= 0 || rect.height <= 0) return;
-
-      // Convert client coords -> Phaser coords
-      const scaleX = this.scene.scale.width / rect.width;
-      const scaleY = this.scene.scale.height / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
+      const point = this._clientToPhaserCoords(e.clientX, e.clientY);
+      if (!point) return;
+      const { x, y } = point;
 
       if (!this._isInsidePanel(x, y)) return;
 
@@ -248,6 +260,84 @@ export default class QuestUI {
 
       // Avoid double-handling if Phaser `wheel` also fires.
       this._wheelConsumedUntil = this.scene.time.now + 32;
+    };
+
+    this._onNativeTouchStart = (e) => {
+      if (!this.isMobile) return;
+      if (!this.visible) return;
+      if (this.bodyScrollMax <= 0) return;
+      if (!e.changedTouches || e.changedTouches.length === 0) return;
+
+      const touch = e.changedTouches[0];
+      const point = this._clientToPhaserCoords(touch.clientX, touch.clientY);
+      if (!point) return;
+      if (!this._isInsideScrollArea(point.x, point.y)) return;
+
+      this.isDraggingScroll = true;
+      this.dragPointerId = "native-touch";
+      this.touchDragIdentifier = touch.identifier;
+      this.lastTouchClientY = touch.clientY;
+      this.lastDragY = point.y;
+      this.isDraggingThumb = false;
+      this.thumbDragOffsetY = 0;
+
+      e.preventDefault();
+      e.stopPropagation?.();
+    };
+
+    this._onNativeTouchMove = (e) => {
+      if (!this.isMobile) return;
+      if (!this.visible) return;
+      if (!this.isDraggingScroll) return;
+      if (this.dragPointerId !== "native-touch") return;
+      if (this.bodyScrollMax <= 0) return;
+
+      const activeTouch = Array.from(e.changedTouches || []).find(
+        (touch) => touch.identifier === this.touchDragIdentifier
+      ) || Array.from(e.touches || []).find(
+        (touch) => touch.identifier === this.touchDragIdentifier
+      );
+
+      if (!activeTouch) {
+        this._endDrag("native-touch");
+        return;
+      }
+
+      const deltaY = this.lastTouchClientY - activeTouch.clientY;
+      this.lastTouchClientY = activeTouch.clientY;
+
+      this.bodyScroll = Phaser.Math.Clamp(this.bodyScroll + deltaY, 0, this.bodyScrollMax);
+      this._applyScroll();
+      this._updateScrollbarThumb();
+
+      e.preventDefault();
+      e.stopPropagation?.();
+    };
+
+    this._onNativeTouchEnd = (e) => {
+      if (!this.isMobile) return;
+      if (!this.isDraggingScroll) return;
+      if (this.dragPointerId !== "native-touch") return;
+
+      const endedTrackedTouch = Array.from(e.changedTouches || []).some(
+        (touch) => touch.identifier === this.touchDragIdentifier
+      );
+
+      if (!endedTrackedTouch) return;
+      this._endDrag("native-touch");
+    };
+
+    this._onNativeTouchCancel = (e) => {
+      if (!this.isMobile) return;
+      if (!this.isDraggingScroll) return;
+      if (this.dragPointerId !== "native-touch") return;
+
+      const cancelledTrackedTouch = Array.from(e.changedTouches || []).some(
+        (touch) => touch.identifier === this.touchDragIdentifier
+      );
+
+      if (!cancelledTrackedTouch) return;
+      this._endDrag("native-touch");
     };
 
     this.onPointerDown = (pointer) => {
@@ -334,6 +424,10 @@ export default class QuestUI {
 
       try {
         window.removeEventListener?.("wheel", this._onNativeWheel, true);
+        window.removeEventListener?.("touchstart", this._onNativeTouchStart, true);
+        window.removeEventListener?.("touchmove", this._onNativeTouchMove, true);
+        window.removeEventListener?.("touchend", this._onNativeTouchEnd, true);
+        window.removeEventListener?.("touchcancel", this._onNativeTouchCancel, true);
       } catch {
         // ignore
       }
@@ -341,6 +435,10 @@ export default class QuestUI {
 
     try {
       window.addEventListener?.("wheel", this._onNativeWheel, { passive: false, capture: true });
+      window.addEventListener?.("touchstart", this._onNativeTouchStart, { passive: false, capture: true });
+      window.addEventListener?.("touchmove", this._onNativeTouchMove, { passive: false, capture: true });
+      window.addEventListener?.("touchend", this._onNativeTouchEnd, { passive: true, capture: true });
+      window.addEventListener?.("touchcancel", this._onNativeTouchCancel, { passive: true, capture: true });
     } catch {
       // ignore
     }
