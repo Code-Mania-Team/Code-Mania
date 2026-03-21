@@ -97,6 +97,7 @@ export default class LessonExampleSplash {
     const safeBody = String(body || "").trim();
     if (!safeTitle && !safeBody) return;
     if (this._active) return;
+    if (!this.scene?.add || !this.scene?.scale || !this.scene?.time || !this.scene?.tweens) return;
 
     this._active = true;
 

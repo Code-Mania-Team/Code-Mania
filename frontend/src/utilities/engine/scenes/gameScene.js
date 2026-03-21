@@ -114,6 +114,7 @@ export default class GameScene extends Phaser.Scene {
     this.completedSideQuestTags = new Set();
     this.sideQuestStateByTag = {};
     this.sideQuestGuideActivated = false;
+    this._sideQuestUiReady = false;
     this.applySideQuestProgress(Array.isArray(data.sideQuestProgress) ? data.sideQuestProgress : []);
 
     this._bgmUnlockHandler = null;
@@ -127,6 +128,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   maybeShowLessonExampleSplash() {
+    if (!this.sys?.isActive?.()) return;
+    if (!this.lessonExampleSplash) return;
+
     const questId = Number(this.quest?.id ?? this.exerciseId);
     if (Number.isFinite(questId) && this._lessonExampleSplashShownForQuestId === questId) return;
 
@@ -1053,6 +1057,10 @@ export default class GameScene extends Phaser.Scene {
     this.lastDirection = "down";
     // 🧑 NPCs
     this.spawnNPCs();
+    this._sideQuestUiReady = true;
+    this.refreshExitUnlockStates();
+    this.refreshSideQuestGuideIcons();
+
     this.npcs.forEach(npc => {
       this.physics.add.collider(this.player, npc);
     });
@@ -1500,6 +1508,8 @@ export default class GameScene extends Phaser.Scene {
         }
       });
     });
+
+    if (!this._sideQuestUiReady) return;
 
     this.refreshExitUnlockStates();
     this.refreshSideQuestGuideIcons();
