@@ -117,8 +117,8 @@ function buildExecutionFromRunnerError(err, testCases) {
     if (!obj || typeof obj !== "object") return [];
     return [
       readText(obj.message),
-      readText(obj.error),
       readText(obj.details),
+      readText(obj.error),
       readText(obj.compile_error),
       readText(obj.compileError),
       readText(obj.stderr),
@@ -127,8 +127,8 @@ function buildExecutionFromRunnerError(err, testCases) {
       readText(obj.trace),
       readText(obj.reason),
       readText(obj.data?.message),
-      readText(obj.data?.error),
       readText(obj.data?.details),
+      readText(obj.data?.error),
       readText(obj.data?.stderr),
       readText(obj.data?.output),
     ].filter(Boolean);
@@ -444,10 +444,7 @@ class QuizService {
         });
 
         const baseExp = Number(quizData.exp_total || 0);
-        let earnedXp = Math.round(baseExp * (scorePercentage / 100));
-        if (scorePercentage === 100) {
-          earnedXp += Math.round(baseExp * 0.1); // +10% bonus
-        }
+        const earnedXp = Math.round(baseExp * (scorePercentage / 100));
 
         const responsePayload = {
           success: true,
