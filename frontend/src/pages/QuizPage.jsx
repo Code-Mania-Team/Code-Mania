@@ -33,6 +33,7 @@ const QuizPage = () => {
   const [hasAccess, setHasAccess] = useState(false);
   const [codeResult, setCodeResult] = useState(null);
   const [serverCompletion, setServerCompletion] = useState(null);
+  const [showCongrats, setShowCongrats] = useState(false);
 
   const [isMobileView, setIsMobileView] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
@@ -277,23 +278,26 @@ const QuizPage = () => {
   };
 
   const handleCodeValidate = async (code) => {
-    try {
-      const { data } = await axiosPrivate.post(
-        `/v1/quizzes/${language}/${quizId}/validate`,
-        { code }
-      );
-      return data;
-    } catch (err) {
-      console.error("Quiz validation failed:", err);
-      throw err;
-    }
+    const data = await handleCodeSubmit(code);
+    return data;
+  };
+
+  const handleCodeSubmitAndShowPopup = async (code, lang) => {
+    const data = await handleCodeSubmit(code, lang);
+    handleCodeResult(data);
+    return data;
   };
 
   const handleCodeResult = (result) => {
     setCodeResult(result);
     if (result.passed || result.score_percentage >= 70) {
-      setQuizCompleted(true);
+      setShowCongrats(true);
     }
+  };
+
+  const handleCongratsContinue = () => {
+    setShowCongrats(false);
+    setQuizCompleted(true);
   };
 
   /* ---------------------------------
@@ -514,8 +518,7 @@ const QuizPage = () => {
                   testCases={quizData.test_cases}
                   attemptId={`quiz_${language}_${quizId}`}
                   validateAttempt={handleCodeValidate}
-                  submitAttempt={handleCodeSubmit}
-                  onResult={handleCodeResult}
+                  submitAttempt={handleCodeSubmitAndShowPopup}
                   attemptNumber={1} 
                   isAdmin={isAdmin}
                   isMobileView={isMobileView}
@@ -525,6 +528,31 @@ const QuizPage = () => {
             </div>
           </div>
         </div>
+
+        {showCongrats ? (
+          <div className={examStyles.congratsOverlay} onClick={handleCongratsContinue}>
+            <div className={examStyles.congratsModal} onClick={(e) => e.stopPropagation()}>
+              <div className={examStyles.congratsIcon}>🎉</div>
+              <h2 className={examStyles.congratsTitle}>Quiz Complete!</h2>
+              <p className={examStyles.congratsSubtitle}>
+                Great work. Your solution passed the required score.
+              </p>
+              <div className={examStyles.congratsXp}>
+                <span className={examStyles.congratsXpIcon}>⚡</span>
+                <span className={examStyles.congratsXpAmount}>+{Number(serverCompletion?.earned_xp ?? codeResult?.earned_xp ?? 0)} XP</span>
+                <span className={examStyles.congratsXpLabel}>earned</span>
+              </div>
+              <div className={examStyles.congratsActions}>
+                <button className={examStyles.congratsBtnPrimary} onClick={handleCongratsContinue}>
+                  View Results
+                </button>
+                <button className={examStyles.congratsBtnSecondary} onClick={handleReturnToCourse}>
+                  Back to Course
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }

@@ -462,9 +462,6 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
         setIsRunning(false);
         return;
       }
-      if (result.score_percentage === 100 && !result?.practice_run) {
-        localStorage.removeItem(storageKey);
-      }
 
       setLastSubmitResult(result);
       setTestResults(Array.isArray(result?.results) ? result.results : []);
