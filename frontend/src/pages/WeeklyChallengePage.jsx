@@ -48,7 +48,7 @@ export default function WeeklyChallengePage() {
     prizeAssetUrl: "",
   });
 
-  const { submit } = useWeeklyChallengeAttempt();
+  const { submit, validate } = useWeeklyChallengeAttempt();
 
   const language = useMemo(() => normalizeLanguage(task?.language), [task]);
   const heroBackground = useMemo(() => {
@@ -295,6 +295,12 @@ export default function WeeklyChallengePage() {
                   isMobileView={false}
                   mobilePanel="code"
                   attemptId={attemptId}
+                  validateAttempt={async (code) => {
+                    const result = await validate({ taskId, code });
+                    if (!result) return null;
+                    setScore(Number(result.score_percentage || 0));
+                    return result;
+                  }}
                   submitAttempt={async (code) => {
                     const result = await submit({ taskId, code });
                     if (!result) return null;

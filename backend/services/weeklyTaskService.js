@@ -55,6 +55,33 @@ function normalizeTestCases(raw, { language } = {}) {
 
       // If a task explicitly sets function mode, pass it through (any language).
       if (explicitMode === "function") {
+        if (lang === "javascript") {
+          const inputParsed = tryParseJson(inputRaw);
+          const expectedParsed = tryParseJson(expectedRaw);
+
+          const parsedInputValue = inputParsed.ok ? inputParsed.value : inputRaw;
+          const alreadyArgsPayload =
+            parsedInputValue &&
+            typeof parsedInputValue === "object" &&
+            !Array.isArray(parsedInputValue) &&
+            Array.isArray(parsedInputValue.args);
+
+          // JS function-mode runner may spread arrays as positional args.
+          // Wrap plain values as { args: [value] } so single-parameter
+          // tasks (e.g. input array) always receive one argument.
+          const functionInput = alreadyArgsPayload
+            ? parsedInputValue
+            : { args: [parsedInputValue] };
+
+          return {
+            mode: "function",
+            functionName: explicitFunctionName ? String(explicitFunctionName) : "solution",
+            input: functionInput,
+            expected: expectedParsed.ok ? expectedParsed.value : expectedRaw,
+            is_hidden,
+          };
+        }
+
         return {
           mode: "function",
           functionName: explicitFunctionName ? String(explicitFunctionName) : "solution",
@@ -127,15 +154,8 @@ class WeeklyTaskService {
     };
   }
 
-  async submit({ userId, taskId, code }) {
+  async runTaskTests({ task, code }) {
     const PASS_THRESHOLD = 70;
-
-    const task = await this.weekly.getTaskById(taskId);
-    if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
-
-    const existingProgress = await this.weekly.getUserWeeklyTaskProgress({ userId, taskId }).catch(() => null);
-    const alreadyCompleted = String(existingProgress?.status || "") === "completed";
-
     const language = String(task.language || task?.programming_languages?.slug || "javascript").toLowerCase();
     const testCases = normalizeTestCases(task.test_cases, { language });
 
@@ -157,6 +177,44 @@ class WeeklyTaskService {
     const passedTests = Number(execution?.passed || 0);
     const scorePercentage = Number(execution?.score || 0);
     const passed = scorePercentage >= PASS_THRESHOLD;
+
+    return {
+      scorePercentage,
+      passed,
+      passedTests,
+      totalTests,
+      results: execution?.results || [],
+    };
+  }
+
+  async validate({ taskId, code }) {
+    const task = await this.weekly.getTaskById(taskId);
+    if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
+
+    const run = await this.runTaskTests({ task, code });
+    return {
+      ok: true,
+      data: {
+        score_percentage: run.scorePercentage,
+        passed: run.passed,
+        practice_run: true,
+        attempt_number: 1,
+        passed_tests: run.passedTests,
+        total_tests: run.totalTests,
+        results: run.results,
+      },
+    };
+  }
+
+  async submit({ userId, taskId, code }) {
+    const task = await this.weekly.getTaskById(taskId);
+    if (!task) return { ok: false, status: 404, message: "Weekly task not found" };
+
+    const existingProgress = await this.weekly.getUserWeeklyTaskProgress({ userId, taskId }).catch(() => null);
+    const alreadyCompleted = String(existingProgress?.status || "") === "completed";
+
+    const run = await this.runTaskTests({ task, code });
+    const passed = run.passed;
 
     // Ensure user has an in_progress row once they submit
     await this.weekly.acceptTask(userId, taskId);
@@ -246,7 +304,7 @@ class WeeklyTaskService {
     return {
       ok: true,
       data: {
-        score_percentage: scorePercentage,
+        score_percentage: run.scorePercentage,
         passed,
         already_completed: alreadyCompleted,
         earned_xp: passed && !alreadyCompleted ? xpAdded : 0,
@@ -254,9 +312,9 @@ class WeeklyTaskService {
         unlocked_cosmetic_key: passed && !alreadyCompleted ? unlockedCosmeticKey : null,
         unlocked_cosmetic: passed && !alreadyCompleted ? unlockedCosmetic : null,
         attempt_number: 1,
-        passed_tests: passedTests,
-        total_tests: totalTests,
-        results: execution?.results || [],
+        passed_tests: run.passedTests,
+        total_tests: run.totalTests,
+        results: run.results,
       },
     };
   }

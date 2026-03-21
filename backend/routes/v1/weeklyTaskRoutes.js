@@ -17,6 +17,7 @@ weeklyTaskRouter.get('/:task_id/participants', controller.listParticipants.bind(
 weeklyTaskRouter.get('/active', optionalAuthentication, controller.getActiveTasks.bind(controller));
 weeklyTaskRouter.post('/:task_id/accept', authentication, controller.acceptTask.bind(controller));
 weeklyTaskRouter.post('/:task_id/complete', authentication, controller.completeTask.bind(controller));
+weeklyTaskRouter.post('/:task_id/validate', authentication, controller.validateTask.bind(controller));
 weeklyTaskRouter.post('/:task_id/submit', authentication, controller.submitTask.bind(controller));
 
 // ── Admin routes ───────────────────────────────────────────────
