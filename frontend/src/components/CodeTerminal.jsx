@@ -1554,7 +1554,7 @@ const InteractiveTerminal = ({
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 className={`${styles["submit-btn"]} ${!canInteract ? styles["btn-disabled"] : ""}`}
-                onClick={handleRunValidation}
+                onClick={handleRun}
                 disabled={isRunning || isSubmitting || isValidating || !canInteract}
                 title="Test your code and see the output"
               >

@@ -1478,6 +1478,21 @@ export default class GameScene extends Phaser.Scene {
     return lines.length ? lines : fallback;
   }
 
+  resolveGuideRequiredSideQuestTags(guideNpc) {
+    const own = this.parseRequiredSideQuestTags(guideNpc?.npcData?.requiredSideQuestTags || []);
+    if (own.length) return own;
+
+    const mainNpc =
+      (this.npcs || []).find(
+        (npc) =>
+          !npc?.npcData?.sideQuestGuide &&
+          Number.isFinite(Number(npc?.npcData?.questId)) &&
+          (npc?.npcData?.requiredSideQuestTags || []).length > 0
+      ) || null;
+
+    return this.parseRequiredSideQuestTags(mainNpc?.npcData?.requiredSideQuestTags || []);
+  }
+
   extractSideQuestTags(quest) {
     const directTag = this.normalizeSideQuestToken(quest?.tag);
     return directTag ? [directTag] : [];
@@ -1901,14 +1916,17 @@ export default class GameScene extends Phaser.Scene {
   }
 
   tryInteractWithNPC() {
-    const npc = this.npcs.find(n =>
-      Phaser.Math.Distance.Between(
-        this.player.x,
-        this.player.y,
-        n.x,
-        n.y
-      ) <= 70
+    const inRange = (this.npcs || []).filter(
+      (n) =>
+        Phaser.Math.Distance.Between(this.player.x, this.player.y, n.x, n.y) <= 70
     );
+
+    const npc = inRange.reduce((best, n) => {
+      if (!best) return n;
+      const dn = Phaser.Math.Distance.Between(this.player.x, this.player.y, n.x, n.y);
+      const db = Phaser.Math.Distance.Between(this.player.x, this.player.y, best.x, best.y);
+      return dn < db ? n : best;
+    }, null);
 
     if (!npc) return false; // 👈 IMPORTANT
 
@@ -1916,11 +1934,12 @@ export default class GameScene extends Phaser.Scene {
     this.interactPrompt?.setVisible(false);
 
     const isIntroNpc = String(npc?.npcData?.id || "") === "intro_npc";
+    const isSideQuestGuide = Boolean(npc?.npcData?.sideQuestGuide);
     const questId = npc?.npcData?.questId;
     let quest = questId ? this.questManager.getQuestById(questId) : null;
 
     // Fallback if map contains wrong quest id: use the only quest available in single-exercise mode.
-    if (!quest && this.questManager?.quests?.length === 1) {
+    if (!quest && !isSideQuestGuide && this.questManager?.quests?.length === 1) {
       quest = this.questManager.quests[0];
     }
 
@@ -1939,9 +1958,8 @@ export default class GameScene extends Phaser.Scene {
       return true;
     }
 
-    const isSideQuestGuide = Boolean(npc?.npcData?.sideQuestGuide);
     if (!quest && isSideQuestGuide) {
-      const requiredTags = npc?.npcData?.requiredSideQuestTags || [];
+      const requiredTags = this.resolveGuideRequiredSideQuestTags(npc);
       this.requestSideQuestProgressRefresh();
 
       if (requiredTags.length && !this.sideQuestGuideActivated) {

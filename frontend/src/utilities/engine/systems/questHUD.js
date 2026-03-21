@@ -48,14 +48,15 @@ export default class QuestUI {
 
     const { width, height } = scene.scale;
 
-    this.panelHorizontalPad = Math.max(40, Math.round(width * 0.12));
+    this.panelHorizontalPad = this.isMobile ? 12 : Math.max(40, Math.round(width * 0.12));
     this.panelLeft = this.panelHorizontalPad;
     this.panelTop = 50;
     this.panelWidth = width - this.panelHorizontalPad * 2;
     this.panelHeight = height - 100;
 
     this.titleY = 90;
-    this.bodyBaseY = 130;
+    this.baseBodyBaseY = 130;
+    this.bodyBaseY = this.baseBodyBaseY;
 
     this.scrollbarWidth = 8;
 
@@ -92,8 +93,9 @@ export default class QuestUI {
     this.sideTabs = [];
     this.activeSideTabIndex = 0;
     this.sideTabNodes = [];
-    this.sideTabWidth = 168;
-    this.sideTabGap = 14;
+    this.sideTabWidth = this.isMobile ? 136 : 168;
+    this.sideTabGap = this.isMobile ? 8 : 14;
+    this.mobileSideTabBlockHeight = 0;
 
     // Container
     this.container = scene.add.container(0, 0)
@@ -151,7 +153,7 @@ export default class QuestUI {
     this.richWrapperEl.style.width = `${this.contentWidth}px`;
     this.richWrapperEl.style.height = `${this.bodyMaskHeight}px`;
     this.richWrapperEl.style.overflow = "hidden";
-    this.richWrapperEl.style.pointerEvents = "none";
+    this.richWrapperEl.style.pointerEvents = "auto";
 
     this.richContentEl = document.createElement("div");
     this.richContentEl.style.transform = "translateY(0px)";
@@ -168,7 +170,7 @@ export default class QuestUI {
     try {
       // Ensure the Phaser-created wrapper also doesn't capture wheel events.
       if (this.bodyDom?.node?.style) {
-        this.bodyDom.node.style.pointerEvents = "none";
+        this.bodyDom.node.style.pointerEvents = "auto";
       }
     } catch {
       // ignore
@@ -273,6 +275,11 @@ export default class QuestUI {
       if (!point) return;
       if (!this._isInsideScrollArea(point.x, point.y)) return;
 
+      if (this._isCodeBlockScrollableTarget(e.target)) {
+        // Allow native horizontal swipe for code snippets.
+        return;
+      }
+
       this.isDraggingScroll = true;
       this.dragPointerId = "native-touch";
       this.touchDragIdentifier = touch.identifier;
@@ -291,6 +298,11 @@ export default class QuestUI {
       if (!this.isDraggingScroll) return;
       if (this.dragPointerId !== "native-touch") return;
       if (this.bodyScrollMax <= 0) return;
+
+      if (this._isCodeBlockScrollableTarget(e.target)) {
+        this._endDrag("native-touch");
+        return;
+      }
 
       const activeTouch = Array.from(e.changedTouches || []).find(
         (touch) => touch.identifier === this.touchDragIdentifier
@@ -467,7 +479,23 @@ export default class QuestUI {
   _setContentLayout(hasSideTabs) {
     const contentInsetLeft = this.isMobile ? 22 : 30;
     const contentInsetRight = this.isMobile ? 18 : 30;
-    const tabOffset = hasSideTabs ? this.sideTabWidth + this.sideTabGap : 0;
+    const hasMobileTabs = this.isMobile && hasSideTabs;
+    const mobileRows = hasMobileTabs ? Math.ceil(this.sideTabs.length / 2) : 0;
+    this.mobileSideTabBlockHeight = hasMobileTabs ? 12 + mobileRows * 38 : 0;
+
+    const tabOffset = !this.isMobile && hasSideTabs ? this.sideTabWidth + this.sideTabGap : 0;
+
+    this.bodyBaseY = this.baseBodyBaseY + this.mobileSideTabBlockHeight;
+    this.scrollbarMinY = this.bodyBaseY;
+    this.bodyMaskHeight =
+      this.panelHeight - (this.bodyBaseY - this.panelTop) - this.panelBottomPad;
+
+    this.divider.clear();
+    this.divider.lineStyle(2, 0x8b5e3c, 0.6);
+    this.divider.beginPath();
+    this.divider.moveTo(this.panelLeft + 20, this.baseBodyBaseY - 8);
+    this.divider.lineTo(this.panelLeft + this.panelWidth - 20, this.baseBodyBaseY - 8);
+    this.divider.strokePath();
 
     this.contentLeft = this.panelLeft + contentInsetLeft + tabOffset;
     this.scrollbarX = this.panelLeft + this.panelWidth - contentInsetRight - this.scrollbarWidth;
@@ -503,20 +531,44 @@ export default class QuestUI {
     this.sideTabNodes = [];
   }
 
+  _isCodeBlockScrollableTarget(target) {
+    if (!target || !this.richWrapperEl) return false;
+    const element = target instanceof Element ? target : null;
+    if (!element) return false;
+    if (!this.richWrapperEl.contains(element)) return false;
+
+    const codeContainer = element.closest("pre, .cm-code");
+    if (!codeContainer) return false;
+    return codeContainer.scrollWidth > codeContainer.clientWidth + 1;
+  }
+
   _renderSideTabs() {
     this._clearSideTabs();
     if (!this.sideTabs.length) return;
 
+    const isMobileBookmarks = this.isMobile;
     const tabStartX = this.panelLeft + 24;
-    const tabStartY = this.bodyBaseY + 8;
-    const tabHeight = 46;
+    const tabStartY = isMobileBookmarks ? this.baseBodyBaseY + 8 : this.bodyBaseY + 8;
+    const tabHeight = this.isMobile ? 32 : 46;
+
+    const mobileGapX = 8;
+    const mobileGapY = 8;
+    const mobileCols = 2;
+    const mobileTabWidth = Math.max(
+      96,
+      Math.floor((this.panelWidth - 48 - mobileGapX) / mobileCols)
+    );
 
     this.sideTabs.forEach((tab, idx) => {
-      const y = tabStartY + idx * (tabHeight + 10);
+      const row = isMobileBookmarks ? Math.floor(idx / mobileCols) : idx;
+      const col = isMobileBookmarks ? idx % mobileCols : 0;
+      const y = tabStartY + row * (tabHeight + (isMobileBookmarks ? mobileGapY : 10));
+      const x = isMobileBookmarks ? tabStartX + col * (mobileTabWidth + mobileGapX) : tabStartX;
       const isActive = idx === this.activeSideTabIndex;
       const status = String(tab?.status || "not_started");
       const isCompleted = status === "completed";
       const marker = status === "completed" ? "[✓]" : "[ ]";
+      const tabW = isMobileBookmarks ? mobileTabWidth : this.sideTabWidth;
 
       const fillColor = isCompleted
         ? (isActive ? 0x1f5d31 : 0x184726)
@@ -530,9 +582,9 @@ export default class QuestUI {
 
       const bg = this.scene.add
         .rectangle(
-          tabStartX + this.sideTabWidth / 2,
+          x + tabW / 2,
           y + tabHeight / 2,
-          this.sideTabWidth,
+          tabW,
           tabHeight,
           fillColor,
           0.92
@@ -542,9 +594,9 @@ export default class QuestUI {
         .setInteractive({ useHandCursor: true });
 
       const label = this.scene.add
-        .text(tabStartX + 10, y + tabHeight / 2, `${marker} ${tab.label || "Side Quest"}`, {
+        .text(x + 10, y + tabHeight / 2, `${marker} ${tab.label || "Side Quest"}`, {
           fontFamily: "Georgia",
-          fontSize: "14px",
+          fontSize: this.isMobile ? "12px" : "14px",
           color: labelColor,
         })
         .setOrigin(0, 0.5)
