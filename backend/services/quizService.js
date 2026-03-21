@@ -3,16 +3,6 @@ import axios from "axios";
 
 const TERMINAL_API_BASE_URL = process.env.TERMINAL_API_BASE_URL || "https://terminal.codemania.fun";
 
-function needsRunner(language, code) {
-  const s = String(code || "");
-  if (!s.trim()) return true;
-
-  if (language === "python") return !s.includes("sys.stdin");
-  if (language === "javascript") return !s.includes("readFileSync(0") && !s.includes("process.stdin");
-  if (language === "cpp") return !s.includes("main(");
-  return true;
-}
-
 function toJsonIfNeeded(value) {
   if (value === null || value === undefined) return "";
   if (typeof value === "string") return value;
@@ -21,57 +11,6 @@ function toJsonIfNeeded(value) {
   } catch {
     return String(value);
   }
-}
-
-function appendQuizRunner({ language, stageNumber, startingCode }) {
-  const base = String(startingCode || "").trimEnd();
-  if (!needsRunner(language, base)) return base;
-
-  const stage = Number(stageNumber);
-
-  if (language === "python") {
-    if (stage === 2) {
-      return `${base}\n\n# Runner helper\nimport sys\nimport ast\n\n_raw = sys.stdin.read().strip()\nif _raw:\n    try:\n        _args = ast.literal_eval(_raw)\n    except Exception:\n        _parts = _raw.replace(',', ' ').split()\n        _args = tuple(int(x) for x in _parts[:2])\n\n    if isinstance(_args, (tuple, list)):\n        print(calculate_sum(*_args))\n    else:\n        print(calculate_sum(_args, 0))\n`;
-    }
-
-    if (stage === 3) {
-      return `${base}\n\n# Runner helper\nimport sys\nimport ast\n\n_raw = sys.stdin.read().strip()\nif _raw:\n    try:\n        _numbers = ast.literal_eval(_raw)\n    except Exception:\n        _numbers = [int(x) for x in _raw.replace(',', ' ').split() if x]\n\n    print(find_max(list(_numbers)))\n`;
-    }
-
-    if (stage === 4) {
-      return `${base}\n\n# Runner helper\nimport sys\nimport ast\n\n_raw = sys.stdin.read().strip()\nif _raw:\n    try:\n        _text = ast.literal_eval(_raw)\n    except Exception:\n        _text = _raw\n\n    print(is_palindrome(str(_text)))\n`;
-    }
-  }
-
-  if (language === "javascript") {
-    if (stage === 2) {
-      return `${base}\n\n// Runner helper\nconst fs = require("fs");\nconst raw = (fs.readFileSync(0, "utf-8") || "").trim();\nif (raw) {\n  const parts = raw.split(",").map(s => s.trim()).filter(Boolean);\n  const a = Number(parts[0]);\n  const b = Number(parts[1]);\n  console.log(String(calculateSum(a, b)));\n}\n`;
-    }
-
-    if (stage === 3) {
-      return `${base}\n\n// Runner helper\nconst fs = require("fs");\nconst raw = (fs.readFileSync(0, "utf-8") || "").trim();\nif (raw) {\n  const numbers = JSON.parse(raw);\n  console.log(String(findMax(numbers)));\n}\n`;
-    }
-
-    if (stage === 4) {
-      return `${base}\n\n// Runner helper\nconst fs = require("fs");\nconst raw = (fs.readFileSync(0, "utf-8") || "").trim();\nif (raw) {\n  const text = JSON.parse(raw);\n  console.log(String(isPalindrome(String(text))));\n}\n`;
-    }
-  }
-
-  if (language === "cpp") {
-    if (stage === 2) {
-      return `${base}\n\n#include <iostream>\n\nint main() {\n    int a, b;\n    if (std::cin >> a >> b) {\n        std::cout << calculateSum(a, b);\n    }\n    return 0;\n}\n`;
-    }
-
-    if (stage === 3) {
-      return `${base}\n\n#include <iostream>\n#include <vector>\n\nint main() {\n    int n;\n    if (!(std::cin >> n)) return 0;\n    std::vector<int> numbers;\n    numbers.reserve(n);\n    for (int i = 0; i < n; i++) {\n        int x;\n        if (!(std::cin >> x)) break;\n        numbers.push_back(x);\n    }\n    std::cout << findMax(numbers);\n    return 0;\n}\n`;
-    }
-
-    if (stage === 4) {
-      return `${base}\n\n#include <iostream>\n#include <string>\n\nstatic std::string stripQuotes(const std::string& s) {\n    if (s.size() >= 2 && s.front() == '"' && s.back() == '"') {\n        return s.substr(1, s.size() - 2);\n    }\n    return s;\n}\n\nint main() {\n    std::string text;\n    std::getline(std::cin, text);\n    if (text.empty()) return 0;\n    text = stripQuotes(text);\n    std::cout << (isPalindrome(text) ? 1 : 0);\n    return 0;\n}\n`;
-    }
-  }
-
-  return base;
 }
 
 function stripRunnerHelper({ language, code }) {
@@ -160,6 +99,83 @@ function parseMaybeJsonPrompt(value) {
   } catch {
     return value;
   }
+}
+
+function buildExecutionFromRunnerError(err, testCases) {
+  const upstream = err?.response?.data;
+  const statusCode = err?.response?.status;
+  const statusText = err?.response?.statusText;
+
+  const readText = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value.trim();
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    return "";
+  };
+
+  const collectCandidates = (obj) => {
+    if (!obj || typeof obj !== "object") return [];
+    return [
+      readText(obj.message),
+      readText(obj.error),
+      readText(obj.details),
+      readText(obj.compile_error),
+      readText(obj.compileError),
+      readText(obj.stderr),
+      readText(obj.stdout),
+      readText(obj.output),
+      readText(obj.trace),
+      readText(obj.reason),
+      readText(obj.data?.message),
+      readText(obj.data?.error),
+      readText(obj.data?.details),
+      readText(obj.data?.stderr),
+      readText(obj.data?.output),
+    ].filter(Boolean);
+  };
+
+  if (upstream && typeof upstream === "object") {
+    const hasStructuredResult =
+      Array.isArray(upstream.results) ||
+      Number.isFinite(Number(upstream.total)) ||
+      Number.isFinite(Number(upstream.passed)) ||
+      Number.isFinite(Number(upstream.score));
+
+    if (hasStructuredResult) {
+      return {
+        total: Number(upstream.total || (Array.isArray(testCases) ? testCases.length : 0)),
+        passed: Number(upstream.passed || 0),
+        score: Number(upstream.score || 0),
+        results: Array.isArray(upstream.results) ? upstream.results : [],
+      };
+    }
+  }
+
+  const candidates = [
+    readText(upstream),
+    ...collectCandidates(upstream),
+    readText(err?.message),
+    readText(err?.code),
+  ].filter(Boolean);
+
+  const baseMessage = candidates[0] || "Execution failed";
+  const statusPrefix = statusCode ? `Runner ${statusCode}${statusText ? ` ${statusText}` : ""}: ` : "";
+  const message = `${statusPrefix}${baseMessage}`;
+
+  const list = Array.isArray(testCases) ? testCases : [];
+  return {
+    total: list.length,
+    passed: 0,
+    score: 0,
+    results: list.map((tc, idx) => ({
+      test_index: idx + 1,
+      passed: false,
+      expected: tc?.expected ?? "",
+      stdout: message,
+      stdout_display: message,
+      execution_time_ms: 0,
+    })),
+  };
 }
 
 class QuizService {
@@ -394,29 +410,28 @@ class QuizService {
         return { ok: false, status: 400, message: "Quiz has no test cases configured" };
       }
 
-      const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
-
-      // JavaScript stdin requires process/fs, which are blocked by sanitizer.
-      // For JS quizzes, prefer function mode and do not append a runner.
-      const executionCode =
-        language === "javascript" || hasFunctionMode
-          ? code
-          : appendQuizRunner({ language, stageNumber, startingCode: code });
+      const executionCode = code;
 
       try {
-        const { data: execution } = await axios.post(
-          `${TERMINAL_API_BASE_URL}/exam/run`,
-          {
-            language,
-            code: executionCode,
-            testCases: effectiveTestCases,
-          },
-          {
-            headers: {
-              "x-internal-key": process.env.INTERNAL_KEY
+        let execution;
+        try {
+          const { data } = await axios.post(
+            `${TERMINAL_API_BASE_URL}/exam/run`,
+            {
+              language,
+              code: executionCode,
+              testCases: effectiveTestCases,
+            },
+            {
+              headers: {
+                "x-internal-key": process.env.INTERNAL_KEY
+              }
             }
-          }
-        );
+          );
+          execution = data;
+        } catch (err) {
+          execution = buildExecutionFromRunnerError(err, effectiveTestCases);
+        }
 
         const totalTests = execution.total;
         const passedTests = execution.passed;
@@ -491,7 +506,7 @@ class QuizService {
             },
           };
         }
-      } catch (err) {
+      } catch {
         return { ok: false, status: 500, message: "Failed to run tests" };
       }
     }
@@ -565,26 +580,28 @@ class QuizService {
       return { ok: false, status: 400, message: "Quiz has no test cases configured" };
     }
 
-    const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
-    const executionCode =
-      language === "javascript" || hasFunctionMode
-        ? code
-        : appendQuizRunner({ language, stageNumber, startingCode: code });
+    const executionCode = code;
 
     try {
-      const { data: execution } = await axios.post(
-        `${TERMINAL_API_BASE_URL}/exam/run`,
-        {
-          language,
-          code: executionCode,
-          testCases: effectiveTestCases,
-        },
-        {
-          headers: {
-            "x-internal-key": process.env.INTERNAL_KEY
+      let execution;
+      try {
+        const { data } = await axios.post(
+          `${TERMINAL_API_BASE_URL}/exam/run`,
+          {
+            language,
+            code: executionCode,
+            testCases: effectiveTestCases,
+          },
+          {
+            headers: {
+              "x-internal-key": process.env.INTERNAL_KEY
+            }
           }
-        }
-      );
+        );
+        execution = data;
+      } catch (err) {
+        execution = buildExecutionFromRunnerError(err, effectiveTestCases);
+      }
 
       const totalTests = execution.total;
       const passedTests = execution.passed;
@@ -611,7 +628,7 @@ class QuizService {
           admin: Boolean(isAdmin),
         },
       };
-    } catch (err) {
+    } catch {
       return { ok: false, status: 500, message: "Failed to run tests" };
     }
   }

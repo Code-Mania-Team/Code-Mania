@@ -411,6 +411,26 @@ function normalizeOutput(text) {
     .trim();
 }
 
+function hasExecutionError(output, language) {
+  const out = String(output || "");
+  const patterns = [
+    "Traceback",
+    "SyntaxError",
+    "NameError",
+    "TypeError",
+    "IndentationError",
+    "ReferenceError",
+    "fatal error",
+    "undefined reference",
+    "Segmentation fault",
+    "COMPILE_ERROR",
+    "error:",
+  ];
+
+  const lowered = out.toLowerCase();
+  return patterns.some((p) => lowered.includes(String(p).toLowerCase()));
+}
+
 function normalizeValidationText(text) {
   return String(text ?? "")
     .replace(/\r\n/g, "\n")
@@ -1027,6 +1047,7 @@ app.post("/exam/run", async (req, res) => {
 
     for (let i = 0; i < testCases.length; i++) {
       const test = testCases[i];
+      const mode = String(test?.mode || "stdin").trim().toLowerCase() === "function" ? "function" : "stdin";
 
       const expectedRaw =
         test?.expected ??
@@ -1037,66 +1058,62 @@ app.post("/exam/run", async (req, res) => {
         "";
 
       const start = Date.now();
+      let success = false;
+      let effectiveOutput = "";
 
-      try{
-        output = await runSingleTest(
-          language,
-          code,
-          test.input || "",
-          test.mode || "stdin",
-          test.functionName || null
-        );
-      } catch (err) {
-        output = err.message;
+      try {
+        try {
+          output = await runSingleTest(
+            language,
+            code,
+            test?.input ?? "",
+            mode,
+            test?.functionName || test?.function_name || null
+          );
+        } catch (err) {
+          output = err?.message || "Execution failed";
+        }
+
+        effectiveOutput = String(output ?? "");
+        console.log(`Test ${i + 1}:`, effectiveOutput);
+
+        if (mode === "function") {
+          let cleanOutput = effectiveOutput.trim();
+          if (cleanOutput.startsWith("OUTPUT:")) {
+            cleanOutput = cleanOutput.replace(/^OUTPUT:\s*/, "");
+          }
+
+          const expected = parseMaybeJson(expectedRaw);
+
+          try {
+            const parsedOutput = JSON.parse(cleanOutput);
+            if (isArrayOfPlainObjects(expected) && Array.isArray(parsedOutput)) {
+              success = matchRequiredFields(parsedOutput, expected);
+            } else {
+              success = isDeepStrictEqual(parsedOutput, expected);
+            }
+          } catch {
+            success =
+              normalizeValidationText(cleanOutput) ===
+              normalizeValidationText(String(expected ?? ""));
+          }
+        } else {
+          success = matchesStdinExpected(effectiveOutput, expectedRaw);
+        }
+      } catch (testErr) {
+        success = false;
+        effectiveOutput = `INTERNAL_TEST_ERROR: ${testErr?.message || "Unknown error"}`;
       }
-      
 
       const executionTime = Date.now() - start;
-
-      console.log(`Test ${i + 1}:`, output);
-
-      let success = false;
-
-      if (test.mode === "function") {
-
-        let cleanOutput = String(output ?? "").trim();
-        if (cleanOutput.startsWith("OUTPUT:")) {
-          cleanOutput = cleanOutput.replace(/^OUTPUT:\s*/, "");
-        }
-
-        const expected = parseMaybeJson(expectedRaw);
-
-        // Prefer JSON compare when possible.
-        try {
-          const parsedOutput = JSON.parse(cleanOutput);
-
-          if (isArrayOfPlainObjects(expected) && Array.isArray(parsedOutput)) {
-            // Back-compat partial matching for arrays of objects.
-            success = matchRequiredFields(parsedOutput, expected);
-          } else {
-            success = isDeepStrictEqual(parsedOutput, expected);
-          }
-        } catch {
-          // Fallback: treat as plain string output.
-          success =
-            normalizeValidationText(cleanOutput) ===
-            normalizeValidationText(String(expected ?? ""));
-        }
-
-      } else {
-
-        // STDIN mode: compare full output.
-        success = matchesStdinExpected(output, expectedRaw);
-      }
-
       if (success) passed++;
 
       results.push({
         test_index: i + 1,
         passed: success,
         execution_time_ms: executionTime,
-        stdout: String(output ?? ""),
-        stdout_display: test.mode === "stdin" ? buildStdoutDisplay(output, expectedRaw) : String(output ?? "").trim(),
+        stdout: effectiveOutput,
+        stdout_display: mode === "stdin" ? buildStdoutDisplay(effectiveOutput, expectedRaw) : effectiveOutput.trim(),
         expected: String(expectedRaw ?? "")
       });
     }
@@ -1112,7 +1129,10 @@ app.post("/exam/run", async (req, res) => {
 
   } catch (err) {
     console.error("Exam execution error:", err);
-    res.status(500).json({ error: "Execution failed" });
+    res.status(500).json({
+      error: "Execution failed",
+      details: err?.message || "Unknown error",
+    });
   }
 });
 
