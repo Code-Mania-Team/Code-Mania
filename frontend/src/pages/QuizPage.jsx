@@ -69,6 +69,8 @@ const QuizPage = () => {
   const heroBackground =
     languageBackgrounds[language] || languageBackgrounds.python;
 
+  const learnerPrompt = quizData?.quiz_description ?? quizData?.code_prompt;
+
   const sanitizeColor = (value) => {
     const s = String(value || "").trim();
     if (!s) return null;
@@ -424,8 +426,8 @@ const QuizPage = () => {
                 className={`${examStyles.examInfoColumn} ${isMobileView && mobileTab !== "learn" ? examStyles.mobilePanelHidden : ""}`}
               >
                 <div className={examStyles.questionText}>
-                  {typeof quizData.code_prompt === "object" && quizData.code_prompt !== null && quizData.code_prompt.sections ? (
-                    quizData.code_prompt.sections.map((section, index) => {
+                  {typeof learnerPrompt === "object" && learnerPrompt !== null && learnerPrompt.sections ? (
+                    learnerPrompt.sections.map((section, index) => {
                       const sectionColor = sanitizeColor(section?.color);
 
                       if (section.type === "heading") {
@@ -495,9 +497,9 @@ const QuizPage = () => {
                     })
                   ) : (
                     <MarkdownRenderer className={examStyles.lcDescription}>
-                      {typeof quizData.code_prompt === "string"
-                        ? quizData.code_prompt
-                        : JSON.stringify(quizData.code_prompt)}
+                      {typeof learnerPrompt === "string"
+                        ? learnerPrompt
+                        : JSON.stringify(learnerPrompt)}
                     </MarkdownRenderer>
                   )}
                 </div>

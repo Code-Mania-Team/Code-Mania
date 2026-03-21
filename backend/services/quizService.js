@@ -141,6 +141,27 @@ function sanitizeExecutionResults({ testCases, results }) {
   });
 }
 
+function parseMaybeJsonPrompt(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
+  if (!looksJson) return value;
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return { sections: parsed };
+    }
+    if (parsed && typeof parsed === "object" && Array.isArray(parsed.sections)) {
+      return parsed;
+    }
+    return value;
+  } catch {
+    return value;
+  }
+}
+
 class QuizService {
   constructor(model = new QuizModel()) {
     this.model = model;
@@ -197,50 +218,14 @@ class QuizService {
     if (quizType === "mcq") {
       responseData.questions = questions;
     } else {
-      let mockPrompt = {
-        "sections": [
-          { "type": "heading", "level": 2, "content": "🛡️ The Guardian's Test" },
-          { "type": "paragraph", "content": "You must write a function to calculate the sum of two numbers. This is essential to calculate the total power of our warriors." },
-          { "type": "list", "style": "bullet", "items": ["Take two integer parameters.", "Return their sum.", "Do not print anything else to the console."] }
-        ]
-      };
-      
-      let mockStartingCode = {
-        python: 'def calculate_sum(a, b):\n    # Write your code here\n    pass\n',
-        javascript: 'function calculateSum(a, b) {\n  // Write your code here\n}\n',
-        cpp: '#include <vector>\n\nint calculateSum(int a, int b) {\n  // Write your code here\n  return 0;\n}\n'
-      }[language] || '// Write your code here';
+      const parsedDescription = parseMaybeJsonPrompt(quizData.quiz_description);
+      const parsedCodePrompt = parseMaybeJsonPrompt(quizData.code_prompt);
+      const learnerPrompt = parsedDescription || parsedCodePrompt || "";
 
-      let mockTestCases = [
-        {"input": "2 3", "expected": "5", "is_hidden": false},
-        {"input": "-1 1", "expected": "0", "is_hidden": true},
-        {"input": "10 20", "expected": "30", "is_hidden": true}
-      ];
+      responseData.quiz_description = learnerPrompt;
+      responseData.code_prompt = learnerPrompt;
 
-      const parseMaybeJsonPrompt = (value) => {
-        if (value === null || value === undefined) return null;
-        if (typeof value !== "string") return value;
-        const trimmed = value.trim();
-        if (!trimmed) return "";
-        const looksJson = trimmed.startsWith("{") || trimmed.startsWith("[");
-        if (!looksJson) return value;
-        try {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) {
-            return { sections: parsed };
-          }
-          if (parsed && typeof parsed === "object" && Array.isArray(parsed.sections)) {
-            return parsed;
-          }
-          return value;
-        } catch {
-          return value;
-        }
-      };
-
-      responseData.code_prompt = parseMaybeJsonPrompt(quizData.code_prompt) || mockPrompt;
-
-      const effectiveStarting = quizData.starting_code || mockStartingCode;
+      const effectiveStarting = quizData.starting_code || "";
       responseData.starting_code = stripRunnerHelper({ language, code: effectiveStarting });
       responseData.exp_total = quizData.exp_total || 500;
       
@@ -258,7 +243,7 @@ class QuizService {
       let realTestCases = Array.isArray(quizData.test_cases)
         ? quizData.test_cases.map(normalizeTestCase)
         : [];
-      let testCases = realTestCases.length > 0 ? realTestCases : mockTestCases;
+      let testCases = realTestCases;
       
       responseData.meta = {
         test_case_count: testCases.length,
@@ -403,11 +388,11 @@ class QuizService {
 
       const effectiveTestCases = Array.isArray(quizData.test_cases) && quizData.test_cases.length > 0
         ? quizData.test_cases.map(normalizeTestCase)
-        : [
-            { input: "2 3", expected: "5", is_hidden: false },
-            { input: "-1 1", expected: "0", is_hidden: true },
-            { input: "10 20", expected: "30", is_hidden: true },
-          ];
+        : [];
+
+      if (effectiveTestCases.length === 0) {
+        return { ok: false, status: 400, message: "Quiz has no test cases configured" };
+      }
 
       const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
 
@@ -574,11 +559,11 @@ class QuizService {
 
     const effectiveTestCases = Array.isArray(quizData.test_cases) && quizData.test_cases.length > 0
       ? quizData.test_cases.map(normalizeTestCase)
-      : [
-          { input: "2 3", expected: "5", is_hidden: false },
-          { input: "-1 1", expected: "0", is_hidden: true },
-          { input: "10 20", expected: "30", is_hidden: true },
-        ];
+      : [];
+
+    if (effectiveTestCases.length === 0) {
+      return { ok: false, status: 400, message: "Quiz has no test cases configured" };
+    }
 
     const hasFunctionMode = effectiveTestCases.some((tc) => tc && tc.mode === "function");
     const executionCode =
