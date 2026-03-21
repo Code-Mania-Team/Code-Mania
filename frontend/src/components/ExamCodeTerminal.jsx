@@ -694,7 +694,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
                   className={`${styles.examTerminalTab} ${activeBottomTab === "result" ? styles.examTerminalTabActive : ""}`}
                   onClick={() => setActiveBottomTab("result")}
                   disabled={!lastSubmitResult}
-                  title={!lastSubmitResult ? "Submit to see results" : undefined}
+                  title={!lastSubmitResult ? "Run or submit to see results" : undefined}
                 >
                   Test Result
                 </button>
@@ -810,7 +810,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
               {activeBottomTab === "result" && (
                 <div className={styles.examTabPanel} role="tabpanel">
                   {!lastSubmitResult ? (
-                    <div className={styles.examEmptyPanel}>Submit to validate.</div>
+                    <div className={styles.examEmptyPanel}>Run or submit to validate.</div>
                   ) : (
                     (() => {
                       const total = Array.isArray(testCases) ? testCases.length : 0;

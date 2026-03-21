@@ -23,7 +23,24 @@ const useWeeklyChallengeAttempt = () => {
     }
   };
 
-  return { submit, loading, error };
+  const validate = async ({ taskId, code }) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axiosPrivate.post(`/v1/weekly-tasks/${taskId}/validate`, { code });
+      if (response.data?.success) {
+        return response.data.data;
+      }
+      throw new Error(response.data?.message || "Validation failed");
+    } catch (err) {
+      setError(err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { submit, validate, loading, error };
 };
 
 export default useWeeklyChallengeAttempt;

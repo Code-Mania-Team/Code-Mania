@@ -385,6 +385,31 @@ class WeeklyTaskController {
     }
   }
 
+  // ── User: validate weekly task code (no rewards) ─────────────
+  async validateTask(req, res) {
+    try {
+      const taskId = Number(req.params.task_id);
+      if (!Number.isFinite(taskId)) {
+        return res.status(400).json({ success: false, message: "Invalid task_id" });
+      }
+
+      const code = req.body?.code;
+      if (typeof code !== "string" || !code.trim()) {
+        return res.status(400).json({ success: false, message: "code is required" });
+      }
+
+      const result = await this.service.validate({ taskId, code });
+      if (!result.ok) {
+        return res.status(result.status || 500).json({ success: false, message: result.message });
+      }
+
+      return res.status(200).json({ success: true, data: result.data });
+    } catch (err) {
+      console.error("Error validating weekly task:", err);
+      return res.status(500).json({ success: false, message: err.message || "Failed to validate task." });
+    }
+  }
+
   // ── User: submit weekly task code (runs tests) ───────────────
   async submitTask(req, res) {
     try {

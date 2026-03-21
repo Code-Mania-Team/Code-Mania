@@ -660,6 +660,11 @@ async function runSingleTest(language, code, input = "", mode = "stdin", functio
           }
 
           if (language === "javascript") {
+            const fnNameString = String(functionName);
+            const safeFnIdentifier = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(fnNameString)
+              ? fnNameString
+              : null;
+
             finalCode = `
  const __rawInput = ${JSON.stringify(input)};
 
@@ -688,22 +693,31 @@ if (typeof __rawInput === "string") {
 }
 
   const __fnName = ${JSON.stringify(String(functionName))};
+  const __fnFromIdentifier = ${safeFnIdentifier
+    ? `(typeof ${safeFnIdentifier} === "function" ? ${safeFnIdentifier} : null)`
+    : "null"};
   // Avoid eval() so this wrapper stays sanitizer-friendly.
   const __root = (typeof globalThis !== "undefined" && globalThis)
     ? globalThis
     : (typeof self !== "undefined" && self ? self : null);
-  const __fn = __root ? __root[__fnName] : null;
+  const __fn = __fnFromIdentifier || (__root ? __root[__fnName] : null);
   if (typeof __fn !== "function") {
     console.log(
       "FUNCTION_NOT_FOUND: " + __fnName + " (define it in your code or switch the test case mode to stdin)"
     );
   } else {
-  // Accept either {"args": [...]} OR a raw JSON array [...] as the argument list.
+  // Explicit positional args: {"args": [...]}.
   const __args =
     (__arg && typeof __arg === "object" && !Array.isArray(__arg) && Array.isArray(__arg.args))
       ? __arg.args
-      : (Array.isArray(__arg) ? __arg : null);
-    const result = __args ? __fn(...__args) : __fn(__arg);
+      : null;
+
+  // Raw JSON arrays default to ONE argument (the array itself).
+  // For multi-arg functions (arity > 1), allow spreading for backwards compatibility.
+  const __shouldSpreadRawArray = Array.isArray(__arg) && Number(__fn.length || 0) > 1;
+  const result = __args
+    ? __fn(...__args)
+    : (__shouldSpreadRawArray ? __fn(...__arg) : __fn(__arg));
     console.log("OUTPUT:", JSON.stringify(result));
   }
    `;
