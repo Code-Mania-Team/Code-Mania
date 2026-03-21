@@ -90,34 +90,6 @@ export default function WeeklyChallengePage() {
     };
   }, [taskId]);
 
-  useEffect(() => {
-    // If the user already completed this task (e.g. completed earlier), show the congrats modal once.
-    const status = String(task?.userStatus || task?.user_status || "").toLowerCase();
-    if (status !== "completed") return;
-    if (!Number.isFinite(taskId)) return;
-    if (rewardModal.open) return;
-
-    const key = `weekly_complete_modal_shown:${taskId}`;
-    try {
-      if (localStorage.getItem(key) === "true") return;
-    } catch {
-      // ignore
-    }
-
-    const xp = Number(task?.xpAwarded || task?.xp_awarded || task?.reward_xp || 0);
-    const prizeName = task?.reward_cosmetic?.name || "";
-    const prizeType = task?.reward_cosmetic?.type || "";
-    const prizeAssetUrl = task?.reward_cosmetic?.asset_url || "";
-    if (xp <= 0 && !prizeName) return;
-
-    setRewardModal({ open: true, xp, prizeName, prizeType, prizeAssetUrl });
-    try {
-      localStorage.setItem(key, "true");
-    } catch {
-      // ignore
-    }
-  }, [task, taskId, rewardModal.open]);
-
   const challenge = useMemo(() => {
     const title = task?.title || `Weekly Challenge #${Number.isFinite(taskId) ? taskId : ""}`;
     const description = task?.description || "";

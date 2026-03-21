@@ -47,6 +47,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
   const [code, setCode] = useState(initialCode || "");
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [inputBuffer, setInputBuffer] = useState("");
   const [testResults, setTestResults] = useState([]);
   const [activeTestCaseIndex, setActiveTestCaseIndex] = useState(0);
@@ -247,7 +248,8 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
     setHasRunOnce(false);
   }, [attemptId, language]);
 
-  const disableSubmit = isRunning || attemptsExhausted || locked || !hasRunOnce;
+  const isBusy = isRunning || isSubmitting;
+  const disableSubmit = isBusy || attemptsExhausted || locked || !hasRunOnce;
   const showEditor = !isMobileView || mobilePanel === "code";
   const showOutput = !isMobileView || mobilePanel === "output";
   const editorHeight = isMobileView ? "320px" : "430px";
@@ -338,7 +340,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
      RUN (WS CONNECT)
   =============================== */
   const handleRun = async () => {
-    if (isRunning) return;
+    if (isBusy) return;
 
     setHasRunOnce(true);
     resetTerminal();
@@ -448,18 +450,18 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
   };
 
   const handleSubmit = async () => {
-    if (isRunning || !attemptId || locked) return;
+    if (isBusy || !attemptId || locked) return;
 
     resetTerminal();
-    write("\n⏳ Running some tests...\n");
-    setIsRunning(true);
+    write("\n⏳ Submitting solution...\n");
+    setIsSubmitting(true);
 
     try {
       const result = await submitAttempt(code, language);
 
       if (!result) {
         write("\n❌ Submission failed\n");
-        setIsRunning(false);
+        setIsSubmitting(false);
         return;
       }
 
@@ -499,7 +501,7 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
       write("\n❌ Error while running tests\n");
     } finally {
       write("\n▶ Ready for Execution\n");
-      setIsRunning(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -596,10 +598,10 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
             <button
               className={styles.examSubmitBtn}
               onClick={handleRun}
-              disabled={isRunning}
+              disabled={isBusy}
             >
               <Play size={16} />
-              Run
+              {isRunning ? "Running..." : "Run"}
             </button>
 
             <button
@@ -615,6 +617,8 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
             >
               {attemptsExhausted
                 ? "No Attempts Left"
+                : isSubmitting
+                  ? "Submitting..."
                 : "Submit"}
             </button>
           </div>
@@ -703,11 +707,11 @@ const ExamCodeTerminal = ({ language, initialCode, attemptId, validateAttempt, s
               <span
                 className={styles.examTerminalStatus}
                 style={{
-                  background: isRunning ? "rgba(59,130,246,0.2)" : "rgba(34,197,94,0.15)",
-                  color: isRunning ? "#3b82f6" : "#22c55e"
+                  background: isBusy ? "rgba(59,130,246,0.2)" : "rgba(34,197,94,0.15)",
+                  color: isBusy ? "#3b82f6" : "#22c55e"
                 }}
               >
-                {isRunning ? "Running..." : "Idle"}
+                {isSubmitting ? "Submitting..." : isRunning ? "Running..." : "Idle"}
               </span>
             </div>
 
