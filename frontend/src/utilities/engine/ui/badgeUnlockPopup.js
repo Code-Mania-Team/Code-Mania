@@ -24,7 +24,7 @@ export default class BadgeUnlockPopup {
     }).setOrigin(0.5);
 
     this.subtitle = scene.add.text(0, 100, "", {
-      fontSize: "14px",
+      fontSize: "16px",
       color: "#ffffff"
     }).setOrigin(0.5);
 

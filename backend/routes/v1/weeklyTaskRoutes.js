@@ -22,7 +22,9 @@ weeklyTaskRouter.post('/:task_id/submit', authentication, controller.submitTask.
 
 // ── Admin routes ───────────────────────────────────────────────
 weeklyTaskRouter.get('/all', authentication, requireAdmin, controller.getAllTasks.bind(controller));
+weeklyTaskRouter.get('/reward-avatar-options', authentication, requireAdmin, controller.listRewardAvatarOptions.bind(controller));
 weeklyTaskRouter.post('/cover-image', authentication, requireAdmin, uploadImage.single('image'), controller.uploadCoverImage.bind(controller));
+weeklyTaskRouter.post('/reward-avatar', authentication, requireAdmin, uploadImage.single('image'), controller.uploadRewardAvatarFrame.bind(controller));
 weeklyTaskRouter.post('/', authentication, requireAdmin, controller.createTask.bind(controller));
 weeklyTaskRouter.put('/:task_id', authentication, requireAdmin, controller.updateTask.bind(controller));
 weeklyTaskRouter.delete('/:task_id', authentication, requireAdmin, controller.deleteTask.bind(controller));

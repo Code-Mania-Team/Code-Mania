@@ -6,6 +6,7 @@ import styles from "../styles/Admin.module.css";
 import JsonEditor from "../components/JsonEditor";
 import MarkdownRenderer from "../components/MarkdownRenderer";
 import Editor from "@monaco-editor/react";
+import { useTheme } from "../context/ThemeProvider.jsx";
 
 const ExerciseManager = () => {
   const { course } = useParams();
@@ -291,6 +292,9 @@ Tip: use \`\\n\` for multi-line input and output. Keep \`requirements\` as a val
 };
 
 const ExerciseForm = ({ formData, setFormData, onSave, onCancel, course }) => {
+  const { theme } = useTheme();
+  const editorTheme = theme === "light" ? "vs" : "vs-dark";
+
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -406,56 +410,56 @@ const ExerciseForm = ({ formData, setFormData, onSave, onCancel, course }) => {
       <div className={styles.formGroupFull}>
         <label>Description</label>
         <div className={styles.jsonEditorWrap}>
-          <Editor
-            height="220px"
-            language="markdown"
-            theme="vs-dark"
-            value={String(formData.description || "")}
-            onChange={(v) => handleChange("description", v ?? "")}
-            options={baseEditorOptions}
-          />
+            <Editor
+              height="220px"
+              language="markdown"
+              theme={editorTheme}
+              value={String(formData.description || "")}
+              onChange={(v) => handleChange("description", v ?? "")}
+              options={baseEditorOptions}
+            />
         </div>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Task</label>
         <div className={styles.jsonEditorWrap}>
-          <Editor
-            height="150px"
-            language="markdown"
-            theme="vs-dark"
-            value={String(formData.task || "")}
-            onChange={(v) => handleChange("task", v ?? "")}
-            options={baseEditorOptions}
-          />
+            <Editor
+              height="150px"
+              language="markdown"
+              theme={editorTheme}
+              value={String(formData.task || "")}
+              onChange={(v) => handleChange("task", v ?? "")}
+              options={baseEditorOptions}
+            />
         </div>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Lesson Example</label>
         <div className={styles.jsonEditorWrap}>
-          <Editor
-            height="180px"
-            language="markdown"
-            theme="vs-dark"
-            value={String(formData.lesson_example || "")}
-            onChange={(v) => handleChange("lesson_example", v ?? "")}
-            options={baseEditorOptions}
-          />
+            <Editor
+              height="180px"
+              language="markdown"
+              theme={editorTheme}
+              value={String(formData.lesson_example || "")}
+              onChange={(v) => handleChange("lesson_example", v ?? "")}
+              options={baseEditorOptions}
+            />
         </div>
       </div>
 
       <div className={styles.formGroupFull}>
         <label>Starting Code</label>
         <div className={styles.jsonEditorWrap}>
-          <Editor
-            height="200px"
-            language={codeLanguage}
-            theme="vs-dark"
-            value={String(formData.starting_code || "")}
-            onChange={(v) => handleChange("starting_code", v ?? "")}
-            options={codeEditorOptions}
-          />
+            <Editor
+              height="200px"
+              language={codeLanguage}
+              theme={editorTheme}
+              value={String(formData.starting_code || "")}
+              onChange={(v) => handleChange("starting_code", v ?? "")}
+              options={codeEditorOptions}
+            />
         </div>
       </div>
 

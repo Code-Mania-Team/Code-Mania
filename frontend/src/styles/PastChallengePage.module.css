@@ -280,3 +280,117 @@
     position: static;
   }
 }
+
+:global(html[data-theme="light"]) .page {
+  background:
+    radial-gradient(980px 520px at 6% -8%, rgba(186, 230, 253, 0.72) 0%, rgba(186, 230, 253, 0) 62%),
+    radial-gradient(920px 520px at 88% -18%, rgba(253, 224, 71, 0.26) 0%, rgba(253, 224, 71, 0) 60%),
+    linear-gradient(180deg, #eef5ff 0%, #e7edf8 56%, #e2e8f2 100%);
+  color: #0f172a;
+}
+
+:global(html[data-theme="light"]) .kicker {
+  color: #334155;
+}
+
+:global(html[data-theme="light"]) .title {
+  color: #0b1738;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+:global(html[data-theme="light"]) .backBtn {
+  border-color: rgba(30, 41, 59, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 245, 249, 0.92) 100%);
+  color: #0f172a;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+:global(html[data-theme="light"]) .tabs {
+  gap: 18px;
+}
+
+:global(html[data-theme="light"]) .tab {
+  color: #475569;
+  border-bottom-color: transparent;
+}
+
+:global(html[data-theme="light"]) .tab:hover {
+  color: #0f172a;
+}
+
+:global(html[data-theme="light"]) .tabActive {
+  color: #0f172a;
+  border-bottom-color: #2563eb;
+}
+
+:global(html[data-theme="light"]) .countPill {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: rgba(255, 255, 255, 0.98);
+  color: #1e3a8a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+:global(html[data-theme="light"]) .rule {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.18) 0%, rgba(100, 116, 139, 0.34) 42%, rgba(148, 163, 184, 0.18) 100%);
+}
+
+:global(html[data-theme="light"]) .coverCard,
+:global(html[data-theme="light"]) .listCard,
+:global(html[data-theme="light"]) .statCard,
+:global(html[data-theme="light"]) .sideCard,
+:global(html[data-theme="light"]) .winnerRow {
+  border-color: rgba(100, 116, 139, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.93) 100%);
+  box-shadow: 0 14px 34px rgba(30, 41, 59, 0.09);
+}
+
+:global(html[data-theme="light"]) .coverCard {
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+:global(html[data-theme="light"]) .listCard,
+:global(html[data-theme="light"]) .statCard,
+:global(html[data-theme="light"]) .sideCard {
+  backdrop-filter: blur(3px);
+}
+
+:global(html[data-theme="light"]) .listTitle,
+:global(html[data-theme="light"]) .statTitle {
+  color: #0b1738;
+}
+
+:global(html[data-theme="light"]) .lede,
+:global(html[data-theme="light"]) .statRow,
+:global(html[data-theme="light"]) .note,
+:global(html[data-theme="light"]) .state,
+:global(html[data-theme="light"]) .empty,
+:global(html[data-theme="light"]) .sideCardTitle {
+  color: #334155;
+}
+
+:global(html[data-theme="light"]) .userPill {
+  border-color: rgba(37, 99, 235, 0.28);
+  background: rgba(239, 246, 255, 0.92);
+  color: #0f172a;
+}
+
+:global(html[data-theme="light"]) .winnerRow {
+  border-color: rgba(59, 130, 246, 0.24);
+}
+
+:global(html[data-theme="light"]) .rank {
+  color: #0f172a;
+}
+
+:global(html[data-theme="light"]) .winnerUser {
+  color: #1d4ed8;
+}
+
+:global(html[data-theme="light"]) .sideBtn {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.30);
+}
+
+:global(html[data-theme="light"]) .sideBtn:hover {
+  filter: brightness(1.04);
+}

@@ -988,7 +988,7 @@ const SignInModal = ({ isOpen, onClose, onSignInSuccess, customMessage }) => {
 
                   htmlFor="rememberMe"
 
-                  style={{ margin: 0, cursor: 'pointer', fontSize: '14px' }}
+                  style={{ margin: 0, cursor: 'pointer', fontSize: '16px' }}
 
                 >
 

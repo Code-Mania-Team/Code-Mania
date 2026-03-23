@@ -1672,6 +1672,27 @@ function Admin({ presenceStats = { connections: 0, uniqueUsers: 0 }, presenceWsS
             ))}
           </div>
         </div>
+
+        <h3 className={styles.panelTitle} style={{ marginTop: 16, marginBottom: 8 }}>Cosmetics</h3>
+        <div className={styles.panel}>
+          <div className={styles.divider} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
+            <div className={styles.datasetRow}>
+              <div className={styles.datasetLeft}>
+                <div className={styles.datasetName}>Avatar Frames & Terminal Skins</div>
+                <div className={styles.datasetMeta}>Create, update, disable, or delete cosmetics used for rewards and profiles.</div>
+              </div>
+              <div className={styles.datasetActions}>
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={() => navigate("/admin/cosmetics")}
+                >
+                  Manage Cosmetics
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );

@@ -445,7 +445,7 @@ const Header = ({ onOpenModal, onSignOut }) => {
       </div>
 
       <div className="mobile-header-actions">
-        <NotificationBell />
+        {isAuthenticated ? <NotificationBell /> : null}
         <button
           className="hamburger"
           onClick={toggleMenu}

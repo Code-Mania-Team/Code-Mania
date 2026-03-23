@@ -6,6 +6,7 @@ import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import TestCasesEditor from "../components/TestCasesEditor";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import { useTheme } from "../context/ThemeProvider.jsx";
 
 const LANG_SLUG_BY_COURSE = {
   python: "python",
@@ -368,6 +369,9 @@ Tip: keep this as a valid JSON array.`;
 };
 
 const QuizForm = ({ formData, setFormData, onSave, onCancel, saving, allowFunctionMode = false }) => {
+  const { theme } = useTheme();
+  const editorTheme = theme === "light" ? "vs" : "vs-dark";
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -470,7 +474,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving, allowFuncti
               <Editor
                 height="200px"
                 language="markdown"
-                theme="vs-dark"
+                theme={editorTheme}
                 value={formData.quiz_description || ""}
                 onChange={(v) => handleChange("quiz_description", v ?? "")}
                 options={baseEditorOptions}
@@ -494,7 +498,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving, allowFuncti
                     <Editor
                       height="260px"
                       language="plaintext"
-                      theme="vs-dark"
+                      theme={editorTheme}
                       value={formData.starting_code || ""}
                       onChange={(v) => handleChange("starting_code", v ?? "")}
                       options={baseEditorOptions}
@@ -523,7 +527,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving, allowFuncti
                       <Editor
                         height="240px"
                         language="json"
-                        theme="vs-dark"
+                        theme={editorTheme}
                         value={formData.test_cases || "[]"}
                         onChange={(v) => handleChange("test_cases", v ?? "")}
                         options={baseEditorOptions}

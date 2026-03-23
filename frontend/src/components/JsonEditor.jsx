@@ -1,5 +1,6 @@
 import React from "react";
 import Editor from "@monaco-editor/react";
+import { useTheme } from "../context/ThemeProvider.jsx";
 
 const baseOptions = {
   minimap: { enabled: false },
@@ -21,11 +22,13 @@ export default function JsonEditor({
   height = "220px",
   readOnly = false,
 }) {
+  const { theme } = useTheme();
+
   return (
     <Editor
       height={height}
       language="json"
-      theme="vs-dark"
+      theme={theme === "light" ? "vs" : "vs-dark"}
       value={typeof value === "string" ? value : String(value ?? "")}
       onChange={(v) => {
         if (typeof onChange === "function") onChange(v ?? "");

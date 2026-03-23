@@ -2,14 +2,17 @@ import { Router } from 'express';
 import { authentication } from '../../middlewares/authentication.js';
 import { authorization } from '../../middlewares/authorization.js';
 import requireAdmin from '../../middlewares/requireAdmin.js';
+import uploadImage from '../../middlewares/uploadImage.js';
 import AdminExamController from '../../controllers/v1/adminExamController.js';
 import AdminQuizController from '../../controllers/v1/adminQuizController.js';
+import AdminCosmeticsController from '../../controllers/v1/adminCosmeticsController.js';
 import ExerciseController from '../../controllers/v1/exerciseController.js';
 import AdminController from '../../controllers/v1/adminController.js';
 
 const router = Router();
 const adminExam = new AdminExamController();
 const adminQuiz = new AdminQuizController();
+const adminCosmetics = new AdminCosmeticsController();
 const exerciseController = new ExerciseController();
 const adminController = new AdminController();
 
@@ -90,6 +93,43 @@ router.delete(
   authentication,
   requireAdmin,
   exerciseController.deleteExercise.bind(exerciseController),
+);
+
+// ---------------- COSMETICS (ADMIN) ----------------
+router.get(
+  "/cosmetics",
+  authentication,
+  requireAdmin,
+  adminCosmetics.list.bind(adminCosmetics),
+);
+
+router.post(
+  "/cosmetics",
+  authentication,
+  requireAdmin,
+  adminCosmetics.create.bind(adminCosmetics),
+);
+
+router.post(
+  "/cosmetics/upload-image",
+  authentication,
+  requireAdmin,
+  uploadImage.single("image"),
+  adminCosmetics.uploadImage.bind(adminCosmetics),
+);
+
+router.patch(
+  "/cosmetics/:key",
+  authentication,
+  requireAdmin,
+  adminCosmetics.update.bind(adminCosmetics),
+);
+
+router.delete(
+  "/cosmetics/:key",
+  authentication,
+  requireAdmin,
+  adminCosmetics.remove.bind(adminCosmetics),
 );
 
 export default router;

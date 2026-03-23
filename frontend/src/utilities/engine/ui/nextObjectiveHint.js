@@ -28,7 +28,7 @@ export default class NextObjectiveHint {
       .setStrokeStyle(2, 0x60a5fa, 0.9);
 
     this.text = scene.add.text(12, 12, "", {
-      font: "bold 14px Arial",
+      font: "bold 16px Arial",
       fill: "#e5e7eb",
       wordWrap: { width: width - 24, useAdvancedWrap: true },
     });

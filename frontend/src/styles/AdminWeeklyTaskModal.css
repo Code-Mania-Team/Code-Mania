@@ -435,3 +435,143 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+html[data-theme="light"] .admin-modal-overlay {
+  background-color: rgba(15, 23, 42, 0.35);
+}
+
+html[data-theme="light"] .admin-modal-content {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #0f172a;
+  box-shadow: 0 24px 40px -14px rgba(15, 23, 42, 0.24);
+}
+
+html[data-theme="light"] .admin-modal-header {
+  background-color: rgba(15, 23, 42, 0.03);
+  border-bottom-color: rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .admin-modal-header h2 {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .admin-modal-close {
+  color: #64748b;
+}
+
+html[data-theme="light"] .admin-modal-close:hover {
+  background-color: rgba(15, 23, 42, 0.07);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .form-group label {
+  color: #475569;
+}
+
+html[data-theme="light"] .form-group input,
+html[data-theme="light"] .form-group select,
+html[data-theme="light"] .form-group textarea {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .form-group input::placeholder,
+html[data-theme="light"] .form-group textarea::placeholder {
+  color: #94a3b8;
+}
+
+html[data-theme="light"] .form-group input:focus,
+html[data-theme="light"] .form-group select:focus,
+html[data-theme="light"] .form-group textarea:focus {
+  border-color: rgba(29, 78, 216, 0.45);
+  background-color: #ffffff;
+}
+
+html[data-theme="light"] .admin-md-toggle {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #334155;
+}
+
+html[data-theme="light"] .admin-md-toggle:hover {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.22);
+}
+
+html[data-theme="light"] .admin-md-toggle.is-on {
+  background: rgba(29, 78, 216, 0.1);
+  border-color: rgba(29, 78, 216, 0.24);
+  color: #1d4ed8;
+}
+
+html[data-theme="light"] .admin-md-preview {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .code-editor {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html[data-theme="light"] .form-section {
+  background-color: rgba(15, 23, 42, 0.02);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .form-section-header h3,
+html[data-theme="light"] .test-case-hint,
+html[data-theme="light"] .admin-test-cheat summary {
+  color: #334155;
+}
+
+html[data-theme="light"] .test-case-hint code {
+  background-color: rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  color: #334155;
+}
+
+html[data-theme="light"] .admin-test-cheat {
+  background: rgba(15, 23, 42, 0.02);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .test-case-row {
+  background-color: rgba(15, 23, 42, 0.03);
+}
+
+html[data-theme="light"] .test-case-num {
+  color: #64748b;
+}
+
+html[data-theme="light"] .test-case-hidden-toggle {
+  color: #334155;
+}
+
+html[data-theme="light"] .btn-add-test {
+  background-color: rgba(29, 78, 216, 0.08);
+  color: #1d4ed8;
+  border-color: rgba(29, 78, 216, 0.22);
+}
+
+html[data-theme="light"] .btn-add-test:hover {
+  background-color: rgba(29, 78, 216, 0.14);
+  color: #1e40af;
+}
+
+html[data-theme="light"] .btn-cancel {
+  border-color: rgba(15, 23, 42, 0.2);
+  color: #334155;
+}
+
+html[data-theme="light"] .btn-cancel:hover:not(:disabled) {
+  background-color: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .admin-modal-footer {
+  border-top-color: rgba(15, 23, 42, 0.12);
+}

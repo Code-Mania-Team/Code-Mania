@@ -6,6 +6,20 @@ class WeeklyTask {
     this.db = supabase;
   }
 
+  isMissingTableError(error, tableName) {
+    const msg = String(error?.message || "").toLowerCase();
+    if (!msg) return false;
+
+    const table = String(tableName || "").toLowerCase();
+    if (!table) return false;
+
+    return (
+      msg.includes(`could not find the table 'public.${table}' in the schema cache`) ||
+      msg.includes(`relation \"public.${table}\" does not exist`) ||
+      msg.includes(`relation \"${table}\" does not exist`)
+    );
+  }
+
   async listRewardCosmeticKeys({ excludeTaskId = null } = {}) {
     // Best-effort: some environments may not have reward columns yet.
     const excludeId = Number(excludeTaskId);
@@ -281,7 +295,12 @@ class WeeklyTask {
       .order("rank", { ascending: true })
       .order("created_at", { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      if (this.isMissingTableError(error, "weekly_task_winners")) {
+        return [];
+      }
+      throw error;
+    }
     return data || [];
   }
 

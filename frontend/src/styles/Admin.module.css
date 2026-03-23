@@ -55,7 +55,7 @@
 }
 
 .exerciseDescription {
-  font-size: 14px;
+  font-size: 16px;
   color: #cbd5e1;
   line-height: 1.4;
 }
@@ -305,7 +305,7 @@
   justify-content: space-between;
   gap: 10px;
   margin: 0 0 10px 0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #e7eefc;
 }
@@ -396,7 +396,7 @@
   border-radius: 6px;
   background: rgba(15, 23, 42, 0.6);
   color: #e7eefc;
-  font-size: 14px;
+  font-size: 16px;
   transition: border-color 0.2s;
   width: 100%;
   box-sizing: border-box;
@@ -527,7 +527,7 @@
 }
 
 .heroSubtitle {
-  font-size: 14px;
+  font-size: 16px;
   opacity: 0.85;
   color: rgba(231, 238, 252, 0.92);
   letter-spacing: 0.02em;
@@ -1187,6 +1187,91 @@ html[data-theme="light"] .button:hover {
 
 html[data-theme="light"] .formGroup label {
   color: var(--muted);
+}
+
+html[data-theme="light"] .exerciseEditor,
+html[data-theme="light"] .exerciseEditor h3,
+html[data-theme="light"] .editorHeaderTitle,
+html[data-theme="light"] .sectionTitle,
+html[data-theme="light"] .previewTitle,
+html[data-theme="light"] .helpSummary {
+  color: var(--text-strong);
+}
+
+html[data-theme="light"] .editorHeaderMeta,
+html[data-theme="light"] .sectionDesc,
+html[data-theme="light"] .previewHint,
+html[data-theme="light"] .helpText {
+  color: var(--muted);
+}
+
+html[data-theme="light"] .formSection {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .previewPanel {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .previewCard {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+html[data-theme="light"] .previewCard h1,
+html[data-theme="light"] .previewCard h2,
+html[data-theme="light"] .previewCard h3,
+html[data-theme="light"] .previewCard h4 {
+  color: var(--text-strong);
+}
+
+html[data-theme="light"] .badge {
+  border-color: rgba(15, 23, 42, 0.14);
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text);
+}
+
+html[data-theme="light"] .badgeBlue {
+  border-color: rgba(29, 78, 216, 0.22);
+  background: rgba(29, 78, 216, 0.1);
+  color: #1d4ed8;
+}
+
+html[data-theme="light"] .badgeGreen {
+  border-color: rgba(22, 163, 74, 0.24);
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+}
+
+html[data-theme="light"] .badgeAmber {
+  border-color: rgba(217, 119, 6, 0.24);
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+}
+
+html[data-theme="light"] .helpDetails {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .helpCode {
+  background: rgba(248, 250, 252, 1);
+  border-color: var(--border);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .previewError {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+html[data-theme="light"] .formActionsSticky {
+  background: rgba(255, 255, 255, 0.92);
+  border-top-color: var(--border);
 }
 
 html[data-theme="light"] .formGroup input,
