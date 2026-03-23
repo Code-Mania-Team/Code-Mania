@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "../styles/TestCasesEditor.module.css";
 
-function normalizeCase(item) {
+function normalizeCase(item, options = {}) {
+  const allowFunctionMode = Boolean(options.allowFunctionMode);
+  const defaultMode = allowFunctionMode ? "function" : "stdin";
+  const defaultFunctionName = allowFunctionMode ? "solution" : "";
+
   const safe = item && typeof item === "object" ? item : {};
 
   const coerceBool = (value) => {
@@ -28,11 +32,19 @@ function normalizeCase(item) {
     input: safe.input ?? "",
     expected: safe.expected ?? "",
     is_hidden: coerceBool(safe.is_hidden ?? safe.isHidden),
+    mode:
+      allowFunctionMode && String(safe.mode || "").trim().toLowerCase() === "function"
+        ? "function"
+        : defaultMode,
+    functionName:
+      allowFunctionMode
+        ? String(safe.functionName ?? safe.function_name ?? safe.fn ?? defaultFunctionName)
+        : String(safe.functionName ?? safe.function_name ?? safe.fn ?? ""),
     ...(input_vars ? { input_vars } : {}),
   };
 }
 
-function parseCases(raw) {
+function parseCases(raw, options = {}) {
   const trimmed = typeof raw === "string" ? raw.trim() : "";
   if (!trimmed) return { cases: [], error: "" };
 
@@ -41,31 +53,35 @@ function parseCases(raw) {
     if (!Array.isArray(parsed)) {
       return { cases: [], error: "Test cases JSON must be an array." };
     }
-    return { cases: parsed.map(normalizeCase), error: "" };
+    return { cases: parsed.map((item) => normalizeCase(item, options)), error: "" };
   } catch {
     return { cases: [], error: "Test cases must be valid JSON." };
   }
 }
 
-export default function TestCasesEditor({ value, onChange, readOnly = false }) {
-  const initial = useMemo(() => parseCases(value), [value]);
-  const [cases, setCases] = useState(() => (initial.cases.length ? initial.cases : [normalizeCase({})]));
+export default function TestCasesEditor({ value, onChange, readOnly = false, allowFunctionMode = false }) {
+  const initial = useMemo(() => parseCases(value, { allowFunctionMode }), [value, allowFunctionMode]);
+  const [cases, setCases] = useState(() =>
+    initial.cases.length ? initial.cases : [normalizeCase({}, { allowFunctionMode })]
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [parseError, setParseError] = useState(initial.error);
   const [varNameDrafts, setVarNameDrafts] = useState({});
 
   useEffect(() => {
-    const parsed = parseCases(value);
+    const parsed = parseCases(value, { allowFunctionMode });
     if (!parsed.error) {
-      setCases(parsed.cases.length ? parsed.cases : [normalizeCase({})]);
+      setCases(parsed.cases.length ? parsed.cases : [normalizeCase({}, { allowFunctionMode })]);
       setParseError("");
       return;
     }
 
     // Keep existing UI state so user can fix it.
     setParseError(parsed.error);
-    setCases((prev) => (Array.isArray(prev) && prev.length ? prev : [normalizeCase({})]));
-  }, [value]);
+    setCases((prev) =>
+      Array.isArray(prev) && prev.length ? prev : [normalizeCase({}, { allowFunctionMode })]
+    );
+  }, [value, allowFunctionMode]);
 
   useEffect(() => {
     setActiveIndex((prev) => {
@@ -83,7 +99,7 @@ export default function TestCasesEditor({ value, onChange, readOnly = false }) {
 
   const addCase = () => {
     if (readOnly) return;
-    const next = [...cases, normalizeCase({})];
+    const next = [...cases, normalizeCase({}, { allowFunctionMode })];
     emit(next);
     setActiveIndex(next.length - 1);
   };
@@ -248,7 +264,7 @@ export default function TestCasesEditor({ value, onChange, readOnly = false }) {
     });
   };
 
-  const active = cases[activeIndex] || normalizeCase({});
+  const active = cases[activeIndex] || normalizeCase({}, { allowFunctionMode });
   const inputVars =
     active?.input_vars && typeof active.input_vars === "object" && !Array.isArray(active.input_vars)
       ? active.input_vars
@@ -408,6 +424,40 @@ export default function TestCasesEditor({ value, onChange, readOnly = false }) {
             placeholder="Example: 1\n2\n"
           />
         </div>
+
+        {allowFunctionMode ? (
+          <div className={styles.functionRow}>
+            <div className={styles.functionField}>
+              <div className={styles.fieldLabel}>mode</div>
+              <select
+                className={styles.select}
+                value={String(active.mode || "function") === "function" ? "function" : "stdin"}
+                onChange={(e) => {
+                  const nextMode = e.target.value === "stdin" ? "stdin" : "function";
+                  updateActive("mode", nextMode);
+                  if (nextMode === "function" && !String(active.functionName || "").trim()) {
+                    updateActive("functionName", "solution");
+                  }
+                }}
+                disabled={readOnly}
+              >
+                <option value="function">function</option>
+                <option value="stdin">stdin</option>
+              </select>
+            </div>
+
+            <div className={styles.functionFieldGrow}>
+              <div className={styles.fieldLabel}>functionName (optional)</div>
+              <input
+                className={styles.input}
+                value={String(active.functionName || "")}
+                onChange={(e) => updateActive("functionName", e.target.value)}
+                readOnly={readOnly}
+                placeholder="solution"
+              />
+            </div>
+          </div>
+        ) : null}
 
         <div className={styles.metaRow}>
           <label className={styles.checkbox}>

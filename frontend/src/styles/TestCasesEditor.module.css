@@ -117,6 +117,38 @@
   flex-wrap: wrap;
 }
 
+.functionRow {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.functionField,
+.functionFieldGrow {
+  display: grid;
+  gap: 6px;
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.45);
+  color: rgba(226, 232, 240, 0.95);
+  font-size: 13px;
+}
+
+.input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.select:disabled,
+.input:read-only {
+  opacity: 0.85;
+}
+
 .checkbox {
   display: inline-flex;
   align-items: center;
@@ -265,6 +297,10 @@
 }
 
 @media (max-width: 640px) {
+  .functionRow {
+    grid-template-columns: 1fr;
+  }
+
   .varRow {
     grid-template-columns: 1fr;
   }

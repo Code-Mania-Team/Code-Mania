@@ -168,6 +168,12 @@ const ExerciseManager = () => {
           Manage {course} exercises. Total: {exercises.length} exercises
         </p>
 
+        {editingExercise !== null && (
+          <aside className={styles.exerciseCheatSheetDock}>
+            <TestCasesCheatSheet />
+          </aside>
+        )}
+
         <div className={styles.panel}>
           {exercises.map((exercise) => (
             <div key={exercise.id} className={styles.exerciseRow}>
@@ -218,6 +224,69 @@ const ExerciseManager = () => {
         </div>
       </section>
     </div>
+  );
+};
+
+const TestCasesCheatSheet = () => {
+  const runtimeMarkdown = `#### Runtime test cases
+
+
+\`\`\`json
+{
+  "test_cases": [
+    {
+      "input": "2\\n3",
+      "expected": "5"
+    }
+  ]
+}
+\`\`\`
+
+Supported fields: \`input\` (stdin), \`expected\` (must appear in output).`;
+
+  const objectivesMarkdown = `#### Rule-based objectives
+
+\`\`\`json
+{
+  "objectives": [
+    {
+      "id": "out",
+      "type": "output_contains",
+      "label": "Prints result",
+      "value": "5"
+    }
+  ]
+}
+\`\`\``;
+
+  const supportedTypesMarkdown = `#### Supported objective types
+
+- \`output_contains\`: output includes \`value\`.
+- \`output_equals\`: output must exactly match \`value\` (trimmed lines).
+- \`output_regex\`: output matches regex in \`value\`.
+- \`code_contains\`: submitted code includes \`value\`.
+- \`code_regex\`: submitted code matches regex in \`value\`.
+- \`min_print_count\`: Python code has at least \`value\` \`print()\` calls.
+
+Tip: use \`\\n\` for multi-line input and output. Keep \`requirements\` as a valid JSON object.`;
+
+  return (
+    <>
+      <div className={styles.previewTitle}>
+        <span>Test Case Cheat Sheet</span>
+      </div>
+      <p className={styles.previewHint}>
+        Exercise editor only. Quiz, exam, and weekly challenges are mainly runtime test cases.
+      </p>
+
+      <div className={styles.previewCard}>
+        <div style={{ display: "grid", gap: 4 }}>
+          <MarkdownRenderer>{runtimeMarkdown}</MarkdownRenderer>
+          <MarkdownRenderer>{objectivesMarkdown}</MarkdownRenderer>
+          <MarkdownRenderer>{supportedTypesMarkdown}</MarkdownRenderer>
+        </div>
+      </div>
+    </>
   );
 };
 
