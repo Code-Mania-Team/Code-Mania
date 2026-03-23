@@ -548,49 +548,37 @@ function CosmeticsManager() {
                   </div>
                 ) : (
                   <>
-                    <div className={styles.exerciseLeft}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                        <div
-                          style={{
-                            width: 42,
-                            height: 42,
-                            borderRadius: 8,
-                            border: "1px solid rgba(148, 163, 184, 0.35)",
-                            background: "rgba(15, 23, 42, 0.06)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            overflow: "hidden",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {row.asset_url ? (
-                            <img
-                              src={row.asset_url}
-                              alt={row.name || row.key}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            />
-                          ) : (
-                            <span style={{ fontSize: 10, opacity: 0.7 }}>N/A</span>
-                          )}
+                    <div className={styles.cosmeticRowContent}>
+                      <div className={styles.cosmeticMain}>
+                        <div className={styles.cosmeticTitleRow}>
+                          <div className={styles.cosmeticThumb}>
+                            {row.asset_url ? (
+                              <img
+                                src={row.asset_url}
+                                alt={row.name || row.key}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                            ) : (
+                              <span style={{ fontSize: 10, opacity: 0.7 }}>N/A</span>
+                            )}
+                          </div>
+                          <div className={styles.exerciseTitle}>{row.name || row.key}</div>
                         </div>
-                        <div className={styles.exerciseTitle}>{row.name || row.key}</div>
+                        <div className={styles.exerciseMeta}>
+                          Key: {row.key} · Type: {row.type} · Rarity: {row.rarity || "-"} · Status:{" "}
+                          <span className={row.enabled ? styles.published : styles.draft}>
+                            {row.enabled ? "enabled" : "disabled"}
+                          </span>
+                        </div>
                       </div>
-                      <div className={styles.exerciseMeta}>
-                        Key: {row.key} · Type: {row.type} · Rarity: {row.rarity || "-"} · Status:{" "}
-                        <span className={row.enabled ? styles.published : styles.draft}>
-                          {row.enabled ? "enabled" : "disabled"}
-                        </span>
+                      <div className={styles.cosmeticActions}>
+                        <button className={styles.button} type="button" onClick={() => handleEdit(row)}>
+                          <Edit size={16} />
+                        </button>
+                        <button className={styles.button} type="button" onClick={() => handleDelete(row.key)}>
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                      <div className={styles.exerciseDescription}>{row.asset_url}</div>
-                    </div>
-                    <div className={styles.exerciseActions}>
-                      <button className={styles.button} type="button" onClick={() => handleEdit(row)}>
-                        <Edit size={16} />
-                      </button>
-                      <button className={styles.button} type="button" onClick={() => handleDelete(row.key)}>
-                        <Trash2 size={16} />
-                      </button>
                     </div>
                   </>
                 )}

@@ -943,6 +943,67 @@
   font-weight: 600;
 }
 
+.cosmeticRowContent {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cosmeticMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.cosmeticTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+
+.cosmeticThumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cosmeticUrl {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #cbd5e1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.cosmeticActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .cosmeticRowContent {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cosmeticActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
 /* Traffic Chart */
 .trafficHeaderRow {
   display: flex;
