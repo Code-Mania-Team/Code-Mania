@@ -247,6 +247,26 @@
   color: #e2e8f0;
 }
 
+.admin-test-cheat {
+  margin-bottom: 0.9rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.admin-test-cheat summary {
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.admin-test-cheat-body {
+  margin-top: 0.6rem;
+  font-size: 0.88rem;
+}
+
 .btn-add-test {
   display: flex;
   align-items: center;
@@ -288,6 +308,45 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+.test-case-meta {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.test-case-hidden-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding-bottom: 0.45rem;
+}
+
+.test-case-hidden-toggle input {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 720px) {
+  .test-case-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .test-case-meta {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .test-case-hidden-toggle {
+    padding-bottom: 0;
+  }
 }
 
 .btn-remove-test {

@@ -24,7 +24,7 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
   const [showDescriptionPreview, setShowDescriptionPreview] = useState(false);
   
   // Test cases state
-  const [testCases, setTestCases] = useState([{ input: '', output: '' }]);
+  const [testCases, setTestCases] = useState([{ input: '', output: '', mode: 'function', functionName: 'solution', is_hidden: false }]);
 
   const taskId = initialTask?.task_id ?? initialTask?.id ?? null;
   const isEdit = Boolean(taskId);
@@ -51,11 +51,20 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
       .map((tc) => {
         const input = tc?.input ?? '';
         const output = tc?.output ?? tc?.expected ?? tc?.expected_output ?? tc?.expectedOutput ?? '';
-        return { input: String(input ?? ''), output: String(output ?? '') };
+        const mode = 'function';
+        const functionName = tc?.functionName ?? tc?.function_name ?? tc?.fn ?? '';
+        const is_hidden = Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+        return {
+          input: String(input ?? ''),
+          output: String(output ?? ''),
+          mode,
+          functionName: String(functionName ?? ''),
+          is_hidden,
+        };
       })
-      .filter((tc) => tc.input.trim() !== '' || tc.output.trim() !== '');
+      .filter((tc) => tc.input.trim() !== '' || tc.output.trim() !== '' || tc.functionName.trim() !== '');
 
-    setTestCases(mapped.length ? mapped : [{ input: '', output: '' }]);
+    setTestCases(mapped.length ? mapped : [{ input: '', output: '', mode: 'function', functionName: 'solution', is_hidden: false }]);
 
     setDidInit(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +75,10 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
   if (!isAdmin) return null;
 
   const handleAddTestCase = () => {
-    setTestCases([...testCases, { input: '', output: '' }]);
+    setTestCases([
+      ...testCases,
+      { input: '', output: '', mode: 'function', functionName: 'solution', is_hidden: false },
+    ]);
   };
 
   const handleRemoveTestCase = (index) => {
@@ -91,7 +103,12 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
     if (loading || coverUploading) return;
 
     // Filter out empty test cases
-    const validTestCases = testCases.filter(tc => tc.input.trim() !== '' || tc.output.trim() !== '');
+    const validTestCases = testCases.filter(
+      tc => tc.input.trim() !== '' || tc.output.trim() !== '' || String(tc.functionName || '').trim() !== ''
+    ).map((tc) => ({
+      ...tc,
+      mode: 'function',
+    }));
 
     const payload = {
       title,
@@ -140,7 +157,7 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
     setStarterCode('');
     setSolutionCode('');
     setMinXpRequired(5000);
-    setTestCases([{ input: '', output: '' }]);
+    setTestCases([{ input: '', output: '', mode: 'function', functionName: 'solution', is_hidden: false }]);
     setCoverImage(null);
     setCoverUploading(false);
     setCoverError('');
@@ -166,6 +183,33 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
       setCoverUploading(false);
     }
   };
+
+  const weeklyRuntimeCheatSheet = `#### Runtime test cases JSON
+
+\`\`\`json
+[
+  {
+    "input": "[1,2,3]",
+    "output": "[3,2,1]",
+    "is_hidden": false
+  },
+  {
+    "input": "[10]",
+    "output": "[10]",
+    "is_hidden": true
+  }
+]
+\`\`\`
+
+Supported fields:
+
+- \`input\`: input payload for the test.
+- \`output\`: expected result (\`expected\` also accepted).
+- \`is_hidden\` (optional): hide case in learner preview.
+- \`mode\`: fixed to \`function\` for weekly challenges.
+- \`functionName\` (optional): function entry name (defaults to \`solution\`).
+
+Tip: weekly challenges are runtime-first. Keep test cases as a valid JSON array.`;
 
   return (
     <div className="admin-modal-overlay">
@@ -326,6 +370,13 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
                 <Plus size={16} /> Add Test Case
               </button>
             </div>
+
+            <details className="admin-test-cheat" open>
+              <summary>Runtime test case cheat sheet</summary>
+              <div className="admin-test-cheat-body">
+                <MarkdownRenderer>{weeklyRuntimeCheatSheet}</MarkdownRenderer>
+              </div>
+            </details>
             
             {testCases.map((tc, index) => (
               <div key={index} className="test-case-row">
@@ -348,6 +399,32 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
                       onChange={e => handleTestCaseChange(index, 'output', e.target.value)} 
                       placeholder="e.g. [3, 2, 1]" 
                     />
+                  </div>
+
+                  <div className="test-case-meta">
+                    <div className="form-group">
+                      <label>Mode</label>
+                      <input type="text" value="function" readOnly disabled />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Function Name (optional)</label>
+                      <input
+                        type="text"
+                        value={tc.functionName || ''}
+                        onChange={e => handleTestCaseChange(index, 'functionName', e.target.value)}
+                        placeholder="e.g. solution"
+                      />
+                    </div>
+
+                    <label className="test-case-hidden-toggle">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(tc.is_hidden)}
+                        onChange={e => handleTestCaseChange(index, 'is_hidden', e.target.checked)}
+                      />
+                      Hidden test case
+                    </label>
                   </div>
                 </div>
                 <button type="button" className="btn-remove-test" onClick={() => handleRemoveTestCase(index)} disabled={testCases.length === 1}>

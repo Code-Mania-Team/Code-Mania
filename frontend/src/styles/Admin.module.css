@@ -243,9 +243,35 @@
   min-width: 0;
 }
 
+.exerciseCheatSheetDock {
+  position: fixed;
+  top: 96px;
+  left: max(16px, calc((100vw - 1100px) / 2 - 360px - 22px));
+  width: 340px;
+  max-height: calc(100vh - 116px);
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  z-index: 2;
+}
+
+.exerciseCheatSheetDock::-webkit-scrollbar {
+  display: none;
+}
+
+.exerciseCheatSheetDock .previewCard {
+  padding: 14px;
+}
+
 @media (max-width: 980px) {
   .formWithPreview {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1480px) {
+  .exerciseCheatSheetDock {
+    display: none;
   }
 }
 
@@ -1106,6 +1132,10 @@ html[data-theme="light"] .trafficChartMetric,
 html[data-theme="light"] .exerciseEditor {
   background: var(--page-bg);
   border: 1px solid var(--border);
+}
+
+html[data-theme="light"] .exerciseCheatSheetDock {
+  background: transparent;
 }
 
 html[data-theme="light"] .divider,

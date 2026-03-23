@@ -243,6 +243,12 @@ const QuizManager = () => {
           Manage {course} quizzes. Total: {quizzes.length} quiz{quizzes.length !== 1 ? "zes" : ""}
         </p>
 
+        {editingQuiz !== null && String(formData.quiz_type || "mcq").toLowerCase() === "code" ? (
+          <aside className={styles.exerciseCheatSheetDock}>
+            <RuntimeTestCasesCheatSheet title="Quiz Runtime Test Cases" />
+          </aside>
+        ) : null}
+
         <div className={styles.panel}>
           {error ? (
             <div style={{ padding: 16 }}>
@@ -281,6 +287,7 @@ const QuizManager = () => {
                       onSave={handleSave}
                       onCancel={handleCancel}
                       saving={saving}
+                      allowFunctionMode={languageSlug === "javascript"}
                     />
                   </div>
                 ) : (
@@ -316,7 +323,51 @@ const QuizManager = () => {
   );
 };
 
-const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
+const RuntimeTestCasesCheatSheet = ({ title = "Runtime Test Cases" }) => {
+  const runtimeMarkdown = `#### JSON format
+
+\`\`\`json
+[
+  {
+    "input": "2 3",
+    "expected": "5",
+    "is_hidden": false
+  },
+  {
+    "input": "-1 1",
+    "expected": "0",
+    "is_hidden": true
+  }
+]
+\`\`\`
+
+Use \`\\n\` for multi-line input/output.`;
+
+  const supportedMarkdown = `#### Supported fields
+
+- \`input\`: stdin input (or function argument payload when mode is function).
+- \`expected\`: expected output/result.
+- \`is_hidden\`: hide from learner preview (\`true\` / \`false\`).
+- \`mode\` (optional): \`stdin\` (default) or \`function\`.
+- \`functionName\` (optional): required when using \`mode: "function"\`.
+
+Tip: keep this as a valid JSON array.`;
+
+  return (
+    <>
+      <div className={styles.previewTitle}>
+        <span>{title}</span>
+      </div>
+      <p className={styles.previewHint}>Runtime-focused checks used in code quizzes.</p>
+      <div className={styles.previewCard}>
+        <MarkdownRenderer>{runtimeMarkdown}</MarkdownRenderer>
+        <MarkdownRenderer>{supportedMarkdown}</MarkdownRenderer>
+      </div>
+    </>
+  );
+};
+
+const QuizForm = ({ formData, setFormData, onSave, onCancel, saving, allowFunctionMode = false }) => {
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -464,6 +515,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
                   <TestCasesEditor
                     value={formData.test_cases || "[]"}
                     onChange={(v) => handleChange("test_cases", v ?? "[]")}
+                    allowFunctionMode={allowFunctionMode}
                   />
                   <details className={styles.helpDetails}>
                     <summary className={styles.helpSummary}>Raw JSON (advanced)</summary>
@@ -482,7 +534,8 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
                   <details className={styles.helpDetails}>
                     <summary className={styles.helpSummary}>Test cases JSON format</summary>
                     <p className={styles.helpText}>
-                      Must be a JSON array. Fields: <code>input</code>, <code>expected</code>, <code>is_hidden</code>.
+                      Must be a JSON array. Fields: <code>input</code>, <code>expected</code>, <code>is_hidden</code>
+                      {allowFunctionMode ? <>, optional <code>mode</code> and <code>functionName</code>.</> : <>.</>}
                     </p>
                     <pre className={styles.helpCode}>
 {`[

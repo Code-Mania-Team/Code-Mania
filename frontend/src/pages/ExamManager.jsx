@@ -298,6 +298,12 @@ const ExamManager = () => {
           Manage {course} exam problems. Total: {problems.length} problem{problems.length !== 1 ? "s" : ""}
         </p>
 
+        {editingProblem !== null ? (
+          <aside className={styles.exerciseCheatSheetDock}>
+            <RuntimeTestCasesCheatSheet title="Exam Runtime Test Cases" />
+          </aside>
+        ) : null}
+
         <div className={styles.panel}>
           {problems.length === 0 ? (
             <p style={{ padding: 16, opacity: 0.7 }}>No exam problems found for this language.</p>
@@ -355,6 +361,48 @@ const ExamManager = () => {
         </div>
       </section>
     </div>
+  );
+};
+
+const RuntimeTestCasesCheatSheet = ({ title = "Runtime Test Cases" }) => {
+  const runtimeMarkdown = `#### JSON format
+
+\`\`\`json
+[
+  {
+    "input": "3\\nAva 20 60 70 yes",
+    "expected": "1\\n2",
+    "is_hidden": false
+  },
+  {
+    "input": "...",
+    "expected": "...",
+    "is_hidden": true
+  }
+]
+\`\`\`
+
+Use \`\\n\` for multi-line input/output.`;
+
+  const supportedMarkdown = `#### Supported fields
+
+- \`input\`: stdin fed to the program.
+- \`expected\`: expected output/result.
+- \`is_hidden\`: hide test case from learners in preview.
+
+Tip: keep test cases as a valid JSON array.`;
+
+  return (
+    <>
+      <div className={styles.previewTitle}>
+        <span>{title}</span>
+      </div>
+      <p className={styles.previewHint}>Exam validation is mainly runtime test-case based.</p>
+      <div className={styles.previewCard}>
+        <MarkdownRenderer>{runtimeMarkdown}</MarkdownRenderer>
+        <MarkdownRenderer>{supportedMarkdown}</MarkdownRenderer>
+      </div>
+    </>
   );
 };
 
@@ -531,6 +579,7 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
           <TestCasesEditor
             value={formData.test_cases || "[]"}
             onChange={(v) => handleChange("test_cases", v ?? "[]")}
+            allowFunctionMode={codeLanguage === "javascript"}
           />
           <details className={styles.helpDetails}>
             <summary className={styles.helpSummary}>Raw JSON (advanced)</summary>
@@ -547,7 +596,8 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
             <summary className={styles.helpSummary}>Test cases JSON format (click to expand)</summary>
             <p className={styles.helpText}>
               Must be a JSON array. Supported fields: <code>input</code>, <code>expected</code>, <code>is_hidden</code>
-              (true/false). Use <code>\\n</code> for new lines.
+              (true/false). {codeLanguage === "javascript" ? <>Optional: <code>mode</code> and <code>functionName</code>. </> : null}
+              Use <code>\\n</code> for new lines.
             </p>
             <pre className={styles.helpCode}>
               {`[
