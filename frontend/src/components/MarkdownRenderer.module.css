@@ -1,7 +1,7 @@
 .markdown {
   color: inherit;
   line-height: 1.65;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .markdown :global(h1),
@@ -88,4 +88,30 @@
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   margin: 1rem 0;
+}
+
+:global(html[data-theme="light"]) .markdown :global(code) {
+  background: rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  color: #1e293b;
+}
+
+:global(html[data-theme="light"]) .markdown :global(pre) {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+}
+
+:global(html[data-theme="light"]) .markdown :global(pre code) {
+  color: #0f172a;
+  background: transparent;
+  border: none;
+}
+
+:global(html[data-theme="light"]) .markdown :global(blockquote) {
+  border-left-color: rgba(29, 78, 216, 0.35);
+  color: #334155;
+}
+
+:global(html[data-theme="light"]) .markdown :global(hr) {
+  border-top-color: rgba(15, 23, 42, 0.16);
 }

@@ -2658,7 +2658,7 @@ const languageIconBySlug = {
 
 
 
-                  <p style={{ fontSize: '14px', marginTop: '8px' }}>Complete exercises to unlock badges!</p>
+                  <p style={{ fontSize: '16px', marginTop: '8px' }}>Complete exercises to unlock badges!</p>
 
 
 

@@ -8,6 +8,7 @@ import TestCasesEditor from "../components/TestCasesEditor";
 import JsonEditor from "../components/JsonEditor";
 import Editor from "@monaco-editor/react";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import { useTheme } from "../context/ThemeProvider.jsx";
 
 const LANG_SLUG_BY_COURSE = {
   python: "python",
@@ -359,6 +360,9 @@ const ExamManager = () => {
 };
 
 const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlug }) => {
+  const { theme } = useTheme();
+  const editorTheme = theme === "light" ? "vs" : "vs-dark";
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -484,7 +488,7 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
             <Editor
               height="220px"
               language="markdown"
-              theme="vs-dark"
+              theme={editorTheme}
               value={String(formData.problem_description || "")}
               onChange={(v) => handleChange("problem_description", v ?? "")}
               options={baseEditorOptions}
@@ -504,7 +508,7 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
             <Editor
               height="200px"
               language={codeLanguage}
-              theme="vs-dark"
+              theme={editorTheme}
               value={String(formData.starting_code || "")}
               onChange={(v) => handleChange("starting_code", v ?? "")}
               options={codeEditorOptions}
@@ -518,7 +522,7 @@ const ExamForm = ({ formData, setFormData, onSave, onCancel, saving, languageSlu
             <Editor
               height="240px"
               language={codeLanguage}
-              theme="vs-dark"
+              theme={editorTheme}
               value={String(formData.solution || "")}
               onChange={(v) => handleChange("solution", v ?? "")}
               options={codeEditorOptions}

@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { CalendarDays, Trophy, Users } from "lucide-react";
 import { axiosPublic } from "../api/axios";
 import styles from "../styles/PastChallengePage.module.css";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const DEFAULT_COVER =
   "https://res.cloudinary.com/daegpuoss/image/upload/v1773428260/tumblr_7e646d701b09619cbd7847b65ea580f0_b9bac3ad_1280_vqaegf.gif";
@@ -25,8 +26,32 @@ export default function PastChallengePage() {
   const [error, setError] = useState("");
 
   const cover = task?.cover_image || task?.coverImage || DEFAULT_COVER;
-  const winners = Array.isArray(task?.winners) ? task.winners : [];
   const participatedCount = Number(task?.participants_count || 0);
+
+  const winners = useMemo(() => {
+    const announced = Array.isArray(task?.winners) ? task.winners : [];
+    if (announced.length) return announced;
+
+    const completed = (Array.isArray(participants) ? participants : [])
+      .filter((p) => String(p?.status || "").toLowerCase() === "completed")
+      .sort((a, b) => {
+        const xpA = Number(a?.xp_awarded || 0);
+        const xpB = Number(b?.xp_awarded || 0);
+        if (xpB !== xpA) return xpB - xpA;
+
+        const doneA = a?.completed_at ? new Date(a.completed_at).getTime() : Number.POSITIVE_INFINITY;
+        const doneB = b?.completed_at ? new Date(b.completed_at).getTime() : Number.POSITIVE_INFINITY;
+        return doneA - doneB;
+      });
+
+    return completed.map((p, index) => ({
+      user_id: p.user_id,
+      username: p.username,
+      character_id: p.character_id,
+      rank: index + 1,
+      note: "Completed challenge",
+    }));
+  }, [participants, task?.winners]);
 
   const title = task?.title || "Past Challenge";
   const endedAt = task?.expires_at ? fmtDate(task.expires_at) : "-";
@@ -135,9 +160,9 @@ export default function PastChallengePage() {
 
               {tab === "overview" ? (
                 <div className={styles.copy}>
-                  <p className={styles.lede}>
-                    {task?.description || "(No description provided.)"}
-                  </p>
+                  <div className={styles.lede}>
+                    <MarkdownRenderer>{task?.description || "(No description provided.)"}</MarkdownRenderer>
+                  </div>
                 </div>
               ) : null}
 
@@ -172,7 +197,7 @@ export default function PastChallengePage() {
                       ))}
                     </div>
                   ) : (
-                    <div className={styles.empty}>No winners yet.</div>
+                    <div className={styles.empty}>No completed submissions yet.</div>
                   )}
                 </div>
               ) : null}
@@ -196,9 +221,11 @@ export default function PastChallengePage() {
               </div>
 
               <div className={styles.sideCard}>
-                <div className={styles.sideCardTitle}>Winners have been announced!</div>
+                <div className={styles.sideCardTitle}>
+                  {winners.length ? "Winners have been announced!" : "Completed submissions"}
+                </div>
                 <button type="button" className={styles.sideBtn} onClick={() => setTab("winners")}>
-                  View winners
+                  {winners.length ? "View winners" : "View completed"}
                 </button>
               </div>
             </aside>

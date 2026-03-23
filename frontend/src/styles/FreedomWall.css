@@ -1451,6 +1451,33 @@ html[data-theme="light"] .comment-hashtag {
   color: rgba(254, 202, 202, 0.95);
 }
 
+.heart-btn.is-liked svg {
+  fill: currentColor;
+}
+
+html[data-theme="light"] .heart-btn {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.16);
+  color: #334155;
+}
+
+html[data-theme="light"] .heart-pill {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.16);
+  color: #475569;
+}
+
+html[data-theme="light"] .heart-btn:hover {
+  border-color: rgba(15, 23, 42, 0.28);
+  background: rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="light"] .heart-btn.is-liked {
+  border-color: rgba(220, 38, 38, 0.35);
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
 .heart-count {
   font-variant-numeric: tabular-nums;
   font-size: 0.9rem;

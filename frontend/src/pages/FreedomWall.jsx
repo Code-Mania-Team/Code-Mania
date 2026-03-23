@@ -41,6 +41,23 @@ const getLanguageMeta = (task) => {
   return LANGUAGE_CONFIG[slug] || (slug ? { label: slug, color: "#e2e8f0", bg: "rgba(226, 232, 240, 0.08)" } : null);
 };
 
+const toPreviewText = (raw) => {
+  const input = String(raw || "");
+  if (!input.trim()) return "No description provided.";
+
+  return input
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/!\[[^\]]*\]\(([^)]+)\)/g, "")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/^\s{0,3}>\s?/gm, "")
+    .replace(/[*_~]/g, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 const stripLeadingHash = (raw) => {
   const s = String(raw || "").trim();
   if (!s) return "";
@@ -716,7 +733,7 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
                             <div className="challenge-wide-title">
                               {task.title}
                             </div>
-                            <div className="challenge-wide-desc">{task.description}</div>
+                            <div className="challenge-wide-desc">{toPreviewText(task.description)}</div>
 
                             <div className="challenge-wide-meta">
                               <span className="challenge-meta-item">
@@ -853,7 +870,7 @@ const FreedomWall = ({ onOpenModal, view = "home", tag }) => {
                             <div className="challenge-wide-body">
                               <div className="challenge-wide-kicker">CODE CHALLENGE</div>
                               <div className="challenge-wide-title">{t.title}</div>
-                              <div className="challenge-wide-desc">{t.description}</div>
+                              <div className="challenge-wide-desc">{toPreviewText(t.description)}</div>
 
                               <div className="challenge-wide-meta">
                                 <span className="challenge-meta-item">

@@ -480,12 +480,21 @@ export const renderQuestRichHtml = ({ lessonHeader, description, task, prismLang
   .cm-quest th { background: rgba(255,255,255,0.06); color: #f7f0d3; }
   .cm-quest strong { font-weight: 800; }
   .cm-quest em { font-style: italic; }
+<<<<<<< HEAD
   .cm-quest .cm-code { margin: 10px 0; padding: 12px 12px; border-radius: 10px; background: #0b1220; border: 1px solid rgba(255, 211, 122, 0.18); overflow-x: auto; }
   .cm-quest .cm-code code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 14px; }
   .cm-quest code.cm-inline { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; background: rgba(10,16,28,0.65); border: 1px solid rgba(255,211,122,0.22); padding: 1px 6px; border-radius: 8px; color: #e2e8f0; }
   .cm-quest :not(pre) > code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; background: rgba(10,16,28,0.65); border: 1px solid rgba(255,211,122,0.22); padding: 1px 6px; border-radius: 8px; color: #e2e8f0; }
   .cm-quest pre { margin: 10px 0; padding: 12px 12px; border-radius: 10px; background: #0b1220; border: 1px solid rgba(255, 211, 122, 0.18); overflow-x: auto; }
   .cm-quest pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 14px; padding: 0; border: none; background: transparent; }
+=======
+  .cm-quest .cm-code { margin: 10px 0; padding: 12px 12px; border-radius: 10px; background: #0b1220; border: 1px solid rgba(255, 211, 122, 0.18); overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+  .cm-quest .cm-code code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 16px; }
+  .cm-quest code.cm-inline { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; background: rgba(10,16,28,0.65); border: 1px solid rgba(255,211,122,0.22); padding: 1px 6px; border-radius: 8px; color: #e2e8f0; }
+  .cm-quest :not(pre) > code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.95em; background: rgba(10,16,28,0.65); border: 1px solid rgba(255,211,122,0.22); padding: 1px 6px; border-radius: 8px; color: #e2e8f0; }
+  .cm-quest pre { margin: 10px 0; padding: 12px 12px; border-radius: 10px; background: #0b1220; border: 1px solid rgba(255, 211, 122, 0.18); overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+  .cm-quest pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 16px; padding: 0; border: none; background: transparent; }
+>>>>>>> 9b82a73 (updated all suggestion)
 
   /* Prism-like token colors (custom, lightweight) */
   .cm-quest .token.comment, .cm-quest .token.prolog, .cm-quest .token.doctype, .cm-quest .token.cdata { color: #94a3b8; }

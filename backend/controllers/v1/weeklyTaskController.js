@@ -20,6 +20,12 @@ class WeeklyTaskController {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  makeWeeklyFrameKey() {
+    const ts = Date.now().toString(36);
+    const rand = Math.random().toString(36).slice(2, 8);
+    return `frame_weekly_${ts}_${rand}`;
+  }
+
   async enrichRewardCosmetic(tasks) {
     const list = Array.isArray(tasks) ? tasks : [];
     const keys = Array.from(
@@ -253,6 +259,160 @@ class WeeklyTaskController {
         success: false,
         message: err?.message || "Failed to upload image",
       });
+    }
+  }
+
+  // ── Admin: upload reward avatar frame (Cloudinary + cosmetics) ──
+  async uploadRewardAvatarFrame(req, res) {
+    try {
+      if (cloudinary.__unconfigured) {
+        return res.status(500).json({
+          success: false,
+          message: "Cloudinary is not configured on the server",
+        });
+      }
+
+      const file = req.file;
+      if (!file?.buffer) {
+        return res.status(400).json({
+          success: false,
+          message: "image file is required (field name: image)",
+        });
+      }
+
+      const inputName = String(req.body?.name || "").trim();
+      const rarityRaw = String(req.body?.rarity || "epic").trim().toLowerCase();
+      const allowedRarity = new Set(["common", "rare", "epic", "legendary"]);
+      const rarity = allowedRarity.has(rarityRaw) ? rarityRaw : "epic";
+
+      const folder = process.env.CLOUDINARY_WEEKLY_REWARDS_FOLDER || "code-mania/weekly-rewards/avatar-frames";
+
+      const uploaded = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: "image",
+            overwrite: false,
+          },
+          (err, result) => {
+            if (err) return reject(err);
+            return resolve(result);
+          }
+        );
+
+        stream.end(file.buffer);
+      });
+
+      const assetUrl = uploaded?.secure_url || uploaded?.url || null;
+      if (!assetUrl) {
+        return res.status(500).json({ success: false, message: "Upload succeeded but URL is missing" });
+      }
+
+      let created = null;
+      let attempts = 0;
+      while (!created && attempts < 4) {
+        attempts += 1;
+        const key = this.makeWeeklyFrameKey();
+        const fallbackName = `Weekly Frame ${new Date().toLocaleDateString()}`;
+        const name = inputName || fallbackName;
+
+        try {
+          created = await this.cosmetics.createAvatarFrame({
+            key,
+            name,
+            asset_url: assetUrl,
+            rarity,
+            enabled: true,
+          });
+        } catch (err) {
+          const msg = String(err?.message || "").toLowerCase();
+          if (msg.includes("duplicate") && msg.includes("key")) {
+            continue;
+          }
+          throw err;
+        }
+      }
+
+      if (!created?.key) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to create avatar frame reward",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Reward avatar frame uploaded",
+        data: {
+          key: created.key,
+          type: created.type || "avatar_frame",
+          name: created.name || inputName || "Weekly Frame",
+          asset_url: created.asset_url || assetUrl,
+          rarity: created.rarity || rarity,
+          enabled: created.enabled !== false,
+          public_id: uploaded?.public_id || null,
+        },
+      });
+    } catch (err) {
+      console.error("Error uploading reward avatar frame:", err);
+      return res.status(500).json({
+        success: false,
+        message: err?.message || "Failed to upload reward avatar frame",
+      });
+    }
+  }
+
+  // ── Admin: list selectable avatar frame rewards ───────────────
+  async listRewardAvatarOptions(req, res) {
+    try {
+      const excludeTaskIdRaw = Number(req.query?.exclude_task_id);
+      const excludeTaskId = Number.isFinite(excludeTaskIdRaw) && excludeTaskIdRaw > 0
+        ? excludeTaskIdRaw
+        : null;
+
+      const [enabled, used, tasks] = await Promise.all([
+        this.cosmetics.listEnabledByTypes(["avatar_frame"]),
+        this.getUsedRewardKeys({ excludeTaskId }),
+        this.model.getAllTasks(),
+      ]);
+
+      const taskByRewardKey = new Map();
+      (tasks || []).forEach((t) => {
+        const taskId = Number(t?.task_id);
+        if (!Number.isFinite(taskId) || taskId <= 0) return;
+        if (excludeTaskId && taskId === excludeTaskId) return;
+
+        const key = t?.reward_avatar_frame_key ? String(t.reward_avatar_frame_key) : null;
+        if (!key || taskByRewardKey.has(key)) return;
+
+        taskByRewardKey.set(key, {
+          task_id: taskId,
+          title: t?.title || `Task #${taskId}`,
+          is_active: Boolean(t?.is_active),
+        });
+      });
+
+      const rows = (enabled || [])
+        .filter((c) => c?.key)
+        .map((c) => ({
+          key: String(c.key),
+          type: c.type || "avatar_frame",
+          name: c.name || String(c.key),
+          asset_url: c.asset_url || null,
+          rarity: c.rarity || null,
+          is_used: used.has(String(c.key)),
+          used_by_task: taskByRewardKey.get(String(c.key)) || null,
+        }));
+
+      rows.sort((a, b) => {
+        if (a.is_used !== b.is_used) return a.is_used ? 1 : -1;
+        return String(a.name || a.key).localeCompare(String(b.name || b.key));
+      });
+
+      return res.json({ success: true, data: rows });
+    } catch (err) {
+      console.error("Error listing reward avatar options:", err);
+      return res.status(500).json({ success: false, message: err?.message || "Failed to list reward avatar options" });
     }
   }
 

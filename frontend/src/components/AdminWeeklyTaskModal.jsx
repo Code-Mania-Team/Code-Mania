@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { X, Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import Editor from "@monaco-editor/react";
 import useWeeklyTasksAdmin from "../hooks/useWeeklyTasksAdmin";
 import MarkdownRenderer from "./MarkdownRenderer";
+import JsonEditor from "./JsonEditor";
+import { useTheme } from "../context/ThemeProvider.jsx";
 import '../styles/AdminWeeklyTaskModal.css';
 
 const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null }) => {
-  const { isAdmin, createTask, updateTask, uploadCoverImage, loading, error: adminError } = useWeeklyTasksAdmin();
+  const { isAdmin, createTask, updateTask, uploadCoverImage, getRewardAvatarOptions, loading, error: adminError } = useWeeklyTasksAdmin();
   const [error, setError] = useState('');
   const [coverImage, setCoverImage] = useState(null);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverError, setCoverError] = useState('');
+  const [rewardAvatarKey, setRewardAvatarKey] = useState('');
+  const [rewardAvatarImage, setRewardAvatarImage] = useState('');
+  const [rewardAvatarName, setRewardAvatarName] = useState('');
+  const [rewardAvatarOptions, setRewardAvatarOptions] = useState([]);
+  const [rewardAvatarLoading, setRewardAvatarLoading] = useState(false);
+  const [rewardAvatarError, setRewardAvatarError] = useState('');
   const [didInit, setDidInit] = useState(false);
 
   // Form states
@@ -22,12 +31,57 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
   const [solutionCode, setSolutionCode] = useState('');
   const [minXpRequired, setMinXpRequired] = useState(5000);
   const [showDescriptionPreview, setShowDescriptionPreview] = useState(false);
+  const [testCaseMode, setTestCaseMode] = useState('builder');
+  const [testCasesJson, setTestCasesJson] = useState('');
   
   // Test cases state
   const [testCases, setTestCases] = useState([{ input: '', output: '' }]);
 
   const taskId = initialTask?.task_id ?? initialTask?.id ?? null;
   const isEdit = Boolean(taskId);
+  const availableRewardCount = (rewardAvatarOptions || []).filter((opt) => !opt?.is_used).length;
+  const { theme } = useTheme();
+  const editorTheme = theme === 'light' ? 'vs' : 'vs-dark';
+
+  const monacoLang = (() => {
+    const l = String(language || '').toLowerCase();
+    if (l === 'python') return 'python';
+    if (l === 'cpp' || l === 'c++') return 'cpp';
+    if (l === 'javascript' || l === 'js') return 'javascript';
+    return 'plaintext';
+  })();
+
+  const codeEditorOptions = {
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    tabSize: 2,
+    fontSize: 13,
+    lineNumbers: 'on',
+    renderLineHighlight: 'line',
+    automaticLayout: true,
+    formatOnPaste: true,
+    formatOnType: true,
+    bracketPairColorization: { enabled: true },
+  };
+
+  const normalizeTestCase = (tc) => {
+    const input = String(tc?.input ?? '').trim();
+    const expectedRaw = tc?.expected ?? tc?.output ?? '';
+    const output = String(expectedRaw ?? '').trim();
+    const functionName = String(tc?.functionName ?? tc?.function_name ?? tc?.fn ?? 'solution').trim() || 'solution';
+    const is_hidden = Boolean(tc?.is_hidden ?? tc?.isHidden ?? tc?.hidden);
+    return { mode: 'function', input, output, functionName, is_hidden };
+  };
+
+  const toAdvancedJson = (rows) => {
+    const safe = (Array.isArray(rows) ? rows : []).map((tc) => {
+      const normalized = normalizeTestCase(tc);
+      const { output, ...rest } = normalized;
+      return { ...rest, expected: output };
+    });
+    return JSON.stringify(safe, null, 2);
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -45,6 +99,21 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
     setSolutionCode(initialTask?.solution_code || '');
     setMinXpRequired(Number(initialTask?.min_xp_required ?? 5000));
     setCoverImage(initialTask?.cover_image || null);
+    setRewardAvatarKey(String(initialTask?.reward_avatar_frame_key || ''));
+    setRewardAvatarImage(
+      String(
+        initialTask?.reward_cosmetic?.type === 'avatar_frame'
+          ? (initialTask?.reward_cosmetic?.asset_url || '')
+          : ''
+      )
+    );
+    setRewardAvatarName(
+      String(
+        initialTask?.reward_cosmetic?.type === 'avatar_frame'
+          ? (initialTask?.reward_cosmetic?.name || '')
+          : ''
+      )
+    );
 
     const rawTcs = Array.isArray(initialTask?.test_cases) ? initialTask.test_cases : [];
     const mapped = rawTcs
@@ -55,11 +124,50 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
       })
       .filter((tc) => tc.input.trim() !== '' || tc.output.trim() !== '');
 
-    setTestCases(mapped.length ? mapped : [{ input: '', output: '' }]);
+    setTestCases(mapped.length ? mapped : [{ input: '', output: '', mode: 'function', functionName: 'solution', is_hidden: false }]);
+    setTestCasesJson(toAdvancedJson(mapped.length ? mapped : []));
+    setTestCaseMode('builder');
 
     setDidInit(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTask, didInit]);
+
+  useEffect(() => {
+    if (!isOpen || !isAdmin) return;
+
+    let alive = true;
+    const loadOptions = async () => {
+      setRewardAvatarLoading(true);
+      setRewardAvatarError('');
+      try {
+        const rows = await getRewardAvatarOptions({ excludeTaskId: taskId || null });
+        if (!alive) return;
+        setRewardAvatarOptions(Array.isArray(rows) ? rows : []);
+      } catch (err) {
+        if (!alive) return;
+        setRewardAvatarOptions([]);
+        setRewardAvatarError(err?.response?.data?.message || err?.message || 'Failed to load reward avatar frames');
+      } finally {
+        if (alive) setRewardAvatarLoading(false);
+      }
+    };
+
+    loadOptions();
+    return () => {
+      alive = false;
+    };
+  }, [isOpen, isAdmin, getRewardAvatarOptions, taskId]);
+
+  useEffect(() => {
+    if (!rewardAvatarKey) return;
+    if (rewardAvatarImage && rewardAvatarName) return;
+
+    const picked = (rewardAvatarOptions || []).find((r) => String(r?.key) === String(rewardAvatarKey));
+    if (!picked) return;
+
+    if (!rewardAvatarImage) setRewardAvatarImage(String(picked?.asset_url || ''));
+    if (!rewardAvatarName) setRewardAvatarName(String(picked?.name || picked?.key || ''));
+  }, [rewardAvatarKey, rewardAvatarOptions, rewardAvatarImage, rewardAvatarName]);
 
   if (!isOpen) return null;
 
@@ -83,15 +191,50 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     if (!title || !description) {
       setError('Title and Description are required.');
       return;
     }
 
-    if (loading || coverUploading) return;
+    if (loading || coverUploading || rewardAvatarLoading) return;
 
-    // Filter out empty test cases
-    const validTestCases = testCases.filter(tc => tc.input.trim() !== '' || tc.output.trim() !== '');
+    let validTestCases = [];
+    if (testCaseMode === 'advanced') {
+      let parsed;
+      try {
+        parsed = JSON.parse(String(testCasesJson || '[]'));
+      } catch {
+        setError('Advanced test cases JSON is invalid. Please fix the JSON syntax.');
+        return;
+      }
+
+      if (!Array.isArray(parsed)) {
+        setError('Advanced test cases must be a JSON array.');
+        return;
+      }
+
+      const normalized = parsed.map((tc) => normalizeTestCase(tc));
+      const invalid = normalized.find((tc) => !tc.input || !tc.output);
+      if (invalid) {
+        setError('Each advanced test case must have both input and expected/output.');
+        return;
+      }
+      validTestCases = normalized;
+    } else {
+      const normalized = (testCases || []).map((tc) => normalizeTestCase(tc));
+      validTestCases = normalized.filter((tc) => tc.input !== '' || tc.output !== '');
+      const invalid = validTestCases.find((tc) => !tc.input || !tc.output);
+      if (invalid) {
+        setError('Each test case must have both Input and Expected Output.');
+        return;
+      }
+    }
+
+    if (!validTestCases.length) {
+      setError('Add at least one valid test case.');
+      return;
+    }
 
     const payload = {
       title,
@@ -104,6 +247,7 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
       test_cases: validTestCases,
       min_xp_required: parseInt(minXpRequired) || 5000,
       cover_image: coverImage,
+      reward_avatar_frame_key: difficulty === 'hard' ? (rewardAvatarKey || null) : null,
     };
 
     try {
@@ -140,10 +284,18 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
     setStarterCode('');
     setSolutionCode('');
     setMinXpRequired(5000);
-    setTestCases([{ input: '', output: '' }]);
+    setTestCases([{ input: '', output: '', mode: 'function', functionName: 'solution', is_hidden: false }]);
+    setTestCasesJson('');
+    setTestCaseMode('builder');
     setCoverImage(null);
     setCoverUploading(false);
     setCoverError('');
+    setRewardAvatarKey('');
+    setRewardAvatarImage('');
+    setRewardAvatarName('');
+    setRewardAvatarOptions([]);
+    setRewardAvatarLoading(false);
+    setRewardAvatarError('');
     setError('');
     setShowDescriptionPreview(false);
   };
@@ -166,6 +318,81 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
       setCoverUploading(false);
     }
   };
+
+  const applyRewardSelection = (nextKey) => {
+    const key = String(nextKey || '');
+    setRewardAvatarKey(key);
+    if (!key) {
+      setRewardAvatarImage('');
+      setRewardAvatarName('');
+      return;
+    }
+
+    const picked = (rewardAvatarOptions || []).find((r) => String(r?.key) === key);
+    setRewardAvatarImage(String(picked?.asset_url || ''));
+    setRewardAvatarName(String(picked?.name || key));
+  };
+
+  const handleSwitchTestCaseMode = (nextMode) => {
+    setError('');
+    if (nextMode === testCaseMode) return;
+
+    if (nextMode === 'advanced') {
+      setTestCasesJson(toAdvancedJson(testCases));
+      setTestCaseMode('advanced');
+      return;
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(String(testCasesJson || '[]'));
+    } catch {
+      setError('Cannot switch to Builder mode: advanced JSON is invalid.');
+      return;
+    }
+    if (!Array.isArray(parsed)) {
+      setError('Cannot switch to Builder mode: advanced JSON must be an array.');
+      return;
+    }
+
+    const mapped = parsed.map((tc) => normalizeTestCase(tc));
+    setTestCases(
+      mapped.length
+        ? mapped.map((tc) => ({ ...tc, output: tc.output }))
+        : [{ input: '', output: '', mode: 'function', functionName: 'solution', is_hidden: false }]
+    );
+    setTestCaseMode('builder');
+  };
+
+  const weeklyRuntimeCheatSheet = `#### Runtime test cases JSON
+
+\`\`\`json
+[
+  {
+    "mode": "function",
+    "input": "{\"args\":[\"abccba\",1]}",
+    "expected": "true",
+    "functionName": "isShiftedPalindrome",
+    "is_hidden": false
+  },
+  {
+    "mode": "function",
+    "input": "{\"args\":[\"abc\",1]}",
+    "expected": "false",
+    "functionName": "isShiftedPalindrome"
+  }
+]
+\`\`\`
+
+Supported fields:
+
+- \`input\`: input payload for the test.
+- \`expected\` or \`output\`: expected result.
+- \`is_hidden\` (optional): hide case in learner preview.
+- \`mode\`: fixed to \`function\` for weekly challenges.
+- \`functionName\` (optional): function entry name (defaults to \`solution\`).
+
+Tip: weekly challenges are runtime-first. Keep test cases as a valid JSON array.`;
 
   return (
     <div className="admin-modal-overlay">
@@ -298,64 +525,204 @@ const AdminWeeklyTaskModal = ({ isOpen, onClose, onTaskAdded, initialTask = null
           </div>
 
           <div className="form-group">
+            <label>Reward Avatar Frame (Hard challenge only, optional)</label>
+            {difficulty !== 'hard' ? (
+              <div className="test-case-hint">Set difficulty to Hard to attach an avatar frame reward.</div>
+            ) : null}
+
+            {rewardAvatarError ? (
+              <div className="test-case-hint" style={{ color: '#fca5a5' }}>{rewardAvatarError}</div>
+            ) : null}
+
+            <div className="form-row" style={{ marginBottom: '8px' }}>
+              <div className="form-group">
+                <label>Available frames</label>
+                <select
+                  value={rewardAvatarKey}
+                  onChange={(e) => applyRewardSelection(e.target.value)}
+                  disabled={loading || rewardAvatarLoading || difficulty !== 'hard'}
+                >
+                  <option value="">Auto pick available reward</option>
+                  {(rewardAvatarOptions || []).map((opt) => (
+                    <option key={opt.key} value={opt.key} disabled={Boolean(opt?.is_used)}>
+                      {opt.name || opt.key}{opt?.is_used ? ' - Already used' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {rewardAvatarLoading ? <span className="test-case-hint">Loading available cosmetics...</span> : null}
+              {!rewardAvatarLoading && difficulty === 'hard' && rewardAvatarOptions.length === 0 ? (
+                <span className="test-case-hint">No avatar frame cosmetics found. Add cosmetics first.</span>
+              ) : null}
+              {!rewardAvatarLoading && difficulty === 'hard' && rewardAvatarOptions.length > 0 && availableRewardCount === 0 ? (
+                <span className="test-case-hint">All avatar frame cosmetics are already used by weekly tasks.</span>
+              ) : null}
+
+              {rewardAvatarKey ? (
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => applyRewardSelection('')}
+                  disabled={rewardAvatarLoading || loading}
+                >
+                  Clear Selection
+                </button>
+              ) : null}
+            </div>
+
+            {rewardAvatarKey ? (
+              <div style={{ marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                {rewardAvatarImage ? (
+                  <img
+                    src={rewardAvatarImage}
+                    alt={rewardAvatarName || 'Reward avatar frame'}
+                    style={{ width: '62px', height: '62px', objectFit: 'contain', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)' }}
+                  />
+                ) : null}
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 800 }}>{rewardAvatarName || 'Weekly Reward Frame'}</div>
+                  <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Key: {rewardAvatarKey}</div>
+                  {(() => {
+                    const picked = (rewardAvatarOptions || []).find((r) => String(r?.key) === String(rewardAvatarKey));
+                    if (!picked?.is_used || !picked?.used_by_task) return null;
+                    return (
+                      <div style={{ fontSize: '0.78rem', opacity: 0.82 }}>
+                        Already used in task #{picked.used_by_task.task_id}: {picked.used_by_task.title}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="form-group">
             <label>Starter Code (Optional)</label>
-            <textarea 
-              className="code-editor"
-              value={starterCode} 
-              onChange={e => setStarterCode(e.target.value)} 
-              rows={4} 
-              placeholder="def reverse_array(arr):&#10;    # Write your code here&#10;    pass" 
-            />
+            <div style={{ border: '1px solid rgba(148, 163, 184, 0.26)', borderRadius: '8px', overflow: 'hidden' }}>
+              <Editor
+                height="220px"
+                language={monacoLang}
+                theme={editorTheme}
+                value={starterCode}
+                onChange={(v) => setStarterCode(v ?? '')}
+                options={codeEditorOptions}
+              />
+            </div>
           </div>
 
           <div className="form-group">
             <label>Solution Code (Optional but recommended)</label>
-            <textarea 
-              className="code-editor"
-              value={solutionCode} 
-              onChange={e => setSolutionCode(e.target.value)} 
-              rows={4} 
-              placeholder="def reverse_array(arr):&#10;    return arr[::-1]" 
-            />
+            <div style={{ border: '1px solid rgba(148, 163, 184, 0.26)', borderRadius: '8px', overflow: 'hidden' }}>
+              <Editor
+                height="220px"
+                language={monacoLang}
+                theme={editorTheme}
+                value={solutionCode}
+                onChange={(v) => setSolutionCode(v ?? '')}
+                options={codeEditorOptions}
+              />
+            </div>
           </div>
 
           <div className="form-section">
             <div className="form-section-header">
               <h3>Test Cases</h3>
-              <button type="button" className="btn-add-test" onClick={handleAddTestCase}>
-                <Plus size={16} /> Add Test Case
-              </button>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className={`admin-md-toggle ${testCaseMode === 'builder' ? 'is-on' : ''}`}
+                  onClick={() => handleSwitchTestCaseMode('builder')}
+                >
+                  Builder
+                </button>
+                <button
+                  type="button"
+                  className={`admin-md-toggle ${testCaseMode === 'advanced' ? 'is-on' : ''}`}
+                  onClick={() => handleSwitchTestCaseMode('advanced')}
+                >
+                  Advanced JSON
+                </button>
+                {testCaseMode === 'builder' ? (
+                  <button type="button" className="btn-add-test" onClick={handleAddTestCase}>
+                    <Plus size={16} /> Add Test Case
+                  </button>
+                ) : null}
+              </div>
             </div>
             
-            {testCases.map((tc, index) => (
-              <div key={index} className="test-case-row">
-                <span className="test-case-num">#{index + 1}</span>
-                <div className="test-case-fields">
-                  <div className="form-group">
-                    <label>Input</label>
-                    <input 
-                      type="text" 
-                      value={tc.input} 
-                      onChange={e => handleTestCaseChange(index, 'input', e.target.value)} 
-                      placeholder="e.g. [1, 2, 3]" 
-                    />
+            {testCaseMode === 'builder' ? (
+              <>
+                {testCases.map((tc, index) => (
+                  <div key={index} className="test-case-row">
+                    <span className="test-case-num">#{index + 1}</span>
+                    <div className="test-case-fields">
+                      <div className="form-group">
+                        <label>Input</label>
+                        <input
+                          type="text"
+                          value={tc.input}
+                          onChange={e => handleTestCaseChange(index, 'input', e.target.value)}
+                          placeholder='e.g. {"args":["abc",1]}'
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Expected Output</label>
+                        <input
+                          type="text"
+                          value={tc.output}
+                          onChange={e => handleTestCaseChange(index, 'output', e.target.value)}
+                          placeholder='e.g. true'
+                        />
+                      </div>
+
+                      <div className="test-case-meta">
+                        <div className="form-group">
+                          <label>Mode</label>
+                          <input type="text" value="function" readOnly disabled />
+                        </div>
+
+                        <div className="form-group">
+                          <label>Function Name (optional)</label>
+                          <input
+                            type="text"
+                            value={tc.functionName || ''}
+                            onChange={e => handleTestCaseChange(index, 'functionName', e.target.value)}
+                            placeholder="e.g. isShiftedPalindrome"
+                          />
+                        </div>
+
+                        <label className="test-case-hidden-toggle">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(tc.is_hidden)}
+                            onChange={e => handleTestCaseChange(index, 'is_hidden', e.target.checked)}
+                          />
+                          Hidden test case
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" className="btn-remove-test" onClick={() => handleRemoveTestCase(index)} disabled={testCases.length === 1}>
+                      <Trash2 size={18} />
+                    </button>
                   </div>
-                  <div className="form-group">
-                    <label>Expected Output</label>
-                    <input 
-                      type="text" 
-                      value={tc.output} 
-                      onChange={e => handleTestCaseChange(index, 'output', e.target.value)} 
-                      placeholder="e.g. [3, 2, 1]" 
-                    />
-                  </div>
+                ))}
+                <div className="test-case-hint">Tip: Use JSON-style input like <code>{'{"args":["abccba",1]}'}</code> and expected values like <code>true</code>/<code>false</code>.</div>
+              </>
+            ) : (
+              <>
+                <div style={{ border: '1px solid rgba(148, 163, 184, 0.26)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <JsonEditor
+                    height="260px"
+                    value={testCasesJson}
+                    onChange={(v) => setTestCasesJson(v ?? '')}
+                  />
                 </div>
-                <button type="button" className="btn-remove-test" onClick={() => handleRemoveTestCase(index)} disabled={testCases.length === 1}>
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
-            <div className="test-case-hint">Note: If you use arrays or strings, format them as they would appear in JSON (e.g. <code>[1,2,3]</code> or <code>"hello"</code>).</div>
+                <div className="test-case-hint">Advanced mode: paste your full JSON test case array. Supports <code>expected</code> or <code>output</code>.</div>
+              </>
+            )}
           </div>
 
           <div className="admin-modal-footer">

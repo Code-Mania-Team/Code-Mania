@@ -446,7 +446,7 @@ export default class QuestUI {
       const label = this.scene.add
         .text(tabStartX + 10, y + tabHeight / 2, `${marker} ${tab.label || "Side Quest"}`, {
           fontFamily: "Georgia",
-          fontSize: "14px",
+          fontSize: this.isMobile ? "12px" : "16px",
           color: labelColor,
         })
         .setOrigin(0, 0.5)

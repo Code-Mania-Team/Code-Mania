@@ -264,6 +264,64 @@
   cursor: not-allowed;
 }
 
+:global(html[data-theme="light"]) .wrap {
+  border-color: rgba(15, 23, 42, 0.14);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+:global(html[data-theme="light"]) .tabs {
+  border-bottom-color: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+:global(html[data-theme="light"]) .tab {
+  border-color: rgba(15, 23, 42, 0.14);
+  background: rgba(15, 23, 42, 0.05);
+  color: #334155;
+}
+
+:global(html[data-theme="light"]) .tabActive {
+  background: rgba(29, 78, 216, 0.12);
+  border-color: rgba(29, 78, 216, 0.28);
+  color: #1d4ed8;
+}
+
+:global(html[data-theme="light"]) .tabAdd {
+  border-color: rgba(15, 23, 42, 0.18);
+  color: #334155;
+}
+
+:global(html[data-theme="light"]) .fieldLabel,
+:global(html[data-theme="light"]) .varsTitle {
+  color: #475569;
+}
+
+:global(html[data-theme="light"]) .textarea,
+:global(html[data-theme="light"]) .varName,
+:global(html[data-theme="light"]) .varValue,
+:global(html[data-theme="light"]) .select,
+:global(html[data-theme="light"]) .input {
+  border-color: rgba(15, 23, 42, 0.16);
+  background: #ffffff;
+  color: #0f172a;
+}
+
+:global(html[data-theme="light"]) .varsBox {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+:global(html[data-theme="light"]) .varsEmpty,
+:global(html[data-theme="light"]) .checkbox {
+  color: #475569;
+}
+
+:global(html[data-theme="light"]) .deleteBtn {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
+}
+
 @media (max-width: 640px) {
   .varRow {
     grid-template-columns: 1fr;

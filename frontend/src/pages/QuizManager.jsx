@@ -6,6 +6,7 @@ import { ArrowLeft, Edit, Save, X } from "lucide-react";
 import styles from "../styles/Admin.module.css";
 import TestCasesEditor from "../components/TestCasesEditor";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import { useTheme } from "../context/ThemeProvider.jsx";
 
 const LANG_SLUG_BY_COURSE = {
   python: "python",
@@ -316,7 +317,54 @@ const QuizManager = () => {
   );
 };
 
-const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
+const RuntimeTestCasesCheatSheet = ({ title = "Runtime Test Cases" }) => {
+  const runtimeMarkdown = `#### JSON format
+
+\`\`\`json
+[
+  {
+    "input": "2 3",
+    "expected": "5",
+    "is_hidden": false
+  },
+  {
+    "input": "-1 1",
+    "expected": "0",
+    "is_hidden": true
+  }
+]
+\`\`\`
+
+Use \`\\n\` for multi-line input/output.`;
+
+  const supportedMarkdown = `#### Supported fields
+
+- \`input\`: stdin input (or function argument payload when mode is function).
+- \`expected\`: expected output/result.
+- \`is_hidden\`: hide from learner preview (\`true\` / \`false\`).
+- \`mode\` (optional): \`stdin\` (default) or \`function\`.
+- \`functionName\` (optional): required when using \`mode: "function"\`.
+
+Tip: keep this as a valid JSON array.`;
+
+  return (
+    <>
+      <div className={styles.previewTitle}>
+        <span>{title}</span>
+      </div>
+      <p className={styles.previewHint}>Runtime-focused checks used in code quizzes.</p>
+      <div className={styles.previewCard}>
+        <MarkdownRenderer>{runtimeMarkdown}</MarkdownRenderer>
+        <MarkdownRenderer>{supportedMarkdown}</MarkdownRenderer>
+      </div>
+    </>
+  );
+};
+
+const QuizForm = ({ formData, setFormData, onSave, onCancel, saving, allowFunctionMode = false }) => {
+  const { theme } = useTheme();
+  const editorTheme = theme === "light" ? "vs" : "vs-dark";
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -419,7 +467,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
               <Editor
                 height="200px"
                 language="markdown"
-                theme="vs-dark"
+                theme={editorTheme}
                 value={formData.quiz_description || ""}
                 onChange={(v) => handleChange("quiz_description", v ?? "")}
                 options={baseEditorOptions}
@@ -443,7 +491,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
                     <Editor
                       height="260px"
                       language="plaintext"
-                      theme="vs-dark"
+                      theme={editorTheme}
                       value={formData.starting_code || ""}
                       onChange={(v) => handleChange("starting_code", v ?? "")}
                       options={baseEditorOptions}
@@ -471,7 +519,7 @@ const QuizForm = ({ formData, setFormData, onSave, onCancel, saving }) => {
                       <Editor
                         height="240px"
                         language="json"
-                        theme="vs-dark"
+                        theme={editorTheme}
                         value={formData.test_cases || "[]"}
                         onChange={(v) => handleChange("test_cases", v ?? "")}
                         options={baseEditorOptions}

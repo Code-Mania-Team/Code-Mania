@@ -432,7 +432,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
 
   .oauthButton {
     padding: 14px 16px;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 10px;
   }
 
@@ -628,7 +628,7 @@ input:not(:placeholder-shown):not(:focus):invalid {
   text-align: center;
   margin: 24px 0;
   color: #94a3b8;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
 }
 

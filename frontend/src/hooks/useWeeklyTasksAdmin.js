@@ -37,6 +37,27 @@ const useWeeklyTasksAdmin = () => {
     }
   }, [axiosPrivate, guard]);
 
+  const getRewardAvatarOptions = useCallback(async ({ excludeTaskId = null } = {}) => {
+    guard();
+    setLoading(true);
+    setError("");
+    try {
+      const params = {};
+      if (excludeTaskId !== null && excludeTaskId !== undefined) {
+        const n = Number(excludeTaskId);
+        if (Number.isFinite(n) && n > 0) params.exclude_task_id = n;
+      }
+
+      const res = await axiosPrivate.get("/v1/weekly-tasks/reward-avatar-options", { params });
+      return res.data?.data || [];
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to fetch reward avatar options");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [axiosPrivate, guard]);
+
   const createTask = useCallback(
     async (payload) => {
       guard();
@@ -139,16 +160,49 @@ const useWeeklyTasksAdmin = () => {
     [axiosPrivate, guard]
   );
 
+  const uploadRewardAvatarFrame = useCallback(
+    async (file, { name = "", rarity = "epic" } = {}) => {
+      guard();
+      if (!file) {
+        const err = new Error("Missing file");
+        err.status = 400;
+        throw err;
+      }
+
+      setLoading(true);
+      setError("");
+      try {
+        const form = new FormData();
+        form.append("image", file);
+        if (name) form.append("name", String(name));
+        if (rarity) form.append("rarity", String(rarity));
+
+        const res = await axiosPrivate.post("/v1/weekly-tasks/reward-avatar", form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        return res.data;
+      } catch (err) {
+        setError(err?.response?.data?.message || err?.message || "Failed to upload reward avatar frame");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [axiosPrivate, guard]
+  );
+
   return {
     isAdmin,
     loading,
     error,
     getAllTasks,
+    getRewardAvatarOptions,
     createTask,
     updateTask,
     deleteTask,
     setWinners,
     uploadCoverImage,
+    uploadRewardAvatarFrame,
   };
 };
 

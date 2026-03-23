@@ -26,7 +26,7 @@ export default class CongratulationsPopup {
     }).setOrigin(0.5);
 
     this.subtitle = scene.add.text(0, 45, "Great job, coder!", {
-      fontSize: "14px",
+      fontSize: "16px",
       color: "#aaaaaa"
     }).setOrigin(0.5);
 
